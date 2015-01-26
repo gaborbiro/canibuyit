@@ -461,7 +461,7 @@ public class BudgetModifierDetailFragment extends Fragment implements View.OnCli
 
 		@Override
 		protected BudgetModifier doInBackground(Void... params) {
-			BudgetModifierDbHelper helper = new BudgetModifierDbHelper(context);
+			BudgetModifierDbHelper helper = BudgetModifierDbHelper.get();
 			try {
 				Dao<BudgetModifier, Integer> dao = helper.getDao(BudgetModifier.class);
 				return dao.queryForId(id);
@@ -493,7 +493,7 @@ public class BudgetModifierDetailFragment extends Fragment implements View.OnCli
 
 		@Override
 		protected Void doInBackground(Void... params) {
-			BudgetModifierDbHelper helper = new BudgetModifierDbHelper(context);
+			BudgetModifierDbHelper helper = BudgetModifierDbHelper.get();
 			try {
 				Dao<BudgetModifier, Integer> dao = helper.getDao(BudgetModifier.class);
 				result = dao.createOrUpdate(budgetModifier);
@@ -537,7 +537,7 @@ public class BudgetModifierDetailFragment extends Fragment implements View.OnCli
 
 		@Override
 		protected Boolean doInBackground(Void... params) {
-			BudgetModifierDbHelper helper = new BudgetModifierDbHelper(context);
+			BudgetModifierDbHelper helper = BudgetModifierDbHelper.get();
 			boolean deleted;
 			try {
 				Dao<BudgetModifier, Integer> dao = helper.getDao(BudgetModifier.class);

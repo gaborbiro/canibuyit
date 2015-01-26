@@ -1,21 +1,25 @@
 package com.gb.canibuythat.ui;
 
 
-import java.io.File;
-import java.net.URISyntaxException;
-
 import android.content.Intent;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import com.gb.canibuythat.R;
 import com.gb.canibuythat.provider.BudgetModifierDbHelper;
 import com.gb.canibuythat.provider.BudgetModifierProvider;
+import com.gb.canibuythat.provider.Contract;
+import com.gb.canibuythat.util.DBUtils;
 import com.gb.canibuythat.util.DialogUtils;
 import com.gb.canibuythat.util.FileUtils;
+
+import java.io.File;
+import java.net.URISyntaxException;
 
 
 /**
@@ -79,7 +83,7 @@ public class BudgetModifierListActivity extends ActionBarActivity implements Bud
 			showDetailScreen(null);
 			break;
 		case R.id.menu_export:
-			FileUtils.exportDatabase(BudgetModifierDbHelper.DATABASE_NAME);
+			DBUtils.exportDatabase(BudgetModifierDbHelper.DATABASE_NAME);
 			break;
 		case R.id.menu_import:
 			Intent i = new Intent(Intent.ACTION_GET_CONTENT);
@@ -98,16 +102,15 @@ public class BudgetModifierListActivity extends ActionBarActivity implements Bud
 		case ACTION_CHOOSE_FILE:
 			if (resultCode == RESULT_OK) {
 				Uri uri = data.getData();
-				String path = null;
-				try {
-					path = FileUtils.getPath(uri);
-				} catch (URISyntaxException e) {
-					e.printStackTrace();
+					try {
+						String path = FileUtils.getPath(uri);
+						new DatabaseImportTask(path).execute();
+					} catch (URISyntaxException e) {
+						e.printStackTrace();
+						Toast.makeText(this, "Error importing database", Toast.LENGTH_SHORT).show();
+					}
 				}
-				FileUtils.importDatabase(new File(path), BudgetModifierDbHelper.DATABASE_NAME);
-				getContentResolver().notifyChange(BudgetModifierProvider.BUDGET_MODIFIERS_URI, null);
-			}
-			break;
+				break;
 		}
 		super.onActivityResult(requestCode, resultCode, data);
 	}
@@ -183,4 +186,20 @@ public class BudgetModifierListActivity extends ActionBarActivity implements Bud
 			super.onBackPressed();
 		}
 	}
+
+    public class DatabaseImportTask extends AsyncTask<Void, Void, Void> {
+
+        private String path;
+
+        public DatabaseImportTask(String path) {
+            this.path = path;
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            DBUtils.importDatabase(new File(path), Contract.BudgetModifier.TABLE, Contract.BudgetModifier.COLUMNS, new BudgetModifierDbHelper(BudgetModifierListActivity.this));
+            getContentResolver().notifyChange(BudgetModifierProvider.BUDGET_MODIFIERS_URI, null);
+            return null;
+        }
+    }
 }
