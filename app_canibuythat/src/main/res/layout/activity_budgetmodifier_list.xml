@@ -1,0 +1,10 @@
+<fragment xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/budgetmodifier_list"
+    android:name="com.gb.canibuythat.ui.BudgetModifierListFragment"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_marginLeft="@dimen/activity_margin"
+    android:layout_marginRight="@dimen/activity_margin"
+    tools:context=".BudgetModifierListActivity"
+    tools:layout="@android:layout/list_content" />

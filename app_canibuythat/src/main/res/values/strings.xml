@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Can I Buy That</string>
+    <string name="title_budgetmodifier_detail">Edit</string>
+    <string name="title">Title</string>
+    <string name="amount">Amount $</string>
+    <string name="repetition">Repeat this many times</string>
+    <string name="period_multiplier">Every n</string>
+    <string name="notes">Notes</string>
+    <string name="save">Save</string>
+    <string name="delete">Delete</string>
+</resources>

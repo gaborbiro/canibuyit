@@ -1,0 +1,117 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="@dimen/activity_margin">
+
+    <EditText
+        android:id="@+id/title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:lines="1"
+        android:inputType="textCapWords|textAutoComplete"
+        android:imeOptions="actionNext"
+        android:selectAllOnFocus="true"
+        android:hint="@string/title">
+
+        <requestFocus />
+    </EditText>
+
+    <LinearLayout
+        android:id="@+id/amount_and_type_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/title"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <EditText
+            android:id="@+id/amount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:inputType="numberDecimal"
+            android:lines="1"
+            android:imeOptions="actionNext"
+            android:selectAllOnFocus="true"
+            android:hint="@string/amount"
+            android:minWidth="64dp" />
+
+        <Spinner
+            android:id="@+id/type"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+
+    <EditText
+        android:id="@+id/lower_date"
+        style="@style/SpinnerStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/horizontal_padding"
+        android:layout_below="@id/amount_and_type_container"
+        android:hint="Pick a date"
+        android:editable="false" />
+
+    <EditText
+        android:id="@+id/upper_date"
+        style="@style/SpinnerStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/horizontal_padding"
+        android:layout_marginStart="@dimen/horizontal_padding"
+        android:hint="Pick a date"
+        android:layout_toEndOf="@id/lower_date"
+        android:layout_below="@id/amount_and_type_container"
+        android:editable="false" />
+
+    <EditText
+        android:id="@+id/repetition_count"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:minWidth="64dp"
+        android:lines="1"
+        android:layout_marginTop="@dimen/horizontal_padding"
+        android:layout_below="@id/lower_date"
+        android:imeOptions="actionNext"
+        android:selectAllOnFocus="true"
+        android:hint="@string/repetition"
+        android:inputType="number" />
+
+    <LinearLayout
+        android:id="@+id/period_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/horizontal_padding"
+        android:layout_below="@id/repetition_count"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <EditText
+            android:id="@+id/period_multiplier"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="64dp"
+            android:lines="1"
+            android:selectAllOnFocus="true"
+            android:imeOptions="actionNext"
+            android:hint="@string/period_multiplier"
+            android:inputType="number" />
+
+        <Spinner
+            android:id="@+id/period_type"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+    </LinearLayout>
+
+
+    <EditText
+        android:id="@+id/notes"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/horizontal_padding"
+        android:hint="@string/notes"
+        android:imeOptions="actionDone"
+        android:selectAllOnFocus="true"
+        android:inputType="textAutoComplete|textMultiLine"
+        android:layout_below="@id/period_container" />
+</RelativeLayout>
