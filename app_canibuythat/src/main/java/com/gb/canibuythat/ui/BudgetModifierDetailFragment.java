@@ -140,7 +140,7 @@ public class BudgetModifierDetailFragment extends Fragment implements View.OnCli
 
 	public void swapContent(Integer id, final boolean showKeyboardWhenDone) {
 		if (id != null) {
-			new BudgetModifierLoaderTask(getActivity(), new BudgetModifierLoaderTask.Listener() {
+			new BudgetModifierLoaderTask(new BudgetModifierLoaderTask.Listener() {
 
 				@Override
 				public void onDataReady(BudgetModifier budgetModifier) {
@@ -189,6 +189,7 @@ public class BudgetModifierDetailFragment extends Fragment implements View.OnCli
 					@Override
 					public void onDataDeleted() {
 						deleteMenuItem.setVisible(false);
+						budgetModifier = null;
 					}
 
 
@@ -209,12 +210,18 @@ public class BudgetModifierDetailFragment extends Fragment implements View.OnCli
 	 */
 	public boolean saveUserData() {
 		if (validate()) {
-			BudgetModifier newBudgetModifier = gatherData();
+			final BudgetModifier newBudgetModifier = gatherData();
 
 			if (budgetModifier != null) {
 				newBudgetModifier.id = budgetModifier.id;
 			}
-			new BudgetModifierUpdateTask(getActivity(), budgetModifier).execute();
+			new BudgetModifierUpdateTask(getActivity(), newBudgetModifier, new BudgetModifierUpdateTask.Listener() {
+
+				@Override
+				public void onSuccess() {
+					BudgetModifierDetailFragment.this.budgetModifier = newBudgetModifier;
+				}
+			}).execute();
 			deleteMenuItem.setVisible(true);
 			return true;
 		} else {
@@ -232,7 +239,10 @@ public class BudgetModifierDetailFragment extends Fragment implements View.OnCli
 			} else {
 				amountET.setText(null);
 			}
-			typeSpinner.setSelection(budgetModifier.type.ordinal());
+
+			if (budgetModifier.type != null) {
+				typeSpinner.setSelection(budgetModifier.type.ordinal());
+			}
 
 			if (budgetModifier.lowerDate != null) {
 				lowerDateET.setText(SPINNER_DATE_FORMAT.format(budgetModifier.lowerDate));
@@ -251,12 +261,16 @@ public class BudgetModifierDetailFragment extends Fragment implements View.OnCli
 			} else {
 				repetitionCountET.setText(null);
 			}
+
 			if (budgetModifier.periodMultiplier != null) {
 				periodMultiplierET.setText(Integer.toString(budgetModifier.periodMultiplier));
 			} else {
 				periodMultiplierET.setText(null);
 			}
-			periodTypeSpinner.setSelection(budgetModifier.periodType.ordinal());
+
+			if (budgetModifier.periodType != null) {
+				periodTypeSpinner.setSelection(budgetModifier.periodType.ordinal());
+			}
 			notesET.setText(budgetModifier.notes);
 		} else {
 			titleET.setText(null);
@@ -447,13 +461,11 @@ public class BudgetModifierDetailFragment extends Fragment implements View.OnCli
 			public void onDataReady(BudgetModifier budgetModifier);
 		}
 
-		private Context		context;
 		private Listener	listener;
 		private int			id;
 
 
-		private BudgetModifierLoaderTask(Context context, Listener listener, int id) {
-			this.context = context;
+		private BudgetModifierLoaderTask(Listener listener, int id) {
 			this.listener = listener;
 			this.id = id;
 		}
@@ -480,14 +492,21 @@ public class BudgetModifierDetailFragment extends Fragment implements View.OnCli
 
 	private static class BudgetModifierUpdateTask extends AsyncTask<Void, Void, Void> {
 
+		public interface Listener {
+
+			public void onSuccess();
+		}
+
 		private Context						context;
 		private BudgetModifier				budgetModifier;
 		private Dao.CreateOrUpdateStatus	result;
+		private Listener					listener;
 
 
-		private BudgetModifierUpdateTask(Context context, BudgetModifier budgetModifier) {
+		private BudgetModifierUpdateTask(Context context, BudgetModifier budgetModifier, Listener listener) {
 			this.context = context;
 			this.budgetModifier = budgetModifier;
+			this.listener = listener;
 		}
 
 
@@ -510,6 +529,7 @@ public class BudgetModifierDetailFragment extends Fragment implements View.OnCli
 		protected void onPostExecute(Void aVoid) {
 			Toast.makeText(context, result.isCreated() ? "BudgetModifier created" : "BudgetModifier updated",
 					Toast.LENGTH_SHORT).show();
+			listener.onSuccess();
 		}
 	}
 
