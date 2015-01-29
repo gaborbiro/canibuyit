@@ -49,4 +49,12 @@ public class BudgetModifierDbHelper extends OrmLiteSqliteOpenHelper {
     public void onUpgrade(SQLiteDatabase database, ConnectionSource connectionSource, int oldVersion, int newVersion) {
 
     }
+
+
+    public void cleanup() {
+        if (INSTANCE != null) {
+            OpenHelperManager.releaseHelper();
+            INSTANCE = null;
+        }
+    }
 }
