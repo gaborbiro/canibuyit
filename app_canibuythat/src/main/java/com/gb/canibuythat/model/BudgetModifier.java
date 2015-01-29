@@ -22,38 +22,38 @@ import com.j256.ormlite.table.DatabaseTable;
 public class BudgetModifier {
 
 	public enum BudgetModifierType {
-		UNKNOWN, ACCOMMODATION, AUTOMOBILE, CHILD_SUPPORT, DONATIONS_GIVEN, ENTERTAINMENT, FOOD, GIFTS_GIVEN, GROCERIES, HOUSEHOLD, INSURANCE, MEDICARE, PERSONAL_CARE, PETS, SELF_IMPROVEMENT, SPORTS_RECREATION, TAX, TRANSPORTATION, UTILITIES, VACATION, GIFTS_RECEIVED, INCOME, FINES, ONLINE_SERVICES
+		ACCOMMODATION, AUTOMOBILE, CHILD_SUPPORT, DONATIONS_GIVEN, ENTERTAINMENT, FOOD, GIFTS_GIVEN, GROCERIES, HOUSEHOLD, INSURANCE, MEDICARE, PERSONAL_CARE, PETS, SELF_IMPROVEMENT, SPORTS_RECREATION, TAX, TRANSPORTATION, UTILITIES, VACATION, GIFTS_RECEIVED, INCOME, FINES, ONLINE_SERVICES
 	}
 
 	public static enum PeriodType {
-		UNKNOWN, DAYS, WEEKS, MONTHS, YEARS
+		DAYS, WEEKS, MONTHS, YEARS
 	}
 
 	@DatabaseField(generatedId = true, columnName = Contract.BudgetModifier._ID)
 	public Integer				id;
 
-	@DatabaseField(index = true, columnName = Contract.BudgetModifier.TITLE, unique = true)
+	@DatabaseField(index = true, columnName = Contract.BudgetModifier.TITLE, unique = true, canBeNull = false)
 	public String				title;
 
 	@DatabaseField(columnName = Contract.BudgetModifier.NOTES)
 	public String				notes;
 
-	@DatabaseField(columnName = Contract.BudgetModifier.TYPE)
+	@DatabaseField(columnName = Contract.BudgetModifier.TYPE, canBeNull = false)
 	public BudgetModifierType	type;
 
-	@DatabaseField(columnName = Contract.BudgetModifier.AMOUNT)
+	@DatabaseField(columnName = Contract.BudgetModifier.AMOUNT, canBeNull = false)
 	public Float				amount;
 
 	/**
 	 * Date before witch the transaction certainly wont happen. The repetition period is added to this date.
 	 */
-	@DatabaseField(columnName = Contract.BudgetModifier.LOWER_DATE)
+	@DatabaseField(columnName = Contract.BudgetModifier.LOWER_DATE, canBeNull = false)
 	public Date					lowerDate;
 
 	/**
 	 * Date by witch the transaction most certainly did happen. The repetition period is added to this date.
 	 */
-	@DatabaseField(columnName = Contract.BudgetModifier.UPPER_DATE)
+	@DatabaseField(columnName = Contract.BudgetModifier.UPPER_DATE, canBeNull = false)
 	public Date					upperDate;
 
 	/**
@@ -73,7 +73,7 @@ public class BudgetModifier {
 	 * upperDate) must not be larger the this period.<br>
 	 * Ex: The first week of every month, cold months of the year, every weekend, every semester
 	 */
-	@DatabaseField(columnName = Contract.BudgetModifier.PERIOD)
+	@DatabaseField(columnName = Contract.BudgetModifier.PERIOD, canBeNull = false)
 	public PeriodType			periodType;
 
 

@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.os.Bundle;
+import android.util.Log;
 
 import com.j256.ormlite.android.apptools.OpenHelperManager;
 
@@ -13,6 +14,8 @@ import com.j256.ormlite.android.apptools.OpenHelperManager;
  * Created by GABOR on 2015-jan.-24.
  */
 public class App extends Application {
+
+    private static final String TAG = "App";
 
     private static Context appContext;
 
@@ -46,6 +49,7 @@ public class App extends Application {
         @Override
         public void onActivityDestroyed(Activity activity) {
             if (firstActivity == activity) {
+                Log.d(TAG, "Releasing sqlite connection");
                 OpenHelperManager.releaseHelper();
                 firstActivity = null;
             }
