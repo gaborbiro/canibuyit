@@ -8,4 +8,6 @@
     <dimen name="horizontal_padding">@dimen/unit</dimen>
     <dimen name="vertical_padding">@dimen/unit</dimen>
     <dimen name="list_item_padding">@dimen/double_unit</dimen>
+
+    <dimen name="statistics_shadow_height">@dimen/unit</dimen>
 </resources>

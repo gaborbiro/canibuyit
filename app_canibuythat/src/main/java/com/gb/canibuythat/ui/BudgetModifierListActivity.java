@@ -1,6 +1,10 @@
 package com.gb.canibuythat.ui;
 
 
+import java.io.File;
+import java.net.URISyntaxException;
+import java.sql.SQLException;
+
 import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -8,18 +12,21 @@ import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import butterknife.ButterKnife;
+import butterknife.InjectView;
+
 import com.gb.canibuythat.R;
+import com.gb.canibuythat.model.BudgetModifier;
 import com.gb.canibuythat.provider.BudgetModifierDbHelper;
 import com.gb.canibuythat.provider.BudgetModifierProvider;
 import com.gb.canibuythat.provider.Contract;
 import com.gb.canibuythat.util.DBUtils;
 import com.gb.canibuythat.util.DialogUtils;
 import com.gb.canibuythat.util.FileUtils;
-
-import java.io.File;
-import java.net.URISyntaxException;
+import com.j256.ormlite.dao.Dao;
 
 
 /**
@@ -43,17 +50,23 @@ public class BudgetModifierListActivity extends ActionBarActivity implements Bud
 	 */
 	private boolean				twoPane;
 
+	@InjectView(R.id.balance)
+	TextView					balanceTV;
+
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_budgetmodifier_list);
+		ButterKnife.inject(this);
 
 		if (findViewById(R.id.budgetmodifier_detail_container) != null) {
 			twoPane = true;
 			((BudgetModifierListFragment) getSupportFragmentManager().findFragmentById(R.id.budgetmodifier_list))
 					.setActivateOnItemClick(true);
 		}
+
+        new CalculateBalanceTask().execute();
 
 		// TODO: If exposing deep links into your app, handle intents here.
 	}
@@ -102,15 +115,15 @@ public class BudgetModifierListActivity extends ActionBarActivity implements Bud
 		case ACTION_CHOOSE_FILE:
 			if (resultCode == RESULT_OK) {
 				Uri uri = data.getData();
-					try {
-						String path = FileUtils.getPath(uri);
-						new DatabaseImportTask(path).execute();
-					} catch (URISyntaxException e) {
-						e.printStackTrace();
-						Toast.makeText(this, "Error importing database", Toast.LENGTH_SHORT).show();
-					}
+				try {
+					String path = FileUtils.getPath(uri);
+					new DatabaseImportTask(path).execute();
+				} catch (URISyntaxException e) {
+					e.printStackTrace();
+					Toast.makeText(this, "Error importing database", Toast.LENGTH_SHORT).show();
 				}
-				break;
+			}
+			break;
 		}
 		super.onActivityResult(requestCode, resultCode, data);
 	}
@@ -187,19 +200,54 @@ public class BudgetModifierListActivity extends ActionBarActivity implements Bud
 		}
 	}
 
-    public class DatabaseImportTask extends AsyncTask<Void, Void, Void> {
+	public class CalculateBalanceTask extends AsyncTask<Void, Void, Float> {
 
-        private String path;
+		@Override
+		protected Float doInBackground(Void... params) {
+			BudgetModifierDbHelper helper = BudgetModifierDbHelper.get();
+			float balance = 0;
 
-        public DatabaseImportTask(String path) {
-            this.path = path;
-        }
+			try {
+				Dao<BudgetModifier, Integer> dao = helper.getDao(BudgetModifier.class);
 
-        @Override
-        protected Void doInBackground(Void... params) {
-            DBUtils.importDatabase(new File(path), Contract.BudgetModifier.TABLE, Contract.BudgetModifier.COLUMNS, new BudgetModifierDbHelper(BudgetModifierListActivity.this));
-            getContentResolver().notifyChange(BudgetModifierProvider.BUDGET_MODIFIERS_URI, null);
-            return null;
-        }
-    }
+				for (BudgetModifier bm : dao) {
+					balance += getEstimatedBalance(bm);
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+				throw new RuntimeException(e);
+			}
+			return balance;
+		}
+
+
+		private float getEstimatedBalance(BudgetModifier budgetModifier) {
+			return budgetModifier.amount;
+		}
+
+
+		@Override
+		protected void onPostExecute(Float balance) {
+			balanceTV.setText(Float.toString(balance));
+		}
+	}
+
+	public class DatabaseImportTask extends AsyncTask<Void, Void, Void> {
+
+		private String	path;
+
+
+		public DatabaseImportTask(String path) {
+			this.path = path;
+		}
+
+
+		@Override
+		protected Void doInBackground(Void... params) {
+			DBUtils.importDatabase(new File(path), Contract.BudgetModifier.TABLE, Contract.BudgetModifier.COLUMNS,
+					new BudgetModifierDbHelper(BudgetModifierListActivity.this));
+			getContentResolver().notifyChange(BudgetModifierProvider.BUDGET_MODIFIERS_URI, null);
+			return null;
+		}
+	}
 }

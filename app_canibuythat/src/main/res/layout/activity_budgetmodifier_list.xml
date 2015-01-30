@@ -1,10 +1,30 @@
-<fragment xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/budgetmodifier_list"
-    android:name="com.gb.canibuythat.ui.BudgetModifierListFragment"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:layout_marginLeft="@dimen/activity_margin"
-    android:layout_marginRight="@dimen/activity_margin"
-    tools:context=".BudgetModifierListActivity"
-    tools:layout="@android:layout/list_content" />
+    android:layout_height="match_parent">
+
+    <include
+        android:id="@+id/statistics"
+        layout="@layout/statistics"
+        android:layout_alignParentBottom="true"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <fragment
+        android:id="@+id/budgetmodifier_list"
+        android:name="com.gb.canibuythat.ui.BudgetModifierListFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginStart="@dimen/activity_margin"
+        android:layout_marginEnd="@dimen/activity_margin"
+        android:layout_above="@id/statistics"
+        tools:context=".BudgetModifierListActivity"
+        tools:layout="@android:layout/list_content" />
+
+    <View
+        android:id="@+id/shadow"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/statistics_shadow_height"
+        android:layout_alignBottom="@id/budgetmodifier_list"
+        android:background="@drawable/shadow" />
+</RelativeLayout>

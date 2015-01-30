@@ -35,7 +35,7 @@ public class BudgetModifierListFragment extends ListFragment implements LoaderMa
 	/**
 	 * The fragment's current callback object, which is notified of list item clicks.
 	 */
-	private Callbacks			callbacks					= dummyCallbacks;
+	private Callbacks			callback					= dummyCallbacks;
 
 	/**
 	 * The current activated item position. Only used on tablets.
@@ -91,12 +91,12 @@ public class BudgetModifierListFragment extends ListFragment implements LoaderMa
 	public void onAttach(Activity activity) {
 		super.onAttach(activity);
 
-		// Activities containing this fragment must implement its callbacks.
+		// Activities containing this fragment must implement its callback.
 		if (!(activity instanceof Callbacks)) {
-			throw new IllegalStateException("Activity must implement fragment's callbacks.");
+			throw new IllegalStateException("Activity must implement fragment's callback.");
 		}
 
-		callbacks = (Callbacks) activity;
+		callback = (Callbacks) activity;
 
 		adapter = new SimpleCursorAdapter(getActivity(), R.layout.budgetmodifier_list_item, null, new String[] {
 				Contract.BudgetModifier.TITLE, Contract.BudgetModifier.AMOUNT,
@@ -106,6 +106,7 @@ public class BudgetModifierListFragment extends ListFragment implements LoaderMa
 		}, 0);
 		setListAdapter(adapter);
 		getLoaderManager().initLoader(hashCode(), null, this);
+
 	}
 
 
@@ -131,8 +132,8 @@ public class BudgetModifierListFragment extends ListFragment implements LoaderMa
 	public void onDetach() {
 		super.onDetach();
 
-		// Reset the active callbacks interface to the dummy implementation.
-		callbacks = dummyCallbacks;
+		// Reset the active callback interface to the dummy implementation.
+		callback = dummyCallbacks;
 	}
 
 
@@ -140,9 +141,9 @@ public class BudgetModifierListFragment extends ListFragment implements LoaderMa
 	public void onListItemClick(ListView listView, View view, int position, long id) {
 		super.onListItemClick(listView, view, position, id);
 
-		// Notify the active callbacks interface (the activity, if the
+		// Notify the active callback interface (the activity, if the
 		// fragment is attached to one) that an item has been selected.
-		callbacks.onItemSelected((int) getListAdapter().getItemId(position));
+		callback.onItemSelected((int) getListAdapter().getItemId(position));
 	}
 
 
