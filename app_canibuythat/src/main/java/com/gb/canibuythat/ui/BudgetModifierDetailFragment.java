@@ -11,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -47,9 +48,20 @@ public class BudgetModifierDetailFragment extends Fragment implements View.OnCli
     private static final SimpleDateFormat SPINNER_DATE_FORMAT = new SimpleDateFormat("MMM. dd");
 
     public static final String EXTRA_ITEM_ID = "item_id";
+    private static final String EXTRA_ITEM = "item";
 
-    private static final Date DEFAULT_UPPER_DATE = new Date();
-    private static final Date DEFAULT_LOWER_DATE = new Date();
+    private static final Date DEFAULT_UPPER_DATE;
+    private static final Date DEFAULT_LOWER_DATE;
+
+    static {
+        Calendar c = Calendar.getInstance();
+        c.set(Calendar.HOUR_OF_DAY, 0);
+        c.set(Calendar.MINUTE, 0);
+        c.set(Calendar.SECOND, 0);
+        c.set(Calendar.MILLISECOND, 0);
+        DEFAULT_UPPER_DATE = c.getTime();
+        DEFAULT_LOWER_DATE = c.getTime();
+    }
 
     private BudgetModifier budgetModifier;
     private DatePickerDialog lowerDatePickerDialog;
@@ -83,7 +95,7 @@ public class BudgetModifierDetailFragment extends Fragment implements View.OnCli
     EditText notesET;
 
     private MenuItem deleteMenuItem;
-    private View rootView;
+    private ViewGroup rootView;
 
 
     public BudgetModifierDetailFragment() {
@@ -99,19 +111,24 @@ public class BudgetModifierDetailFragment extends Fragment implements View.OnCli
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        rootView = inflater.inflate(R.layout.fragment_budgetmodifier_detail, container, false);
+        rootView = (ViewGroup) inflater.inflate(R.layout.fragment_budgetmodifier_detail, container, false);
         ButterKnife.inject(this, rootView);
 
         typeSpinner.setAdapter(new ArrayAdapter<>(getActivity(),
                 android.R.layout.simple_list_item_1, BudgetModifier.BudgetModifierType.values()));
+        typeSpinner.setOnTouchListener(titleFocuser);
 
         periodTypeSpinner.setAdapter(new ArrayAdapter<>(getActivity(),
                 android.R.layout.simple_list_item_1, BudgetModifier.PeriodType.values()));
+        periodTypeSpinner.setOnTouchListener(titleFocuser);
         lowerDateET.setOnClickListener(this);
         upperDateET.setOnClickListener(this);
 
-        if (savedInstanceState == null && getArguments() != null && getArguments().containsKey(EXTRA_ITEM_ID)) {
-            swapContent(getArguments().getInt(EXTRA_ITEM_ID), true);
+        if (savedInstanceState != null) {
+            budgetModifier = savedInstanceState.getParcelable(EXTRA_ITEM);
+        }
+        if (budgetModifier == null && getArguments() != null && getArguments().containsKey(EXTRA_ITEM_ID)) {
+            setContent(getArguments().getInt(EXTRA_ITEM_ID), true);
         } else {
             ViewUtils.showKeyboard(titleET);
         }
@@ -119,13 +136,37 @@ public class BudgetModifierDetailFragment extends Fragment implements View.OnCli
     }
 
 
-    public void swapContent(Integer id, final boolean showKeyboardWhenDone) {
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        if (budgetModifier != null) {
+            outState.putParcelable(EXTRA_ITEM, budgetModifier);
+        }
+    }
+
+    private View.OnTouchListener titleFocuser = new View.OnTouchListener() {
+
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+            if (event.getAction() == MotionEvent.ACTION_DOWN && rootView.getFocusedChild() != null) {
+                rootView.getFocusedChild().clearFocus();
+                // titleET will automatically get the focus
+            }
+            return false;
+        }
+    };
+
+
+    public void setContent(Integer id, final boolean showKeyboardWhenDone) {
         if (id != null) {
             new BudgetModifierLoaderTask(new BudgetModifierLoaderTask.Listener() {
 
                 @Override
                 public void onDataReady(BudgetModifier budgetModifier) {
                     BudgetModifierDetailFragment.this.budgetModifier = budgetModifier;
+                    upperDatePickerDialog = null;
+                    lowerDatePickerDialog = null;
                     displayBudgetModifier(budgetModifier);
 
                     if (showKeyboardWhenDone && isAdded()) {
@@ -301,12 +342,7 @@ public class BudgetModifierDetailFragment extends Fragment implements View.OnCli
         Date lowerDate;
 
         if (lowerDatePickerDialog != null) {
-            Calendar c = Calendar.getInstance();
-            DatePicker datePicker = lowerDatePickerDialog.getDatePicker();
-            c.set(Calendar.YEAR, datePicker.getYear());
-            c.set(Calendar.MONTH, datePicker.getMonth());
-            c.set(Calendar.DAY_OF_MONTH, datePicker.getDayOfMonth());
-            lowerDate = c.getTime();
+            lowerDate = getDayFromDatePicker(lowerDatePickerDialog.getDatePicker());
         } else if (budgetModifier != null && budgetModifier.lowerDate != null) {
             lowerDate = budgetModifier.lowerDate;
         } else {
@@ -315,12 +351,7 @@ public class BudgetModifierDetailFragment extends Fragment implements View.OnCli
 
         Date upperDate;
         if (upperDatePickerDialog != null) {
-            Calendar c = Calendar.getInstance();
-            DatePicker datePicker = upperDatePickerDialog.getDatePicker();
-            c.set(Calendar.YEAR, datePicker.getYear());
-            c.set(Calendar.MONTH, datePicker.getMonth());
-            c.set(Calendar.DAY_OF_MONTH, datePicker.getDayOfMonth());
-            upperDate = c.getTime();
+            upperDate = getDayFromDatePicker(upperDatePickerDialog.getDatePicker());
         } else if (budgetModifier != null && budgetModifier.upperDate != null) {
             upperDate = budgetModifier.upperDate;
         } else {
@@ -332,6 +363,35 @@ public class BudgetModifierDetailFragment extends Fragment implements View.OnCli
             upperDateET.requestFocus();
             return false;
         }
+
+        Calendar c = Calendar.getInstance();
+        c.setTime(lowerDate);
+        c.set(Calendar.HOUR_OF_DAY, 0);
+        c.set(Calendar.MINUTE, 0);
+        c.set(Calendar.SECOND, 0);
+        c.set(Calendar.MILLISECOND, 0);
+        switch ((BudgetModifier.PeriodType) periodTypeSpinner.getSelectedItem()) {
+            case DAYS:
+                c.add(Calendar.DAY_OF_MONTH, budgetModifier.periodMultiplier);
+                break;
+            case WEEKS:
+                c.add(Calendar.WEEK_OF_MONTH, budgetModifier.periodMultiplier);
+                break;
+            case MONTHS:
+                c.add(Calendar.MONTH, budgetModifier.periodMultiplier);
+                break;
+            case YEARS:
+                c.add(Calendar.YEAR, budgetModifier.periodMultiplier);
+                break;
+        }
+        c.add(Calendar.DAY_OF_MONTH, -1);
+
+        if (upperDate.after(c.getTime())) {
+            upperDateET.setError("Second date cannot be higher than " + SPINNER_DATE_FORMAT.format(c.getTime()));
+            upperDateET.requestFocus();
+            return false;
+        }
+
         return true;
     }
 
@@ -350,12 +410,7 @@ public class BudgetModifierDetailFragment extends Fragment implements View.OnCli
         budgetModifier.type = (BudgetModifier.BudgetModifierType) typeSpinner.getSelectedItem();
         // lowerDate
         if (lowerDatePickerDialog != null) {
-            DatePicker datePicker = lowerDatePickerDialog.getDatePicker();
-            Calendar c = Calendar.getInstance();
-            c.set(Calendar.YEAR, datePicker.getYear());
-            c.set(Calendar.MONTH, datePicker.getMonth());
-            c.set(Calendar.DAY_OF_MONTH, datePicker.getDayOfMonth());
-            budgetModifier.lowerDate = c.getTime();
+            budgetModifier.lowerDate = getDayFromDatePicker(lowerDatePickerDialog.getDatePicker());
         } else if (this.budgetModifier != null) {
             budgetModifier.lowerDate = this.budgetModifier.lowerDate;
         } else {
@@ -363,12 +418,7 @@ public class BudgetModifierDetailFragment extends Fragment implements View.OnCli
         }
         // upperDate
         if (upperDatePickerDialog != null) {
-            DatePicker datePicker = upperDatePickerDialog.getDatePicker();
-            Calendar c = Calendar.getInstance();
-            c.set(Calendar.YEAR, datePicker.getYear());
-            c.set(Calendar.MONTH, datePicker.getMonth());
-            c.set(Calendar.DAY_OF_MONTH, datePicker.getDayOfMonth());
-            budgetModifier.upperDate = c.getTime();
+            budgetModifier.upperDate = getDayFromDatePicker(upperDatePickerDialog.getDatePicker());
         } else if (this.budgetModifier != null) {
             budgetModifier.upperDate = this.budgetModifier.upperDate;
         } else {
@@ -425,6 +475,30 @@ public class BudgetModifierDetailFragment extends Fragment implements View.OnCli
                 break;
         }
     }
+
+
+    private static Date getDayFromDatePicker(DatePicker datePicker) {
+        Calendar c = Calendar.getInstance();
+        c.set(Calendar.YEAR, datePicker.getYear());
+        c.set(Calendar.MONTH, datePicker.getMonth());
+        c.set(Calendar.DAY_OF_MONTH, datePicker.getDayOfMonth());
+        c.set(Calendar.HOUR_OF_DAY, 0);
+        c.set(Calendar.MINUTE, 0);
+        c.set(Calendar.SECOND, 0);
+        c.set(Calendar.MILLISECOND, 0);
+        return c.getTime();
+    }
+
+
+    /**
+     * @return true if the content differs relative to the original BudgetModifier that was loaded, or the content
+     * hasn't been yet saved
+     */
+    public boolean isChanged() {
+        return (budgetModifier == null && !new BudgetModifier().equals(gatherData()))
+                || (budgetModifier != null && !budgetModifier.equals(gatherData()));
+    }
+
 
     private static class BudgetModifierLoaderTask extends AsyncTask<Void, Void, BudgetModifier> {
 
@@ -551,15 +625,5 @@ public class BudgetModifierDetailFragment extends Fragment implements View.OnCli
                 listener.onNothingDeleted();
             }
         }
-    }
-
-
-    /**
-     * @return true if the content differs relative to the original BudgetModifier that was loaded, or the content
-     * hasn't been yet saved
-     */
-    public boolean isChanged() {
-        return (budgetModifier == null && !new BudgetModifier().equals(gatherData()))
-                || (budgetModifier != null && !budgetModifier.equals(gatherData()));
     }
 }
