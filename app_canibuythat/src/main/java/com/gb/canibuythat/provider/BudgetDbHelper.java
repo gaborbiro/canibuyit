@@ -6,6 +6,7 @@ import android.database.sqlite.SQLiteDatabase;
 
 import com.gb.canibuythat.App;
 import com.gb.canibuythat.model.BudgetModifier;
+import com.gb.canibuythat.model.BudgetReading;
 import com.j256.ormlite.android.apptools.OpenHelperManager;
 import com.j256.ormlite.android.apptools.OrmLiteSqliteOpenHelper;
 import com.j256.ormlite.support.ConnectionSource;
@@ -17,21 +18,21 @@ import java.sql.SQLException;
 /**
  * Created by gbiro on 1/7/2015.
  */
-public class BudgetModifierDbHelper extends OrmLiteSqliteOpenHelper {
+public class BudgetDbHelper extends OrmLiteSqliteOpenHelper {
 
     public static final String DATABASE_NAME = "budget.sqlite";
     private static final int DATABASE_VERSION = 1;
 
-    private static BudgetModifierDbHelper INSTANCE;
+    private static BudgetDbHelper INSTANCE;
 
 
-    public BudgetModifierDbHelper(Context context) {
+    public BudgetDbHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
-    public static BudgetModifierDbHelper get() {
+    public static BudgetDbHelper get() {
         if (INSTANCE == null) {
-            INSTANCE = OpenHelperManager.getHelper(App.getAppContext(), BudgetModifierDbHelper.class);
+            INSTANCE = OpenHelperManager.getHelper(App.getAppContext(), BudgetDbHelper.class);
         }
         return INSTANCE;
     }
@@ -40,6 +41,7 @@ public class BudgetModifierDbHelper extends OrmLiteSqliteOpenHelper {
     public void onCreate(SQLiteDatabase database, ConnectionSource connectionSource) {
         try {
             TableUtils.createTable(connectionSource, BudgetModifier.class);
+            TableUtils.createTable(connectionSource, BudgetReading.class);
         } catch (SQLException e) {
             e.printStackTrace();
         }

@@ -30,7 +30,7 @@
 
         <provider
             android:authorities="com.gb.canibuythat.authority.budget"
-            android:name=".provider.BudgetModifierProvider" />
+            android:name=".provider.BudgetProvider" />
     </application>
 
 </manifest>

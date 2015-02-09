@@ -13,18 +13,34 @@ public class Contract {
 
 	public static class BudgetModifier implements BaseColumns {
 
-		public static final String	TABLE					= "budget_modifier";
+		public static final String		TABLE				= "budget_modifier";
 
-		public static final String	TITLE					= "title";
-		public static final String	NOTES					= "notes";
-		public static final String	AMOUNT					= "amount";
-		public static final String	TYPE					= "type";
-		public static final String	LOWER_DATE				= "lower_date";
-		public static final String	UPPER_DATE				= "upper_date";
-		public static final String	REPETITION_COUNT		= "repetition_count";
-		public static final String	PERIOD_MULTIPLIER		= "period_multiplier";
-		public static final String	PERIOD					= "period";
+		public static final String		TITLE				= "title";
+		public static final String		NOTES				= "notes";
+		public static final String		AMOUNT				= "amount";
+		public static final String		TYPE				= "type";
+		public static final String		LOWER_DATE			= "lower_date";
+		public static final String		UPPER_DATE			= "upper_date";
+		public static final String		REPETITION_COUNT	= "repetition_count";
+		public static final String		PERIOD_MULTIPLIER	= "period_multiplier";
+		public static final String		PERIOD				= "period";
 
-		public static final String[] COLUMNS = {_ID, TITLE, NOTES, AMOUNT, TYPE, LOWER_DATE, UPPER_DATE, REPETITION_COUNT, PERIOD_MULTIPLIER, PERIOD};
+		public static final String[]	COLUMNS				= {
+																	_ID, TITLE, NOTES, AMOUNT, TYPE, LOWER_DATE,
+																	UPPER_DATE, REPETITION_COUNT, PERIOD_MULTIPLIER,
+																	PERIOD
+															};
+	}
+
+	public static class BudgetReading implements BaseColumns {
+
+		public static final String		TABLE	= "budget_reading";
+
+		public static final String		DATE	= "date";
+		public static final String		VALUE	= "value";
+
+		public static final String[]	COLUMNS	= {
+														_ID, DATE, VALUE
+												};
 	}
 }

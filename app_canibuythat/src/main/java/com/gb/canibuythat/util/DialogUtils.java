@@ -29,4 +29,11 @@ public class DialogUtils {
 				}).setNeutralButton("Cancel", null);
 		return builder.create();
 	}
+
+
+	public static AlertDialog getErrorDialog(Context context, String message) {
+		AlertDialog.Builder builder = new AlertDialog.Builder(context);
+		builder.setTitle("Error").setMessage(message).setPositiveButton(android.R.string.ok, null);
+		return builder.create();
+	}
 }

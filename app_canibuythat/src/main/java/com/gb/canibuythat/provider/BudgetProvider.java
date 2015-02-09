@@ -12,19 +12,20 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
+import android.provider.BaseColumns;
 import android.text.TextUtils;
 
 
 /**
  * Created by gbiro on 1/12/2015.
  */
-public class BudgetModifierProvider extends ContentProvider {
+public class BudgetProvider extends ContentProvider {
 
 	public static final String		AUTHORITY				= "com.gb.canibuythat.authority.budget";
 
 	public static final Uri			BASE_CONTENT_URI		= new Uri.Builder().scheme(ContentResolver.SCHEME_CONTENT)
 																	.authority(AUTHORITY).build();
-
+	// BudgetModifier
 	public static final int			ID_BUDGET_MODIFIERS		= 0;
 	public static final String		PATH_BUDGET_MODIFIERS	= "budget_modifiers";
 	public static final Uri			BUDGET_MODIFIERS_URI	= BASE_CONTENT_URI.buildUpon()
@@ -35,18 +36,31 @@ public class BudgetModifierProvider extends ContentProvider {
 	public static final Uri			BUDGET_MODIFIER_URI		= BASE_CONTENT_URI.buildUpon()
 																	.appendPath(PATH_BUDGET_MODIFIER).build();
 
-	private BudgetModifierDbHelper	dbHelper;
+	// BudgetReading
+	public static final int			ID_BUDGET_READINGS		= 2;
+	public static final String		PATH_BUDGET_READINGS	= "budget_readings";
+	public static final Uri			BUDGET_READINGS_URI		= BASE_CONTENT_URI.buildUpon()
+																	.appendPath(PATH_BUDGET_READINGS).build();
+
+	public static final int			ID_BUDGET_READING		= 3;
+	public static final String		PATH_BUDGET_READING		= "budget_reading/#";
+	public static final Uri			BUDGET_READING_URI		= BASE_CONTENT_URI.buildUpon()
+																	.appendPath(PATH_BUDGET_READING).build();
+
+	private BudgetDbHelper			dbHelper;
 
 	private static final UriMatcher	sURIMatcher				= new UriMatcher(UriMatcher.NO_MATCH);
 	static {
 		sURIMatcher.addURI(AUTHORITY, PATH_BUDGET_MODIFIERS, ID_BUDGET_MODIFIERS);
 		sURIMatcher.addURI(AUTHORITY, PATH_BUDGET_MODIFIER, ID_BUDGET_MODIFIER);
+		sURIMatcher.addURI(AUTHORITY, PATH_BUDGET_READINGS, ID_BUDGET_READINGS);
+		sURIMatcher.addURI(AUTHORITY, PATH_BUDGET_READING, ID_BUDGET_READING);
 	}
 
 
 	@Override
 	public boolean onCreate() {
-		dbHelper = new BudgetModifierDbHelper(getContext());
+		dbHelper = new BudgetDbHelper(getContext());
 		return true;
 	}
 
@@ -56,19 +70,26 @@ public class BudgetModifierProvider extends ContentProvider {
 		// Uisng SQLiteQueryBuilder instead of query() method
 		SQLiteQueryBuilder queryBuilder = new SQLiteQueryBuilder();
 
-		// check if the caller has requested a column which does not exists
-		checkColumns(projection);
-
 		// Set the table
 		queryBuilder.setTables(Contract.BudgetModifier.TABLE);
 
 		int uriType = sURIMatcher.match(uri);
 		switch (uriType) {
 		case ID_BUDGET_MODIFIERS:
+			checkColumns(Contract.BudgetModifier.class, projection);
 			break;
 		case ID_BUDGET_MODIFIER:
+			checkColumns(Contract.BudgetModifier.class, projection);
 			// adding the ID to the original query
 			queryBuilder.appendWhere(Contract.BudgetModifier._ID + "=" + uri.getLastPathSegment());
+			break;
+		case ID_BUDGET_READINGS:
+			checkColumns(Contract.BudgetReading.class, projection);
+			break;
+		case ID_BUDGET_READING:
+			checkColumns(Contract.BudgetReading.class, projection);
+			// adding the ID to the original query
+			queryBuilder.appendWhere(Contract.BudgetReading._ID + "=" + uri.getLastPathSegment());
 			break;
 		default:
 			throw new IllegalArgumentException("Unknown URI: " + uri);
@@ -97,6 +118,9 @@ public class BudgetModifierProvider extends ContentProvider {
 		case ID_BUDGET_MODIFIERS:
 			id = sqlDB.insert(Contract.BudgetModifier.TABLE, null, values);
 			break;
+		case ID_BUDGET_READINGS:
+			id = sqlDB.insert(Contract.BudgetReading.TABLE, null, values);
+			break;
 		default:
 			throw new IllegalArgumentException("Unknown URI: " + uri);
 		}
@@ -124,6 +148,19 @@ public class BudgetModifierProvider extends ContentProvider {
 						+ " and " + selection, selectionArgs);
 			}
 			break;
+		case ID_BUDGET_READINGS:
+			rowsDeleted = sqlDB.delete(Contract.BudgetReading.TABLE, selection, selectionArgs);
+			break;
+		case ID_BUDGET_READING:
+			id = uri.getLastPathSegment();
+
+			if (TextUtils.isEmpty(selection)) {
+				rowsDeleted = sqlDB.delete(Contract.BudgetReading.TABLE, Contract.BudgetReading._ID + "=" + id, null);
+			} else {
+				rowsDeleted = sqlDB.delete(Contract.BudgetReading.TABLE, Contract.BudgetReading._ID + "=" + id
+						+ " and " + selection, selectionArgs);
+			}
+			break;
 		default:
 			throw new IllegalArgumentException("Unknown URI: " + uri);
 		}
@@ -143,12 +180,27 @@ public class BudgetModifierProvider extends ContentProvider {
 			break;
 		case ID_BUDGET_MODIFIER:
 			String id = uri.getLastPathSegment();
+
 			if (TextUtils.isEmpty(selection)) {
 				rowsUpdated = sqlDB.update(Contract.BudgetModifier.TABLE, values, Contract.BudgetModifier._ID + "="
 						+ id, null);
 			} else {
 				rowsUpdated = sqlDB.update(Contract.BudgetModifier.TABLE, values, Contract.BudgetModifier._ID + "="
 						+ id + " and " + selection, selectionArgs);
+			}
+			break;
+		case ID_BUDGET_READINGS:
+			rowsUpdated = sqlDB.update(Contract.BudgetReading.TABLE, values, selection, selectionArgs);
+			break;
+		case ID_BUDGET_READING:
+			id = uri.getLastPathSegment();
+
+			if (TextUtils.isEmpty(selection)) {
+				rowsUpdated = sqlDB.update(Contract.BudgetReading.TABLE, values, Contract.BudgetReading._ID + "=" + id,
+						null);
+			} else {
+				rowsUpdated = sqlDB.update(Contract.BudgetReading.TABLE, values, Contract.BudgetReading._ID + "=" + id
+						+ " and " + selection, selectionArgs);
 			}
 			break;
 		default:
@@ -159,13 +211,16 @@ public class BudgetModifierProvider extends ContentProvider {
 	}
 
 
-	private void checkColumns(String[] projection) {
-		String[] available = {
-				Contract.BudgetModifier._ID, Contract.BudgetModifier.TITLE, Contract.BudgetModifier.NOTES,
-				Contract.BudgetModifier.AMOUNT, Contract.BudgetModifier.TYPE, Contract.BudgetModifier.LOWER_DATE,
-				Contract.BudgetModifier.UPPER_DATE, Contract.BudgetModifier.REPETITION_COUNT,
-				Contract.BudgetModifier.PERIOD_MULTIPLIER, Contract.BudgetModifier.PERIOD
-		};
+	private void checkColumns(Class<? extends BaseColumns> tableClass, String[] projection) {
+		String[] available = new String[0];
+		try {
+			available = (String[]) tableClass.getDeclaredField("COLUMNS").get(null);
+		} catch (IllegalAccessException e) {
+			throw new IllegalArgumentException("The specified table class does not have public static field COLUMNS");
+		} catch (NoSuchFieldException e) {
+			throw new IllegalArgumentException("The specified table class does not have public static field COLUMNS");
+		}
+
 		if (projection != null) {
 			HashSet<String> requestedColumns = new HashSet<String>(Arrays.asList(projection));
 			HashSet<String> availableColumns = new HashSet<String>(Arrays.asList(available));

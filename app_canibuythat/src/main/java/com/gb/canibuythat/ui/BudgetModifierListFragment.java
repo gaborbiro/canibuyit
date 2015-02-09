@@ -13,7 +13,7 @@ import android.view.View;
 import android.widget.ListView;
 
 import com.gb.canibuythat.R;
-import com.gb.canibuythat.provider.BudgetModifierProvider;
+import com.gb.canibuythat.provider.BudgetProvider;
 import com.gb.canibuythat.provider.Contract;
 
 
@@ -112,7 +112,7 @@ public class BudgetModifierListFragment extends ListFragment implements LoaderMa
 
 	@Override
 	public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-		return new CursorLoader(getActivity(), BudgetModifierProvider.BUDGET_MODIFIERS_URI, null, null, null, null);
+		return new CursorLoader(getActivity(), BudgetProvider.BUDGET_MODIFIERS_URI, null, null, null, null);
 	}
 
 

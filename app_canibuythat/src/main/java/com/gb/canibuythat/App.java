@@ -7,8 +7,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.gb.canibuythat.provider.BudgetModifierDbHelper;
-import com.j256.ormlite.android.apptools.OpenHelperManager;
+import com.gb.canibuythat.provider.BudgetDbHelper;
 
 
 /**
@@ -51,7 +50,7 @@ public class App extends Application {
         public void onActivityDestroyed(Activity activity) {
             if (firstActivity == activity) {
                 Log.d(TAG, "Releasing sqlite connection");
-                BudgetModifierDbHelper.get().cleanup();
+                BudgetDbHelper.get().cleanup();
                 firstActivity = null;
             }
         }
