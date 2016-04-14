@@ -94,7 +94,6 @@ public class BudgetItemListFragment extends ListFragment
                                 R.id.period}, 0);
         setListAdapter(adapter);
         getLoaderManager().initLoader(hashCode(), null, this);
-
     }
 
     @Override

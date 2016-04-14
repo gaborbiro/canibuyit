@@ -7,6 +7,7 @@ import com.gb.canibuythat.provider.Contract;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
+import java.util.Calendar;
 import java.util.Date;
 
 /**
@@ -16,89 +17,55 @@ import java.util.Date;
 @DatabaseTable(tableName = Contract.BudgetItem.TABLE)
 public class BudgetItem implements Parcelable {
 
+    public static final Parcelable.Creator<BudgetItem> CREATOR =
+            new Parcelable.Creator<BudgetItem>() {
+
+                @Override
+                public BudgetItem createFromParcel(Parcel in) {
+                    return new BudgetItem(in);
+                }
+
+                @Override
+                public BudgetItem[] newArray(int size) {
+                    return new BudgetItem[size];
+                }
+            };
     // money goes out
     private static final int OUT = -1;
-
     // money comes in
     private static final int IN = 1;
-
-    public enum BudgetItemType {
-        ACCOMMODATION, AUTOMOBILE, CHILD_SUPPORT, DONATIONS_GIVEN, ENTERTAINMENT, FOOD,
-        GIFTS_GIVEN, GROCERIES, HOUSEHOLD, INSURANCE, MEDICARE, PERSONAL_CARE, PETS,
-        SELF_IMPROVEMENT, SPORTS_RECREATION, TAX, TRANSPORTATION, UTILITIES, VACATION,
-        GIFTS_RECEIVED(IN), INCOME(IN), FINES, ONLINE_SERVICES, LUXURY, CASH, SAVINGS,
-        OTHER;
-
-        private final byte sign;
-
-        BudgetItemType() {
-            this(OUT);
-        }
-
-        BudgetItemType(int sign) {
-            this.sign = (byte) sign;
-        }
-
-        @Override
-        public String toString() {
-            return name().toLowerCase();
-        }
-
-        public byte getSign() {
-            return sign;
-        }
-    }
-
-    public enum PeriodType {
-        DAYS, WEEKS, MONTHS, YEARS;
-
-        @Override
-        public String toString() {
-            return name().toLowerCase();
-        }
-    }
-
     @DatabaseField(generatedId = true, columnName = Contract.BudgetItem._ID)
     public Integer mId;
-
     @DatabaseField(index = true, columnName = Contract.BudgetItem.NAME, unique = true,
             canBeNull = false) public String mName;
-
     @DatabaseField(columnName = Contract.BudgetItem.NOTES) public String mNotes;
-
     @DatabaseField(columnName = Contract.BudgetItem.TYPE, canBeNull = false)
     public BudgetItemType mType;
-
     @DatabaseField(columnName = Contract.BudgetItem.AMOUNT, canBeNull = false)
     public Float mAmount;
-
     /**
      * Date before witch the transaction certainly won't happen. The repetition period
      * is added to this date.
      */
     @DatabaseField(columnName = Contract.BudgetItem.FIRST_OCCURRENCE_START,
             canBeNull = false) public Date mFirstOccurrenceStart;
-
     /**
      * Date by witch the transaction most certainly did happen. The repetition period is
      * added to this date.
      */
     @DatabaseField(columnName = Contract.BudgetItem.FIRST_OCCURRENCE_END,
             canBeNull = false) public Date mFirstOccurrenceEnd;
-
     /**
      * How many times this modifier will be spent/cashed in. If 0, the field
      * #periodMultiplier and #period are ignored
      */
     @DatabaseField(columnName = Contract.BudgetItem.OCCURRENCE_COUNT) public Integer
             mOccurenceCount;
-
     /**
      * For periods like every 2 days or once every trimester...
      */
     @DatabaseField(columnName = Contract.BudgetItem.PERIOD_MULTIPLIER) public Integer
             mPeriodMultiplier;
-
     /**
      * Does this modifier repeat every day/week/month/year. The first affected time-span
      * (specified by
@@ -223,21 +190,60 @@ public class BudgetItem implements Parcelable {
         }
     }
 
-    public static final Parcelable.Creator<BudgetItem> CREATOR =
-            new Parcelable.Creator<BudgetItem>() {
-
-                @Override
-                public BudgetItem createFromParcel(Parcel in) {
-                    return new BudgetItem(in);
-                }
-
-                @Override
-                public BudgetItem[] newArray(int size) {
-                    return new BudgetItem[size];
-                }
-            };
-
     public boolean isPersisted() {
         return mId != null;
+    }
+
+    public enum BudgetItemType {
+        ACCOMMODATION, AUTOMOBILE, CHILD_SUPPORT, DONATIONS_GIVEN, ENTERTAINMENT, FOOD,
+        GIFTS_GIVEN, GROCERIES, HOUSEHOLD, INSURANCE, MEDICARE, PERSONAL_CARE, PETS,
+        SELF_IMPROVEMENT, SPORTS_RECREATION, TAX, TRANSPORTATION, UTILITIES, VACATION,
+        GIFTS_RECEIVED(IN), INCOME(IN), FINES, ONLINE_SERVICES, LUXURY, CASH, SAVINGS,
+        OTHER;
+
+        private final byte sign;
+
+        BudgetItemType() {
+            this(OUT);
+        }
+
+        BudgetItemType(int sign) {
+            this.sign = (byte) sign;
+        }
+
+        @Override
+        public String toString() {
+            return name().toLowerCase();
+        }
+
+        public byte getSign() {
+            return sign;
+        }
+    }
+
+    public enum PeriodType {
+        DAYS, WEEKS, MONTHS, YEARS;
+
+        public void apply(Calendar c, int increment) {
+            switch (this) {
+                case DAYS:
+                    c.add(Calendar.DAY_OF_MONTH, increment);
+                    break;
+                case WEEKS:
+                    c.add(Calendar.WEEK_OF_MONTH, increment);
+                    break;
+                case MONTHS:
+                    c.add(Calendar.MONTH, increment);
+                    break;
+                case YEARS:
+                    c.add(Calendar.YEAR, increment);
+                    break;
+            }
+        }
+
+        @Override
+        public String toString() {
+            return name().toLowerCase();
+        }
     }
 }

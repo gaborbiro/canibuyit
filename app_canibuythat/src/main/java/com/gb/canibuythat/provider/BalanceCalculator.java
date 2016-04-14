@@ -3,28 +3,12 @@ package com.gb.canibuythat.provider;
 import com.gb.canibuythat.model.BudgetItem;
 import com.gb.canibuythat.util.DateUtils;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 public class BalanceCalculator {
-
-    public static void increaseDateWithPeriod(Calendar c, BudgetItem.PeriodType period,
-            int periodMultiplier) {
-        switch (period) {
-            case DAYS:
-                c.add(Calendar.DAY_OF_MONTH, periodMultiplier);
-                break;
-            case WEEKS:
-                c.add(Calendar.WEEK_OF_MONTH, periodMultiplier);
-                break;
-            case MONTHS:
-                c.add(Calendar.MONTH, periodMultiplier);
-                break;
-            case YEARS:
-                c.add(Calendar.YEAR, periodMultiplier);
-                break;
-        }
-    }
 
     /**
      * Calculate how many times the specified <code>budgetModifier</code> has been
@@ -34,10 +18,12 @@ public class BalanceCalculator {
      * are periods where the application of the modifier is uncertain), the second is
      * the maximum value
      */
-    public float[] getEstimatedBalance(BudgetItem budgetItem, Date startingFrom) {
+    public static BalanceResult getEstimatedBalance(BudgetItem budgetItem,
+            Date startingFrom) {
         boolean exit = false;
-        float minimum = 0;
-        float maximum = 0;
+        float bestCase = 0;
+        float worstCase = 0;
+        List<Date> spendingEvents = new ArrayList<>();
         int count = 0;
         Calendar occurrenceStart = Calendar.getInstance();
         occurrenceStart.setTime(budgetItem.mFirstOccurrenceStart);
@@ -51,44 +37,40 @@ public class BalanceCalculator {
         startDate = DateUtils.clearLowerBits(startDate);
 
         do {
-            if (beforeBIOccurrence(startDate, occurrenceStart)) {
-                exit = true;
-            } else if (inBIOccurrence(startDate, occurrenceStart, occurrenceEnd)) {
-                maximum += budgetItem.mAmount * budgetItem.mType.getSign();
-            } else if (afterBIOccurrence(startDate, occurrenceEnd)) {
-                minimum += budgetItem.mAmount * budgetItem.mType.getSign();
-                maximum += budgetItem.mAmount * budgetItem.mType.getSign();
-            }
-            if (!exit) {
-                increaseDateWithPeriod(occurrenceStart, budgetItem.mPeriodType,
+            int r = DateUtils.compare(startDate, occurrenceStart, occurrenceEnd);
+
+            if (r >= -1) {//after or on start date
+                worstCase += budgetItem.mAmount * budgetItem.mType.getSign();
+                if (r > 1) { // after end date
+                    bestCase += budgetItem.mAmount * budgetItem.mType.getSign();
+                    spendingEvents.add(occurrenceEnd.getTime());
+                }
+                budgetItem.mPeriodType.apply(occurrenceStart,
                         budgetItem.mPeriodMultiplier);
-                increaseDateWithPeriod(occurrenceEnd, budgetItem.mPeriodType,
-                        budgetItem.mPeriodMultiplier);
+                budgetItem.mPeriodType.apply(occurrenceEnd, budgetItem.mPeriodMultiplier);
                 count++;
 
                 if (budgetItem.mOccurenceCount != null &&
                         count >= budgetItem.mOccurenceCount) {
                     exit = true;
                 }
+            } else {
+                exit = true;
             }
         } while (!exit);
-        return new float[]{minimum, maximum};
+        return new BalanceResult(bestCase, worstCase,
+                spendingEvents.toArray(new Date[spendingEvents.size()]));
     }
 
-    boolean beforeBIOccurrence(Calendar now, Calendar occurrenceStart) {
-        return now.before(occurrenceStart);
-    }
+    public static class BalanceResult {
+        public float bestCase;
+        public float worstCase;
+        public Date[] spendingEvents;
 
-    /**
-     * Boundaries included
-     */
-    boolean inBIOccurrence(Calendar now, Calendar occurrenceStart,
-            Calendar occurrenceEnd) {
-        return now.getTimeInMillis() >= occurrenceStart.getTimeInMillis() &&
-                now.getTimeInMillis() <= occurrenceEnd.getTimeInMillis();
-    }
-
-    boolean afterBIOccurrence(Calendar now, Calendar occurrenceEnd) {
-        return now.after(occurrenceEnd);
+        public BalanceResult(float bestCase, float worstCase, Date[] spendingEvents) {
+            this.bestCase = bestCase;
+            this.worstCase = worstCase;
+            this.spendingEvents = spendingEvents;
+        }
     }
 }

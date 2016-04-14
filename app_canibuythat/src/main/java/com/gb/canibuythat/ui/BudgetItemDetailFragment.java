@@ -20,6 +20,7 @@ import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.gb.canibuythat.App;
@@ -32,6 +33,8 @@ import com.gb.canibuythat.util.DateUtils;
 import com.gb.canibuythat.util.DialogUtils;
 import com.gb.canibuythat.util.ViewUtils;
 import com.j256.ormlite.dao.Dao;
+
+import org.greenrobot.eventbus.EventBus;
 
 import java.sql.SQLException;
 import java.util.Calendar;
@@ -66,10 +69,11 @@ public class BudgetItemDetailFragment extends Fragment {
     @InjectView(R.id.category) Spinner mCategoryView;
     @InjectView(R.id.first_occurence_start) Button mFirstOccurrenceStartView;
     @InjectView(R.id.first_occurence_end) Button mFirstOccurrenceEndView;
-    @InjectView(R.id.occurence_count) EditText mOccurenceLimitView;
+    @InjectView(R.id.occurence_count) EditText mOccurrenceLimitView;
     @InjectView(R.id.period_multiplier) EditText mPeriodMultiplierView;
     @InjectView(R.id.period_type) Spinner mPeriodTypeView;
     @InjectView(R.id.notes) EditText mNotesView;
+    @InjectView(R.id.spending_events) TextView mSpendingEventsView;
     private BudgetItem mOriginalBudgetItem;
     private DatePickerDialog mFirstOccurrenceStartPickerDialog;
     private DatePickerDialog mFirstOccurrenceEndPickerDialog;
@@ -346,9 +350,9 @@ public class BudgetItemDetailFragment extends Fragment {
             applyFirstOccurrenceEndToScreen(firstOccurrenceEnd);
 
             if (budgetItem.mOccurenceCount != null) {
-                mOccurenceLimitView.setText(Integer.toString(budgetItem.mOccurenceCount));
+                mOccurrenceLimitView.setText(Integer.toString(budgetItem.mOccurenceCount));
             } else {
-                mOccurenceLimitView.setText(null);
+                mOccurrenceLimitView.setText(null);
             }
 
             if (budgetItem.mPeriodMultiplier != null) {
@@ -368,10 +372,11 @@ public class BudgetItemDetailFragment extends Fragment {
             mCategoryView.setSelection(0);
             applyFirstOccurrenceStartToScreen(DEFAULT_FIRST_OCCURRENCE_START);
             applyFirstOccurrenceEndToScreen(DEFAULT_FIRST_OCCURRENCE_END);
-            mOccurenceLimitView.setText(null);
+            mOccurrenceLimitView.setText(null);
             mPeriodMultiplierView.setText(null);
             mPeriodTypeView.setSelection(0);
             mNotesView.setText(null);
+            mSpendingEventsView.setText(null);
         }
     }
 
@@ -444,8 +449,7 @@ public class BudgetItemDetailFragment extends Fragment {
         c.setTime(firstOccurrenceStart);
         DateUtils.clearLowerBits(c);
 
-        BalanceCalculator.increaseDateWithPeriod(c,
-                (BudgetItem.PeriodType) mPeriodTypeView.getSelectedItem(),
+        ((BudgetItem.PeriodType) mPeriodTypeView.getSelectedItem()).apply(c,
                 getPeriodMultiplierFromScreen());
         c.add(Calendar.DAY_OF_MONTH, -1);
 
@@ -479,8 +483,8 @@ public class BudgetItemDetailFragment extends Fragment {
         // firstOccurrenceEnd
         budgetItem.mFirstOccurrenceEnd = getFirstOccurrenceEndFromScreen();
         // repetition
-        if (!TextUtils.isEmpty(mOccurenceLimitView.getText())) {
-            budgetItem.mOccurenceCount = Integer.valueOf(mOccurenceLimitView.getText()
+        if (!TextUtils.isEmpty(mOccurrenceLimitView.getText())) {
+            budgetItem.mOccurenceCount = Integer.valueOf(mOccurrenceLimitView.getText()
                     .toString());
         }
         // periodMultiplier
@@ -618,6 +622,7 @@ public class BudgetItemDetailFragment extends Fragment {
                 mResult = dao.createOrUpdate(mBudgetItem);
                 mContext.getContentResolver()
                         .notifyChange(BudgetProvider.BUDGET_ITEMS_URI, null);
+                EventBus.getDefault().post(new BudgetItemUpdatedEvent());
             } catch (SQLException e) {
                 e.printStackTrace();
                 if (e.getCause() != null && e.getCause()

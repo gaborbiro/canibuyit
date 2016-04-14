@@ -137,5 +137,10 @@
             android:imeOptions="actionDone"
             android:inputType="textAutoComplete|textMultiLine"
             android:selectAllOnFocus="true"/>
+
+        <TextView
+            android:id="@+id/spending_events"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
     </LinearLayout>
 </ScrollView>

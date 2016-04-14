@@ -2,6 +2,8 @@ package com.gb.canibuythat.util;
 
 import android.widget.DatePicker;
 
+import com.gb.canibuythat.model.BudgetItem;
+
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -25,7 +27,7 @@ public class DateUtils {
     }
 
     /**
-     * Only day. No hour, minute, second, millisecond.
+     * Only day. No hour, minute, second or millisecond.
      */
     public static Calendar clearLowerBits(Calendar c) {
         c.set(Calendar.HOUR_OF_DAY, 0);
@@ -33,5 +35,23 @@ public class DateUtils {
         c.set(Calendar.SECOND, 0);
         c.set(Calendar.MILLISECOND, 0);
         return c;
+    }
+
+    public static int compare(Calendar date, Calendar start, Calendar end) {
+        if (start.after(end)) {
+            throw new IllegalArgumentException("Start date must come before end date");
+        }
+        if (date.before(start)) {
+            return -2;
+        } else if (date.equals(start)) {
+            return -1;
+        } else if (date.getTimeInMillis() >= start.getTimeInMillis() &&
+                date.getTimeInMillis() <= end.getTimeInMillis()) {
+            return 0;
+        } else if (date.equals(end)) {
+            return 1;
+        } else {
+            return 2;
+        }
     }
 }
