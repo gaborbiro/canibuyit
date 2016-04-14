@@ -8,7 +8,7 @@
         app:showAsAction="always" />
 
     <item
-        android:title="Update Balance"
+        android:title="Set starting balance"
         android:id="@+id/menu_update_balance"
         app:showAsAction="never|withText" />
     <item

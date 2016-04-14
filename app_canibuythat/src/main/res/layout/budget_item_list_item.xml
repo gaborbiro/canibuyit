@@ -4,10 +4,10 @@
     android:layout_width="match_parent"
     android:orientation="vertical"
     android:padding="@dimen/list_item_padding"
-    tools:context=".BudgetModifierListFragment">
+    tools:context=".ui.BudgetItemListActivity">
 
     <TextView
-        android:id="@+id/title"
+        android:id="@+id/name"
         style="?android:attr/textAppearanceListItem"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
@@ -29,7 +29,7 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="@dimen/half_unit"
             style="?android:attr/textAppearanceListItemSmall"
-            android:text="/" />
+            android:text="/ every" />
 
         <TextView
             android:id="@+id/period_multiplier"

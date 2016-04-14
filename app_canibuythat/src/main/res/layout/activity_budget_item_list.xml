@@ -12,7 +12,7 @@
 
     <fragment
         android:id="@+id/budgetmodifier_list"
-        android:name="com.gb.canibuythat.ui.BudgetModifierListFragment"
+        android:name="com.gb.canibuythat.ui.BudgetItemListFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginStart="@dimen/activity_margin"

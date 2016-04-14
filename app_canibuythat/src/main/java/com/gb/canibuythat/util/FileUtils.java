@@ -1,6 +1,5 @@
 package com.gb.canibuythat.util;
 
-
 import android.database.Cursor;
 import android.net.Uri;
 
@@ -13,10 +12,6 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.channels.FileChannel;
 
-
-/**
- * Created by GABOR on 2015-jan.-24.
- */
 public class FileUtils {
 
     public static void copyFiles(File from, File to) {
@@ -41,13 +36,13 @@ public class FileUtils {
 
     public static String getPath(Uri uri) throws URISyntaxException {
         if ("content".equalsIgnoreCase(uri.getScheme())) {
-            String[] projection = {
-                    "_data"
-            };
+            String[] projection = {"_data"};
             Cursor cursor;
 
             try {
-                cursor = App.getAppContext().getContentResolver().query(uri, projection, null, null, null);
+                cursor = App.getAppContext()
+                        .getContentResolver()
+                        .query(uri, projection, null, null, null);
                 int column_index = cursor.getColumnIndexOrThrow("_data");
                 if (cursor.moveToFirst()) {
                     return cursor.getString(column_index);
