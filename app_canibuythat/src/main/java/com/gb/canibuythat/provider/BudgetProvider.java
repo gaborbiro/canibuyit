@@ -61,7 +61,7 @@ public class BudgetProvider extends ContentProvider {
 
     @Override
     public boolean onCreate() {
-        dbHelper = new BudgetDbHelper(getContext());
+        dbHelper = BudgetDbHelper.get();
         return true;
     }
 

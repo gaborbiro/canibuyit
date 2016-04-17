@@ -11,7 +11,7 @@ import java.util.Date;
 public class DateUtils {
 
     public static final SimpleDateFormat SHORT_DATE_FORMAT =
-            new SimpleDateFormat("MMM. dd");
+            new SimpleDateFormat("MMM.dd.yyyy");
 
     public static Date getDayFromDatePicker(DatePicker datePicker) {
         return DateUtils.getDay(datePicker.getYear(), datePicker.getMonth(),

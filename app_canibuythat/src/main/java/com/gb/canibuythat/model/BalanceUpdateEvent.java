@@ -1,4 +1,4 @@
-package com.gb.canibuythat.ui;
+package com.gb.canibuythat.model;
 
 import com.gb.canibuythat.provider.Contract;
 import com.j256.ormlite.field.DatabaseField;
@@ -17,7 +17,7 @@ public class BalanceUpdateEvent {
     public Integer id;
 
     @DatabaseField(index = true, columnName = Contract.BalanceUpdateEvent.WHEN,
-            unique = true, canBeNull = false) public Date when;
+            canBeNull = false) public Date when;
 
     @DatabaseField(columnName = Contract.BalanceUpdateEvent.VALUE, canBeNull = false)
     public Float value;

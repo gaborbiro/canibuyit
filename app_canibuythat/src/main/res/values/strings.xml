@@ -8,5 +8,34 @@
     <string name="notes">Notes</string>
     <string name="save">Save</string>
     <string name="delete">Delete</string>
-    <string name="estimated_balance">Estimated balance:</string>
+    <string name="estimated_balance">Balance:</string>
+    <string name="income">%1$s (income)</string>
+
+    <plurals name="amount_per_period">
+        <item quantity="one">%1$.2f / %3$s</item>
+        <item quantity="other">%1$.2f / %2$d %3$s</item>
+    </plurals>
+    <plurals name="amount_times">
+        <item quantity="one">%1$.2f, once</item>
+        <item quantity="other">%1$.2f, %2$d times</item>
+    </plurals>
+    <plurals name="years">
+        <item quantity="one">year</item>
+        <item quantity="other">years</item>
+    </plurals>
+    <plurals name="months">
+        <item quantity="one">month</item>
+        <item quantity="other">months</item>
+    </plurals>
+    <plurals name="weeks">
+        <item quantity="one">week</item>
+        <item quantity="other">weeks</item>
+    </plurals>
+    <plurals name="days">
+        <item quantity="one">day</item>
+        <item quantity="other">days</item>
+    </plurals>
+
+    <string name="balance">Best: %1$.2f, Worst: %2$.2f</string>
+    <string name="reference">%1$.2f @%2$s</string>
 </resources>

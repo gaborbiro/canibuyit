@@ -3,6 +3,7 @@ package com.gb.canibuythat.model;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.gb.canibuythat.R;
 import com.gb.canibuythat.provider.Contract;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
@@ -30,10 +31,6 @@ public class BudgetItem implements Parcelable {
                     return new BudgetItem[size];
                 }
             };
-    // money goes out
-    private static final int OUT = -1;
-    // money comes in
-    private static final int IN = 1;
     @DatabaseField(generatedId = true, columnName = Contract.BudgetItem._ID)
     public Integer mId;
     @DatabaseField(index = true, columnName = Contract.BudgetItem.NAME, unique = true,
@@ -194,17 +191,22 @@ public class BudgetItem implements Parcelable {
         return mId != null;
     }
 
+    // money comes in
+    public static final int BUDGET_ITEM_TYPE_IN = 1;
+    // money goes out
+    public static final int BUDGET_ITEM_TYPE_OUT = -1;
+
     public enum BudgetItemType {
         ACCOMMODATION, AUTOMOBILE, CHILD_SUPPORT, DONATIONS_GIVEN, ENTERTAINMENT, FOOD,
         GIFTS_GIVEN, GROCERIES, HOUSEHOLD, INSURANCE, MEDICARE, PERSONAL_CARE, PETS,
         SELF_IMPROVEMENT, SPORTS_RECREATION, TAX, TRANSPORTATION, UTILITIES, VACATION,
-        GIFTS_RECEIVED(IN), INCOME(IN), FINES, ONLINE_SERVICES, LUXURY, CASH, SAVINGS,
+        GIFTS_RECEIVED(BUDGET_ITEM_TYPE_IN), INCOME(BUDGET_ITEM_TYPE_IN), FINES, ONLINE_SERVICES, LUXURY, CASH, SAVINGS,
         OTHER;
 
         private final byte sign;
 
         BudgetItemType() {
-            this(OUT);
+            this(BUDGET_ITEM_TYPE_OUT);
         }
 
         BudgetItemType(int sign) {
@@ -222,7 +224,13 @@ public class BudgetItem implements Parcelable {
     }
 
     public enum PeriodType {
-        DAYS, WEEKS, MONTHS, YEARS;
+        DAYS(R.plurals.days), WEEKS(R.plurals.weeks), MONTHS(R.plurals.months), YEARS(R.plurals.years);
+
+        public final int strRes;
+
+        PeriodType(int strRes) {
+            this.strRes = strRes;
+        }
 
         public void apply(Calendar c, int increment) {
             switch (this) {

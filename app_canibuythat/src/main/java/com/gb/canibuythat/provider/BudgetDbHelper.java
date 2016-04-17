@@ -6,7 +6,7 @@ import android.database.sqlite.SQLiteDatabase;
 
 import com.gb.canibuythat.App;
 import com.gb.canibuythat.model.BudgetItem;
-import com.gb.canibuythat.ui.BalanceUpdateEvent;
+import com.gb.canibuythat.model.BalanceUpdateEvent;
 import com.j256.ormlite.android.apptools.OpenHelperManager;
 import com.j256.ormlite.android.apptools.OrmLiteSqliteOpenHelper;
 import com.j256.ormlite.support.ConnectionSource;

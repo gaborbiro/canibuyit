@@ -26,7 +26,6 @@ import android.widget.Toast;
 import com.gb.canibuythat.App;
 import com.gb.canibuythat.R;
 import com.gb.canibuythat.model.BudgetItem;
-import com.gb.canibuythat.provider.BalanceCalculator;
 import com.gb.canibuythat.provider.BudgetDbHelper;
 import com.gb.canibuythat.provider.BudgetProvider;
 import com.gb.canibuythat.util.DateUtils;
@@ -51,6 +50,7 @@ import butterknife.InjectView;
 public class BudgetItemDetailFragment extends Fragment {
 
     public static final String EXTRA_ITEM_ID = "budget_item_id";
+    public static final String EXTRA_START_DATE = "start_date";
 
     private static final String EXTRA_ITEM = "budget_item";
 
@@ -215,10 +215,11 @@ public class BudgetItemDetailFragment extends Fragment {
         super.onSaveInstanceState(outState);
 
         if (mOriginalBudgetItem != null) {
+            // TODO
             // user data is automatically saved, but we need to transfer the
             // budgetModifier field as well, because it is the basis of comparison when
-            // determining whether user data should be persisted or not outState
-            // .putParcelable(EXTRA_ITEM, mOriginalBudgetItem);
+            // determining whether user data should be persisted or not.
+            // outState.putParcelable(EXTRA_ITEM, mOriginalBudgetItem);
         }
     }
 
@@ -270,7 +271,7 @@ public class BudgetItemDetailFragment extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_save:
-                saveUserData();
+                saveUserDataOrShowError();
                 break;
             case R.id.menu_delete:
                 if (mOriginalBudgetItem != null && mOriginalBudgetItem.isPersisted()) {
@@ -302,11 +303,13 @@ public class BudgetItemDetailFragment extends Fragment {
     /**
      * @return true if user data is valid
      */
-    public synchronized boolean saveUserData() {
+    public synchronized boolean saveUserDataOrShowError() {
         if (validateUserInput()) {
             final BudgetItem newBudgetItem = getBudgetItemFromScreen();
 
             if (mOriginalBudgetItem != null) {
+                // this will make an already saved item ot be updated instead of a new
+                // one to be created
                 newBudgetItem.mId = mOriginalBudgetItem.mId;
             }
             new BudgetItemUpdateTask(getActivity(), newBudgetItem,
@@ -350,7 +353,8 @@ public class BudgetItemDetailFragment extends Fragment {
             applyFirstOccurrenceEndToScreen(firstOccurrenceEnd);
 
             if (budgetItem.mOccurenceCount != null) {
-                mOccurrenceLimitView.setText(Integer.toString(budgetItem.mOccurenceCount));
+                mOccurrenceLimitView.setText(
+                        Integer.toString(budgetItem.mOccurenceCount));
             } else {
                 mOccurrenceLimitView.setText(null);
             }
@@ -424,6 +428,11 @@ public class BudgetItemDetailFragment extends Fragment {
         return mFirstOccurrenceEndPickerDialog;
     }
 
+    /**
+     * Verify whether user input is valid and show appropriate error messages
+     *
+     * @return true if user input is valid
+     */
     private boolean validateUserInput() {
         if (TextUtils.isEmpty(mNameView.getText())) {
             mNameView.setError("Please specify a name");
@@ -622,7 +631,8 @@ public class BudgetItemDetailFragment extends Fragment {
                 mResult = dao.createOrUpdate(mBudgetItem);
                 mContext.getContentResolver()
                         .notifyChange(BudgetProvider.BUDGET_ITEMS_URI, null);
-                EventBus.getDefault().post(new BudgetItemUpdatedEvent());
+                EventBus.getDefault()
+                        .post(new BudgetItemUpdatedEvent());
             } catch (SQLException e) {
                 e.printStackTrace();
                 if (e.getCause() != null && e.getCause()

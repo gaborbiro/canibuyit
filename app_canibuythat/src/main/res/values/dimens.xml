@@ -4,10 +4,10 @@
     <dimen name="unit">8dp</dimen>
     <dimen name="double_unit">16dp</dimen>
 
-    <dimen name="activity_margin">@dimen/double_unit</dimen>
+    <dimen name="activity_margin">@dimen/unit</dimen>
     <dimen name="horizontal_padding">@dimen/unit</dimen>
     <dimen name="vertical_padding">@dimen/unit</dimen>
-    <dimen name="list_item_padding">@dimen/double_unit</dimen>
+    <dimen name="list_item_padding">@dimen/unit</dimen>
 
     <dimen name="statistics_shadow_height">@dimen/unit</dimen>
 </resources>

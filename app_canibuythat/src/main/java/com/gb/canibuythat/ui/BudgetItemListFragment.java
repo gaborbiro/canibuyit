@@ -11,9 +11,7 @@ import android.support.v4.widget.SimpleCursorAdapter;
 import android.view.View;
 import android.widget.ListView;
 
-import com.gb.canibuythat.R;
 import com.gb.canibuythat.provider.BudgetProvider;
-import com.gb.canibuythat.provider.Contract;
 
 /**
  * A list fragment representing a list of BudgetModifiers. This fragment also supports
@@ -83,18 +81,10 @@ public class BudgetItemListFragment extends ListFragment
         }
 
         mCallback = (Callbacks) activity;
-
-        SimpleCursorAdapter adapter =
-                new SimpleCursorAdapter(getActivity(), R.layout.budget_item_list_item,
-                        null,
-                        new String[]{Contract.BudgetItem.NAME, Contract.BudgetItem.AMOUNT,
-                                Contract.BudgetItem.PERIOD_MULTIPLIER,
-                                Contract.BudgetItem.PERIOD_TYPE},
-                        new int[]{R.id.name, R.id.amount, R.id.period_multiplier,
-                                R.id.period}, 0);
-        setListAdapter(adapter);
+        setListAdapter(new BudgetItemListAdapter(getActivity(), null));
         getLoaderManager().initLoader(hashCode(), null, this);
     }
+
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {

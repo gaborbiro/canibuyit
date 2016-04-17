@@ -12,10 +12,12 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,8 +34,8 @@ public class DBUtils {
         if (!targetFolder.exists()) {
             targetFolder.mkdirs();
         }
-        String targetFilename = "budget-" + Calendar.getInstance()
-                .getTime() + ".sqlite";
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd'T'HHmmssZ");
+        String targetFilename = "budget-backup.sqlite";
         File to = new File(targetFolder, targetFilename);
 
         File data = Environment.getDataDirectory();
@@ -41,6 +43,8 @@ public class DBUtils {
         File from = new File(data, currentDBPath);
 
         FileUtils.copyFiles(from, to);
+
+        Toast.makeText(App.getAppContext(), to.getPath(), Toast.LENGTH_SHORT).show();
     }
 
 
