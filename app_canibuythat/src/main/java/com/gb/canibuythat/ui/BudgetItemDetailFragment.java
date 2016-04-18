@@ -392,7 +392,7 @@ public class BudgetItemDetailFragment extends Fragment {
             @Override
             protected void onPostExecute(BalanceUpdateEvent balanceUpdateEvent) {
                 BalanceCalculator.BalanceResult result =
-                        BalanceCalculator.getEstimatedBalance(budgetItem,
+                        BalanceCalculator.get().getEstimatedBalance(budgetItem,
                                 balanceUpdateEvent.when, new Date());
                 mSpendingEventsView.setText(ArrayUtils.join("\n", result.spendingEvents,
                         new ArrayUtils.Stringifier<Date>() {

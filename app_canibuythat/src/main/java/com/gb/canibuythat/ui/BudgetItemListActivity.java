@@ -8,6 +8,7 @@ import android.os.Environment;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -53,6 +54,7 @@ public class BudgetItemListActivity extends ActionBarActivity
 
     @InjectView(R.id.balance) TextView mBalanceView;
     @InjectView(R.id.reference) TextView mReferenceView;
+    @InjectView(R.id.chart_button) ImageView mChartButton;
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet device.
      */
@@ -63,17 +65,16 @@ public class BudgetItemListActivity extends ActionBarActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_budget_item_list);
         ButterKnife.inject(this);
-        EventBus.getDefault()
-                .register(this);
+        EventBus.getDefault().register(this);
 
         if (findViewById(R.id.budgetmodifier_detail_container) != null) {
             twoPane = true;
             BudgetItemListFragment budgetItemListFragment =
                     ((BudgetItemListFragment) getSupportFragmentManager()
-                            .findFragmentById(
-                            R.id.budgetmodifier_list));
+                            .findFragmentById(R.id.budgetmodifier_list));
             budgetItemListFragment.setActivateOnItemClick(true);
         }
+        ChartActivity.launchOnClick(this, mChartButton);
         new CalculateBalanceTask().execute();
     }
 
@@ -253,8 +254,8 @@ public class BudgetItemListActivity extends ActionBarActivity
                         helper.getDao(com.gb.canibuythat.model.BudgetItem.class);
 
                 for (com.gb.canibuythat.model.BudgetItem item : budgetItemDao) {
-                    BalanceCalculator.BalanceResult result =
-                            BalanceCalculator.getEstimatedBalance(item,
+                    BalanceCalculator.BalanceResult result = BalanceCalculator.get()
+                            .getEstimatedBalance(item,
                                     balanceUpdateEvent != null ? balanceUpdateEvent.when
                                                                : null, new Date());
                     bestCase += result.bestCase;

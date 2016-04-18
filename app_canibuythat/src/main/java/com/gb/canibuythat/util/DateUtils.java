@@ -2,8 +2,6 @@ package com.gb.canibuythat.util;
 
 import android.widget.DatePicker;
 
-import com.gb.canibuythat.model.BudgetItem;
-
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;

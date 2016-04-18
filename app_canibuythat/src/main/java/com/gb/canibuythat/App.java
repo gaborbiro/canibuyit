@@ -44,8 +44,7 @@ public class App extends Application {
         public void onActivityDestroyed(Activity activity) {
             if (firstActivity == activity) {
                 Log.d(TAG, "Releasing sqlite connection");
-                BudgetDbHelper.get()
-                        .cleanup();
+                BudgetDbHelper.get().cleanup();
                 firstActivity = null;
             }
         }
