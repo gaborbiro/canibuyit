@@ -25,9 +25,12 @@ import android.widget.Toast;
 
 import com.gb.canibuythat.App;
 import com.gb.canibuythat.R;
+import com.gb.canibuythat.model.BalanceUpdateEvent;
 import com.gb.canibuythat.model.BudgetItem;
+import com.gb.canibuythat.provider.BalanceCalculator;
 import com.gb.canibuythat.provider.BudgetDbHelper;
 import com.gb.canibuythat.provider.BudgetProvider;
+import com.gb.canibuythat.util.ArrayUtils;
 import com.gb.canibuythat.util.DateUtils;
 import com.gb.canibuythat.util.DialogUtils;
 import com.gb.canibuythat.util.ViewUtils;
@@ -50,7 +53,6 @@ import butterknife.InjectView;
 public class BudgetItemDetailFragment extends Fragment {
 
     public static final String EXTRA_ITEM_ID = "budget_item_id";
-    public static final String EXTRA_START_DATE = "start_date";
 
     private static final String EXTRA_ITEM = "budget_item";
 
@@ -106,7 +108,7 @@ public class BudgetItemDetailFragment extends Fragment {
                     switch ((int) view.getTag()) {
                         case R.id.first_occurence_start:
                             mFirstOccurrenceStartView.setText(
-                                    DateUtils.SHORT_DATE_FORMAT.format(c.getTime()));
+                                    DateUtils.DEFAULT_DATE_FORMAT.format(c.getTime()));
                             Date firstOccurrenceEnd = getFirstOccurrenceEndFromScreen();
 
                             if (firstOccurrenceEnd.getTime() < c.getTime()
@@ -121,7 +123,7 @@ public class BudgetItemDetailFragment extends Fragment {
                             break;
                         case R.id.first_occurence_end:
                             mFirstOccurrenceEndView.setText(
-                                    DateUtils.SHORT_DATE_FORMAT.format(c.getTime()));
+                                    DateUtils.DEFAULT_DATE_FORMAT.format(c.getTime()));
                             Date firstOccurrenceStart =
                                     getFirstOccurrenceStartFromScreen();
 
@@ -253,7 +255,7 @@ public class BudgetItemDetailFragment extends Fragment {
             mOriginalBudgetItem = null;
             mFirstOccurrenceEndPickerDialog = null;
             mFirstOccurrenceStartPickerDialog = null;
-            applyBudgetItemToScreen(null);
+            clearScreen();
         }
     }
 
@@ -320,6 +322,7 @@ public class BudgetItemDetailFragment extends Fragment {
                             BudgetItemDetailFragment.this.mOriginalBudgetItem =
                                     newBudgetItem;
                             mDeleteButton.setVisible(true);
+                            loadSpendingOccurrences(newBudgetItem);
                         }
                     }).execute();
             return true;
@@ -328,70 +331,90 @@ public class BudgetItemDetailFragment extends Fragment {
         }
     }
 
-    private void applyBudgetItemToScreen(BudgetItem budgetItem) {
-        if (budgetItem != null) {
-            mNameView.setText(budgetItem.mName);
+    private void applyBudgetItemToScreen(final BudgetItem budgetItem) {
+        mNameView.setText(budgetItem.mName);
 
-            if (budgetItem.mAmount != null) {
-                mAmountView.setText(Float.toString(budgetItem.mAmount));
-            } else {
-                mAmountView.setText(null);
-            }
-
-            if (budgetItem.mType != null) {
-                mCategoryView.setSelection(budgetItem.mType.ordinal());
-            }
-
-            Date firstOccurrenceStart = budgetItem.mFirstOccurrenceStart != null
-                                        ? budgetItem.mFirstOccurrenceStart
-                                        : DEFAULT_FIRST_OCCURRENCE_START;
-            applyFirstOccurrenceStartToScreen(firstOccurrenceStart);
-
-            Date firstOccurrenceEnd = budgetItem.mFirstOccurrenceEnd != null
-                                      ? budgetItem.mFirstOccurrenceEnd
-                                      : DEFAULT_FIRST_OCCURRENCE_END;
-            applyFirstOccurrenceEndToScreen(firstOccurrenceEnd);
-
-            if (budgetItem.mOccurenceCount != null) {
-                mOccurrenceLimitView.setText(
-                        Integer.toString(budgetItem.mOccurenceCount));
-            } else {
-                mOccurrenceLimitView.setText(null);
-            }
-
-            if (budgetItem.mPeriodMultiplier != null) {
-                mPeriodMultiplierView.setText(
-                        Integer.toString(budgetItem.mPeriodMultiplier));
-            } else {
-                mPeriodMultiplierView.setText(null);
-            }
-
-            if (budgetItem.mPeriodType != null) {
-                mPeriodTypeView.setSelection(budgetItem.mPeriodType.ordinal());
-            }
-            mNotesView.setText(budgetItem.mNotes);
+        if (budgetItem.mAmount != null) {
+            mAmountView.setText(getString(R.string.detail_amount, budgetItem.mAmount));
         } else {
-            mNameView.setText(null);
             mAmountView.setText(null);
-            mCategoryView.setSelection(0);
-            applyFirstOccurrenceStartToScreen(DEFAULT_FIRST_OCCURRENCE_START);
-            applyFirstOccurrenceEndToScreen(DEFAULT_FIRST_OCCURRENCE_END);
-            mOccurrenceLimitView.setText(null);
-            mPeriodMultiplierView.setText(null);
-            mPeriodTypeView.setSelection(0);
-            mNotesView.setText(null);
-            mSpendingEventsView.setText(null);
         }
+
+        if (budgetItem.mType != null) {
+            mCategoryView.setSelection(budgetItem.mType.ordinal());
+        }
+
+        Date firstOccurrenceStart = budgetItem.mFirstOccurrenceStart != null
+                                    ? budgetItem.mFirstOccurrenceStart
+                                    : DEFAULT_FIRST_OCCURRENCE_START;
+        applyFirstOccurrenceStartToScreen(firstOccurrenceStart);
+
+        Date firstOccurrenceEnd =
+                budgetItem.mFirstOccurrenceEnd != null ? budgetItem.mFirstOccurrenceEnd
+                                                       : DEFAULT_FIRST_OCCURRENCE_END;
+        applyFirstOccurrenceEndToScreen(firstOccurrenceEnd);
+
+        if (budgetItem.mOccurenceCount != null) {
+            mOccurrenceLimitView.setText(Integer.toString(budgetItem.mOccurenceCount));
+        } else {
+            mOccurrenceLimitView.setText(null);
+        }
+
+        if (budgetItem.mPeriodMultiplier != null) {
+            mPeriodMultiplierView.setText(Integer.toString(budgetItem.mPeriodMultiplier));
+        } else {
+            mPeriodMultiplierView.setText(null);
+        }
+
+        if (budgetItem.mPeriodType != null) {
+            mPeriodTypeView.setSelection(budgetItem.mPeriodType.ordinal());
+        }
+        mNotesView.setText(budgetItem.mNotes);
+        loadSpendingOccurrences(budgetItem);
+    }
+
+    private void clearScreen() {
+        mNameView.setText(null);
+        mAmountView.setText(null);
+        mCategoryView.setSelection(0);
+        applyFirstOccurrenceStartToScreen(DEFAULT_FIRST_OCCURRENCE_START);
+        applyFirstOccurrenceEndToScreen(DEFAULT_FIRST_OCCURRENCE_END);
+        mOccurrenceLimitView.setText(null);
+        mPeriodMultiplierView.setText(null);
+        mPeriodTypeView.setSelection(0);
+        mNotesView.setText(null);
+        mSpendingEventsView.setText(null);
+    }
+
+    private void loadSpendingOccurrences(final BudgetItem budgetItem) {
+        new LastBalanceUpdateLoaderTask() {
+
+            @Override
+            protected void onPostExecute(BalanceUpdateEvent balanceUpdateEvent) {
+                BalanceCalculator.BalanceResult result =
+                        BalanceCalculator.getEstimatedBalance(budgetItem,
+                                balanceUpdateEvent.when, new Date());
+                mSpendingEventsView.setText(ArrayUtils.join("\n", result.spendingEvents,
+                        new ArrayUtils.Stringifier<Date>() {
+
+                            @Override
+                            public String toString(int index, Date item) {
+                                return getString(R.string.spending_occurrence, index + 1,
+                                        DateUtils.DEFAULT_DATE_FORMAT.format(item));
+                            }
+                        }));
+            }
+        }.execute();
     }
 
     private void applyFirstOccurrenceStartToScreen(Date firstOccurrenceStart) {
         mFirstOccurrenceStartView.setText(
-                DateUtils.SHORT_DATE_FORMAT.format(firstOccurrenceStart));
+                DateUtils.DEFAULT_DATE_FORMAT.format(firstOccurrenceStart));
     }
 
     private void applyFirstOccurrenceEndToScreen(Date firstOccurrenceEnd) {
         mFirstOccurrenceEndView.setText(
-                DateUtils.SHORT_DATE_FORMAT.format(firstOccurrenceEnd));
+                DateUtils.DEFAULT_DATE_FORMAT.format(firstOccurrenceEnd));
     }
 
     private DatePickerDialog getFirstOccurrenceStartPickerDialog() {
@@ -464,7 +487,7 @@ public class BudgetItemDetailFragment extends Fragment {
 
         if (firstOccurrenceEnd.after(c.getTime())) {
             Toast.makeText(getActivity(), "End date cannot be higher than " +
-                    DateUtils.SHORT_DATE_FORMAT.format(c.getTime()), Toast.LENGTH_SHORT)
+                    DateUtils.DEFAULT_DATE_FORMAT.format(c.getTime()), Toast.LENGTH_SHORT)
                     .show();
             mFirstOccurrenceEndView.requestFocus();
             return false;

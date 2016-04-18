@@ -19,14 +19,14 @@
             android:id="@+id/last_update"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/horizontal_padding"/>
+            android:layout_marginStart="@dimen/padding"/>
     </LinearLayout>
 
     <EditText
         android:id="@+id/value"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/vertical_padding"
+        android:layout_marginTop="@dimen/padding"
         android:hint="Amount"
         android:inputType="numberDecimal"/>
 
@@ -36,5 +36,5 @@
         android:minWidth="128dp"
         android:textAlignment="center"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/vertical_padding"/>
+        android:layout_marginTop="@dimen/padding"/>
 </LinearLayout>

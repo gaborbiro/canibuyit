@@ -115,7 +115,7 @@
                 android:id="@+id/occurence_count"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/horizontal_padding"
+                android:layout_marginTop="@dimen/padding"
                 android:imeOptions="actionNext"
                 android:inputType="number"
                 android:lines="1"
@@ -132,7 +132,7 @@
             android:id="@+id/notes"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/horizontal_padding"
+            android:layout_marginTop="@dimen/padding"
             android:hint="@string/notes"
             android:imeOptions="actionDone"
             android:inputType="textAutoComplete|textMultiLine"
@@ -140,6 +140,7 @@
 
         <TextView
             android:id="@+id/spending_events"
+            android:layout_marginTop="@dimen/padding"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
     </LinearLayout>

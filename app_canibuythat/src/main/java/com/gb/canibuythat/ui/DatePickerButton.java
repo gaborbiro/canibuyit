@@ -25,7 +25,7 @@ public class DatePickerButton extends Button {
                 @Override
                 public void onDateSet(DatePicker view, int year, int monthOfYear,
                         int dayOfMonth) {
-                    setText(DateUtils.SHORT_DATE_FORMAT.format(
+                    setText(DateUtils.DEFAULT_DATE_FORMAT.format(
                             new GregorianCalendar(year, monthOfYear,
                                     dayOfMonth).getTime()));
                 }

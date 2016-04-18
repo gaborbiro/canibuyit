@@ -35,7 +35,7 @@ public class DBUtils {
             targetFolder.mkdirs();
         }
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd'T'HHmmssZ");
-        String targetFilename = "budget-backup.sqlite";
+        String targetFilename = "budget-" + sdf.format(new Date()) + ".sqlite";
         File to = new File(targetFolder, targetFilename);
 
         File data = Environment.getDataDirectory();

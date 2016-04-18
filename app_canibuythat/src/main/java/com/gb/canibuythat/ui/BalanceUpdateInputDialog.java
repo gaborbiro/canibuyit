@@ -53,7 +53,7 @@ public class BalanceUpdateInputDialog extends DialogFragment
         mValueView = (EditText) body.findViewById(R.id.value);
         mWhenButton = (DatePickerButton) body.findViewById(R.id.when);
         Date today = new Date();
-        mWhenButton.setText(DateUtils.SHORT_DATE_FORMAT.format(today));
+        mWhenButton.setText(DateUtils.DEFAULT_DATE_FORMAT.format(today));
         mWhenButton.setDate(today);
         refreshLastUpdate();
 
@@ -91,7 +91,7 @@ public class BalanceUpdateInputDialog extends DialogFragment
         if (isAdded()) {
             if (mLastUpdate != null) {
                 mLastUpdateView.setText(getString(R.string.reference, mLastUpdate.value,
-                        DateUtils.SHORT_DATE_FORMAT.format(mLastUpdate.when)));
+                        DateUtils.DEFAULT_DATE_FORMAT.format(mLastUpdate.when)));
             } else {
                 mLastUpdateView.setText("None");
             }

@@ -5,8 +5,7 @@
     <dimen name="double_unit">16dp</dimen>
 
     <dimen name="activity_margin">@dimen/unit</dimen>
-    <dimen name="horizontal_padding">@dimen/unit</dimen>
-    <dimen name="vertical_padding">@dimen/unit</dimen>
+    <dimen name="padding">@dimen/unit</dimen>
     <dimen name="list_item_padding">@dimen/unit</dimen>
 
     <dimen name="statistics_shadow_height">@dimen/unit</dimen>

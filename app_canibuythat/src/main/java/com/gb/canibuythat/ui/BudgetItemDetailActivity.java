@@ -9,27 +9,16 @@ import android.view.MenuItem;
 import com.gb.canibuythat.R;
 import com.gb.canibuythat.util.DialogUtils;
 
-import java.util.Date;
-
 public class BudgetItemDetailActivity extends ActionBarActivity {
 
-    public static Intent getIntentForUpdate(Context context, int budgetItemId,
-            Date startDate) {
-        Intent i = getIntentForCreate(context, startDate);
+    public static Intent getIntentForUpdate(Context context, int budgetItemId) {
+        Intent i = getIntentForCreate(context);
         i.putExtra(BudgetItemDetailFragment.EXTRA_ITEM_ID, budgetItemId);
         return i;
     }
 
-    /**
-     * @param startDate we are displaying the actual spending occurrences for a
-     *                  BudgetItem. We need the startDate for that.
-     */
-    public static Intent getIntentForCreate(Context context, Date startDate) {
-        Intent i = new Intent(context, BudgetItemDetailActivity.class);
-        if (startDate != null) {
-            i.putExtra(BudgetItemDetailFragment.EXTRA_START_DATE, startDate.getTime());
-        }
-        return i;
+    public static Intent getIntentForCreate(Context context) {
+        return new Intent(context, BudgetItemDetailActivity.class);
     }
 
     @Override

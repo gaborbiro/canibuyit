@@ -194,17 +194,11 @@ public class BudgetItemListActivity extends ActionBarActivity
                 }
             }
         } else {
-            Date startDate =
-                    //                    mLastBalanceUpdateEvent != null ?
-                    // mLastBalanceUpdateEvent.when : null;
-                    null;
             if (budgetItemId != null) {
                 startActivity(
-                        BudgetItemDetailActivity.getIntentForUpdate(this, budgetItemId,
-                                startDate));
+                        BudgetItemDetailActivity.getIntentForUpdate(this, budgetItemId));
             } else {
-                startActivity(
-                        BudgetItemDetailActivity.getIntentForCreate(this, startDate));
+                startActivity(BudgetItemDetailActivity.getIntentForCreate(this));
             }
         }
     }
@@ -292,7 +286,7 @@ public class BudgetItemListActivity extends ActionBarActivity
             if (balanceUpdateEvent != null) {
                 mReferenceView.setText(
                         getString(R.string.reference, balanceUpdateEvent.value,
-                                DateUtils.SHORT_DATE_FORMAT.format(
+                                DateUtils.DEFAULT_DATE_FORMAT.format(
                                         balanceUpdateEvent.when)));
             } else {
                 mReferenceView.setText("0");
