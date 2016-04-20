@@ -17,6 +17,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.Spinner;
@@ -61,13 +62,15 @@ public class BudgetItemDetailFragment extends Fragment {
     private static final int DEFAULT_PERIOD_MULTIPLIER = 1;
 
     static {
-        Calendar c = DateUtils.clearLowerBits(Calendar.getInstance());
+        Calendar c = Calendar.getInstance();
+        DateUtils.clearLowerBits(c);
         DEFAULT_FIRST_OCCURRENCE_END = c.getTime();
         DEFAULT_FIRST_OCCURRENCE_START = c.getTime();
     }
 
     @InjectView(R.id.name) EditText mNameView;
     @InjectView(R.id.amount) EditText mAmountView;
+    @InjectView(R.id.enabled) CheckBox mEnabledView;
     @InjectView(R.id.category) Spinner mCategoryView;
     @InjectView(R.id.first_occurence_start) Button mFirstOccurrenceStartView;
     @InjectView(R.id.first_occurence_end) Button mFirstOccurrenceEndView;
@@ -83,8 +86,7 @@ public class BudgetItemDetailFragment extends Fragment {
     private ViewGroup mRootView;
     private View.OnTouchListener nameFocuser = new View.OnTouchListener() {
 
-        @Override
-        public boolean onTouch(View v, MotionEvent event) {
+        @Override public boolean onTouch(View v, MotionEvent event) {
             if (event.getAction() == MotionEvent.ACTION_DOWN &&
                     mRootView.getFocusedChild() != null) {
                 mRootView.getFocusedChild()
@@ -100,10 +102,11 @@ public class BudgetItemDetailFragment extends Fragment {
                 @Override
                 public void onDateSet(DatePicker view, int year, int monthOfYear,
                         int dayOfMonth) {
-                    Calendar c = DateUtils.clearLowerBits(Calendar.getInstance());
+                    Calendar c = Calendar.getInstance();
                     c.set(Calendar.YEAR, year);
                     c.set(Calendar.MONTH, monthOfYear);
                     c.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+                    DateUtils.clearLowerBits(c);
 
                     switch ((int) view.getTag()) {
                         case R.id.first_occurence_start:
@@ -142,8 +145,7 @@ public class BudgetItemDetailFragment extends Fragment {
             };
     private View.OnClickListener mDatePickerOnClickListener = new View.OnClickListener() {
 
-        @Override
-        public void onClick(View v) {
+        @Override public void onClick(View v) {
             switch (v.getId()) {
                 case R.id.first_occurence_start:
                     getFirstOccurrenceStartPickerDialog().show();
@@ -160,14 +162,12 @@ public class BudgetItemDetailFragment extends Fragment {
     public BudgetItemDetailFragment() {
     }
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
+    @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
     }
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    @Override public View onCreateView(LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState) {
         mRootView = (ViewGroup) inflater.inflate(R.layout.fragment_budget_item_detail,
                 container, false);
@@ -185,14 +185,12 @@ public class BudgetItemDetailFragment extends Fragment {
         mPeriodTypeView.setOnItemSelectedListener(
                 new AdapterView.OnItemSelectedListener() {
 
-                    @Override
-                    public void onItemSelected(AdapterView<?> parent, View view,
+                    @Override public void onItemSelected(AdapterView<?> parent, View view,
                             int position, long id) {
                         mFirstOccurrenceEndView.setError(null);
                     }
 
-                    @Override
-                    public void onNothingSelected(AdapterView<?> parent) {
+                    @Override public void onNothingSelected(AdapterView<?> parent) {
                         // nothing to do
                     }
                 });
@@ -212,8 +210,7 @@ public class BudgetItemDetailFragment extends Fragment {
         return mRootView;
     }
 
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
+    @Override public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
 
         if (mOriginalBudgetItem != null) {
@@ -235,8 +232,7 @@ public class BudgetItemDetailFragment extends Fragment {
         if (budgetItemId != null) {
             new BudgetItemLoaderTask(budgetItemId, new BudgetItemLoaderTask.Listener() {
 
-                @Override
-                public void onDataReady(BudgetItem budgetItem) {
+                @Override public void onDataReady(BudgetItem budgetItem) {
                     BudgetItemDetailFragment.this.mOriginalBudgetItem = budgetItem;
                     mFirstOccurrenceEndPickerDialog = null;
                     mFirstOccurrenceStartPickerDialog = null;
@@ -259,8 +255,7 @@ public class BudgetItemDetailFragment extends Fragment {
         }
     }
 
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+    @Override public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.edit, menu);
         this.mDeleteButton = menu.findItem(R.id.menu_delete);
 
@@ -269,8 +264,7 @@ public class BudgetItemDetailFragment extends Fragment {
         }
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    @Override public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_save:
                 saveUserDataOrShowError();
@@ -280,16 +274,14 @@ public class BudgetItemDetailFragment extends Fragment {
                     new BudgetItemDeleteTask(getActivity(),
                             new BudgetItemDeleteTask.Listener() {
 
-                                @Override
-                                public void onSuccess() {
+                                @Override public void onSuccess() {
                                     mDeleteButton.setVisible(false);
                                     Toast.makeText(App.getAppContext(),
                                             "BudgetItem deleted", Toast.LENGTH_SHORT)
                                             .show();
                                 }
 
-                                @Override
-                                public void onFailure() {
+                                @Override public void onFailure() {
                                     Toast.makeText(App.getAppContext(),
                                             "BudgetItem was not found",
                                             Toast.LENGTH_SHORT)
@@ -317,8 +309,7 @@ public class BudgetItemDetailFragment extends Fragment {
             new BudgetItemUpdateTask(getActivity(), newBudgetItem,
                     new BudgetItemUpdateTask.Listener() {
 
-                        @Override
-                        public void onSuccess() {
+                        @Override public void onSuccess() {
                             BudgetItemDetailFragment.this.mOriginalBudgetItem =
                                     newBudgetItem;
                             mDeleteButton.setVisible(true);
@@ -339,7 +330,7 @@ public class BudgetItemDetailFragment extends Fragment {
         } else {
             mAmountView.setText(null);
         }
-
+        mEnabledView.setChecked(budgetItem.mEnabled);
         if (budgetItem.mType != null) {
             mCategoryView.setSelection(budgetItem.mType.ordinal());
         }
@@ -354,8 +345,8 @@ public class BudgetItemDetailFragment extends Fragment {
                                                        : DEFAULT_FIRST_OCCURRENCE_END;
         applyFirstOccurrenceEndToScreen(firstOccurrenceEnd);
 
-        if (budgetItem.mOccurenceCount != null) {
-            mOccurrenceLimitView.setText(Integer.toString(budgetItem.mOccurenceCount));
+        if (budgetItem.mOccurrenceCount != null) {
+            mOccurrenceLimitView.setText(Integer.toString(budgetItem.mOccurrenceCount));
         } else {
             mOccurrenceLimitView.setText(null);
         }
@@ -376,6 +367,7 @@ public class BudgetItemDetailFragment extends Fragment {
     private void clearScreen() {
         mNameView.setText(null);
         mAmountView.setText(null);
+        mEnabledView.setChecked(true);
         mCategoryView.setSelection(0);
         applyFirstOccurrenceStartToScreen(DEFAULT_FIRST_OCCURRENCE_START);
         applyFirstOccurrenceEndToScreen(DEFAULT_FIRST_OCCURRENCE_END);
@@ -391,14 +383,14 @@ public class BudgetItemDetailFragment extends Fragment {
 
             @Override
             protected void onPostExecute(BalanceUpdateEvent balanceUpdateEvent) {
-                BalanceCalculator.BalanceResult result =
-                        BalanceCalculator.get().getEstimatedBalance(budgetItem,
-                                balanceUpdateEvent.when, new Date());
+                BalanceCalculator.BalanceResult result = BalanceCalculator.get()
+                        .getEstimatedBalance(budgetItem,
+                                balanceUpdateEvent != null ? balanceUpdateEvent.when
+                                                           : null, new Date());
                 mSpendingEventsView.setText(ArrayUtils.join("\n", result.spendingEvents,
                         new ArrayUtils.Stringifier<Date>() {
 
-                            @Override
-                            public String toString(int index, Date item) {
+                            @Override public String toString(int index, Date item) {
                                 return getString(R.string.spending_occurrence, index + 1,
                                         DateUtils.DEFAULT_DATE_FORMAT.format(item));
                             }
@@ -508,6 +500,8 @@ public class BudgetItemDetailFragment extends Fragment {
             budgetItem.mAmount = Float.valueOf(mAmountView.getText()
                     .toString());
         }
+        // enabled
+        budgetItem.mEnabled = mEnabledView.isChecked();
         // type
         budgetItem.mType = (BudgetItem.BudgetItemType) mCategoryView.getSelectedItem();
         // firstOccurrenceStart
@@ -516,7 +510,7 @@ public class BudgetItemDetailFragment extends Fragment {
         budgetItem.mFirstOccurrenceEnd = getFirstOccurrenceEndFromScreen();
         // repetition
         if (!TextUtils.isEmpty(mOccurrenceLimitView.getText())) {
-            budgetItem.mOccurenceCount = Integer.valueOf(mOccurrenceLimitView.getText()
+            budgetItem.mOccurrenceCount = Integer.valueOf(mOccurrenceLimitView.getText()
                     .toString());
         }
         // periodMultiplier
@@ -592,10 +586,9 @@ public class BudgetItemDetailFragment extends Fragment {
      * or the content hasn't been yet saved
      */
     public boolean isChanged() {
-        return (mOriginalBudgetItem == null &&
-                !new BudgetItem().equals(getBudgetItemFromScreen())) ||
-                (mOriginalBudgetItem != null &&
-                        !mOriginalBudgetItem.equals(getBudgetItemFromScreen()));
+        BudgetItem fromScreen = getBudgetItemFromScreen();
+        return (mOriginalBudgetItem == null && !new BudgetItem().equals(fromScreen)) ||
+                (mOriginalBudgetItem != null && !mOriginalBudgetItem.equals(fromScreen));
     }
 
     private static class BudgetItemLoaderTask extends AsyncTask<Void, Void, BudgetItem> {
@@ -608,8 +601,7 @@ public class BudgetItemDetailFragment extends Fragment {
             this.mListener = listener;
         }
 
-        @Override
-        protected BudgetItem doInBackground(Void... params) {
+        @Override protected BudgetItem doInBackground(Void... params) {
             BudgetDbHelper helper = BudgetDbHelper.get();
             try {
                 Dao<BudgetItem, Integer> dao = helper.getDao(BudgetItem.class);
@@ -620,8 +612,7 @@ public class BudgetItemDetailFragment extends Fragment {
             }
         }
 
-        @Override
-        protected void onPostExecute(BudgetItem budgetItem) {
+        @Override protected void onPostExecute(BudgetItem budgetItem) {
             mListener.onDataReady(budgetItem);
         }
 
@@ -646,8 +637,7 @@ public class BudgetItemDetailFragment extends Fragment {
             this.mListener = listener;
         }
 
-        @Override
-        protected Void doInBackground(Void... params) {
+        @Override protected Void doInBackground(Void... params) {
             BudgetDbHelper helper = BudgetDbHelper.get();
             try {
                 Dao<BudgetItem, Integer> dao = helper.getDao(BudgetItem.class);
@@ -670,8 +660,7 @@ public class BudgetItemDetailFragment extends Fragment {
             return null;
         }
 
-        @Override
-        protected void onPostExecute(Void aVoid) {
+        @Override protected void onPostExecute(Void aVoid) {
             if (e == null) {
                 Toast.makeText(mContext,
                         mResult.isCreated() ? "BudgetItem created" : "BudgetItem updated",
@@ -702,8 +691,7 @@ public class BudgetItemDetailFragment extends Fragment {
             this.mId = id;
         }
 
-        @Override
-        protected Boolean doInBackground(Void... params) {
+        @Override protected Boolean doInBackground(Void... params) {
             BudgetDbHelper helper = BudgetDbHelper.get();
             try {
                 Dao<BudgetItem, Integer> dao = helper.getDao(BudgetItem.class);
@@ -717,8 +705,7 @@ public class BudgetItemDetailFragment extends Fragment {
             }
         }
 
-        @Override
-        protected void onPostExecute(Boolean success) {
+        @Override protected void onPostExecute(Boolean success) {
             if (success) {
                 mListener.onSuccess();
             } else {

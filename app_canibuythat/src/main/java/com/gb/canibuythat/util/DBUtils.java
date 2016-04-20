@@ -8,19 +8,12 @@ import android.widget.Toast;
 
 import com.gb.canibuythat.App;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Comparator;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class DBUtils {
 
@@ -44,7 +37,8 @@ public class DBUtils {
 
         FileUtils.copyFiles(from, to);
 
-        Toast.makeText(App.getAppContext(), to.getPath(), Toast.LENGTH_SHORT).show();
+        Toast.makeText(App.getAppContext(), to.getPath(), Toast.LENGTH_SHORT)
+                .show();
     }
 
 
@@ -90,78 +84,49 @@ public class DBUtils {
 
     public static String[] getSQLScriptForTable(String path, String table,
             String[] columns) {
-        ArrayList<String> commandLine = new ArrayList<String>();
-        commandLine.add("sqlite3");
-        commandLine.add(path);
-        commandLine.add(".dump");
         try {
-            Process process = Runtime.getRuntime()
-                    .exec(commandLine.toArray(new String[commandLine.size()]));
-            BufferedReader bufferedReader =
-                    new BufferedReader(new InputStreamReader(process.getInputStream()));
-            StringBuffer sqlScript = new StringBuffer();
-            String line;
-
-            while (!TextUtils.isEmpty(line = bufferedReader.readLine())) {
-                sqlScript.append(line);
-                sqlScript.append("\n");
-            }
-            bufferedReader.close();
-
-            String[] commands = sqlScript.toString()
-                    .split(";");
-            List<String> result = new ArrayList<String>();
-            String insertPrefix = "\nINSERT INTO \"" + table + "\"";
-            String createPrefix = "\nCREATE TABLE `" + table + "`";
-            String columnSpec = null;
-
-            for (String command : commands) {
-                if (command.startsWith(createPrefix)) {
-                    // this should happen first
-                    columnSpec = generateColumnSpecFromCommand(command, columns);
-                } else if (command.startsWith(insertPrefix)) {
-                    result.add(
-                            command.replace(insertPrefix, insertPrefix + " " + columnSpec)
-                                    .trim());
-                }
-            }
-            return result.toArray(new String[result.size()]);
+            String[] sql = sqlite3ToSql(path);
+            return filterCommandForTable(sql, table, columns);
         } catch (IOException e) {
             e.printStackTrace();
         }
         return null;
     }
 
+    private static String[] sqlite3ToSql(String path) throws IOException {
+        String[] commandLine = new String[]{"sqlite3", path, ".dump"};
+        Process process = Runtime.getRuntime()
+                .exec(commandLine);
+        return FileUtils.streamToString(process.getInputStream())
+                .split(";");
+    }
+
+    private static String[] filterCommandForTable(String[] sql, String table,
+            String[] columns) {
+        List<String> result = new ArrayList<>();
+        String insertPrefix = "\nINSERT INTO \"" + table + "\"";
+        String createPrefix = "\nCREATE TABLE \"" + table + "\"";
+        String columnSpec = null;
+
+        for (String command : sql) {
+            if (command.startsWith(createPrefix)) {
+                // this should happen first
+                columnSpec = generateColumnSpecFromCommand(command, columns);
+            } else if (command.startsWith(insertPrefix)) {
+                result.add(command.replace(insertPrefix, insertPrefix + " " + columnSpec)
+                        .trim());
+            }
+        }
+        return result.toArray(new String[result.size()]);
+    }
 
     private static String generateColumnSpecFromCommand(String command,
             String[] knownColumns) {
-        String[] sortedColumns = sortByOccurrence(knownColumns, command);
+        String[] sortedColumns = ArrayUtils.sortByOccurrence(knownColumns, command);
         String[] quotedColumns = new String[knownColumns.length];
         for (int i = 0; i < sortedColumns.length; i++) {
             quotedColumns[i] = "`" + sortedColumns[i] + "`";
         }
         return "(" + TextUtils.join(", ", quotedColumns) + ")";
-    }
-
-    /**
-     * It is assumed, that each item in the specified <code>array</code> appears once
-     * or not at all in the specified <code>text</code>.<br>
-     * The items of the specified <code>array</code> are sorted based on the order in
-     * which they occur in the specified <code>text</code>.
-     */
-    public static String[] sortByOccurrence(String[] array, String text) {
-        final Map<String, Integer> indexMap = new HashMap<String, Integer>();
-
-        for (int i = 0; i < array.length; i++) {
-            indexMap.put(array[i], text.indexOf(array[i]));
-        }
-        Arrays.sort(array, new Comparator<String>() {
-            @Override
-            public int compare(String lhs, String rhs) {
-                return indexMap.get(lhs)
-                        .compareTo(indexMap.get(rhs));
-            }
-        });
-        return array;
     }
 }

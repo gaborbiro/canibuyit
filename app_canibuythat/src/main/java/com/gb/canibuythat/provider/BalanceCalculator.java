@@ -14,12 +14,6 @@ public class BalanceCalculator {
 
     private static BalanceCalculator INSTANCE;
 
-    private Map<Integer, BalanceResult> mCache;
-
-    private BalanceCalculator() {
-        mCache = new HashMap<>();
-    }
-
     public static BalanceCalculator get() {
         if (INSTANCE == null) {
             INSTANCE = new BalanceCalculator();
@@ -40,10 +34,6 @@ public class BalanceCalculator {
             Date end) {
         int cacheKey = getCacheKey(budgetItem, start, end);
 
-        if (mCache.containsKey(cacheKey)) {
-            return mCache.get(cacheKey);
-        }
-
         if (start != null && end != null && !end.after(start)) {
             throw new IllegalArgumentException("Start must come before end!");
         }
@@ -59,9 +49,9 @@ public class BalanceCalculator {
         Calendar date = Calendar.getInstance();
 
         if (end != null) {
-            date.setTime(end);
+            date.setTime(DateUtils.clearLowerBits(end));
         }
-        date = DateUtils.clearLowerBits(date);
+        start = DateUtils.clearLowerBits(start);
 
         do {
             if (start == null || occurrenceEnd.getTimeInMillis() >= start.getTime()) {
@@ -80,14 +70,13 @@ public class BalanceCalculator {
             budgetItem.mPeriodType.apply(occurrenceStart, budgetItem.mPeriodMultiplier);
             budgetItem.mPeriodType.apply(occurrenceEnd, budgetItem.mPeriodMultiplier);
 
-            if (budgetItem.mOccurenceCount != null &&
-                    ++count >= budgetItem.mOccurenceCount) {
+            if (budgetItem.mOccurrenceCount != null &&
+                    ++count >= budgetItem.mOccurrenceCount) {
                 exit = true;
             }
         } while (!exit);
         BalanceResult result = new BalanceResult(bestCase, worstCase,
                 spendingEvents.toArray(new Date[spendingEvents.size()]));
-        mCache.put(cacheKey, result);
         return result;
     }
 
@@ -97,8 +86,8 @@ public class BalanceCalculator {
                                 ? budgetItem.mFirstOccurrenceStart.hashCode() : 0);
         result = 31 * result + (budgetItem.mFirstOccurrenceEnd != null
                                 ? budgetItem.mFirstOccurrenceEnd.hashCode() : 0);
-        result = 31 * result + (budgetItem.mOccurenceCount != null
-                                ? budgetItem.mOccurenceCount.hashCode() : 0);
+        result = 31 * result + (budgetItem.mOccurrenceCount != null
+                                ? budgetItem.mOccurrenceCount.hashCode() : 0);
         result = 31 * result + (budgetItem.mPeriodMultiplier != null
                                 ? budgetItem.mPeriodMultiplier.hashCode() : 0);
         result = 31 * result +

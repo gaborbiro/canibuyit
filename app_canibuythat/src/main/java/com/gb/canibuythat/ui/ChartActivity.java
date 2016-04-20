@@ -42,8 +42,8 @@ public class ChartActivity extends Activity implements OnChartValueSelectedListe
     private static SimpleDateFormat MONTH_YEAR = new SimpleDateFormat("yyyy.MMM");
     protected BarChart mChart;
 
-    public static void launchOnClick(final Activity activity, View launcherView) {
-        launcherView.setOnClickListener(new View.OnClickListener() {
+    public static void launchOnClick(final Activity activity, View button) {
+        button.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View v) {
                 Intent i = new Intent(activity, ChartActivity.class);
                 activity.startActivity(i);
@@ -140,11 +140,13 @@ public class ChartActivity extends Activity implements OnChartValueSelectedListe
                     float worstCase = 0;
 
                     for (com.gb.canibuythat.model.BudgetItem item : budgetItemDao) {
-                        BalanceCalculator.BalanceResult br = BalanceCalculator.get()
-                                .getEstimatedBalance(item, startDate,
-                                        currTarget.getTime());
-                        bestCase += br.bestCase;
-                        worstCase += br.worstCase;
+                        if (item.mEnabled) {
+                            BalanceCalculator.BalanceResult br = BalanceCalculator.get()
+                                    .getEstimatedBalance(item, startDate, currTarget
+                                            .getTime());
+                            bestCase += br.bestCase;
+                            worstCase += br.worstCase;
+                        }
                     }
 
                     if (balanceUpdateEvent != null) {

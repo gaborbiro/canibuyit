@@ -6,8 +6,14 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v7.app.ActionBarActivity;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -22,6 +28,7 @@ import com.gb.canibuythat.util.DBUtils;
 import com.gb.canibuythat.util.DateUtils;
 import com.gb.canibuythat.util.DialogUtils;
 import com.gb.canibuythat.util.FileUtils;
+import com.gb.canibuythat.util.ViewUtils;
 import com.j256.ormlite.dao.Dao;
 
 import org.greenrobot.eventbus.EventBus;
@@ -60,21 +67,24 @@ public class BudgetItemListActivity extends ActionBarActivity
      */
     private boolean twoPane;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_budget_item_list);
         ButterKnife.inject(this);
-        EventBus.getDefault().register(this);
+        EventBus.getDefault()
+                .register(this);
 
         if (findViewById(R.id.budgetmodifier_detail_container) != null) {
             twoPane = true;
             BudgetItemListFragment budgetItemListFragment =
                     ((BudgetItemListFragment) getSupportFragmentManager()
-                            .findFragmentById(R.id.budgetmodifier_list));
+                            .findFragmentById(
+                            R.id.budgetmodifier_list));
             budgetItemListFragment.setActivateOnItemClick(true);
         }
         ChartActivity.launchOnClick(this, mChartButton);
+        //        BalanceUpdateInputDialog.launchOnClick(getSupportFragmentManager(),
+        //                mReferenceView);
         new CalculateBalanceTask().execute();
     }
 
@@ -83,19 +93,16 @@ public class BudgetItemListActivity extends ActionBarActivity
      * item with the given ID was
      * selected.
      */
-    @Override
-    public void onItemSelected(int id) {
+    @Override public void onItemSelected(int id) {
         showDetailScreen(id);
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
+    @Override public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    @Override public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_add:
                 showDetailScreen(null);
@@ -119,8 +126,7 @@ public class BudgetItemListActivity extends ActionBarActivity
         return super.onOptionsItemSelected(item);
     }
 
-    @Subscribe
-    public void onEvent(BudgetItemUpdatedEvent event) {
+    @Subscribe public void onEvent(BudgetItemUpdatedEvent event) {
         new CalculateBalanceTask().execute();
     }
 
@@ -128,8 +134,7 @@ public class BudgetItemListActivity extends ActionBarActivity
         new BalanceUpdateInputDialog().show(getSupportFragmentManager(), null);
     }
 
-    @Override
-    public void onBalanceUpdateSet(BalanceUpdateEvent event) {
+    @Override public void onBalanceUpdateSet(BalanceUpdateEvent event) {
         new BalanceUpdateWriterTask().execute(event);
     }
 
@@ -176,16 +181,14 @@ public class BudgetItemListActivity extends ActionBarActivity
                 if (budgetItemDetailFragment.isChanged()) {
                     DialogUtils.getSaveOrDiscardDialog(this, new Runnable() {
 
-                        @Override
-                        public void run() {
+                        @Override public void run() {
                             if (budgetItemDetailFragment.saveUserDataOrShowError()) {
                                 budgetItemDetailFragment.setContent(budgetItemId, false);
                             }
                         }
                     }, new Runnable() {
 
-                        @Override
-                        public void run() {
+                        @Override public void run() {
                             budgetItemDetailFragment.setContent(budgetItemId, false);
                         }
                     })
@@ -204,24 +207,21 @@ public class BudgetItemListActivity extends ActionBarActivity
         }
     }
 
-    @Override
-    public void onBackPressed() {
+    @Override public void onBackPressed() {
         final BudgetItemDetailFragment detailFragment =
                 (BudgetItemDetailFragment) getFragmentManager().findFragmentById(
                         R.id.budgetmodifier_detail_container);
         if (detailFragment != null && detailFragment.isChanged()) {
             DialogUtils.getSaveOrDiscardDialog(this, new Runnable() {
 
-                @Override
-                public void run() {
+                @Override public void run() {
                     if (detailFragment.saveUserDataOrShowError()) {
                         finish();
                     }
                 }
             }, new Runnable() {
 
-                @Override
-                public void run() {
+                @Override public void run() {
                     finish();
                 }
             })
@@ -235,14 +235,12 @@ public class BudgetItemListActivity extends ActionBarActivity
 
         private LastBalanceUpdateLoaderTask mLastBalanceUpdateLoaderTask;
 
-        @Override
-        protected void onPreExecute() {
+        @Override protected void onPreExecute() {
             mLastBalanceUpdateLoaderTask = new LastBalanceUpdateLoaderTask();
             mLastBalanceUpdateLoaderTask.execute();
         }
 
-        @Override
-        protected Float[] doInBackground(Void... params) {
+        @Override protected Float[] doInBackground(Void... params) {
             BudgetDbHelper helper = BudgetDbHelper.get();
             float bestCase = 0;
             float worstCase = 0;
@@ -254,12 +252,14 @@ public class BudgetItemListActivity extends ActionBarActivity
                         helper.getDao(com.gb.canibuythat.model.BudgetItem.class);
 
                 for (com.gb.canibuythat.model.BudgetItem item : budgetItemDao) {
-                    BalanceCalculator.BalanceResult result = BalanceCalculator.get()
-                            .getEstimatedBalance(item,
-                                    balanceUpdateEvent != null ? balanceUpdateEvent.when
-                                                               : null, new Date());
-                    bestCase += result.bestCase;
-                    worstCase += result.worstCase;
+                    if (item.mEnabled) {
+                        BalanceCalculator.BalanceResult result = BalanceCalculator.get()
+                                .getEstimatedBalance(item,
+                                        balanceUpdateEvent != null ? balanceUpdateEvent.when
+                                                                   : null, new Date());
+                        bestCase += result.bestCase;
+                        worstCase += result.worstCase;
+                    }
                 }
 
                 if (balanceUpdateEvent != null) {
@@ -276,22 +276,29 @@ public class BudgetItemListActivity extends ActionBarActivity
             return new Float[]{bestCase, worstCase};
         }
 
-        @Override
-        protected void onPostExecute(Float[] balance) {
+        @Override protected void onPostExecute(Float[] balance) {
             BalanceUpdateEvent balanceUpdateEvent = null;
             try {
                 balanceUpdateEvent = mLastBalanceUpdateLoaderTask.get();
             } catch (Exception e) {
                 e.printStackTrace();
             }
+            String change = getString(R.string.change);
+            String text;
             if (balanceUpdateEvent != null) {
-                mReferenceView.setText(
-                        getString(R.string.reference, balanceUpdateEvent.value,
-                                DateUtils.DEFAULT_DATE_FORMAT.format(
-                                        balanceUpdateEvent.when)));
+                text = getString(R.string.reference_statistics, balanceUpdateEvent.value,
+                        DateUtils.DEFAULT_DATE_FORMAT.format(
+                                balanceUpdateEvent.when), change);
             } else {
-                mReferenceView.setText("0");
+                text = getString(R.string.reference_statistics_none, change);
             }
+            ViewUtils.setTextWithLinkSegment(mReferenceView, text, change, new Runnable()
+            {
+                @Override public void run() {
+                    showBalanceUpdateDialog();
+                }
+            });
+
             mBalanceView.setText(getString(R.string.balance, balance[0], balance[1]));
         }
     }
@@ -304,8 +311,7 @@ public class BudgetItemListActivity extends ActionBarActivity
             this.path = path;
         }
 
-        @Override
-        protected Void doInBackground(Void... params) {
+        @Override protected Void doInBackground(Void... params) {
             BudgetDbHelper helper = BudgetDbHelper.get();
             DBUtils.importDatabase(new File(path), Contract.BudgetItem.TABLE,
                     Contract.BudgetItem.COLUMNS, helper);
@@ -316,8 +322,7 @@ public class BudgetItemListActivity extends ActionBarActivity
             return null;
         }
 
-        @Override
-        protected void onPostExecute(Void aVoid) {
+        @Override protected void onPostExecute(Void aVoid) {
             new CalculateBalanceTask().execute();
         }
     }
@@ -325,8 +330,7 @@ public class BudgetItemListActivity extends ActionBarActivity
     public class BalanceUpdateWriterTask
             extends AsyncTask<BalanceUpdateEvent, Void, Void> {
 
-        @Override
-        protected Void doInBackground(BalanceUpdateEvent... params) {
+        @Override protected Void doInBackground(BalanceUpdateEvent... params) {
             BudgetDbHelper helper = BudgetDbHelper.get();
 
             try {
@@ -342,8 +346,7 @@ public class BudgetItemListActivity extends ActionBarActivity
             return null;
         }
 
-        @Override
-        protected void onPostExecute(Void aVoid) {
+        @Override protected void onPostExecute(Void aVoid) {
             new CalculateBalanceTask().execute();
         }
     }

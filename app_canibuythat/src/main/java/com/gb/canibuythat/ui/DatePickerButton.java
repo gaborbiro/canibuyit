@@ -96,6 +96,6 @@ public class DatePickerButton extends Button {
             return new GregorianCalendar(datePicker.getYear(), datePicker.getMonth(),
                     datePicker.getDayOfMonth()).getTime();
         }
-        return null;
+        return mOriginalDate.getTime();
     }
 }

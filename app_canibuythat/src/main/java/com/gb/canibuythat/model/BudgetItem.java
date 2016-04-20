@@ -15,19 +15,17 @@ import java.util.Date;
  * An income or expense that affects the balance of a specified time-span. The user
  * doesn't need to know the exact moment of payment.
  */
-@DatabaseTable(tableName = Contract.BudgetItem.TABLE)
-public class BudgetItem implements Parcelable {
+@DatabaseTable(tableName = Contract.BudgetItem.TABLE) public class BudgetItem
+        implements Parcelable {
 
     public static final Parcelable.Creator<BudgetItem> CREATOR =
             new Parcelable.Creator<BudgetItem>() {
 
-                @Override
-                public BudgetItem createFromParcel(Parcel in) {
+                @Override public BudgetItem createFromParcel(Parcel in) {
                     return new BudgetItem(in);
                 }
 
-                @Override
-                public BudgetItem[] newArray(int size) {
+                @Override public BudgetItem[] newArray(int size) {
                     return new BudgetItem[size];
                 }
             };
@@ -57,7 +55,7 @@ public class BudgetItem implements Parcelable {
      * #periodMultiplier and #period are ignored
      */
     @DatabaseField(columnName = Contract.BudgetItem.OCCURRENCE_COUNT) public Integer
-            mOccurenceCount;
+            mOccurrenceCount;
     /**
      * For periods like every 2 days or once every trimester...
      */
@@ -65,13 +63,16 @@ public class BudgetItem implements Parcelable {
             mPeriodMultiplier;
     /**
      * Does this modifier repeat every day/week/month/year. The first affected time-span
-     * (specified by
-     * firstOccurenceStart and firstOccurenceEnd) must not be larger the this period.<br>
+     * (specified by mFirstOccurrenceStart and mFirstOccurrenceEnd) must not be larger
+     * the this period.<br>
      * Ex: The first week of every month, cold months of the year, every weekend, every
      * semester
      */
     @DatabaseField(columnName = Contract.BudgetItem.PERIOD_TYPE, canBeNull = false)
     public PeriodType mPeriodType;
+
+    @DatabaseField(columnName = Contract.BudgetItem.ENABLED, canBeNull = true)
+    public boolean mEnabled;
 
     public BudgetItem() {
     }
@@ -97,7 +98,7 @@ public class BudgetItem implements Parcelable {
         if (upperDate != null) {
             mFirstOccurrenceEnd = new Date(upperDate);
         }
-        mOccurenceCount = (Integer) in.readValue(Integer.class.getClassLoader());
+        mOccurrenceCount = (Integer) in.readValue(Integer.class.getClassLoader());
         mPeriodMultiplier = (Integer) in.readValue(Integer.class.getClassLoader());
         try {
             mPeriodType = PeriodType.valueOf((String) ((String) in.readValue(
@@ -107,37 +108,40 @@ public class BudgetItem implements Parcelable {
         }
     }
 
-    @Override
-    public boolean equals(Object o) {
+    /**
+     * If you override this, don't forget to remove the mId. That's is not needed for
+     * comparison
+     */
+    @Override public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
         BudgetItem that = (BudgetItem) o;
 
+        if (mEnabled != that.mEnabled) return false;
+        if (mName != null ? !mName.equals(that.mName) : that.mName != null) return false;
+        if (mNotes != null ? !mNotes.equals(that.mNotes) : that.mNotes != null)
+            return false;
+        if (mType != that.mType) return false;
         if (mAmount != null ? !mAmount.equals(that.mAmount) : that.mAmount != null)
             return false;
         if (mFirstOccurrenceStart != null ? !mFirstOccurrenceStart.equals(
                 that.mFirstOccurrenceStart) : that.mFirstOccurrenceStart != null)
             return false;
-        if (mNotes != null ? !mNotes.equals(that.mNotes) : that.mNotes != null)
-            return false;
-        if (mPeriodMultiplier != null ? !mPeriodMultiplier.equals(that.mPeriodMultiplier)
-                                      : that.mPeriodMultiplier != null) return false;
-        if (mPeriodType != that.mPeriodType) return false;
-        if (mOccurenceCount != null ? !mOccurenceCount.equals(that.mOccurenceCount)
-                                    : that.mOccurenceCount != null) return false;
-        if (mName != null ? !mName.equals(that.mName) : that.mName != null) return false;
-        if (mType != that.mType) return false;
         if (mFirstOccurrenceEnd != null ? !mFirstOccurrenceEnd.equals(
                 that.mFirstOccurrenceEnd) : that.mFirstOccurrenceEnd != null)
             return false;
+        if (mOccurrenceCount != null ? !mOccurrenceCount.equals(that.mOccurrenceCount)
+                                     : that.mOccurrenceCount != null) return false;
+        if (mPeriodMultiplier != null ? !mPeriodMultiplier.equals(that.mPeriodMultiplier)
+                                      : that.mPeriodMultiplier != null) return false;
+        return mPeriodType == that.mPeriodType;
 
-        return true;
     }
 
-    @Override
-    public int hashCode() {
-        int result = mName != null ? mName.hashCode() : 0;
+    @Override public int hashCode() {
+        int result = 0;
+        result = 31 * result + (mName != null ? mName.hashCode() : 0);
         result = 31 * result + (mNotes != null ? mNotes.hashCode() : 0);
         result = 31 * result + (mType != null ? mType.hashCode() : 0);
         result = 31 * result + (mAmount != null ? mAmount.hashCode() : 0);
@@ -145,20 +149,20 @@ public class BudgetItem implements Parcelable {
                 (mFirstOccurrenceStart != null ? mFirstOccurrenceStart.hashCode() : 0);
         result = 31 * result +
                 (mFirstOccurrenceEnd != null ? mFirstOccurrenceEnd.hashCode() : 0);
-        result = 31 * result + (mOccurenceCount != null ? mOccurenceCount.hashCode() : 0);
+        result = 31 * result +
+                (mOccurrenceCount != null ? mOccurrenceCount.hashCode() : 0);
         result = 31 * result +
                 (mPeriodMultiplier != null ? mPeriodMultiplier.hashCode() : 0);
         result = 31 * result + (mPeriodType != null ? mPeriodType.hashCode() : 0);
+        result = 31 * result + (mEnabled ? 1 : 0);
         return result;
     }
 
-    @Override
-    public int describeContents() {
+    @Override public int describeContents() {
         return 0;
     }
 
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
+    @Override public void writeToParcel(Parcel dest, int flags) {
         dest.writeValue(mId);
         dest.writeValue(mName);
         dest.writeValue(mAmount);
@@ -178,7 +182,7 @@ public class BudgetItem implements Parcelable {
         } else {
             dest.writeValue(null);
         }
-        dest.writeValue(mOccurenceCount);
+        dest.writeValue(mOccurrenceCount);
         dest.writeValue(mPeriodMultiplier);
         if (mPeriodType != null) {
             dest.writeValue(mPeriodType.name());
@@ -200,7 +204,8 @@ public class BudgetItem implements Parcelable {
         ACCOMMODATION, AUTOMOBILE, CHILD_SUPPORT, DONATIONS_GIVEN, ENTERTAINMENT, FOOD,
         GIFTS_GIVEN, GROCERIES, HOUSEHOLD, INSURANCE, MEDICARE, PERSONAL_CARE, PETS,
         SELF_IMPROVEMENT, SPORTS_RECREATION, TAX, TRANSPORTATION, UTILITIES, VACATION,
-        GIFTS_RECEIVED(BUDGET_ITEM_TYPE_IN), INCOME(BUDGET_ITEM_TYPE_IN), FINES, ONLINE_SERVICES, LUXURY, CASH, SAVINGS,
+        GIFTS_RECEIVED(BUDGET_ITEM_TYPE_IN), INCOME(BUDGET_ITEM_TYPE_IN), FINES,
+        ONLINE_SERVICES, LUXURY, CASH, SAVINGS,
         OTHER;
 
         private final byte sign;
@@ -213,8 +218,7 @@ public class BudgetItem implements Parcelable {
             this.sign = (byte) sign;
         }
 
-        @Override
-        public String toString() {
+        @Override public String toString() {
             return name().toLowerCase();
         }
 
@@ -224,7 +228,8 @@ public class BudgetItem implements Parcelable {
     }
 
     public enum PeriodType {
-        DAYS(R.plurals.days), WEEKS(R.plurals.weeks), MONTHS(R.plurals.months), YEARS(R.plurals.years);
+        DAYS(R.plurals.days), WEEKS(R.plurals.weeks), MONTHS(R.plurals.months),
+        YEARS(R.plurals.years);
 
         public final int strRes;
 
@@ -249,8 +254,7 @@ public class BudgetItem implements Parcelable {
             }
         }
 
-        @Override
-        public String toString() {
+        @Override public String toString() {
             return name().toLowerCase();
         }
     }
