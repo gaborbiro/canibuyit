@@ -19,7 +19,7 @@
         android:layout_marginEnd="@dimen/activity_margin"
         android:layout_above="@id/statistics"
         tools:context=".BudgetModifierListActivity"
-        tools:layout="@android:layout/list_content" />
+        tools:layout="@layout/fragment_budget_item_list" />
 
     <View
         android:id="@+id/shadow"

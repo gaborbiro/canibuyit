@@ -22,6 +22,7 @@ android {
 final ANDROID_VERSION = '22.+'
 
 dependencies {
+    compile project(':lib_dragndroplist')
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.j256.ormlite:ormlite-android:4.48'
     compile "com.android.support:support-v4:${ANDROID_VERSION}"

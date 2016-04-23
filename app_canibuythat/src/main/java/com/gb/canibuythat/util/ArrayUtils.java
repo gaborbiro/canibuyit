@@ -39,7 +39,11 @@ public class ArrayUtils {
             } else {
                 sb.append(delimiter);
             }
-            sb.append(stringifier.toString(index++, token));
+            if (stringifier != null) {
+                sb.append(stringifier.toString(index++, token));
+            } else {
+                sb.append(token);
+            }
         }
         return sb.toString();
     }

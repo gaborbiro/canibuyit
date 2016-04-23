@@ -2,18 +2,19 @@ package com.gb.canibuythat.ui;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.support.v4.widget.SimpleCursorAdapter;
 import android.view.View;
 import android.widget.TextView;
 
 import com.gb.canibuythat.R;
 import com.gb.canibuythat.model.BudgetItem;
 import com.gb.canibuythat.provider.Contract;
+import com.terlici.dragndroplist.DragNDropCursorAdapter;
 
-public class BudgetItemListAdapter extends SimpleCursorAdapter {
+public class BudgetItemListAdapter extends DragNDropCursorAdapter {
 
     public BudgetItemListAdapter(Context context, Cursor c) {
-        super(context, R.layout.budget_item_list_item, c, new String[0], null, 0);
+        super(context, R.layout.budget_item_list_item, c, new String[0], null,
+                R.id.handler);
     }
 
     @Override public void bindView(View view, Context context, Cursor cursor) {
@@ -30,7 +31,8 @@ public class BudgetItemListAdapter extends SimpleCursorAdapter {
 
         boolean enabled =
                 cursor.getInt(cursor.getColumnIndex(Contract.BudgetItem.ENABLED)) > 0;
-        nameView.getPaint().setStrikeThruText(!enabled);
+        nameView.getPaint()
+                .setStrikeThruText(!enabled);
 
         TextView amountRepetitionView =
                 (TextView) view.findViewById(R.id.amount_repetition);
