@@ -176,17 +176,14 @@ public class BudgetItemListFragment extends Fragment
     }
 
     @Override
-    public void onItemDragStart(DragNDropListView parent, View view, int position, long id) {
-    }
+    public void onItemDrag(DragNDropListView parent, View view, int position, long id) {
 
-    @Override
-    public void onItemDrag(DragNDropListView parent, View view, int startPosition,
-            int currentPosition, long id) {
     }
 
     @Override
     public void onItemDrop(DragNDropListView parent, View view, int startPosition,
             int endPosition, long id) {
+
     }
 
     /**
