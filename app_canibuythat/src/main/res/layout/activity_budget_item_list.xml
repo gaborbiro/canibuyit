@@ -15,8 +15,8 @@
         android:name="com.gb.canibuythat.ui.BudgetItemListFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginStart="@dimen/activity_margin"
-        android:layout_marginEnd="@dimen/activity_margin"
+        android:layout_marginStart="@dimen/padding"
+        android:layout_marginEnd="@dimen/padding"
         android:layout_above="@id/statistics"
         tools:context=".BudgetModifierListActivity"
         tools:layout="@layout/fragment_budget_item_list" />

@@ -2,7 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="@dimen/activity_margin">
+                android:padding="@dimen/padding">
 
     <ImageView
         android:id="@+id/chart_button"
@@ -10,7 +10,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:layout_centerVertical="true"
-        android:layout_marginLeft="@dimen/activity_margin"
+        android:layout_marginLeft="@dimen/padding"
         android:background="?attr/selectableItemBackground"
         android:clickable="true"
         android:src="@drawable/ic_equalizer_black_48dp"/>
@@ -27,7 +27,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:clickable="true"
-            android:layout_marginBottom="@dimen/half_unit"/>
+            android:layout_marginBottom="@dimen/half_padding"/>
 
         <TextView
             android:id="@+id/balance"

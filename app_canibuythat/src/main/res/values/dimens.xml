@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <dimen name="half_unit">4dp</dimen>
-    <dimen name="unit">8dp</dimen>
-    <dimen name="double_unit">16dp</dimen>
+    <dimen name="half_padding">4dp</dimen>
+    <dimen name="padding">8dp</dimen>
+    <dimen name="double_padding">16dp</dimen>
+    <dimen name="statistics_shadow_height">@dimen/padding</dimen>
 
-    <dimen name="activity_margin">@dimen/unit</dimen>
-    <dimen name="padding">@dimen/unit</dimen>
-    <dimen name="list_item_padding">@dimen/unit</dimen>
-
-    <dimen name="statistics_shadow_height">@dimen/unit</dimen>
+    <dimen name="file_dialog_icon_height">32dp</dimen>
+    <dimen name="file_dialog_icon_width">32dp</dimen>
 </resources>

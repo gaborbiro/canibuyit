@@ -3,6 +3,7 @@
           package="com.gb.canibuythat">
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application
         android:name=".App"
@@ -30,12 +31,16 @@
 
         <provider
             android:name=".provider.BudgetProvider"
+            android:exported="false"
             android:authorities="com.gb.canibuythat.authority.budget"/>
 
         <activity
             android:name=".ui.ChartActivity"
-            android:screenOrientation="landscape"
-            android:label="@string/title_activity_chart">
+            android:label="@string/title_activity_chart"
+            android:screenOrientation="landscape">
+        </activity>
+        <activity
+            android:name=".ui.FileDialogActivity">
         </activity>
     </application>
 

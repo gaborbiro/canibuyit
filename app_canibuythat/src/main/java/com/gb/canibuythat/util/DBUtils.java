@@ -68,17 +68,11 @@ public class DBUtils {
                     db.execSQL(sqlScript);
                 }
                 db.setTransactionSuccessful();
-                db.endTransaction();
             } catch (android.database.SQLException e) {
                 e.printStackTrace();
-                Toast.makeText(App.getAppContext(), "Error importing database",
-                        Toast.LENGTH_SHORT)
-                        .show();
+            } finally {
+                db.endTransaction();
             }
-        } else {
-            Toast.makeText(App.getAppContext(), "Error importing database",
-                    Toast.LENGTH_SHORT)
-                    .show();
         }
     }
 
@@ -98,22 +92,22 @@ public class DBUtils {
         Process process = Runtime.getRuntime()
                 .exec(commandLine);
         return FileUtils.streamToString(process.getInputStream())
-                .split(";");
+                .split(";\n");
     }
 
     private static String[] filterCommandForTable(String[] sql, String table,
             String[] columns) {
         List<String> result = new ArrayList<>();
-        String insertPrefix = "\nINSERT INTO \"" + table + "\"";
-        String createPrefix = "\nCREATE TABLE \"" + table + "\"";
+        String insertPrefix = "INSERT INTO [\"'`]{1}" + table + "[\"'`]{1}";
+        String createPrefix = "CREATE TABLE [\"'`]{1}" + table + "[\"'`]{1}";
         String columnSpec = null;
 
         for (String command : sql) {
-            if (command.startsWith(createPrefix)) {
+            if (command.matches("^" + createPrefix + ".+")) {
                 // this should happen first
                 columnSpec = generateColumnSpecFromCommand(command, columns);
-            } else if (command.startsWith(insertPrefix)) {
-                result.add(command.replace(insertPrefix, insertPrefix + " " + columnSpec)
+            } else if (command.matches("^" + insertPrefix + ".+")) {
+                result.add(command.replaceFirst(insertPrefix, "$0 " + columnSpec)
                         .trim());
             }
         }

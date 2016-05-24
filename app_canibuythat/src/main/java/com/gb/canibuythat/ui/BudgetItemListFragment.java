@@ -8,17 +8,15 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
-import android.support.v4.widget.SimpleCursorAdapter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ListAdapter;
 import android.widget.ListView;
 
 import com.gb.canibuythat.R;
 import com.gb.canibuythat.provider.BudgetProvider;
-import com.terlici.dragndroplist.DragNDropAdapter;
+import com.terlici.dragndroplist.DragNDropCursorAdapter;
 import com.terlici.dragndroplist.DragNDropListView;
 
 /**
@@ -32,7 +30,7 @@ import com.terlici.dragndroplist.DragNDropListView;
  */
 public class BudgetItemListFragment extends Fragment
         implements LoaderManager.LoaderCallbacks<Cursor>, AdapterView.OnItemClickListener,
-        DragNDropListView.OnItemDragNDropListener {
+        DragNDropListView.OnItemDragNDropListener, View.OnClickListener {
 
     /**
      * The serialization (saved instance state) Bundle key representing the activated
@@ -60,7 +58,7 @@ public class BudgetItemListFragment extends Fragment
     private int mActivatedPosition = ListView.INVALID_POSITION;
 
     private DragNDropListView mList;
-    private DragNDropAdapter mAdapter;
+    private DragNDropCursorAdapter mAdapter;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the fragment
@@ -76,7 +74,6 @@ public class BudgetItemListFragment extends Fragment
         View root =
                 inflater.inflate(R.layout.fragment_budget_item_list, container, false);
         mList = (DragNDropListView) root.findViewById(android.R.id.list);
-        mList.setOnItemClickListener(this);
         mList.setOnItemDragNDropListener(this);
         return root;
     }
@@ -84,18 +81,18 @@ public class BudgetItemListFragment extends Fragment
     @Override public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Restore the previously serialized activated item position.
-        if (savedInstanceState != null &&
-                savedInstanceState.containsKey(STATE_ACTIVATED_POSITION)) {
-            setActivatedPosition(savedInstanceState.getInt(STATE_ACTIVATED_POSITION));
-        }
+        //        // Restore the previously serialized activated item position.
+        //        if (savedInstanceState != null &&
+        //                savedInstanceState.containsKey(STATE_ACTIVATED_POSITION)) {
+        //            setActivatedPosition(savedInstanceState.getInt
+        // (STATE_ACTIVATED_POSITION));
+        //        }
         getLoaderManager().initLoader(hashCode(), null, this);
-
     }
 
-    private ListAdapter getListAdapter() {
+    private DragNDropCursorAdapter getListAdapter() {
         if (mAdapter == null) {
-            mAdapter = new BudgetItemListAdapter(getActivity(), null);
+            mAdapter = new BudgetItemListAdapter(getActivity(), null, this);
 
             if (mList != null) {
                 mList.setDragNDropAdapter(mAdapter);
@@ -104,7 +101,7 @@ public class BudgetItemListFragment extends Fragment
         return mAdapter;
     }
 
-    public ListView getListView() {
+    public DragNDropListView getListView() {
         return mList;
     }
 
@@ -127,11 +124,11 @@ public class BudgetItemListFragment extends Fragment
     }
 
     @Override public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        ((SimpleCursorAdapter) getListAdapter()).swapCursor(data);
+        getListAdapter().swapCursor(data);
     }
 
     @Override public void onLoaderReset(Loader<Cursor> loader) {
-        ((SimpleCursorAdapter) getListAdapter()).swapCursor(null);
+        getListAdapter().swapCursor(null);
     }
 
     @Override public void onDetach() {
@@ -139,6 +136,10 @@ public class BudgetItemListFragment extends Fragment
 
         // Reset the active callback interface to the dummy implementation.
         mCallback = dummyCallbacks;
+    }
+
+    @Override public void onClick(View v) {
+
     }
 
     @Override
@@ -156,24 +157,27 @@ public class BudgetItemListFragment extends Fragment
         }
     }
 
-    /**
-     * Turns on activate-on-click mode. When this mode is on, list items will be given
-     * the 'activated' state when
-     * touched.
-     */
-    public void setActivateOnItemClick(boolean activateOnItemClick) {
-        getListView().setChoiceMode(activateOnItemClick ? ListView.CHOICE_MODE_SINGLE
-                                                        : ListView.CHOICE_MODE_NONE);
-    }
-
-    private void setActivatedPosition(int position) {
-        if (position == ListView.INVALID_POSITION) {
-            getListView().setItemChecked(mActivatedPosition, false);
-        } else {
-            getListView().setItemChecked(position, true);
-        }
-        mActivatedPosition = position;
-    }
+    //    /**
+    //     * Turns on activate-on-click mode. When this mode is on, list items will be
+    // given
+    //     * the 'activated' state when
+    //     * touched.
+    //     */
+    //    public void setActivateOnItemClick(boolean activateOnItemClick) {
+    //        getListView().setChoiceMode(activateOnItemClick ? ListView
+    // .CHOICE_MODE_SINGLE
+    //                                                        : ListView
+    // .CHOICE_MODE_NONE);
+    //    }
+    //
+    //    private void setActivatedPosition(int position) {
+    //        if (position == ListView.INVALID_POSITION) {
+    //            getListView().setItemChecked(mActivatedPosition, false);
+    //        } else {
+    //            getListView().setItemChecked(position, true);
+    //        }
+    //        mActivatedPosition = position;
+    //    }
 
     @Override
     public void onItemDrag(DragNDropListView parent, View view, int position, long id) {

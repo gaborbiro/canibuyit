@@ -44,4 +44,12 @@
     <string name="spending_occurrence">%1$d. %2$s</string>
     <string name="title_activity_chart">Projections</string>
     <string name="enabled">Enabled</string>
+
+    <string name="location">Location</string>
+    <string name="cant_read_folder">cannot be read</string>
+    <string name="file_name">File Name:</string>
+    <string name="select">Select</string>
+    <string name="newstr">New</string>
+    <string name="create">Save</string>
+    <string name="no_data">No data</string>
 </resources>

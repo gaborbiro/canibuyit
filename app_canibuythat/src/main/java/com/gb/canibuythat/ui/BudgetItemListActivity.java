@@ -1,19 +1,14 @@
 package com.gb.canibuythat.ui;
 
+import android.Manifest;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.annotation.NonNull;
 import android.support.v7.app.ActionBarActivity;
-import android.text.Spannable;
-import android.text.SpannableString;
-import android.text.Spanned;
-import android.text.method.LinkMovementMethod;
-import android.text.style.ClickableSpan;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -27,7 +22,7 @@ import com.gb.canibuythat.provider.Contract;
 import com.gb.canibuythat.util.DBUtils;
 import com.gb.canibuythat.util.DateUtils;
 import com.gb.canibuythat.util.DialogUtils;
-import com.gb.canibuythat.util.FileUtils;
+import com.gb.canibuythat.util.PermissionVerifier;
 import com.gb.canibuythat.util.ViewUtils;
 import com.j256.ormlite.dao.Dao;
 
@@ -35,7 +30,6 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
 import java.io.File;
-import java.net.URISyntaxException;
 import java.sql.SQLException;
 import java.util.Date;
 
@@ -57,7 +51,8 @@ public class BudgetItemListActivity extends ActionBarActivity
         implements BudgetItemListFragment.Callbacks,
         BalanceUpdateInputDialog.BalanceUpdateInputListener {
 
-    private static final int ACTION_CHOOSE_FILE = 1;
+    private static final int REQUEST_CODE_CHOOSE_FILE = 1;
+    private static final int REQUEST_CODE_EXTERNAL_STORAGE_PERMISSION = 2;
 
     @InjectView(R.id.balance) TextView mBalanceView;
     @InjectView(R.id.reference) TextView mReferenceView;
@@ -66,6 +61,8 @@ public class BudgetItemListActivity extends ActionBarActivity
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet device.
      */
     private boolean twoPane;
+
+    private PermissionVerifier mPermissionVerifier;
 
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -76,11 +73,11 @@ public class BudgetItemListActivity extends ActionBarActivity
 
         if (findViewById(R.id.budgetmodifier_detail_container) != null) {
             twoPane = true;
-            BudgetItemListFragment budgetItemListFragment =
-                    ((BudgetItemListFragment) getSupportFragmentManager()
-                            .findFragmentById(
-                            R.id.budgetmodifier_list));
-            budgetItemListFragment.setActivateOnItemClick(true);
+            //            BudgetItemListFragment budgetItemListFragment =
+            //                    ((BudgetItemListFragment) getSupportFragmentManager()
+            //                            .findFragmentById(
+            //                            R.id.budgetmodifier_list));
+            //            budgetItemListFragment.setActivateOnItemClick(true);
         }
         ChartActivity.launchOnClick(this, mChartButton);
         //        BalanceUpdateInputDialog.launchOnClick(getSupportFragmentManager(),
@@ -111,19 +108,28 @@ public class BudgetItemListActivity extends ActionBarActivity
                 showBalanceUpdateDialog();
                 break;
             case R.id.menu_export:
-                DBUtils.exportDatabase(BudgetDbHelper.DATABASE_NAME);
+                mPermissionVerifier = new PermissionVerifier(this,
+                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE});
+                if (mPermissionVerifier.verifyPermissions(true,
+                        REQUEST_CODE_EXTERNAL_STORAGE_PERMISSION)) {
+                    DBUtils.exportDatabase(BudgetDbHelper.DATABASE_NAME);
+                }
                 break;
             case R.id.menu_import:
-                Intent i = new Intent(Intent.ACTION_GET_CONTENT);
-                Uri uri = Uri.parse(Environment.getExternalStorageDirectory()
-                        .getPath() + "/CanIBuyThat/");
-                i.setDataAndType(uri, "*/sqlite");
-                i.addCategory(Intent.CATEGORY_OPENABLE);
-                startActivityForResult(Intent.createChooser(i, "Select file"),
-                        ACTION_CHOOSE_FILE);
+                importDatabase();
                 break;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void importDatabase() {
+        Intent i = new Intent(this, FileDialogActivity.class);
+        i.putExtra(FileDialogActivity.EXTRA_START_PATH,
+                Environment.getExternalStorageDirectory()
+                        .getPath() + "/CanIBuyThat/");
+        i.putExtra(FileDialogActivity.EXTRA_SELECTION_MODE,
+                FileDialogActivity.SELECTION_MODE_OPEN);
+        startActivityForResult(i, REQUEST_CODE_CHOOSE_FILE);
     }
 
     @Subscribe public void onEvent(BudgetItemUpdatedEvent event) {
@@ -141,18 +147,11 @@ public class BudgetItemListActivity extends ActionBarActivity
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
-            case ACTION_CHOOSE_FILE:
+            case REQUEST_CODE_CHOOSE_FILE:
                 if (resultCode == RESULT_OK) {
-                    Uri uri = data.getData();
-                    try {
-                        String path = FileUtils.getPath(uri);
-                        new DatabaseImportTask(path).execute();
-                    } catch (URISyntaxException e) {
-                        e.printStackTrace();
-                        Toast.makeText(this, "Error importing database",
-                                Toast.LENGTH_SHORT)
-                                .show();
-                    }
+                    String path =
+                            data.getStringExtra(FileDialogActivity.EXTRA_RESULT_PATH);
+                    new DatabaseImportTask(path).execute();
                 }
                 break;
         }
@@ -213,14 +212,12 @@ public class BudgetItemListActivity extends ActionBarActivity
                         R.id.budgetmodifier_detail_container);
         if (detailFragment != null && detailFragment.isChanged()) {
             DialogUtils.getSaveOrDiscardDialog(this, new Runnable() {
-
                 @Override public void run() {
                     if (detailFragment.saveUserDataOrShowError()) {
                         finish();
                     }
                 }
             }, new Runnable() {
-
                 @Override public void run() {
                     finish();
                 }
@@ -233,6 +230,7 @@ public class BudgetItemListActivity extends ActionBarActivity
 
     private class CalculateBalanceTask extends AsyncTask<Void, Void, Float[]> {
 
+        private Exception mError;
         private LastBalanceUpdateLoaderTask mLastBalanceUpdateLoaderTask;
 
         @Override protected void onPreExecute() {
@@ -254,9 +252,9 @@ public class BudgetItemListActivity extends ActionBarActivity
                 for (com.gb.canibuythat.model.BudgetItem item : budgetItemDao) {
                     if (item.mEnabled) {
                         BalanceCalculator.BalanceResult result = BalanceCalculator.get()
-                                .getEstimatedBalance(item,
-                                        balanceUpdateEvent != null ? balanceUpdateEvent.when
-                                                                   : null, new Date());
+                                .getEstimatedBalance(item, balanceUpdateEvent != null
+                                                           ? balanceUpdateEvent.when
+                                                           : null, new Date());
                         bestCase += result.bestCase;
                         worstCase += result.worstCase;
                     }
@@ -267,39 +265,44 @@ public class BudgetItemListActivity extends ActionBarActivity
                     worstCase += balanceUpdateEvent.value;
                 }
             } catch (Exception e) {
+                mError = e;
                 e.printStackTrace();
-                Toast.makeText(BudgetItemListActivity.this,
-                        "Error calculating balance. Check stack trace.",
-                        Toast.LENGTH_SHORT)
-                        .show();
             }
             return new Float[]{bestCase, worstCase};
         }
 
         @Override protected void onPostExecute(Float[] balance) {
-            BalanceUpdateEvent balanceUpdateEvent = null;
-            try {
-                balanceUpdateEvent = mLastBalanceUpdateLoaderTask.get();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            String change = getString(R.string.change);
-            String text;
-            if (balanceUpdateEvent != null) {
-                text = getString(R.string.reference_statistics, balanceUpdateEvent.value,
-                        DateUtils.DEFAULT_DATE_FORMAT.format(
-                                balanceUpdateEvent.when), change);
+            if (mError != null) {
+                Toast.makeText(BudgetItemListActivity.this,
+                        "Error calculating balance: " + mError.getMessage(),
+                        Toast.LENGTH_SHORT)
+                        .show();
             } else {
-                text = getString(R.string.reference_statistics_none, change);
-            }
-            ViewUtils.setTextWithLinkSegment(mReferenceView, text, change, new Runnable()
-            {
-                @Override public void run() {
-                    showBalanceUpdateDialog();
+                BalanceUpdateEvent balanceUpdateEvent = null;
+                try {
+                    balanceUpdateEvent = mLastBalanceUpdateLoaderTask.get();
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-            });
+                String change = getString(R.string.change);
+                String text;
+                if (balanceUpdateEvent != null) {
+                    text = getString(R.string.reference_statistics,
+                            balanceUpdateEvent.value,
+                            DateUtils.DEFAULT_DATE_FORMAT.format(balanceUpdateEvent.when),
+                            change);
+                } else {
+                    text = getString(R.string.reference_statistics_none, change);
+                }
+                ViewUtils.setTextWithLinkSegment(mReferenceView, text, change,
+                        new Runnable() {
+                            @Override public void run() {
+                                showBalanceUpdateDialog();
+                            }
+                        });
 
-            mBalanceView.setText(getString(R.string.balance, balance[0], balance[1]));
+                mBalanceView.setText(getString(R.string.balance, balance[0], balance[1]));
+            }
         }
     }
 
@@ -348,6 +351,20 @@ public class BudgetItemListActivity extends ActionBarActivity
 
         @Override protected void onPostExecute(Void aVoid) {
             new CalculateBalanceTask().execute();
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+            @NonNull int[] grantResults) {
+        if (requestCode == REQUEST_CODE_EXTERNAL_STORAGE_PERMISSION) {
+            if (!mPermissionVerifier.onRequestPermissionsResult(requestCode, permissions,
+                    grantResults)) {
+                Toast.makeText(this, "Missing permissions!", Toast.LENGTH_SHORT)
+                        .show();
+            } else {
+                DBUtils.exportDatabase(BudgetDbHelper.DATABASE_NAME);
+            }
         }
     }
 }
