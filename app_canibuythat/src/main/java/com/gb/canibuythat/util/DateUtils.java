@@ -9,7 +9,7 @@ import java.util.Date;
 public class DateUtils {
 
     public static final SimpleDateFormat DEFAULT_DATE_FORMAT =
-            new SimpleDateFormat("MMM.dd.yyyy");
+            new SimpleDateFormat("MMM.dd");
 
 
     public static Date getDayFromDatePicker(DatePicker datePicker) {

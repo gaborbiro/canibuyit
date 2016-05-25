@@ -4,7 +4,6 @@ import android.app.DatePickerDialog;
 import android.app.Fragment;
 import android.content.Context;
 import android.database.sqlite.SQLiteConstraintException;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -29,19 +28,21 @@ import com.gb.canibuythat.R;
 import com.gb.canibuythat.model.BalanceUpdateEvent;
 import com.gb.canibuythat.model.BudgetItem;
 import com.gb.canibuythat.provider.BalanceCalculator;
-import com.gb.canibuythat.provider.BudgetDbHelper;
-import com.gb.canibuythat.provider.BudgetProvider;
+import com.gb.canibuythat.ui.task.balance_update.LastBalanceUpdateLoaderTask;
+import com.gb.canibuythat.ui.task.budget_item.BudgetItemCreateOrUpdateTaskBase;
+import com.gb.canibuythat.ui.task.budget_item.BudgetItemDeleteTaskBase;
+import com.gb.canibuythat.ui.task.budget_item.BudgetItemReadTaskBase;
+import com.gb.canibuythat.ui.task.Callback;
 import com.gb.canibuythat.util.ArrayUtils;
 import com.gb.canibuythat.util.DateUtils;
 import com.gb.canibuythat.util.DialogUtils;
 import com.gb.canibuythat.util.ViewUtils;
 import com.j256.ormlite.dao.Dao;
 
-import org.greenrobot.eventbus.EventBus;
-
-import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -49,9 +50,9 @@ import butterknife.InjectView;
 /**
  * A fragment representing a single BudgetModifier detail screen. This fragment is either
  * contained in a {@link BudgetItemListActivity} in two-pane mode (on tablets) or a
- * {@link BudgetItemDetailActivity} on handsets.
+ * {@link BudgetItemEditorActivity} on handsets.
  */
-public class BudgetItemDetailFragment extends Fragment {
+public class BudgetItemEditorFragment extends Fragment {
 
     public static final String EXTRA_ITEM_ID = "budget_item_id";
 
@@ -159,7 +160,7 @@ public class BudgetItemDetailFragment extends Fragment {
         }
     };
 
-    public BudgetItemDetailFragment() {
+    public BudgetItemEditorFragment() {
     }
 
     @Override public void onCreate(Bundle savedInstanceState) {
@@ -213,13 +214,13 @@ public class BudgetItemDetailFragment extends Fragment {
     @Override public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
 
-        if (mOriginalBudgetItem != null) {
-            // TODO
-            // user data is automatically saved, but we need to transfer the
-            // budgetModifier field as well, because it is the basis of comparison when
-            // determining whether user data should be persisted or not.
-            // outState.putParcelable(EXTRA_ITEM, mOriginalBudgetItem);
-        }
+        // if (mOriginalBudgetItem != null) {
+        // TODO
+        // user data is automatically saved, but we need to transfer the
+        // budgetModifier field as well, because it is the basis of comparison when
+        // determining whether user data should be persisted or not.
+        // outState.putParcelable(EXTRA_ITEM, mOriginalBudgetItem);
+        // }
     }
 
     /**
@@ -230,10 +231,10 @@ public class BudgetItemDetailFragment extends Fragment {
      */
     public void setContent(Integer budgetItemId, final boolean showKeyboardWhenDone) {
         if (budgetItemId != null) {
-            new BudgetItemLoaderTask(budgetItemId, new BudgetItemLoaderTask.Listener() {
+            new BudgetItemReadTaskBase(budgetItemId, new Callback<BudgetItem>() {
 
-                @Override public void onDataReady(BudgetItem budgetItem) {
-                    BudgetItemDetailFragment.this.mOriginalBudgetItem = budgetItem;
+                @Override public void onSuccess(BudgetItem budgetItem) {
+                    BudgetItemEditorFragment.this.mOriginalBudgetItem = budgetItem;
                     mFirstOccurrenceEndPickerDialog = null;
                     mFirstOccurrenceStartPickerDialog = null;
                     applyBudgetItemToScreen(budgetItem);
@@ -245,6 +246,23 @@ public class BudgetItemDetailFragment extends Fragment {
                     if (mDeleteButton != null) {
                         mDeleteButton.setVisible(true);
                     }
+                    Toast.makeText(App.getAppContext(), "BudgetItem loaded",
+                            Toast.LENGTH_SHORT)
+                            .show();
+                }
+
+                @Override public void onFailure() {
+                    Toast.makeText(App.getAppContext(), "BudgetItem was not found",
+                            Toast.LENGTH_SHORT)
+                            .show();
+                }
+
+                @Override public void onError(Throwable t) {
+                    t.printStackTrace();
+                    Toast.makeText(App.getAppContext(),
+                            "Error loading data. Check logs for more information.",
+                            Toast.LENGTH_SHORT)
+                            .show();
                 }
             }).execute();
         } else {
@@ -267,38 +285,60 @@ public class BudgetItemDetailFragment extends Fragment {
     @Override public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_save:
-                saveUserDataOrShowError();
+                saveUserInputOrShowError();
                 break;
             case R.id.menu_delete:
                 if (mOriginalBudgetItem != null && mOriginalBudgetItem.isPersisted()) {
-                    new BudgetItemDeleteTask(getActivity(),
-                            new BudgetItemDeleteTask.Listener() {
+                    new BudgetItemDeleteTaskBase(new Callback<Boolean>() {
 
-                                @Override public void onSuccess() {
-                                    mDeleteButton.setVisible(false);
-                                    Toast.makeText(App.getAppContext(),
-                                            "BudgetItem deleted", Toast.LENGTH_SHORT)
-                                            .show();
-                                }
+                        @Override public void onSuccess(Boolean result) {
+                            mDeleteButton.setVisible(false);
+                            Toast.makeText(App.getAppContext(), "BudgetItem deleted",
+                                    Toast.LENGTH_SHORT)
+                                    .show();
+                        }
 
-                                @Override public void onFailure() {
-                                    Toast.makeText(App.getAppContext(),
-                                            "BudgetItem was not found",
-                                            Toast.LENGTH_SHORT)
-                                            .show();
-                                }
-                            }, mOriginalBudgetItem.mId).execute();
+                        @Override public void onFailure() {
+                            Toast.makeText(App.getAppContext(),
+                                    "BudgetItem was not found", Toast.LENGTH_SHORT)
+                                    .show();
+                        }
+
+                        @Override public void onError(Throwable t) {
+                            t.printStackTrace();
+                            Toast.makeText(App.getAppContext(),
+                                    "Error deleting data. Check logs for more " +
+                                            "information.",
+                                    Toast.LENGTH_SHORT)
+                                    .show();
+                        }
+                    }, mOriginalBudgetItem.mId).execute();
                 }
                 break;
         }
         return false;
     }
 
+    public void saveAndRun(Runnable onSaveOrDiscard) {
+        if (shouldSave()) {
+            DialogUtils.getSaveOrDiscardDialog(getContext(), new DialogUtils.Executable() {
+
+                @Override public boolean run() {
+                    return saveUserInputOrShowError();
+                }
+            }, onSaveOrDiscard)
+                    .show();
+        } else {
+            onSaveOrDiscard.run();
+        }
+    }
+
     /**
      * @return true if user data is valid
      */
-    public synchronized boolean saveUserDataOrShowError() {
-        if (validateUserInput()) {
+    private synchronized boolean saveUserInputOrShowError() {
+        ValidationResultImpl validationResult = validateUserInput();
+        if (validationResult != null) {
             final BudgetItem newBudgetItem = getBudgetItemFromScreen();
 
             if (mOriginalBudgetItem != null) {
@@ -306,14 +346,34 @@ public class BudgetItemDetailFragment extends Fragment {
                 // one to be created
                 newBudgetItem.mId = mOriginalBudgetItem.mId;
             }
-            new BudgetItemUpdateTask(getActivity(), newBudgetItem,
-                    new BudgetItemUpdateTask.Listener() {
+            new BudgetItemCreateOrUpdateTaskBase(newBudgetItem,
+                    new Callback<Dao.CreateOrUpdateStatus>() {
 
-                        @Override public void onSuccess() {
-                            BudgetItemDetailFragment.this.mOriginalBudgetItem =
+                        @Override public void onSuccess(Dao.CreateOrUpdateStatus result) {
+                            BudgetItemEditorFragment.this.mOriginalBudgetItem =
                                     newBudgetItem;
                             mDeleteButton.setVisible(true);
                             loadSpendingOccurrences(newBudgetItem);
+                            Toast.makeText(App.getAppContext(), "BudgetItem saved",
+                                    Toast.LENGTH_SHORT)
+                                    .show();
+                        }
+
+                        @Override public void onFailure() {
+                        }
+
+                        @Override public void onError(Throwable t) {
+                            if (t.getCause() != null && t.getCause()
+                                    .getCause() != null && t.getCause()
+                                    .getCause() instanceof SQLiteConstraintException) {
+                                t = t.getCause()
+                                        .getCause();
+                            }
+                            t.printStackTrace();
+                            Toast.makeText(App.getAppContext(),
+                                    "Error saving data. Check logs for more information.",
+                                    Toast.LENGTH_SHORT)
+                                    .show();
                         }
                     }).execute();
             return true;
@@ -443,30 +503,87 @@ public class BudgetItemDetailFragment extends Fragment {
         return mFirstOccurrenceEndPickerDialog;
     }
 
+    private static class ValidationResultImpl {
+        final ValidationError[] errors;
+
+        public ValidationResultImpl(ValidationError[] errors) {
+            this.errors = errors;
+        }
+    }
+
+    /**
+     * There are two kinds of validation errors: the ones that can be shown in an input
+     * field (with {@link TextView#setError(CharSequence)} and the ones tha are shown
+     * as a Toast or Dialog instead (DatePicker, etc...).
+     */
+    public static class ValidationError {
+        public static final int TYPE_INPUT_FIELD = 1;
+        public static final int TYPE_NON_INPUT_FIELD = 2;
+
+        public final int type;
+        public final View target;
+        public final String errorMessage;
+
+        public ValidationError(int type, View target, String errorMessage) {
+            if (type == TYPE_INPUT_FIELD) {
+                if (target == null) {
+                    throw new IllegalArgumentException(
+                            "Please specify a target view for the input field error " +
+                                    "message");
+                }
+                if (!(target instanceof TextView)) {
+                    throw new IllegalArgumentException(
+                            "Wrong view type in ValidationError. Cannot show error " +
+                                    "message.");
+
+                }
+            } else if (type != TYPE_NON_INPUT_FIELD) {
+                throw new IllegalArgumentException(
+                        "\"type\" must be one of {TYPE_INPUT_FIELD, " +
+                                "TYPE_NON_INPUT_FIELD}");
+            }
+            this.type = type;
+            this.target = target;
+            this.errorMessage = errorMessage;
+        }
+
+        public void showError(Context context) throws IllegalArgumentException {
+            if (type == TYPE_INPUT_FIELD) {
+                TextView textView = (TextView) target;
+                textView.setError("Please specify a name");
+                textView.requestFocus();
+            } else if (type == TYPE_NON_INPUT_FIELD) {
+                Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT)
+                        .show();
+                if (target != null) {
+                    target.requestFocus();
+                }
+            }
+        }
+    }
+
     /**
      * Verify whether user input is valid and show appropriate error messages
      *
      * @return true if user input is valid
      */
-    private boolean validateUserInput() {
+    private ValidationResultImpl validateUserInput() {
+        List<ValidationError> errors = new ArrayList<>();
+
         if (TextUtils.isEmpty(mNameView.getText())) {
-            mNameView.setError("Please specify a name");
-            mNameView.requestFocus();
-            return false;
+            errors.add(new ValidationError(ValidationError.TYPE_INPUT_FIELD, mNameView,
+                    "Please specify a name"));
         }
         if (TextUtils.isEmpty(mAmountView.getText())) {
-            mAmountView.setError("Please specify an amount");
-            mAmountView.requestFocus();
-            return false;
+            errors.add(new ValidationError(ValidationError.TYPE_INPUT_FIELD, mAmountView,
+                    "Please specify an amount"));
         }
         Date firstOccurrenceStart = getFirstOccurrenceStartFromScreen();
         Date firstOccurrenceEnd = getFirstOccurrenceEndFromScreen();
 
         if (firstOccurrenceStart.after(firstOccurrenceEnd)) {
-            Toast.makeText(getActivity(), "Start date must not be higher then end date",
-                    Toast.LENGTH_SHORT)
-                    .show();
-            return false;
+            errors.add(new ValidationError(ValidationError.TYPE_NON_INPUT_FIELD, null,
+                    "Start date must not be higher then end date"));
         }
 
         Calendar c = Calendar.getInstance();
@@ -478,14 +595,13 @@ public class BudgetItemDetailFragment extends Fragment {
         c.add(Calendar.DAY_OF_MONTH, -1);
 
         if (firstOccurrenceEnd.after(c.getTime())) {
-            Toast.makeText(getActivity(), "End date cannot be higher than " +
-                    DateUtils.DEFAULT_DATE_FORMAT.format(c.getTime()), Toast.LENGTH_SHORT)
-                    .show();
-            mFirstOccurrenceEndView.requestFocus();
-            return false;
+            errors.add(new ValidationError(ValidationError.TYPE_NON_INPUT_FIELD,
+                    mFirstOccurrenceEndView, "End date cannot be higher than " +
+                    DateUtils.DEFAULT_DATE_FORMAT.format(c.getTime())));
         }
 
-        return true;
+        return new ValidationResultImpl(errors.isEmpty() ? null : errors.toArray(
+                new ValidationError[errors.size()]));
     }
 
     private BudgetItem getBudgetItemFromScreen() {
@@ -581,143 +697,15 @@ public class BudgetItemDetailFragment extends Fragment {
     }
 
     /**
-     * @return true if the content differs relative to the original BudgetItem that was
-     * loaded,
-     * or the content hasn't been yet saved
+     * @return true if the content differs from the originally loaded BudgetItem, or if
+     * this fragment contains unsaved user input
      */
-    public boolean isChanged() {
-        BudgetItem fromScreen = getBudgetItemFromScreen();
-        return (mOriginalBudgetItem == null && !new BudgetItem().equals(fromScreen)) ||
-                (mOriginalBudgetItem != null && !mOriginalBudgetItem.equals(fromScreen));
-    }
-
-    private static class BudgetItemLoaderTask extends AsyncTask<Void, Void, BudgetItem> {
-
-        private int mBudgetItemId;
-        private Listener mListener;
-
-        private BudgetItemLoaderTask(int budgetItemId, Listener listener) {
-            this.mBudgetItemId = budgetItemId;
-            this.mListener = listener;
-        }
-
-        @Override protected BudgetItem doInBackground(Void... params) {
-            BudgetDbHelper helper = BudgetDbHelper.get();
-            try {
-                Dao<BudgetItem, Integer> dao = helper.getDao(BudgetItem.class);
-                return dao.queryForId(mBudgetItemId);
-            } catch (SQLException e) {
-                e.printStackTrace();
-                throw new RuntimeException(e);
-            }
-        }
-
-        @Override protected void onPostExecute(BudgetItem budgetItem) {
-            mListener.onDataReady(budgetItem);
-        }
-
-        public interface Listener {
-
-            void onDataReady(BudgetItem budgetItem);
-        }
-    }
-
-    private static class BudgetItemUpdateTask extends AsyncTask<Void, Void, Void> {
-
-        private Context mContext;
-        private BudgetItem mBudgetItem;
-        private Listener mListener;
-        private Dao.CreateOrUpdateStatus mResult;
-        private SQLiteConstraintException e;
-
-        private BudgetItemUpdateTask(Context context, BudgetItem budgetItem,
-                Listener listener) {
-            this.mContext = context;
-            this.mBudgetItem = budgetItem;
-            this.mListener = listener;
-        }
-
-        @Override protected Void doInBackground(Void... params) {
-            BudgetDbHelper helper = BudgetDbHelper.get();
-            try {
-                Dao<BudgetItem, Integer> dao = helper.getDao(BudgetItem.class);
-                mResult = dao.createOrUpdate(mBudgetItem);
-                mContext.getContentResolver()
-                        .notifyChange(BudgetProvider.BUDGET_ITEMS_URI, null);
-                EventBus.getDefault()
-                        .post(new BudgetItemUpdatedEvent());
-            } catch (SQLException e) {
-                e.printStackTrace();
-                if (e.getCause() != null && e.getCause()
-                        .getCause() != null && e.getCause()
-                        .getCause() instanceof SQLiteConstraintException) {
-                    this.e = (SQLiteConstraintException) e.getCause()
-                            .getCause();
-                } else {
-                    throw new RuntimeException(e);
-                }
-            }
-            return null;
-        }
-
-        @Override protected void onPostExecute(Void aVoid) {
-            if (e == null) {
-                Toast.makeText(mContext,
-                        mResult.isCreated() ? "BudgetItem created" : "BudgetItem updated",
-                        Toast.LENGTH_SHORT)
-                        .show();
-                mListener.onSuccess();
-            } else {
-                DialogUtils.getErrorDialog(mContext, e.getMessage())
-                        .show();
-            }
-        }
-
-        public interface Listener {
-
-            void onSuccess();
-        }
-    }
-
-    private static class BudgetItemDeleteTask extends AsyncTask<Void, Void, Boolean> {
-
-        private Context mContext;
-        private Listener mListener;
-        private int mId;
-
-        private BudgetItemDeleteTask(Context context, Listener listener, int id) {
-            this.mContext = context;
-            this.mListener = listener;
-            this.mId = id;
-        }
-
-        @Override protected Boolean doInBackground(Void... params) {
-            BudgetDbHelper helper = BudgetDbHelper.get();
-            try {
-                Dao<BudgetItem, Integer> dao = helper.getDao(BudgetItem.class);
-                boolean success = dao.deleteById(mId) > 0;
-                mContext.getContentResolver()
-                        .notifyChange(BudgetProvider.BUDGET_ITEMS_URI, null);
-                return success;
-            } catch (SQLException e) {
-                e.printStackTrace();
-                throw new RuntimeException(e);
-            }
-        }
-
-        @Override protected void onPostExecute(Boolean success) {
-            if (success) {
-                mListener.onSuccess();
-            } else {
-                mListener.onFailure();
-            }
-        }
-
-        public interface Listener {
-
-            void onSuccess();
-
-            void onFailure();
-        }
+    private boolean shouldSave() {
+        BudgetItem userInput = getBudgetItemFromScreen();
+        boolean isNew =
+                mOriginalBudgetItem == null && !new BudgetItem().equals(userInput);
+        boolean changed =
+                mOriginalBudgetItem != null && !mOriginalBudgetItem.equals(userInput);
+        return isNew || changed;
     }
 }

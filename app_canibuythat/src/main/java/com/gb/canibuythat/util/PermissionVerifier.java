@@ -26,11 +26,10 @@ public class PermissionVerifier {
     /**
      * @param andAskForThem if set to yes and there are missing permissions, they will
      *                      be asked for
-     * @return true if all specified <code>permissions</code> are already granted,
-     * false otherwise
-     * @throws IllegalStateException if method was already invoked but the
-     *                               corresponding
-     *                               {@link #verifyPermissionsResult(int, String[], int[])} was not
+     * @return true if all specified <code>permissions</code> are already granted, false
+     * otherwise
+     * @throws IllegalStateException if method was already invoked but the corresponding
+     *                               {@link #onRequestPermissionsResult(int, String[], int[])} was not
      */
     public boolean verifyPermissions(boolean andAskForThem, int requestCode)
             throws IllegalStateException {
@@ -75,8 +74,9 @@ public class PermissionVerifier {
      *                                  not equal the one used in the
      *                                  {@link #verifyPermissions(boolean, int)} method
      */
-    public boolean onRequestPermissionsResult(int requestCode, @NonNull String permissions[],
-            @NonNull int[] grantResults) throws IllegalArgumentException {
+    public boolean onRequestPermissionsResult(int requestCode,
+            @NonNull String permissions[], @NonNull int[] grantResults)
+            throws IllegalArgumentException {
         // TODO verify the permissions parameter to see if everything is there
         if (requestCode == mRequestCode) {
             Arrays.sort(permissions);

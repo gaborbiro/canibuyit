@@ -13,6 +13,7 @@ import com.gb.canibuythat.model.BalanceUpdateEvent;
 import com.gb.canibuythat.model.BudgetItem;
 import com.gb.canibuythat.provider.BalanceCalculator;
 import com.gb.canibuythat.provider.BudgetDbHelper;
+import com.gb.canibuythat.ui.task.balance_update.LastBalanceUpdateLoaderTask;
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.components.XAxis;

@@ -10,20 +10,16 @@ import android.widget.TextView;
 import com.gb.canibuythat.R;
 import com.gb.canibuythat.model.BudgetItem;
 import com.gb.canibuythat.provider.Contract;
-import com.terlici.dragndroplist.DragNDropCursorAdapter;
+import com.gb.canibuythat.ui.dragndroplist.DragNDropCursorAdapter;
 
 public class BudgetItemListAdapter extends DragNDropCursorAdapter
         implements SimpleCursorAdapter.ViewBinder {
 
-    private View.OnClickListener mOnItemClickListener;
-
-    public BudgetItemListAdapter(Context context, Cursor c,
-            View.OnClickListener onItemClickListener) {
+    public BudgetItemListAdapter(Context context, Cursor c) {
         super(context, R.layout.budget_item_list_item, c,
                 new String[]{Contract.BudgetItem.NAME, Contract.BudgetItem.AMOUNT},
                 new int[]{R.id.name, R.id.amount_repetition}, R.id.drag_n_drop_handle);
         setViewBinder(this);
-        mOnItemClickListener = onItemClickListener;
     }
 
     @Override public View getView(int position, View view, ViewGroup group) {
@@ -47,8 +43,7 @@ public class BudgetItemListAdapter extends DragNDropCursorAdapter
                     cursor.getInt(cursor.getColumnIndex(Contract.BudgetItem.ENABLED)) > 0;
             nameView.getPaint()
                     .setStrikeThruText(!enabled);
-        }
-        if (view.getId() == R.id.amount_repetition) {
+        } else if (view.getId() == R.id.amount_repetition) {
             TextView amountRepetitionView = (TextView) view;
             int occurrenceCount = cursor.getInt(
                     cursor.getColumnIndex(Contract.BudgetItem.OCCURRENCE_COUNT));

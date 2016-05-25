@@ -27,10 +27,12 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:clickable="true"
+            android:text="Ref: 2907 @May.18 (change)"
             android:layout_marginBottom="@dimen/half_padding"/>
 
         <TextView
             android:id="@+id/balance"
+            android:text="Best: 2782, Worst: 2777"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
     </LinearLayout>

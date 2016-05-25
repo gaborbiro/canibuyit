@@ -21,7 +21,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ui.BudgetItemDetailActivity"
+            android:name=".ui.BudgetItemEditorActivity"
             android:label="@string/title_budgetmodifier_detail"
             android:parentActivityName=".ui.BudgetItemListActivity">
             <meta-data

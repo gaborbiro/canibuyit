@@ -6,7 +6,6 @@ import android.app.Dialog;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
-import android.support.v4.app.FragmentManager;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,6 +17,7 @@ import android.widget.Toast;
 
 import com.gb.canibuythat.R;
 import com.gb.canibuythat.model.BalanceUpdateEvent;
+import com.gb.canibuythat.ui.task.balance_update.LastBalanceUpdateLoaderTask;
 import com.gb.canibuythat.util.DateUtils;
 
 import java.util.Date;
@@ -35,7 +35,6 @@ public class BalanceUpdateInputDialog extends DialogFragment
         super();
         LastBalanceUpdateLoaderTask mLastBalanceUpdateLoaderTask =
                 new LastBalanceUpdateLoaderTask() {
-
                     @Override
                     protected void onPostExecute(BalanceUpdateEvent balanceUpdateEvent) {
                         mLastUpdate = balanceUpdateEvent;
@@ -45,9 +44,7 @@ public class BalanceUpdateInputDialog extends DialogFragment
         mLastBalanceUpdateLoaderTask.execute();
     }
 
-    @NonNull
-    @Override
-    public Dialog onCreateDialog(Bundle savedInstanceState) {
+    @NonNull @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
         LinearLayout body = (LinearLayout) LayoutInflater.from(getActivity())
                 .inflate(R.layout.balance_update_input_layout, null);
         mLastUpdateView = (TextView) body.findViewById(R.id.last_update);
@@ -65,8 +62,7 @@ public class BalanceUpdateInputDialog extends DialogFragment
                 .create();
     }
 
-    @Override
-    public void onStart() {
+    @Override public void onStart() {
         super.onStart();
         final AlertDialog dialog = (AlertDialog) getDialog();
 
@@ -76,14 +72,12 @@ public class BalanceUpdateInputDialog extends DialogFragment
         }
     }
 
-    @Override
-    public void onAttach(Activity activity) {
+    @Override public void onAttach(Activity activity) {
         super.onAttach(activity);
         mListener = (BalanceUpdateInputListener) activity;
     }
 
-    @Override
-    public void onDetach() {
+    @Override public void onDetach() {
         super.onDetach();
         mListener = null;
     }
@@ -99,8 +93,7 @@ public class BalanceUpdateInputDialog extends DialogFragment
         }
     }
 
-    @Override
-    public void onClick(View view) {
+    @Override public void onClick(View view) {
         if (validate()) {
             BalanceUpdateEvent balanceUpdateEvent = new BalanceUpdateEvent();
             Date selectedDate = mWhenButton.getSelectedDate();

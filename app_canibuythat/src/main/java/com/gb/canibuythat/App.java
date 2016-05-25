@@ -4,9 +4,9 @@ import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.os.Bundle;
-import android.util.Log;
 
 import com.gb.canibuythat.provider.BudgetDbHelper;
+import com.gb.canibuythat.util.Logger;
 
 public class App extends Application {
 
@@ -43,7 +43,7 @@ public class App extends Application {
         @Override
         public void onActivityDestroyed(Activity activity) {
             if (firstActivity == activity) {
-                Log.d(TAG, "Releasing sqlite connection");
+                Logger.d(TAG, "Releasing sqlite connection");
                 BudgetDbHelper.get().cleanup();
                 firstActivity = null;
             }

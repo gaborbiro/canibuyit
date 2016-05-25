@@ -1,4 +1,4 @@
-package com.gb.canibuythat.ui;
+package com.gb.canibuythat.ui.task.balance_update;
 
 import android.os.AsyncTask;
 
@@ -34,9 +34,5 @@ public class LastBalanceUpdateLoaderTask
             e.printStackTrace();
         }
         return null;
-    }
-
-    @Override
-    protected void onPostExecute(BalanceUpdateEvent balanceUpdateEvent) {
     }
 }
