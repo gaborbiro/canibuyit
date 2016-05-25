@@ -26,6 +26,17 @@ public class ViewUtils {
         });
     }
 
+    public static void hideKeyboard(final View view) {
+        view.post(new Runnable() {
+
+            @Override public void run() {
+                InputMethodManager imm = (InputMethodManager) App.getAppContext()
+                        .getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+            }
+        });
+    }
+
     public static void setTextWithLinkSegment(TextView textView, String text,
             String linkPart, final Runnable runOnClick) {
         textView.setText(text);

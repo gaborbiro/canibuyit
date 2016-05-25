@@ -27,12 +27,10 @@ public class BudgetItemListAdapter extends DragNDropCursorAdapter
     }
 
     @Override public boolean setViewValue(View view, Cursor cursor, int columnIndex) {
-        String name = cursor.getString(cursor.getColumnIndex(Contract.BudgetItem.NAME));
-        name = cursor.getPosition() + ". " + name;
-        BudgetItem.BudgetItemType type = BudgetItem.BudgetItemType.valueOf(
-                cursor.getString(cursor.getColumnIndex(Contract.BudgetItem.TYPE)));
-
         if (view.getId() == R.id.name) {
+            String name = cursor.getString(cursor.getColumnIndex(Contract.BudgetItem.NAME));
+            name = cursor.getPosition() + ". " + name;
+            BudgetItem.BudgetItemType type = BudgetItem.BudgetItemType.ACCOMMODATION;
             TextView nameView = (TextView) view;
             if (type.getSign() == BudgetItem.BUDGET_ITEM_TYPE_IN) {
                 nameView.setText(mContext.getString(R.string.income, name));
@@ -51,16 +49,16 @@ public class BudgetItemListAdapter extends DragNDropCursorAdapter
                     cursor.getFloat(cursor.getColumnIndex(Contract.BudgetItem.AMOUNT));
 
             if (occurrenceCount < 1) {
-                BudgetItem.PeriodType period = BudgetItem.PeriodType.valueOf(
-                        cursor.getString(
-                                cursor.getColumnIndex(Contract.BudgetItem.PERIOD_TYPE)));
+                BudgetItem.PeriodType period = BudgetItem.PeriodType.DAYS;
                 int periodMultiplier = cursor.getInt(
                         cursor.getColumnIndex(Contract.BudgetItem.PERIOD_MULTIPLIER));
-                String periodStr = mContext.getResources()
-                        .getQuantityString(period.strRes, periodMultiplier);
-                amountRepetitionView.setText(mContext.getResources()
-                        .getQuantityString(R.plurals.amount_per_period, periodMultiplier,
-                                amount, periodMultiplier, periodStr));
+                if (period.strRes > 0) {
+                    String periodStr = mContext.getResources()
+                            .getQuantityString(period.strRes, periodMultiplier);
+                    amountRepetitionView.setText(mContext.getResources()
+                            .getQuantityString(R.plurals.amount_per_period,
+                                    periodMultiplier, amount, periodMultiplier, periodStr));
+                }
             } else {
                 amountRepetitionView.setText(mContext.getResources()
                         .getQuantityString(R.plurals.amount_times, occurrenceCount,

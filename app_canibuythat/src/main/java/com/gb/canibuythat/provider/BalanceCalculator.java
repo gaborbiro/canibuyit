@@ -104,21 +104,21 @@ public class BalanceCalculator {
          * difference between minimum and maximum comes from the fact that a
          * SpendingItem may be spent in an interval rather than on an exact date.
          */
-        public float bestCase;
+        public final float bestCase;
         /**
          * Maximum amount of money that is expected to be spent until now (according to
          * the user's spending habits) on a particular spending category. The
          * difference between minimum and maximum comes from the fact that a
          * SpendingItem may be spent in an interval rather than on an exact date.<br>
          */
-        public float worstCase;
+        public final float worstCase;
         /**
          * Spending event is the latest day on which we expect a payment/income to happen.
          * For eg if a weekly BudgetItem starts on a Monday, than the array of spending
          * events will be all the Sundays after that Monday and before today (including
          * today).
          */
-        public Date[] spendingEvents;
+        public final Date[] spendingEvents;
 
         public BalanceResult(float bestCase, float worstCase, Date[] spendingEvents) {
             this.bestCase = bestCase;

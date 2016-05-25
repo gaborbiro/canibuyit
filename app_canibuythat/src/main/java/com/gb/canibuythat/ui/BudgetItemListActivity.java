@@ -17,10 +17,10 @@ import com.gb.canibuythat.R;
 import com.gb.canibuythat.model.BalanceUpdateEvent;
 import com.gb.canibuythat.provider.BudgetDbHelper;
 import com.gb.canibuythat.ui.task.Callback;
+import com.gb.canibuythat.ui.task.backup.DatabaseExportTask;
 import com.gb.canibuythat.ui.task.backup.DatabaseImportTask;
 import com.gb.canibuythat.ui.task.balance_update.BalanceUpdateWriterTask;
 import com.gb.canibuythat.ui.task.balance_update.CalculateBalanceTask;
-import com.gb.canibuythat.util.DBUtils;
 import com.gb.canibuythat.util.DateUtils;
 import com.gb.canibuythat.util.PermissionVerifier;
 import com.gb.canibuythat.util.ViewUtils;
@@ -103,11 +103,13 @@ public class BudgetItemListActivity extends ActionBarActivity
                         new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE});
                 if (mPermissionVerifier.verifyPermissions(true,
                         REQUEST_CODE_PERMISSIONS_FOR_DB_EXPORT)) {
-                    new Thread(new Runnable() {
-                        @Override public void run() {
-                            DBUtils.exportDatabase(BudgetDbHelper.DATABASE_NAME);
+                    new DatabaseExportTask(BudgetDbHelper.DATABASE_NAME) {
+                        @Override protected void onPostExecute(String result) {
+                            Toast.makeText(App.getAppContext(), result,
+                                    Toast.LENGTH_SHORT)
+                                    .show();
                         }
-                    }, "Database-Exporter-Thread").start();
+                    }.execute();
                 }
                 break;
             case R.id.menu_import:
@@ -183,7 +185,13 @@ public class BudgetItemListActivity extends ActionBarActivity
         if (requestCode == REQUEST_CODE_PERMISSIONS_FOR_DB_EXPORT) {
             if (mPermissionVerifier.onRequestPermissionsResult(requestCode, permissions,
                     grantResults)) {
-                DBUtils.exportDatabase(BudgetDbHelper.DATABASE_NAME);
+                new DatabaseExportTask(BudgetDbHelper.DATABASE_NAME) {
+                    @Override protected void onPostExecute(String result) {
+                        Toast.makeText(App.getAppContext(), result,
+                                Toast.LENGTH_SHORT)
+                                .show();
+                    }
+                }.execute();
             } else {
                 Toast.makeText(this, "Missing permissions!", Toast.LENGTH_SHORT)
                         .show();

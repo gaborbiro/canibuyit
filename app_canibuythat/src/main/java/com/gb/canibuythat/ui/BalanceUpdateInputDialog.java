@@ -46,7 +46,7 @@ public class BalanceUpdateInputDialog extends DialogFragment
 
     @NonNull @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
         LinearLayout body = (LinearLayout) LayoutInflater.from(getActivity())
-                .inflate(R.layout.balance_update_input_layout, null);
+                .inflate(R.layout.dialog_balance_update, null);
         mLastUpdateView = (TextView) body.findViewById(R.id.last_update);
         mValueView = (EditText) body.findViewById(R.id.value);
         mWhenButton = (DatePickerButton) body.findViewById(R.id.when);

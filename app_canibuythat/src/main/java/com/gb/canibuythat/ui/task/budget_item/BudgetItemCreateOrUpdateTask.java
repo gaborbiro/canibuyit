@@ -11,12 +11,12 @@ import org.greenrobot.eventbus.EventBus;
 
 import java.sql.SQLException;
 
-public class BudgetItemCreateOrUpdateTaskBase
+public class BudgetItemCreateOrUpdateTask
         extends SQLTaskBase<Dao.CreateOrUpdateStatus> {
 
     private BudgetItem mBudgetItem;
 
-    public BudgetItemCreateOrUpdateTaskBase(BudgetItem budgetItem,
+    public BudgetItemCreateOrUpdateTask(BudgetItem budgetItem,
             Callback<Dao.CreateOrUpdateStatus> callback) {
         super(callback);
         this.mBudgetItem = budgetItem;

@@ -2,7 +2,6 @@ package com.gb.canibuythat.ui;
 
 import android.app.DatePickerDialog;
 import android.app.Fragment;
-import android.content.Context;
 import android.database.sqlite.SQLiteConstraintException;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -28,21 +27,19 @@ import com.gb.canibuythat.R;
 import com.gb.canibuythat.model.BalanceUpdateEvent;
 import com.gb.canibuythat.model.BudgetItem;
 import com.gb.canibuythat.provider.BalanceCalculator;
-import com.gb.canibuythat.ui.task.balance_update.LastBalanceUpdateLoaderTask;
-import com.gb.canibuythat.ui.task.budget_item.BudgetItemCreateOrUpdateTaskBase;
-import com.gb.canibuythat.ui.task.budget_item.BudgetItemDeleteTaskBase;
-import com.gb.canibuythat.ui.task.budget_item.BudgetItemReadTaskBase;
 import com.gb.canibuythat.ui.task.Callback;
+import com.gb.canibuythat.ui.task.balance_update.LastBalanceUpdateLoaderTask;
+import com.gb.canibuythat.ui.task.budget_item.BudgetItemCreateOrUpdateTask;
+import com.gb.canibuythat.ui.task.budget_item.BudgetItemDeleteTask;
+import com.gb.canibuythat.ui.task.budget_item.BudgetItemReadTask;
 import com.gb.canibuythat.util.ArrayUtils;
 import com.gb.canibuythat.util.DateUtils;
 import com.gb.canibuythat.util.DialogUtils;
 import com.gb.canibuythat.util.ViewUtils;
 import com.j256.ormlite.dao.Dao;
 
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.List;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -60,7 +57,6 @@ public class BudgetItemEditorFragment extends Fragment {
 
     private static final Date DEFAULT_FIRST_OCCURRENCE_END;
     private static final Date DEFAULT_FIRST_OCCURRENCE_START;
-    private static final int DEFAULT_PERIOD_MULTIPLIER = 1;
 
     static {
         Calendar c = Calendar.getInstance();
@@ -80,19 +76,21 @@ public class BudgetItemEditorFragment extends Fragment {
     @InjectView(R.id.period_type) Spinner mPeriodTypeView;
     @InjectView(R.id.notes) EditText mNotesView;
     @InjectView(R.id.spending_events) TextView mSpendingEventsView;
+
     private BudgetItem mOriginalBudgetItem;
+    private boolean mFirstOccurrenceStartDateChanged;
+    private boolean mFirstOccurrenceEndDateChanged;
+
     private DatePickerDialog mFirstOccurrenceStartPickerDialog;
     private DatePickerDialog mFirstOccurrenceEndPickerDialog;
     private MenuItem mDeleteButton;
     private ViewGroup mRootView;
-    private View.OnTouchListener nameFocuser = new View.OnTouchListener() {
+    private View.OnTouchListener keyboardDismisser = new View.OnTouchListener() {
 
         @Override public boolean onTouch(View v, MotionEvent event) {
             if (event.getAction() == MotionEvent.ACTION_DOWN &&
                     mRootView.getFocusedChild() != null) {
-                mRootView.getFocusedChild()
-                        .clearFocus();
-                // mNameView will automatically get the focus
+                ViewUtils.hideKeyboard(mRootView.getFocusedChild());
             }
             return false;
         }
@@ -124,6 +122,8 @@ public class BudgetItemEditorFragment extends Fragment {
                                                 c.get(Calendar.DAY_OF_MONTH));
                                 applyFirstOccurrenceEndToScreen(c.getTime());
                             }
+                            mFirstOccurrenceStartDateChanged = !c.getTime()
+                                    .equals(DEFAULT_FIRST_OCCURRENCE_START);
                             break;
                         case R.id.first_occurence_end:
                             mFirstOccurrenceEndView.setText(
@@ -140,6 +140,8 @@ public class BudgetItemEditorFragment extends Fragment {
                                                 c.get(Calendar.DAY_OF_MONTH));
                                 applyFirstOccurrenceStartToScreen(c.getTime());
                             }
+                            mFirstOccurrenceEndDateChanged = !c.getTime()
+                                    .equals(DEFAULT_FIRST_OCCURRENCE_END);
                             break;
                     }
                 }
@@ -170,19 +172,15 @@ public class BudgetItemEditorFragment extends Fragment {
 
     @Override public View onCreateView(LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState) {
-        mRootView = (ViewGroup) inflater.inflate(R.layout.fragment_budget_item_detail,
+        mRootView = (ViewGroup) inflater.inflate(R.layout.fragment_budget_item_editor,
                 container, false);
         ButterKnife.inject(this, mRootView);
 
-        mCategoryView.setAdapter(
-                new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1,
-                        BudgetItem.BudgetItemType.values()));
-        mCategoryView.setOnTouchListener(nameFocuser);
+        mCategoryView.setAdapter(new PlusOneAdapter(BudgetItem.BudgetItemType.values()));
+        mCategoryView.setOnTouchListener(keyboardDismisser);
 
-        mPeriodTypeView.setAdapter(
-                new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1,
-                        BudgetItem.PeriodType.values()));
-        mPeriodTypeView.setOnTouchListener(nameFocuser);
+        mPeriodTypeView.setAdapter(new PlusOneAdapter(BudgetItem.PeriodType.values()));
+        mPeriodTypeView.setOnTouchListener(keyboardDismisser);
         mPeriodTypeView.setOnItemSelectedListener(
                 new AdapterView.OnItemSelectedListener() {
 
@@ -197,7 +195,9 @@ public class BudgetItemEditorFragment extends Fragment {
                 });
 
         mFirstOccurrenceStartView.setOnClickListener(mDatePickerOnClickListener);
+        mFirstOccurrenceStartView.setOnTouchListener(keyboardDismisser);
         mFirstOccurrenceEndView.setOnClickListener(mDatePickerOnClickListener);
+        mFirstOccurrenceEndView.setOnTouchListener(keyboardDismisser);
 
         if (savedInstanceState != null) {
             mOriginalBudgetItem = savedInstanceState.getParcelable(EXTRA_ITEM);
@@ -211,16 +211,23 @@ public class BudgetItemEditorFragment extends Fragment {
         return mRootView;
     }
 
-    @Override public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
+    private class PlusOneAdapter extends ArrayAdapter {
 
-        // if (mOriginalBudgetItem != null) {
-        // TODO
-        // user data is automatically saved, but we need to transfer the
-        // budgetModifier field as well, because it is the basis of comparison when
-        // determining whether user data should be persisted or not.
-        // outState.putParcelable(EXTRA_ITEM, mOriginalBudgetItem);
-        // }
+        public PlusOneAdapter(Object[] items) {
+            super(getActivity(), android.R.layout.simple_list_item_1, items);
+        }
+
+        @Override public int getCount() {
+            return super.getCount() + 1;
+        }
+
+        @Override public Object getItem(int position) {
+            return position == 0 ? "Select one" : super.getItem(position - 1);
+        }
+
+        @Override public long getItemId(int position) {
+            return position == 0 ? -1 : super.getItemId(position - 1);
+        }
     }
 
     /**
@@ -231,7 +238,7 @@ public class BudgetItemEditorFragment extends Fragment {
      */
     public void setContent(Integer budgetItemId, final boolean showKeyboardWhenDone) {
         if (budgetItemId != null) {
-            new BudgetItemReadTaskBase(budgetItemId, new Callback<BudgetItem>() {
+            new BudgetItemReadTask(budgetItemId, new Callback<BudgetItem>() {
 
                 @Override public void onSuccess(BudgetItem budgetItem) {
                     BudgetItemEditorFragment.this.mOriginalBudgetItem = budgetItem;
@@ -266,9 +273,6 @@ public class BudgetItemEditorFragment extends Fragment {
                 }
             }).execute();
         } else {
-            mOriginalBudgetItem = null;
-            mFirstOccurrenceEndPickerDialog = null;
-            mFirstOccurrenceStartPickerDialog = null;
             clearScreen();
         }
     }
@@ -289,7 +293,7 @@ public class BudgetItemEditorFragment extends Fragment {
                 break;
             case R.id.menu_delete:
                 if (mOriginalBudgetItem != null && mOriginalBudgetItem.isPersisted()) {
-                    new BudgetItemDeleteTaskBase(new Callback<Boolean>() {
+                    new BudgetItemDeleteTask(new Callback<Boolean>() {
 
                         @Override public void onSuccess(Boolean result) {
                             mDeleteButton.setVisible(false);
@@ -308,8 +312,7 @@ public class BudgetItemEditorFragment extends Fragment {
                             t.printStackTrace();
                             Toast.makeText(App.getAppContext(),
                                     "Error deleting data. Check logs for more " +
-                                            "information.",
-                                    Toast.LENGTH_SHORT)
+                                            "information.", Toast.LENGTH_SHORT)
                                     .show();
                         }
                     }, mOriginalBudgetItem.mId).execute();
@@ -321,12 +324,13 @@ public class BudgetItemEditorFragment extends Fragment {
 
     public void saveAndRun(Runnable onSaveOrDiscard) {
         if (shouldSave()) {
-            DialogUtils.getSaveOrDiscardDialog(getContext(), new DialogUtils.Executable() {
+            DialogUtils.getSaveOrDiscardDialog(getContext(),
+                    new DialogUtils.Executable() {
 
-                @Override public boolean run() {
-                    return saveUserInputOrShowError();
-                }
-            }, onSaveOrDiscard)
+                        @Override public boolean run() {
+                            return saveUserInputOrShowError();
+                        }
+                    }, onSaveOrDiscard)
                     .show();
         } else {
             onSaveOrDiscard.run();
@@ -337,16 +341,16 @@ public class BudgetItemEditorFragment extends Fragment {
      * @return true if user data is valid
      */
     private synchronized boolean saveUserInputOrShowError() {
-        ValidationResultImpl validationResult = validateUserInput();
-        if (validationResult != null) {
+        ValidationError error = validateUserInput();
+        if (error == null) {
             final BudgetItem newBudgetItem = getBudgetItemFromScreen();
 
             if (mOriginalBudgetItem != null) {
                 // this will make an already saved item ot be updated instead of a new
-                // one to be created
+                // one being created
                 newBudgetItem.mId = mOriginalBudgetItem.mId;
             }
-            new BudgetItemCreateOrUpdateTaskBase(newBudgetItem,
+            new BudgetItemCreateOrUpdateTask(newBudgetItem,
                     new Callback<Dao.CreateOrUpdateStatus>() {
 
                         @Override public void onSuccess(Dao.CreateOrUpdateStatus result) {
@@ -378,6 +382,7 @@ public class BudgetItemEditorFragment extends Fragment {
                     }).execute();
             return true;
         } else {
+            error.showError();
             return false;
         }
     }
@@ -392,7 +397,7 @@ public class BudgetItemEditorFragment extends Fragment {
         }
         mEnabledView.setChecked(budgetItem.mEnabled);
         if (budgetItem.mType != null) {
-            mCategoryView.setSelection(budgetItem.mType.ordinal());
+            mCategoryView.setSelection(budgetItem.mType.ordinal() + 1);
         }
 
         Date firstOccurrenceStart = budgetItem.mFirstOccurrenceStart != null
@@ -418,7 +423,7 @@ public class BudgetItemEditorFragment extends Fragment {
         }
 
         if (budgetItem.mPeriodType != null) {
-            mPeriodTypeView.setSelection(budgetItem.mPeriodType.ordinal());
+            mPeriodTypeView.setSelection(budgetItem.mPeriodType.ordinal() + 1);
         }
         mNotesView.setText(budgetItem.mNotes);
         loadSpendingOccurrences(budgetItem);
@@ -436,6 +441,10 @@ public class BudgetItemEditorFragment extends Fragment {
         mPeriodTypeView.setSelection(0);
         mNotesView.setText(null);
         mSpendingEventsView.setText(null);
+
+        mOriginalBudgetItem = null;
+        mFirstOccurrenceEndPickerDialog = null;
+        mFirstOccurrenceStartPickerDialog = null;
     }
 
     private void loadSpendingOccurrences(final BudgetItem budgetItem) {
@@ -503,14 +512,6 @@ public class BudgetItemEditorFragment extends Fragment {
         return mFirstOccurrenceEndPickerDialog;
     }
 
-    private static class ValidationResultImpl {
-        final ValidationError[] errors;
-
-        public ValidationResultImpl(ValidationError[] errors) {
-            this.errors = errors;
-        }
-    }
-
     /**
      * There are two kinds of validation errors: the ones that can be shown in an input
      * field (with {@link TextView#setError(CharSequence)} and the ones tha are shown
@@ -547,13 +548,13 @@ public class BudgetItemEditorFragment extends Fragment {
             this.errorMessage = errorMessage;
         }
 
-        public void showError(Context context) throws IllegalArgumentException {
+        public void showError() throws IllegalArgumentException {
             if (type == TYPE_INPUT_FIELD) {
                 TextView textView = (TextView) target;
-                textView.setError("Please specify a name");
+                textView.setError(errorMessage);
                 textView.requestFocus();
             } else if (type == TYPE_NON_INPUT_FIELD) {
-                Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT)
+                Toast.makeText(App.getAppContext(), errorMessage, Toast.LENGTH_SHORT)
                         .show();
                 if (target != null) {
                     target.requestFocus();
@@ -567,23 +568,31 @@ public class BudgetItemEditorFragment extends Fragment {
      *
      * @return true if user input is valid
      */
-    private ValidationResultImpl validateUserInput() {
-        List<ValidationError> errors = new ArrayList<>();
-
+    private ValidationError validateUserInput() {
         if (TextUtils.isEmpty(mNameView.getText())) {
-            errors.add(new ValidationError(ValidationError.TYPE_INPUT_FIELD, mNameView,
-                    "Please specify a name"));
+            return new ValidationError(ValidationError.TYPE_INPUT_FIELD, mNameView,
+                    "Please specify a name");
         }
         if (TextUtils.isEmpty(mAmountView.getText())) {
-            errors.add(new ValidationError(ValidationError.TYPE_INPUT_FIELD, mAmountView,
-                    "Please specify an amount"));
+            return new ValidationError(ValidationError.TYPE_INPUT_FIELD, mAmountView,
+                    "Please specify an amount");
+        }
+        if (!(mCategoryView.getSelectedItem() instanceof BudgetItem.BudgetItemType)) {
+            return new ValidationError(ValidationError.TYPE_NON_INPUT_FIELD, null, "Please select a category");
+        }
+        if (!(mPeriodTypeView.getSelectedItem() instanceof BudgetItem.PeriodType)) {
+            return new ValidationError(ValidationError.TYPE_NON_INPUT_FIELD, null, "Please select a period");
+        }
+        if (TextUtils.isEmpty(mPeriodMultiplierView.getText())) {
+            return new ValidationError(ValidationError.TYPE_INPUT_FIELD, mPeriodMultiplierView,
+                    "Please fill in");
         }
         Date firstOccurrenceStart = getFirstOccurrenceStartFromScreen();
         Date firstOccurrenceEnd = getFirstOccurrenceEndFromScreen();
 
         if (firstOccurrenceStart.after(firstOccurrenceEnd)) {
-            errors.add(new ValidationError(ValidationError.TYPE_NON_INPUT_FIELD, null,
-                    "Start date must not be higher then end date"));
+            return new ValidationError(ValidationError.TYPE_NON_INPUT_FIELD, null,
+                    "Start date must not be higher then end date");
         }
 
         Calendar c = Calendar.getInstance();
@@ -595,13 +604,11 @@ public class BudgetItemEditorFragment extends Fragment {
         c.add(Calendar.DAY_OF_MONTH, -1);
 
         if (firstOccurrenceEnd.after(c.getTime())) {
-            errors.add(new ValidationError(ValidationError.TYPE_NON_INPUT_FIELD,
+            return new ValidationError(ValidationError.TYPE_NON_INPUT_FIELD,
                     mFirstOccurrenceEndView, "End date cannot be higher than " +
-                    DateUtils.DEFAULT_DATE_FORMAT.format(c.getTime())));
+                    DateUtils.DEFAULT_DATE_FORMAT.format(c.getTime()));
         }
-
-        return new ValidationResultImpl(errors.isEmpty() ? null : errors.toArray(
-                new ValidationError[errors.size()]));
+        return null;
     }
 
     private BudgetItem getBudgetItemFromScreen() {
@@ -619,7 +626,10 @@ public class BudgetItemEditorFragment extends Fragment {
         // enabled
         budgetItem.mEnabled = mEnabledView.isChecked();
         // type
-        budgetItem.mType = (BudgetItem.BudgetItemType) mCategoryView.getSelectedItem();
+        if (mCategoryView.getSelectedItem() instanceof BudgetItem.BudgetItemType) {
+            budgetItem.mType =
+                    (BudgetItem.BudgetItemType) mCategoryView.getSelectedItem();
+        }
         // firstOccurrenceStart
         budgetItem.mFirstOccurrenceStart = getFirstOccurrenceStartFromScreen();
         // firstOccurrenceEnd
@@ -632,8 +642,10 @@ public class BudgetItemEditorFragment extends Fragment {
         // periodMultiplier
         budgetItem.mPeriodMultiplier = getPeriodMultiplierFromScreen();
         // period
-        budgetItem.mPeriodType =
-                (BudgetItem.PeriodType) mPeriodTypeView.getSelectedItem();
+        if (mPeriodTypeView.getSelectedItem() instanceof BudgetItem.PeriodType) {
+            budgetItem.mPeriodType =
+                    (BudgetItem.PeriodType) mPeriodTypeView.getSelectedItem();
+        }
         // notes
         if (!TextUtils.isEmpty(mNotesView.getText())) {
             budgetItem.mNotes = mNotesView.getText()
@@ -678,8 +690,8 @@ public class BudgetItemEditorFragment extends Fragment {
         return firstOccurrenceDateEnd;
     }
 
-    private int getPeriodMultiplierFromScreen() {
-        int periodMultiplier;
+    private Integer getPeriodMultiplierFromScreen() {
+        Integer periodMultiplier = null;
 
         if (!TextUtils.isEmpty(mPeriodMultiplierView.getText())) {
             // user entered value
@@ -689,9 +701,6 @@ public class BudgetItemEditorFragment extends Fragment {
                 mOriginalBudgetItem.mPeriodMultiplier != null) {
             // user did not enter a value, but this is EDIT, not CREATE
             periodMultiplier = mOriginalBudgetItem.mPeriodMultiplier;
-        } else {
-            // user did not enter a value, and we are in CREATE mode
-            periodMultiplier = DEFAULT_PERIOD_MULTIPLIER;
         }
         return periodMultiplier;
     }
@@ -702,10 +711,12 @@ public class BudgetItemEditorFragment extends Fragment {
      */
     private boolean shouldSave() {
         BudgetItem userInput = getBudgetItemFromScreen();
-        boolean isNew =
-                mOriginalBudgetItem == null && !new BudgetItem().equals(userInput);
-        boolean changed =
-                mOriginalBudgetItem != null && !mOriginalBudgetItem.equals(userInput);
+        boolean isNew = mOriginalBudgetItem == null &&
+                !new BudgetItem().compareForEditing(userInput,
+                        !(mFirstOccurrenceStartDateChanged ||
+                                mFirstOccurrenceEndDateChanged));
+        boolean changed = mOriginalBudgetItem != null &&
+                !mOriginalBudgetItem.compareForEditing(userInput, false);
         return isNew || changed;
     }
 }

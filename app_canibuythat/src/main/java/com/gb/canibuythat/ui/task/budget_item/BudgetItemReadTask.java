@@ -6,11 +6,11 @@ import com.j256.ormlite.dao.Dao;
 
 import java.sql.SQLException;
 
-public class BudgetItemReadTaskBase extends SQLTaskBase<BudgetItem> {
+public class BudgetItemReadTask extends SQLTaskBase<BudgetItem> {
 
     private int mBudgetItemId;
 
-    public BudgetItemReadTaskBase(int budgetItemId, Callback<BudgetItem> callback) {
+    public BudgetItemReadTask(int budgetItemId, Callback<BudgetItem> callback) {
         super(callback);
         this.mBudgetItemId = budgetItemId;
     }

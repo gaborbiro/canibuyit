@@ -72,7 +72,7 @@ import java.util.Date;
     public PeriodType mPeriodType;
 
     @DatabaseField(columnName = Contract.BudgetItem.ENABLED, canBeNull = true)
-    public boolean mEnabled;
+    public boolean mEnabled = true;
 
     public BudgetItem() {
     }
@@ -108,10 +108,34 @@ import java.util.Date;
         }
     }
 
-    /**
-     * If you override this, don't forget to remove the mId. That's is not needed for
-     * comparison
-     */
+    public boolean compareForEditing(Object o, boolean ignoreDates) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        BudgetItem that = (BudgetItem) o;
+
+        if (mEnabled != that.mEnabled) return false;
+        if (mName != null ? !mName.equals(that.mName) : that.mName != null) return false;
+        if (mNotes != null ? !mNotes.equals(that.mNotes) : that.mNotes != null)
+            return false;
+        if (mType != that.mType) return false;
+        if (mAmount != null ? !mAmount.equals(that.mAmount) : that.mAmount != null)
+            return false;
+        if (!ignoreDates) {
+            if (mFirstOccurrenceStart != null ? !mFirstOccurrenceStart.equals(
+                    that.mFirstOccurrenceStart) : that.mFirstOccurrenceStart != null)
+                return false;
+            if (mFirstOccurrenceEnd != null ? !mFirstOccurrenceEnd.equals(
+                    that.mFirstOccurrenceEnd) : that.mFirstOccurrenceEnd != null)
+                return false;
+        }
+        if (mOccurrenceCount != null ? !mOccurrenceCount.equals(that.mOccurrenceCount)
+                                     : that.mOccurrenceCount != null) return false;
+        if (mPeriodMultiplier != null ? !mPeriodMultiplier.equals(that.mPeriodMultiplier)
+                                      : that.mPeriodMultiplier != null) return false;
+        return mPeriodType == that.mPeriodType;
+    }
+
     @Override public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
@@ -119,6 +143,7 @@ import java.util.Date;
         BudgetItem that = (BudgetItem) o;
 
         if (mEnabled != that.mEnabled) return false;
+        if (mId != null ? !mId.equals(that.mId) : that.mId != null) return false;
         if (mName != null ? !mName.equals(that.mName) : that.mName != null) return false;
         if (mNotes != null ? !mNotes.equals(that.mNotes) : that.mNotes != null)
             return false;

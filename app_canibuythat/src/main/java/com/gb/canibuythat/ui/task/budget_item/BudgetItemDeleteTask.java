@@ -8,11 +8,11 @@ import com.j256.ormlite.dao.Dao;
 
 import java.sql.SQLException;
 
-public class BudgetItemDeleteTaskBase extends SQLTaskBase<Boolean> {
+public class BudgetItemDeleteTask extends SQLTaskBase<Boolean> {
 
     private int mId;
 
-    public BudgetItemDeleteTaskBase(Callback<Boolean> callback, int id) {
+    public BudgetItemDeleteTask(Callback<Boolean> callback, int id) {
         super(callback);
         this.mId = id;
     }

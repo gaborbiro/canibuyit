@@ -1,6 +1,5 @@
 package com.gb.canibuythat.ui;
 
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
@@ -11,7 +10,7 @@ import com.gb.canibuythat.R;
 
 public class BudgetItemEditorActivity extends ActionBarActivity {
 
-    private BudgetItemEditorFragment mDetailFragment;
+    private BudgetItemEditorFragment mEditorFragment;
 
     public static Intent getIntentForUpdate(int budgetItemId) {
         Intent i = getIntentForCreate();
@@ -25,30 +24,34 @@ public class BudgetItemEditorActivity extends ActionBarActivity {
 
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_budget_item_detail);
+        setContentView(R.layout.activity_budget_item_editor);
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         if (savedInstanceState == null) {
-            mDetailFragment = new BudgetItemEditorFragment();
+            mEditorFragment = new BudgetItemEditorFragment();
             if (getIntent().hasExtra(BudgetItemEditorFragment.EXTRA_ITEM_ID)) {
                 Bundle arguments = new Bundle();
                 arguments.putInt(BudgetItemEditorFragment.EXTRA_ITEM_ID,
                         getIntent().getIntExtra(BudgetItemEditorFragment.EXTRA_ITEM_ID,
                                 0));
-                mDetailFragment.setArguments(arguments);
+                mEditorFragment.setArguments(arguments);
             }
             getFragmentManager().beginTransaction()
-                    .add(R.id.budgetmodifier_detail_container, mDetailFragment)
+                    .add(R.id.budgetmodifier_detail_container, mEditorFragment)
                     .commit();
+        } else {
+            mEditorFragment =
+                    (BudgetItemEditorFragment) getFragmentManager().findFragmentById(
+                            R.id.budgetmodifier_detail_container);
         }
     }
 
     @Override public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == android.R.id.home) {
-            if (mDetailFragment != null) {
-                mDetailFragment.saveAndRun(new Runnable() {
+            if (mEditorFragment != null) {
+                mEditorFragment.saveAndRun(new Runnable() {
 
                     @Override public void run() {
                         finish();
@@ -63,8 +66,8 @@ public class BudgetItemEditorActivity extends ActionBarActivity {
     }
 
     @Override public void onBackPressed() {
-        if (mDetailFragment != null) {
-            mDetailFragment.saveAndRun(new Runnable() {
+        if (mEditorFragment != null) {
+            mEditorFragment.saveAndRun(new Runnable() {
 
                 @Override public void run() {
                     BudgetItemEditorActivity.super.onBackPressed();
