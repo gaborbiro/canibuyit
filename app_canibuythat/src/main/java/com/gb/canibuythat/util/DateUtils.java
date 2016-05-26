@@ -1,6 +1,10 @@
 package com.gb.canibuythat.util;
 
+import android.app.DatePickerDialog;
+import android.content.Context;
 import android.widget.DatePicker;
+
+import com.gb.canibuythat.App;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -8,7 +12,7 @@ import java.util.Date;
 
 public class DateUtils {
 
-    public static final SimpleDateFormat DEFAULT_DATE_FORMAT =
+    public static final SimpleDateFormat FORMAT_MONTH_DAY =
             new SimpleDateFormat("MMM.dd");
 
 
@@ -62,5 +66,21 @@ public class DateUtils {
         } else {
             return 2;
         }
+    }
+
+    public static DatePickerDialog getDatePickerDialog(Context context,
+            DatePickerDialog.OnDateSetListener listener, Date date) {
+        Calendar c = Calendar.getInstance();
+        if (date != null) {
+            c.setTime(date);
+        }
+        return getDatePickerDialog(context, listener, c);
+    }
+
+    public static DatePickerDialog getDatePickerDialog(Context context,
+            DatePickerDialog.OnDateSetListener listener, Calendar date) {
+        return new DatePickerDialog(context, listener,
+                date.get(Calendar.YEAR), date.get(Calendar.MONTH),
+                date.get(Calendar.DAY_OF_MONTH));
     }
 }

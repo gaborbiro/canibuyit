@@ -22,7 +22,7 @@ public class BudgetProvider extends ContentProvider {
             new Uri.Builder().scheme(ContentResolver.SCHEME_CONTENT)
                     .authority(AUTHORITY)
                     .build();
-    // BudgetITem
+
     public static final int ID_BUDGET_ITEMS = 0;
     public static final String PATH_BUDGET_ITEMS = "budget_items";
     public static final Uri BUDGET_ITEMS_URI = BASE_CONTENT_URI.buildUpon()
@@ -35,19 +35,6 @@ public class BudgetProvider extends ContentProvider {
             .appendPath(PATH_BUDGET_ITEM)
             .build();
 
-    // BudgetReading
-    public static final int ID_BUDGET_UPDATES = 2;
-    public static final String PATH_BUDGET_UPDATES = "budget_updates";
-    public static final Uri BUDGET_UPDATES_URI = BASE_CONTENT_URI.buildUpon()
-            .appendPath(PATH_BUDGET_UPDATES)
-            .build();
-
-    public static final int ID_BUDGET_UPDATE = 3;
-    public static final String PATH_BUDGET_UPDATE = "budget_update/#";
-    public static final Uri BUDGET_UPDATE_URI = BASE_CONTENT_URI.buildUpon()
-            .appendPath(PATH_BUDGET_UPDATE)
-            .build();
-
     private BudgetDbHelper dbHelper;
 
     private static final UriMatcher sURIMatcher = new UriMatcher(UriMatcher.NO_MATCH);
@@ -55,8 +42,6 @@ public class BudgetProvider extends ContentProvider {
     static {
         sURIMatcher.addURI(AUTHORITY, PATH_BUDGET_ITEMS, ID_BUDGET_ITEMS);
         sURIMatcher.addURI(AUTHORITY, PATH_BUDGET_ITEM, ID_BUDGET_ITEM);
-        sURIMatcher.addURI(AUTHORITY, PATH_BUDGET_UPDATES, ID_BUDGET_UPDATES);
-        sURIMatcher.addURI(AUTHORITY, PATH_BUDGET_UPDATE, ID_BUDGET_UPDATE);
     }
 
     @Override
@@ -85,15 +70,6 @@ public class BudgetProvider extends ContentProvider {
                 queryBuilder.appendWhere(
                         Contract.BudgetItem._ID + "=" + uri.getLastPathSegment());
                 break;
-            case ID_BUDGET_UPDATES:
-                checkColumns(Contract.BalanceUpdateEvent.class, projection);
-                break;
-            case ID_BUDGET_UPDATE:
-                checkColumns(Contract.BalanceUpdateEvent.class, projection);
-                // adding the ID to the original query
-                queryBuilder.appendWhere(
-                        Contract.BalanceUpdateEvent._ID + "=" + uri.getLastPathSegment());
-                break;
             default:
                 throw new IllegalArgumentException("Unknown URI: " + uri);
         }
@@ -120,9 +96,6 @@ public class BudgetProvider extends ContentProvider {
         switch (uriType) {
             case ID_BUDGET_ITEMS:
                 id = sqlDB.insert(Contract.BudgetItem.TABLE, null, values);
-                break;
-            case ID_BUDGET_UPDATES:
-                id = sqlDB.insert(Contract.BalanceUpdateEvent.TABLE, null, values);
                 break;
             default:
                 throw new IllegalArgumentException("Unknown URI: " + uri);
@@ -154,22 +127,6 @@ public class BudgetProvider extends ContentProvider {
                             selectionArgs);
                 }
                 break;
-            case ID_BUDGET_UPDATES:
-                rowsDeleted = sqlDB.delete(Contract.BalanceUpdateEvent.TABLE, selection,
-                        selectionArgs);
-                break;
-            case ID_BUDGET_UPDATE:
-                id = uri.getLastPathSegment();
-
-                if (TextUtils.isEmpty(selection)) {
-                    rowsDeleted = sqlDB.delete(Contract.BalanceUpdateEvent.TABLE,
-                            Contract.BalanceUpdateEvent._ID + "=" + id, null);
-                } else {
-                    rowsDeleted = sqlDB.delete(Contract.BalanceUpdateEvent.TABLE,
-                            Contract.BalanceUpdateEvent._ID + "=" + id + " and " +
-                                    selection, selectionArgs);
-                }
-                break;
             default:
                 throw new IllegalArgumentException("Unknown URI: " + uri);
         }
@@ -183,7 +140,7 @@ public class BudgetProvider extends ContentProvider {
             String[] selectionArgs) {
         int uriType = sURIMatcher.match(uri);
         SQLiteDatabase sqlDB = dbHelper.getWritableDatabase();
-        int rowsUpdated;
+        int rowsUpdated = 0;
         switch (uriType) {
             case ID_BUDGET_ITEMS:
                 rowsUpdated = sqlDB.update(Contract.BudgetItem.TABLE, values, selection,
@@ -201,28 +158,8 @@ public class BudgetProvider extends ContentProvider {
                             selectionArgs);
                 }
                 break;
-            case ID_BUDGET_UPDATES:
-                rowsUpdated =
-                        sqlDB.update(Contract.BalanceUpdateEvent.TABLE, values, selection,
-                                selectionArgs);
-                break;
-            case ID_BUDGET_UPDATE:
-                id = uri.getLastPathSegment();
-
-                if (TextUtils.isEmpty(selection)) {
-                    rowsUpdated = sqlDB.update(Contract.BalanceUpdateEvent.TABLE, values,
-                            Contract.BalanceUpdateEvent._ID + "=" + id, null);
-                } else {
-                    rowsUpdated = sqlDB.update(Contract.BalanceUpdateEvent.TABLE, values,
-                            Contract.BalanceUpdateEvent._ID + "=" + id + " and " +
-                                    selection, selectionArgs);
-                }
-                break;
-            default:
-                throw new IllegalArgumentException("Unknown URI: " + uri);
         }
-        getContext().getContentResolver()
-                .notifyChange(uri, null);
+        getContext().getContentResolver().notifyChange(uri, null);
         return rowsUpdated;
     }
 

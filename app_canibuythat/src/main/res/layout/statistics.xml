@@ -31,8 +31,7 @@
             android:layout_marginBottom="@dimen/half_padding"/>
 
         <TextView
-            android:id="@+id/balance"
-            android:text="Best: 2782, Worst: 2777"
+            android:id="@+id/estimate_at_time"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
     </LinearLayout>

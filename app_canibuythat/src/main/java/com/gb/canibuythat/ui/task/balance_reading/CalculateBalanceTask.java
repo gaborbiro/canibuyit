@@ -1,9 +1,10 @@
-package com.gb.canibuythat.ui.task.balance_update;
+package com.gb.canibuythat.ui.task.balance_reading;
 
-import com.gb.canibuythat.model.BalanceUpdateEvent;
+import com.gb.canibuythat.UserPreferences;
 import com.gb.canibuythat.model.BudgetItem;
 import com.gb.canibuythat.provider.BalanceCalculator;
 import com.gb.canibuythat.provider.BudgetDbHelper;
+import com.gb.canibuythat.ui.model.BalanceReading;
 import com.gb.canibuythat.ui.task.Callback;
 import com.gb.canibuythat.ui.task.TaskBase;
 import com.j256.ormlite.dao.Dao;
@@ -13,28 +14,21 @@ import java.util.Date;
 public class CalculateBalanceTask extends TaskBase<CalculateBalanceTask.BalanceResult> {
 
     public static class BalanceResult {
-        public final BalanceUpdateEvent lastBalanceUpdateEvent;
+        public final BalanceReading balanceReading;
         public final float bestCaseBalance;
         public final float worstCaseBalance;
 
-        public BalanceResult(BalanceUpdateEvent lastBalanceUpdateEvent,
+        public BalanceResult(BalanceReading balanceReading,
                 float bestCaseBalance, float worstCaseBalance) {
-            this.lastBalanceUpdateEvent = lastBalanceUpdateEvent;
+            this.balanceReading = balanceReading;
             this.bestCaseBalance = bestCaseBalance;
             this.worstCaseBalance = worstCaseBalance;
         }
     }
 
 
-    private LastBalanceUpdateLoaderTask mLastBalanceUpdateLoaderTask;
-
     public CalculateBalanceTask(Callback<BalanceResult> callback) {
         super(callback);
-    }
-
-    @Override protected void onPreExecute() {
-        mLastBalanceUpdateLoaderTask = new LastBalanceUpdateLoaderTask();
-        mLastBalanceUpdateLoaderTask.execute();
     }
 
     @Override protected BalanceResult doWork() throws Exception {
@@ -43,25 +37,26 @@ public class CalculateBalanceTask extends TaskBase<CalculateBalanceTask.BalanceR
         float worstCase = 0;
 
         // blocking thread
-        BalanceUpdateEvent balanceUpdateEvent = mLastBalanceUpdateLoaderTask.get();
+        BalanceReading balanceReading = UserPreferences.getBalanceReading();
         Dao<BudgetItem, Integer> budgetItemDao =
                 helper.getDao(com.gb.canibuythat.model.BudgetItem.class);
 
         for (com.gb.canibuythat.model.BudgetItem item : budgetItemDao) {
             if (item.mEnabled) {
+                Date startDate =
+                        balanceReading != null ? balanceReading.when : null;
                 BalanceCalculator.BalanceResult result = BalanceCalculator.get()
-                        .getEstimatedBalance(item,
-                                balanceUpdateEvent != null ? balanceUpdateEvent.when
-                                                           : null, new Date());
+                        .getEstimatedBalance(item, startDate,
+                                UserPreferences.getEstimateDate());
                 bestCase += result.bestCase;
                 worstCase += result.worstCase;
             }
         }
 
-        if (balanceUpdateEvent != null) {
-            bestCase += balanceUpdateEvent.value;
-            worstCase += balanceUpdateEvent.value;
+        if (balanceReading != null) {
+            bestCase += balanceReading.balance;
+            worstCase += balanceReading.balance;
         }
-        return new BalanceResult(balanceUpdateEvent, bestCase, worstCase);
+        return new BalanceResult(balanceReading, bestCase, worstCase);
     }
 }

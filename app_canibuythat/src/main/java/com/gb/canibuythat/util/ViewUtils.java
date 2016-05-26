@@ -37,7 +37,7 @@ public class ViewUtils {
         });
     }
 
-    public static void setTextWithLinkSegment(TextView textView, String text,
+    public static void setTextWithLink(TextView textView, String text,
             String linkPart, final Runnable runOnClick) {
         textView.setText(text);
         Spannable spannable = new SpannableString(textView.getText());
@@ -49,7 +49,11 @@ public class ViewUtils {
         }
         spannable.setSpan(new ClickableSpan() {
             @Override public void onClick(View widget) {
-                runOnClick.run();
+                try {
+                    runOnClick.run();
+                } catch (Throwable t) {
+                    t.printStackTrace();
+                }
             }
         }, startIndex, startIndex + linkPart.length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
         textView.setText(spannable, TextView.BufferType.SPANNABLE);

@@ -1,6 +1,7 @@
 package com.gb.canibuythat.ui;
 
 import android.Manifest;
+import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
@@ -8,25 +9,29 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.DatePicker;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.gb.canibuythat.App;
 import com.gb.canibuythat.R;
-import com.gb.canibuythat.model.BalanceUpdateEvent;
+import com.gb.canibuythat.UserPreferences;
 import com.gb.canibuythat.provider.BudgetDbHelper;
+import com.gb.canibuythat.ui.model.BalanceReading;
 import com.gb.canibuythat.ui.task.Callback;
 import com.gb.canibuythat.ui.task.backup.DatabaseExportTask;
 import com.gb.canibuythat.ui.task.backup.DatabaseImportTask;
-import com.gb.canibuythat.ui.task.balance_update.BalanceUpdateWriterTask;
-import com.gb.canibuythat.ui.task.balance_update.CalculateBalanceTask;
+import com.gb.canibuythat.ui.task.balance_reading.CalculateBalanceTask;
 import com.gb.canibuythat.util.DateUtils;
 import com.gb.canibuythat.util.PermissionVerifier;
 import com.gb.canibuythat.util.ViewUtils;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
+
+import java.util.Calendar;
+import java.util.Date;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -46,12 +51,12 @@ import butterknife.Optional;
  */
 public class BudgetItemListActivity extends ActionBarActivity
         implements BudgetItemListFragment.FragmentCallback,
-        BalanceUpdateInputDialog.BalanceUpdateInputListener {
+        BalanceReadingInputDialog.BalanceReadingInputListener {
 
     private static final int REQUEST_CODE_CHOOSE_FILE = 1;
     private static final int REQUEST_CODE_PERMISSIONS_FOR_DB_EXPORT = 2;
 
-    @Optional @InjectView(R.id.balance) TextView mBalanceView;
+    @Optional @InjectView(R.id.estimate_at_time) TextView mEstimateAtTimeView;
     @Optional @InjectView(R.id.reference) TextView mReferenceView;
     @Optional @InjectView(R.id.chart_button) ImageView mChartButton;
     /**
@@ -149,15 +154,13 @@ public class BudgetItemListActivity extends ActionBarActivity
     }
 
     /**
-     * Callback from the {@link BalanceUpdateInputDialog} notifying that the user has
+     * Callback from the {@link BalanceReadingInputDialog} notifying that the user has
      * added a new balance reading
      */
-    @Override public void onBalanceUpdateSet(BalanceUpdateEvent event) {
-        new BalanceUpdateWriterTask() {
-            @Override protected void onPostExecute(Void aVoid) {
-                new CalculateBalanceTask(mBalanceCalculatorCallback).execute();
-            }
-        }.execute(event);
+    @Override public void onBalanceReadingSet(BalanceReading balanceReading) {
+        UserPreferences.setBalanceReading(balanceReading);
+        UserPreferences.setEstimateDate(null);
+        new CalculateBalanceTask(mBalanceCalculatorCallback).execute();
     }
 
     @Override
@@ -187,8 +190,7 @@ public class BudgetItemListActivity extends ActionBarActivity
                     grantResults)) {
                 new DatabaseExportTask(BudgetDbHelper.DATABASE_NAME) {
                     @Override protected void onPostExecute(String result) {
-                        Toast.makeText(App.getAppContext(), result,
-                                Toast.LENGTH_SHORT)
+                        Toast.makeText(App.getAppContext(), result, Toast.LENGTH_SHORT)
                                 .show();
                     }
                 }.execute();
@@ -200,7 +202,7 @@ public class BudgetItemListActivity extends ActionBarActivity
     }
 
     private void showBalanceUpdateDialog() {
-        new BalanceUpdateInputDialog().show(getSupportFragmentManager(), null);
+        new BalanceReadingInputDialog().show(getSupportFragmentManager(), null);
     }
 
     /**
@@ -253,7 +255,7 @@ public class BudgetItemListActivity extends ActionBarActivity
             new Callback<CalculateBalanceTask.BalanceResult>() {
 
                 @Override public void onSuccess(CalculateBalanceTask.BalanceResult data) {
-                    setBalanceInfo(data.lastBalanceUpdateEvent, data.bestCaseBalance,
+                    setBalanceInfo(data.balanceReading, data.bestCaseBalance,
                             data.worstCaseBalance);
                 }
 
@@ -266,32 +268,77 @@ public class BudgetItemListActivity extends ActionBarActivity
                 }
             };
 
-    private void setBalanceInfo(BalanceUpdateEvent balanceUpdateEvent,
-            float bestCaseBalance, float worstCaseBalance) {
+    private void setBalanceInfo(BalanceReading balanceReading, float bestCaseBalance,
+            float worstCaseBalance) {
         if (mReferenceView != null) {
-            String change = App.getAppContext()
-                    .getString(R.string.change);
             String text;
-            if (balanceUpdateEvent != null) {
+            if (balanceReading != null) {
                 text = App.getAppContext()
-                        .getString(R.string.reference_statistics,
-                                balanceUpdateEvent.value,
-                                DateUtils.DEFAULT_DATE_FORMAT.format(
-                                        balanceUpdateEvent.when), change);
+                        .getString(R.string.reading, balanceReading.balance,
+                                DateUtils.FORMAT_MONTH_DAY.format(balanceReading.when));
             } else {
                 text = App.getAppContext()
-                        .getString(R.string.reference_statistics_none, change);
+                        .getString(R.string.reading_none);
             }
-            ViewUtils.setTextWithLinkSegment(mReferenceView, text, change,
-                    new Runnable() {
-                        @Override public void run() {
-                            showBalanceUpdateDialog();
-                        }
-                    });
+            ViewUtils.setTextWithLink(mReferenceView, text, text, new Runnable() {
+                @Override public void run() {
+                    showBalanceUpdateDialog();
+                }
+            });
         }
-        if (mBalanceView != null) {
-            mBalanceView.setText(App.getAppContext()
-                    .getString(R.string.balance, bestCaseBalance, worstCaseBalance));
+        if (mEstimateAtTimeView != null) {
+            final Date estimateDate = UserPreferences.getEstimateDate();
+            String estimateDateStr =
+                    estimateDate != null ? DateUtils.FORMAT_MONTH_DAY.format(estimateDate)
+                                         : getString(R.string.today);
+            String estimateAtTime = App.getAppContext()
+                    .getString(R.string.estimate_at_time, bestCaseBalance,
+                            worstCaseBalance, estimateDateStr);
+            ViewUtils.setTextWithLink(mEstimateAtTimeView, estimateAtTime,
+                    estimateDateStr, estimateDateUpdater);
         }
     }
+
+    private Runnable estimateDateUpdater = new Runnable() {
+        @Override public void run() {
+            DatePickerDialog.OnDateSetListener listener =
+                    new DatePickerDialog.OnDateSetListener() {
+                        @Override
+                        public void onDateSet(DatePicker view, int year, int monthOfYear,
+                                int dayOfMonth) {
+                            Calendar c = Calendar.getInstance();
+
+                            if (c.get(Calendar.YEAR) == year &&
+                                    c.get(Calendar.MONTH) == monthOfYear &&
+                                    c.get(Calendar.DAY_OF_MONTH) == dayOfMonth) {
+                                UserPreferences.setEstimateDate(null);
+                            } else {
+                                c.set(year, monthOfYear, dayOfMonth);
+                                BalanceReading balanceReading =
+                                        UserPreferences.getBalanceReading();
+
+                                if (balanceReading == null ||
+                                        balanceReading.when.before(c.getTime())) {
+                                    DateUtils.clearLowerBits(c);
+                                    UserPreferences.setEstimateDate(c.getTime());
+                                } else {
+                                    Toast.makeText(BudgetItemListActivity.this,
+                                            "Please set a date after the last balance " +
+                                                    "reading! (" +
+                                                    balanceReading.when + ")",
+                                            Toast.LENGTH_SHORT)
+                                            .show();
+                                }
+                            }
+                            new CalculateBalanceTask(
+                                    mBalanceCalculatorCallback).execute();
+                        }
+                    };
+
+            DatePickerDialog datePickerDialog =
+                    DateUtils.getDatePickerDialog(BudgetItemListActivity.this, listener,
+                            UserPreferences.getEstimateDate());
+            datePickerDialog.show();
+        }
+    };
 }

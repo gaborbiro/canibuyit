@@ -18,17 +18,6 @@ import java.util.Date;
 @DatabaseTable(tableName = Contract.BudgetItem.TABLE) public class BudgetItem
         implements Parcelable {
 
-    public static final Parcelable.Creator<BudgetItem> CREATOR =
-            new Parcelable.Creator<BudgetItem>() {
-
-                @Override public BudgetItem createFromParcel(Parcel in) {
-                    return new BudgetItem(in);
-                }
-
-                @Override public BudgetItem[] newArray(int size) {
-                    return new BudgetItem[size];
-                }
-            };
     @DatabaseField(generatedId = true, columnName = Contract.BudgetItem._ID)
     public Integer mId;
     @DatabaseField(index = true, columnName = Contract.BudgetItem.NAME, unique = true,
@@ -215,6 +204,18 @@ import java.util.Date;
             dest.writeValue(null);
         }
     }
+
+    public static final Parcelable.Creator<BudgetItem> CREATOR =
+            new Parcelable.Creator<BudgetItem>() {
+
+                @Override public BudgetItem createFromParcel(Parcel in) {
+                    return new BudgetItem(in);
+                }
+
+                @Override public BudgetItem[] newArray(int size) {
+                    return new BudgetItem[size];
+                }
+            };
 
     public boolean isPersisted() {
         return mId != null;

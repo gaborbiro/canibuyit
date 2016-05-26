@@ -25,7 +25,7 @@ public class DatePickerButton extends Button {
                 @Override
                 public void onDateSet(DatePicker view, int year, int monthOfYear,
                         int dayOfMonth) {
-                    setText(DateUtils.DEFAULT_DATE_FORMAT.format(
+                    setText(DateUtils.FORMAT_MONTH_DAY.format(
                             new GregorianCalendar(year, monthOfYear,
                                     dayOfMonth).getTime()));
                 }
@@ -50,8 +50,7 @@ public class DatePickerButton extends Button {
         mDetector = new GestureDetector(getContext(),
                 new GestureDetector.SimpleOnGestureListener() {
 
-                    @Override
-                    public boolean onSingleTapConfirmed(MotionEvent e) {
+                    @Override public boolean onSingleTapConfirmed(MotionEvent e) {
                         getDatePickerDialog().show();
                         return false;
                     }
@@ -59,23 +58,15 @@ public class DatePickerButton extends Button {
         mOriginalDate = Calendar.getInstance();
     }
 
-    @Override
-    public boolean dispatchTouchEvent(MotionEvent e) {
+    @Override public boolean dispatchTouchEvent(MotionEvent e) {
         mDetector.onTouchEvent(e);
         return super.dispatchTouchEvent(e);
     }
 
     private DatePickerDialog getDatePickerDialog() {
         if (mDatePickerDialog == null) {
-            if (mOriginalDate != null) {
-                mDatePickerDialog = new DatePickerDialog(getContext(), mOnDateSetListener,
-                        mOriginalDate.get(Calendar.YEAR),
-                        mOriginalDate.get(Calendar.MONTH),
-                        mOriginalDate.get(Calendar.DAY_OF_MONTH));
-            } else {
-                mDatePickerDialog =
-                        new DatePickerDialog(getContext(), mOnDateSetListener, 0, 0, 0);
-            }
+            mDatePickerDialog = DateUtils.getDatePickerDialog(getContext(), mOnDateSetListener,
+                    mOriginalDate);
         }
         return mDatePickerDialog;
     }

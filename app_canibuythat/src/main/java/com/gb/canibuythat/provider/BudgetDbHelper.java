@@ -6,7 +6,6 @@ import android.database.sqlite.SQLiteDatabase;
 
 import com.gb.canibuythat.App;
 import com.gb.canibuythat.model.BudgetItem;
-import com.gb.canibuythat.model.BalanceUpdateEvent;
 import com.j256.ormlite.android.apptools.OpenHelperManager;
 import com.j256.ormlite.android.apptools.OrmLiteSqliteOpenHelper;
 import com.j256.ormlite.support.ConnectionSource;
@@ -38,7 +37,6 @@ public class BudgetDbHelper extends OrmLiteSqliteOpenHelper {
     public void onCreate(SQLiteDatabase database, ConnectionSource connectionSource) {
         try {
             TableUtils.createTable(connectionSource, BudgetItem.class);
-            TableUtils.createTable(connectionSource, BalanceUpdateEvent.class);
         } catch (SQLException e) {
             e.printStackTrace();
         }

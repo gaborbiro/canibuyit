@@ -25,11 +25,6 @@ public class DatabaseImportTask extends AsyncTask<Void, Void, Void> {
         App.getAppContext()
                 .getContentResolver()
                 .notifyChange(BudgetProvider.BUDGET_ITEMS_URI, null);
-        DBUtils.importDatabase(new File(path), Contract.BalanceUpdateEvent.TABLE,
-                Contract.BalanceUpdateEvent.COLUMNS, helper);
-        App.getAppContext()
-                .getContentResolver()
-                .notifyChange(BudgetProvider.BUDGET_ITEMS_URI, null);
         return null;
     }
 }

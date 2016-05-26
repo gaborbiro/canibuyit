@@ -24,11 +24,11 @@ import android.widget.Toast;
 
 import com.gb.canibuythat.App;
 import com.gb.canibuythat.R;
-import com.gb.canibuythat.model.BalanceUpdateEvent;
+import com.gb.canibuythat.UserPreferences;
 import com.gb.canibuythat.model.BudgetItem;
 import com.gb.canibuythat.provider.BalanceCalculator;
+import com.gb.canibuythat.ui.model.BalanceReading;
 import com.gb.canibuythat.ui.task.Callback;
-import com.gb.canibuythat.ui.task.balance_update.LastBalanceUpdateLoaderTask;
 import com.gb.canibuythat.ui.task.budget_item.BudgetItemCreateOrUpdateTask;
 import com.gb.canibuythat.ui.task.budget_item.BudgetItemDeleteTask;
 import com.gb.canibuythat.ui.task.budget_item.BudgetItemReadTask;
@@ -110,7 +110,7 @@ public class BudgetItemEditorFragment extends Fragment {
                     switch ((int) view.getTag()) {
                         case R.id.first_occurence_start:
                             mFirstOccurrenceStartView.setText(
-                                    DateUtils.DEFAULT_DATE_FORMAT.format(c.getTime()));
+                                    DateUtils.FORMAT_MONTH_DAY.format(c.getTime()));
                             Date firstOccurrenceEnd = getFirstOccurrenceEndFromScreen();
 
                             if (firstOccurrenceEnd.getTime() < c.getTime()
@@ -127,7 +127,7 @@ public class BudgetItemEditorFragment extends Fragment {
                             break;
                         case R.id.first_occurence_end:
                             mFirstOccurrenceEndView.setText(
-                                    DateUtils.DEFAULT_DATE_FORMAT.format(c.getTime()));
+                                    DateUtils.FORMAT_MONTH_DAY.format(c.getTime()));
                             Date firstOccurrenceStart =
                                     getFirstOccurrenceStartFromScreen();
 
@@ -448,34 +448,33 @@ public class BudgetItemEditorFragment extends Fragment {
     }
 
     private void loadSpendingOccurrences(final BudgetItem budgetItem) {
-        new LastBalanceUpdateLoaderTask() {
+        BalanceReading balanceReading = UserPreferences.getBalanceReading();
+        BalanceCalculator.BalanceResult result = BalanceCalculator.get()
+                .getEstimatedBalance(budgetItem,
+                        balanceReading != null ? balanceReading.when : null,
+                        UserPreferences.getEstimateDate());
+        String spending = ArrayUtils.join("\n", result.spendingEvents,
+                new ArrayUtils.Stringifier<Date>() {
 
-            @Override
-            protected void onPostExecute(BalanceUpdateEvent balanceUpdateEvent) {
-                BalanceCalculator.BalanceResult result = BalanceCalculator.get()
-                        .getEstimatedBalance(budgetItem,
-                                balanceUpdateEvent != null ? balanceUpdateEvent.when
-                                                           : null, new Date());
-                mSpendingEventsView.setText(ArrayUtils.join("\n", result.spendingEvents,
-                        new ArrayUtils.Stringifier<Date>() {
-
-                            @Override public String toString(int index, Date item) {
-                                return getString(R.string.spending_occurrence, index + 1,
-                                        DateUtils.DEFAULT_DATE_FORMAT.format(item));
-                            }
-                        }));
-            }
-        }.execute();
+                    @Override public String toString(int index, Date item) {
+                        return getString(R.string.spending_occurrence, index + 1,
+                                DateUtils.FORMAT_MONTH_DAY.format(item));
+                    }
+                });
+        spending =
+                "Spent: " + Math.abs(result.bestCase) + "/" + Math.abs(result.worstCase) +
+                        "\n" + spending;
+        mSpendingEventsView.setText(spending);
     }
 
     private void applyFirstOccurrenceStartToScreen(Date firstOccurrenceStart) {
         mFirstOccurrenceStartView.setText(
-                DateUtils.DEFAULT_DATE_FORMAT.format(firstOccurrenceStart));
+                DateUtils.FORMAT_MONTH_DAY.format(firstOccurrenceStart));
     }
 
     private void applyFirstOccurrenceEndToScreen(Date firstOccurrenceEnd) {
         mFirstOccurrenceEndView.setText(
-                DateUtils.DEFAULT_DATE_FORMAT.format(firstOccurrenceEnd));
+                DateUtils.FORMAT_MONTH_DAY.format(firstOccurrenceEnd));
     }
 
     private DatePickerDialog getFirstOccurrenceStartPickerDialog() {
@@ -578,14 +577,16 @@ public class BudgetItemEditorFragment extends Fragment {
                     "Please specify an amount");
         }
         if (!(mCategoryView.getSelectedItem() instanceof BudgetItem.BudgetItemType)) {
-            return new ValidationError(ValidationError.TYPE_NON_INPUT_FIELD, null, "Please select a category");
+            return new ValidationError(ValidationError.TYPE_NON_INPUT_FIELD, null,
+                    "Please select a category");
         }
         if (!(mPeriodTypeView.getSelectedItem() instanceof BudgetItem.PeriodType)) {
-            return new ValidationError(ValidationError.TYPE_NON_INPUT_FIELD, null, "Please select a period");
+            return new ValidationError(ValidationError.TYPE_NON_INPUT_FIELD, null,
+                    "Please select a period");
         }
         if (TextUtils.isEmpty(mPeriodMultiplierView.getText())) {
-            return new ValidationError(ValidationError.TYPE_INPUT_FIELD, mPeriodMultiplierView,
-                    "Please fill in");
+            return new ValidationError(ValidationError.TYPE_INPUT_FIELD,
+                    mPeriodMultiplierView, "Please fill in");
         }
         Date firstOccurrenceStart = getFirstOccurrenceStartFromScreen();
         Date firstOccurrenceEnd = getFirstOccurrenceEndFromScreen();
@@ -606,7 +607,7 @@ public class BudgetItemEditorFragment extends Fragment {
         if (firstOccurrenceEnd.after(c.getTime())) {
             return new ValidationError(ValidationError.TYPE_NON_INPUT_FIELD,
                     mFirstOccurrenceEndView, "End date cannot be higher than " +
-                    DateUtils.DEFAULT_DATE_FORMAT.format(c.getTime()));
+                    DateUtils.FORMAT_MONTH_DAY.format(c.getTime()));
         }
         return null;
     }

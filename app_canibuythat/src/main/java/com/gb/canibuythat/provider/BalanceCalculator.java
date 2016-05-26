@@ -6,9 +6,7 @@ import com.gb.canibuythat.util.DateUtils;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class BalanceCalculator {
 
@@ -32,8 +30,6 @@ public class BalanceCalculator {
      */
     public BalanceResult getEstimatedBalance(BudgetItem budgetItem, Date start,
             Date end) {
-        int cacheKey = getCacheKey(budgetItem, start, end);
-
         if (start != null && end != null && !end.after(start)) {
             throw new IllegalArgumentException("Start must come before end!");
         }
@@ -49,15 +45,16 @@ public class BalanceCalculator {
         Calendar date = Calendar.getInstance();
 
         if (end != null) {
-            date.setTime(DateUtils.clearLowerBits(end));
+            date.setTime(end);
         }
-        start = DateUtils.clearLowerBits(start);
+        DateUtils.clearLowerBits(date);
+        start = start != null ? DateUtils.clearLowerBits(start) : null;
 
         do {
             if (start == null || occurrenceEnd.getTimeInMillis() >= start.getTime()) {
                 int r = DateUtils.compare(date, occurrenceStart, occurrenceEnd);
 
-                if (r >= -1) {//after or on start date
+                if (r >= -1) { //after or on start date
                     worstCase += budgetItem.mAmount * budgetItem.mType.getSign();
                     if (r > 1) { // after end date
                         bestCase += budgetItem.mAmount * budgetItem.mType.getSign();
@@ -75,26 +72,8 @@ public class BalanceCalculator {
                 exit = true;
             }
         } while (!exit);
-        BalanceResult result = new BalanceResult(bestCase, worstCase,
+        return new BalanceResult(bestCase, worstCase,
                 spendingEvents.toArray(new Date[spendingEvents.size()]));
-        return result;
-    }
-
-    public int getCacheKey(BudgetItem budgetItem, Date startDate, Date endDate) {
-        int result = budgetItem.mAmount != null ? budgetItem.mAmount.hashCode() : 0;
-        result = 31 * result + (budgetItem.mFirstOccurrenceStart != null
-                                ? budgetItem.mFirstOccurrenceStart.hashCode() : 0);
-        result = 31 * result + (budgetItem.mFirstOccurrenceEnd != null
-                                ? budgetItem.mFirstOccurrenceEnd.hashCode() : 0);
-        result = 31 * result + (budgetItem.mOccurrenceCount != null
-                                ? budgetItem.mOccurrenceCount.hashCode() : 0);
-        result = 31 * result + (budgetItem.mPeriodMultiplier != null
-                                ? budgetItem.mPeriodMultiplier.hashCode() : 0);
-        result = 31 * result +
-                (budgetItem.mPeriodType != null ? budgetItem.mPeriodType.hashCode() : 0);
-        result = 31 * result + (startDate != null ? startDate.hashCode() : 0);
-        result = 31 * result + (endDate != null ? endDate.hashCode() : 0);
-        return result;
     }
 
     public static class BalanceResult {

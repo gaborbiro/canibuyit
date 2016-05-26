@@ -9,11 +9,12 @@ import android.view.View;
 import android.widget.Toast;
 
 import com.gb.canibuythat.R;
-import com.gb.canibuythat.model.BalanceUpdateEvent;
+import com.gb.canibuythat.UserPreferences;
 import com.gb.canibuythat.model.BudgetItem;
 import com.gb.canibuythat.provider.BalanceCalculator;
 import com.gb.canibuythat.provider.BudgetDbHelper;
-import com.gb.canibuythat.ui.task.balance_update.LastBalanceUpdateLoaderTask;
+import com.gb.canibuythat.ui.model.BalanceReading;
+import com.gb.canibuythat.util.DateUtils;
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.components.XAxis;
@@ -84,8 +85,12 @@ public class ChartActivity extends Activity implements OnChartValueSelectedListe
 
     @Override public void onValueSelected(Entry e, int dataSetIndex, Highlight h) {
         ProjectionItem projectionItem = (ProjectionItem) e.getData();
-        Toast.makeText(this, getString(R.string.balance, projectionItem.bestCase,
-                projectionItem.worstCase), Toast.LENGTH_SHORT)
+        final Date estimateDate = UserPreferences.getEstimateDate();
+        String readingDateStr =
+                estimateDate != null ? DateUtils.FORMAT_MONTH_DAY.format(estimateDate)
+                                     : getString(R.string.today);
+        Toast.makeText(this, getString(R.string.estimate_at_time, projectionItem.bestCase,
+                projectionItem.worstCase, readingDateStr), Toast.LENGTH_SHORT)
                 .show();
     }
 
@@ -108,27 +113,19 @@ public class ChartActivity extends Activity implements OnChartValueSelectedListe
     private class CalculateProjectionsTask
             extends AsyncTask<Void, Void, ProjectionItem[]> {
 
-        private LastBalanceUpdateLoaderTask mLastBalanceUpdateLoaderTask;
-
-        @Override protected void onPreExecute() {
-            mLastBalanceUpdateLoaderTask = new LastBalanceUpdateLoaderTask();
-            mLastBalanceUpdateLoaderTask.execute();
-        }
-
         @Override protected ProjectionItem[] doInBackground(Void... params) {
             BudgetDbHelper helper = BudgetDbHelper.get();
             Calendar currTarget = Calendar.getInstance();
             Calendar oneYearLater = Calendar.getInstance();
             oneYearLater.add(Calendar.YEAR, 1);
             try {
-                BalanceUpdateEvent balanceUpdateEvent =
-                        mLastBalanceUpdateLoaderTask.get();
+                BalanceReading balanceReading = UserPreferences.getBalanceReading();
                 Date startDate;
 
-                if (balanceUpdateEvent != null) {
-                    currTarget.setTime(balanceUpdateEvent.when);
+                if (balanceReading != null) {
+                    currTarget.setTime(balanceReading.when);
                     currTarget.add(Calendar.DAY_OF_MONTH, 1);
-                    startDate = balanceUpdateEvent.when;
+                    startDate = balanceReading.when;
                 } else {
                     startDate = null;
                 }
@@ -143,16 +140,16 @@ public class ChartActivity extends Activity implements OnChartValueSelectedListe
                     for (com.gb.canibuythat.model.BudgetItem item : budgetItemDao) {
                         if (item.mEnabled) {
                             BalanceCalculator.BalanceResult br = BalanceCalculator.get()
-                                    .getEstimatedBalance(item, startDate, currTarget
-                                            .getTime());
+                                    .getEstimatedBalance(item, startDate,
+                                            currTarget.getTime());
                             bestCase += br.bestCase;
                             worstCase += br.worstCase;
                         }
                     }
 
-                    if (balanceUpdateEvent != null) {
-                        bestCase += balanceUpdateEvent.value;
-                        worstCase += balanceUpdateEvent.value;
+                    if (balanceReading != null) {
+                        bestCase += balanceReading.balance;
+                        worstCase += balanceReading.balance;
                     }
                     result.add(new ProjectionItem(currTarget.getTime(), bestCase,
                             worstCase));

@@ -35,11 +35,11 @@
         <item quantity="other">days</item>
     </plurals>
 
-    <string name="balance">Best: %1$.0f, Worst: %2$.0f</string>
-    <string name="reference">%1$.2f @%2$s</string>
-    <string name="reference_statistics">Ref: %1$.0f @%2$s (%3$s)</string>
-    <string name="reference_statistics_none">Ref: None (%1$s)</string>
-    <string name="change">change</string>
+    <string name="reading">Reading: %1$.0f @%2$s</string>
+    <string name="reading_none">Reading: None</string>
+    <string name="estimate_at_time">Estimate: %1$.0f/%2$.0f @%3$s</string>
+
+    <string name="balance_update_reading">%1$.2f @%2$s</string>
     <string name="detail_amount">%1$.2f</string>
     <string name="spending_occurrence">%1$d. %2$s</string>
     <string name="title_activity_chart">Projections</string>
@@ -52,4 +52,5 @@
     <string name="newstr">New</string>
     <string name="create">Save</string>
     <string name="no_data">No data</string>
+    <string name="today">today</string>
 </resources>

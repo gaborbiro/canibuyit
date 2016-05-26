@@ -28,14 +28,4 @@ public class Contract {
                         FIRST_OCCURRENCE_END, OCCURRENCE_COUNT, PERIOD_MULTIPLIER,
                         PERIOD_TYPE, ENABLED};
     }
-
-    public static class BalanceUpdateEvent implements BaseColumns {
-
-        public static final String TABLE = "balance_update_event";
-
-        public static final String WHEN = "when";
-        public static final String VALUE = "value";
-
-        public static final String[] COLUMNS = {_ID, WHEN, VALUE};
-    }
 }
