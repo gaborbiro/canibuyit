@@ -22,10 +22,11 @@ public class Contract {
         public static final String PERIOD_MULTIPLIER = "period_multiplier";
         public static final String PERIOD_TYPE = "period_type";
         public static final String ENABLED = "enabled";
+        public static final String ORDERING = "ordering";
 
         public static final String[] COLUMNS =
                 {_ID, NAME, NOTES, AMOUNT, TYPE, FIRST_OCCURRENCE_START,
                         FIRST_OCCURRENCE_END, OCCURRENCE_COUNT, PERIOD_MULTIPLIER,
-                        PERIOD_TYPE, ENABLED};
+                        PERIOD_TYPE, ENABLED, ORDERING};
     }
 }

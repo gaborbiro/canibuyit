@@ -63,6 +63,9 @@ import java.util.Date;
     @DatabaseField(columnName = Contract.BudgetItem.ENABLED, canBeNull = true)
     public boolean mEnabled = true;
 
+    @DatabaseField(columnName = Contract.BudgetItem.ORDERING, canBeNull = false)
+    public Integer mOrdering;
+
     public BudgetItem() {
     }
 
@@ -95,6 +98,35 @@ import java.util.Date;
         } catch (IllegalArgumentException e) {
             // it means the original value was null
         }
+        mOrdering = in.readInt();
+    }
+
+    @Override public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        BudgetItem that = (BudgetItem) o;
+
+        if (mEnabled != that.mEnabled) return false;
+        if (mId != null ? !mId.equals(that.mId) : that.mId != null) return false;
+        if (mName != null ? !mName.equals(that.mName) : that.mName != null) return false;
+        if (mNotes != null ? !mNotes.equals(that.mNotes) : that.mNotes != null)
+            return false;
+        if (mType != that.mType) return false;
+        if (mAmount != null ? !mAmount.equals(that.mAmount) : that.mAmount != null)
+            return false;
+        if (mFirstOccurrenceStart != null ? !mFirstOccurrenceStart.equals(
+                that.mFirstOccurrenceStart) : that.mFirstOccurrenceStart != null)
+            return false;
+        if (mFirstOccurrenceEnd != null ? !mFirstOccurrenceEnd.equals(
+                that.mFirstOccurrenceEnd) : that.mFirstOccurrenceEnd != null)
+            return false;
+        if (mOccurrenceCount != null ? !mOccurrenceCount.equals(that.mOccurrenceCount)
+                                     : that.mOccurrenceCount != null) return false;
+        if (mPeriodMultiplier != null ? !mPeriodMultiplier.equals(that.mPeriodMultiplier)
+                                      : that.mPeriodMultiplier != null) return false;
+        if (mPeriodType != that.mPeriodType) return false;
+        return mOrdering != null ? mOrdering.equals(that.mOrdering) : that.mOrdering == null;
     }
 
     public boolean compareForEditing(Object o, boolean ignoreDates) {
@@ -125,36 +157,8 @@ import java.util.Date;
         return mPeriodType == that.mPeriodType;
     }
 
-    @Override public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        BudgetItem that = (BudgetItem) o;
-
-        if (mEnabled != that.mEnabled) return false;
-        if (mId != null ? !mId.equals(that.mId) : that.mId != null) return false;
-        if (mName != null ? !mName.equals(that.mName) : that.mName != null) return false;
-        if (mNotes != null ? !mNotes.equals(that.mNotes) : that.mNotes != null)
-            return false;
-        if (mType != that.mType) return false;
-        if (mAmount != null ? !mAmount.equals(that.mAmount) : that.mAmount != null)
-            return false;
-        if (mFirstOccurrenceStart != null ? !mFirstOccurrenceStart.equals(
-                that.mFirstOccurrenceStart) : that.mFirstOccurrenceStart != null)
-            return false;
-        if (mFirstOccurrenceEnd != null ? !mFirstOccurrenceEnd.equals(
-                that.mFirstOccurrenceEnd) : that.mFirstOccurrenceEnd != null)
-            return false;
-        if (mOccurrenceCount != null ? !mOccurrenceCount.equals(that.mOccurrenceCount)
-                                     : that.mOccurrenceCount != null) return false;
-        if (mPeriodMultiplier != null ? !mPeriodMultiplier.equals(that.mPeriodMultiplier)
-                                      : that.mPeriodMultiplier != null) return false;
-        return mPeriodType == that.mPeriodType;
-
-    }
-
     @Override public int hashCode() {
-        int result = 0;
+        int result = mId != null ? mId.hashCode() : 0;
         result = 31 * result + (mName != null ? mName.hashCode() : 0);
         result = 31 * result + (mNotes != null ? mNotes.hashCode() : 0);
         result = 31 * result + (mType != null ? mType.hashCode() : 0);
@@ -169,6 +173,7 @@ import java.util.Date;
                 (mPeriodMultiplier != null ? mPeriodMultiplier.hashCode() : 0);
         result = 31 * result + (mPeriodType != null ? mPeriodType.hashCode() : 0);
         result = 31 * result + (mEnabled ? 1 : 0);
+        result = 31 * result + (mOrdering != null ? mOrdering.hashCode() : 0);
         return result;
     }
 
@@ -203,6 +208,7 @@ import java.util.Date;
         } else {
             dest.writeValue(null);
         }
+        dest.writeInt(mOrdering);
     }
 
     public static final Parcelable.Creator<BudgetItem> CREATOR =

@@ -53,7 +53,7 @@ public class BudgetProvider extends ContentProvider {
     @Override
     public Cursor query(Uri uri, String[] projection, String selection,
             String[] selectionArgs, String sortOrder) {
-        // Uisng SQLiteQueryBuilder instead of query() method
+        // Using SQLiteQueryBuilder instead of query() method
         SQLiteQueryBuilder queryBuilder = new SQLiteQueryBuilder();
 
         // Set the table

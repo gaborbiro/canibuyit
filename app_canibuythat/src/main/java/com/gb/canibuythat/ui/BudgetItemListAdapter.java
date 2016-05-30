@@ -30,7 +30,6 @@ public class BudgetItemListAdapter extends DragNDropCursorAdapter
         if (view.getId() == R.id.name) {
             String name =
                     cursor.getString(cursor.getColumnIndex(Contract.BudgetItem.NAME));
-            name = (cursor.getPosition() + 1) + ". " + name;
             BudgetItem.BudgetItemType type = BudgetItem.BudgetItemType.valueOf(
                     cursor.getString(cursor.getColumnIndex(Contract.BudgetItem.TYPE)));
             TextView nameView = (TextView) view;

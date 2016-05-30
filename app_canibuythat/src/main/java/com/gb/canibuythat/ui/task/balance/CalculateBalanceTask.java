@@ -1,4 +1,4 @@
-package com.gb.canibuythat.ui.task.balance_reading;
+package com.gb.canibuythat.ui.task.balance;
 
 import com.gb.canibuythat.UserPreferences;
 import com.gb.canibuythat.model.BudgetItem;

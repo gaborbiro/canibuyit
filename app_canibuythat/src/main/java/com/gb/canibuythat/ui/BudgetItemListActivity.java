@@ -22,13 +22,10 @@ import com.gb.canibuythat.ui.model.BalanceReading;
 import com.gb.canibuythat.ui.task.Callback;
 import com.gb.canibuythat.ui.task.backup.DatabaseExportTask;
 import com.gb.canibuythat.ui.task.backup.DatabaseImportTask;
-import com.gb.canibuythat.ui.task.balance_reading.CalculateBalanceTask;
+import com.gb.canibuythat.ui.task.balance.CalculateBalanceTask;
 import com.gb.canibuythat.util.DateUtils;
 import com.gb.canibuythat.util.PermissionVerifier;
 import com.gb.canibuythat.util.ViewUtils;
-
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -70,8 +67,6 @@ public class BudgetItemListActivity extends ActionBarActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_budget_item_list);
         ButterKnife.inject(this);
-        EventBus.getDefault()
-                .register(this);
 
         if (findViewById(R.id.budgetmodifier_detail_container) != null) {
             twoPane = true;
@@ -149,9 +144,9 @@ public class BudgetItemListActivity extends ActionBarActivity
         startActivityForResult(i, REQUEST_CODE_CHOOSE_FILE);
     }
 
-    @Subscribe public void onEvent(BudgetItemUpdatedEvent event) {
-        new CalculateBalanceTask(mBalanceCalculatorCallback).execute();
-    }
+//    @Subscribe public void onEvent(BudgetItemUpdatedEvent event) {
+//        new CalculateBalanceTask(mBalanceCalculatorCallback).execute();
+//    }
 
     /**
      * Callback from the {@link BalanceReadingInputDialog} notifying that the user has

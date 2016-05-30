@@ -349,6 +349,7 @@ public class BudgetItemEditorFragment extends Fragment {
                 // this will make an already saved item ot be updated instead of a new
                 // one being created
                 newBudgetItem.mId = mOriginalBudgetItem.mId;
+                newBudgetItem.mOrdering = mOriginalBudgetItem.mOrdering;
             }
             new BudgetItemCreateOrUpdateTask(newBudgetItem,
                     new Callback<Dao.CreateOrUpdateStatus>() {
@@ -361,9 +362,6 @@ public class BudgetItemEditorFragment extends Fragment {
                             Toast.makeText(App.getAppContext(), "BudgetItem saved",
                                     Toast.LENGTH_SHORT)
                                     .show();
-                        }
-
-                        @Override public void onFailure() {
                         }
 
                         @Override public void onError(Throwable t) {
@@ -451,7 +449,8 @@ public class BudgetItemEditorFragment extends Fragment {
         BalanceReading balanceReading = UserPreferences.getBalanceReading();
         BalanceCalculator.BalanceResult result = BalanceCalculator.get()
                 .getEstimatedBalance(budgetItem,
-                        balanceReading != null ? balanceReading.when : null,
+                        balanceReading != null ? balanceReading.when
+                                                   : null,
                         UserPreferences.getEstimateDate());
         String spending = ArrayUtils.join("\n", result.spendingEvents,
                 new ArrayUtils.Stringifier<Date>() {
@@ -461,9 +460,7 @@ public class BudgetItemEditorFragment extends Fragment {
                                 DateUtils.FORMAT_MONTH_DAY.format(item));
                     }
                 });
-        spending =
-                "Spent: " + Math.abs(result.bestCase) + "/" + Math.abs(result.worstCase) +
-                        "\n" + spending;
+        spending = "Spent: " + result.bestCase + "/" + (result.worstCase) + "\n" + spending;
         mSpendingEventsView.setText(spending);
     }
 

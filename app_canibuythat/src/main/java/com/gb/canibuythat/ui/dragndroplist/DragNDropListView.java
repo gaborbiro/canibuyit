@@ -109,9 +109,9 @@ public class DragNDropListView extends ListView {
             case MotionEvent.ACTION_MOVE:
                 drag(0, y);
                 int position = pointToPosition(x, y);
-                if (mStartPosition != position) {
-                    Logger.d(TAG, "Position: " + position);
-                }
+//                if (mStartPosition != position) {
+//                    Logger.d(TAG, "Position: " + position);
+//                }
                 break;
             case MotionEvent.ACTION_CANCEL:
             case MotionEvent.ACTION_UP:

@@ -2,6 +2,7 @@ package com.gb.canibuythat.ui;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteConstraintException;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -12,11 +13,16 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.Toast;
 
+import com.gb.canibuythat.App;
 import com.gb.canibuythat.R;
 import com.gb.canibuythat.provider.BudgetProvider;
+import com.gb.canibuythat.provider.Contract;
 import com.gb.canibuythat.ui.dragndroplist.DragNDropCursorAdapter;
 import com.gb.canibuythat.ui.dragndroplist.DragNDropListView;
+import com.gb.canibuythat.ui.task.Callback;
+import com.gb.canibuythat.ui.task.budget_item.MoveToIndexTask;
 
 /**
  * A list fragment representing a list of BudgetModifiers. This fragment also supports
@@ -100,7 +106,7 @@ public class BudgetItemListFragment extends Fragment
 
     @Override public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         return new CursorLoader(getActivity(), BudgetProvider.BUDGET_ITEMS_URI, null,
-                null, null, null);
+                null, null, Contract.BudgetItem.ORDERING + " ASC");
     }
 
     @Override public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
@@ -132,10 +138,26 @@ public class BudgetItemListFragment extends Fragment
     }
 
     @Override
-    public void onItemDrop(DragNDropListView parent, View view, int startPosition,
-            int endPosition, long id) {
-
+    public void onItemDrop(DragNDropListView parent, View view, final int startPosition,
+            final int endPosition, long id) {
+        new MoveToIndexTask(startPosition, endPosition, mReorderCallback).execute();
     }
+
+    private Callback<Integer> mReorderCallback = new Callback<Integer>() {
+        @Override public void onError(Throwable t) {
+            if (t.getCause() != null && t.getCause()
+                    .getCause() != null && t.getCause()
+                    .getCause() instanceof SQLiteConstraintException) {
+                t = t.getCause()
+                        .getCause();
+            }
+            t.printStackTrace();
+            Toast.makeText(App.getAppContext(),
+                    "Error saving data. Check logs for more information.",
+                    Toast.LENGTH_SHORT)
+                    .show();
+        }
+    };
 
     /**
      * A callback interface that all activities containing this fragment must implement.
