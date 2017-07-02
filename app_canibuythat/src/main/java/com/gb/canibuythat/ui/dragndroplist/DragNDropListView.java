@@ -29,28 +29,23 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.WrapperListAdapter;
 
-import com.gb.canibuythat.util.Logger;
-
 public class DragNDropListView extends ListView {
-
-    private static final String TAG = DragNDropListView.class.getName();
 
     public interface OnItemDragNDropListener {
         void onItemDragStart(DragNDropListView parent, View view, int position, long id);
 
-        void onItemDrop(DragNDropListView parent, View view, int startPosition,
-                int endPosition, long id);
+        void onItemDrop(DragNDropListView parent, View view, int startPosition, int endPosition, long id);
     }
 
-    private boolean mDragMode;
+    private boolean dragMode;
     private boolean isDraggingEnabled = true;
-    private WindowManager mWindowManager;
-    private int mStartPosition = INVALID_POSITION;
-    private int mDragOriginY; // Used to adjust drag view location
-    private int mDragHandleViewId = 0;
-    private View mDragItem;
-    private ImageView mDragView;
-    private OnItemDragNDropListener mDragNDropListener;
+    private WindowManager windowManager;
+    private int startPosition = INVALID_POSITION;
+    private int dragOriginY; // Used to adjust drag view location
+    private int dragHandleViewId = 0;
+    private View dragItem;
+    private ImageView dragView;
+    private OnItemDragNDropListener dragNDropListener;
 
     public DragNDropListView(Context context) {
         super(context);
@@ -68,40 +63,39 @@ public class DragNDropListView extends ListView {
     }
 
     private void init() {
-        mWindowManager =
-                (WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE);
+        windowManager = (WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE);
     }
 
     public void setOnItemDragNDropListener(OnItemDragNDropListener listener) {
-        mDragNDropListener = listener;
+        dragNDropListener = listener;
     }
 
     public void setDragNDropAdapter(DragNDropAdapter adapter) {
-        mDragHandleViewId = adapter.getDragNDropHandleViewId();
+        dragHandleViewId = adapter.getDragNDropHandleViewId();
         setAdapter(adapter);
     }
 
-    @Override public boolean onTouchEvent(MotionEvent ev) {
+    @Override
+    public boolean onTouchEvent(MotionEvent ev) {
         final int action = ev.getAction();
         final int x = (int) ev.getX();
         final int y = (int) ev.getY();
 
         if (action == MotionEvent.ACTION_DOWN && canDrag(ev)) {
-            mDragMode = true;
+            dragMode = true;
         }
 
-        if (!mDragMode || !isDraggingEnabled) {
+        if (!dragMode || !isDraggingEnabled) {
             return super.onTouchEvent(ev);
         }
 
         switch (action) {
             case MotionEvent.ACTION_DOWN:
-                mStartPosition = pointToPosition(x, y);
-
-                if (mStartPosition != INVALID_POSITION) {
-                    int viewIndex = mStartPosition - getFirstVisiblePosition();
-                    mDragOriginY = y - getChildAt(viewIndex).getTop();
-                    mDragOriginY -= ((int) ev.getRawY()) - y;
+                startPosition = pointToPosition(x, y);
+                if (startPosition != INVALID_POSITION) {
+                    int viewIndex = startPosition - getFirstVisiblePosition();
+                    dragOriginY = y - getChildAt(viewIndex).getTop();
+                    dragOriginY -= ((int) ev.getRawY()) - y;
                     initDragging(viewIndex, y);
                     drag(0, y);
                 }
@@ -109,19 +103,17 @@ public class DragNDropListView extends ListView {
             case MotionEvent.ACTION_MOVE:
                 drag(0, y);
                 int position = pointToPosition(x, y);
-//                if (mStartPosition != position) {
+//                if (startPosition != position) {
 //                    Logger.d(TAG, "Position: " + position);
 //                }
                 break;
             case MotionEvent.ACTION_CANCEL:
             case MotionEvent.ACTION_UP:
             default:
-                mDragMode = false;
-
-                if (mStartPosition != INVALID_POSITION) {
+                dragMode = false;
+                if (startPosition != INVALID_POSITION) {
                     // check if the position is a header/footer
                     int actualPosition = pointToPosition(x, y);
-
                     if (actualPosition > (getCount() - getFooterViewsCount()) - 1) {
                         actualPosition = INVALID_POSITION;
                     }
@@ -129,7 +121,6 @@ public class DragNDropListView extends ListView {
                 }
                 break;
         }
-
         return true;
     }
 
@@ -140,31 +131,25 @@ public class DragNDropListView extends ListView {
      * @return true if it is a dragging move, false otherwise.
      */
     public boolean canDrag(MotionEvent ev) {
-        if (mDragMode) return true;
-        if (mDragHandleViewId == 0) return false;
+        if (dragMode) return true;
+        if (dragHandleViewId == 0) return false;
 
         int x = (int) ev.getX();
         int y = (int) ev.getY();
-
         int startPosition = pointToPosition(x, y);
-
         if (startPosition == INVALID_POSITION) {
             return false;
         }
-
         int childPosition = startPosition - getFirstVisiblePosition();
         View parent = getChildAt(childPosition);
-        View handler = parent.findViewById(mDragHandleViewId);
-
+        View handler = parent.findViewById(dragHandleViewId);
         if (handler == null) {
             return false;
         }
-
         int top = parent.getTop() + handler.getTop();
         int bottom = top + handler.getHeight();
         int left = parent.getLeft() + handler.getLeft();
         int right = left + handler.getWidth();
-
         return left <= x && x <= right && top <= y && y <= bottom;
     }
 
@@ -174,7 +159,7 @@ public class DragNDropListView extends ListView {
      * @return true if a dragging action is active
      */
     public boolean isDragging() {
-        return mDragMode;
+        return dragMode;
     }
 
     /**
@@ -184,16 +169,16 @@ public class DragNDropListView extends ListView {
      * @param y         the y coordinate of the MotionEvent that starts the drag action
      */
     private void initDragging(int viewIndex, int y) {
-        mDragItem = getChildAt(viewIndex);
-        mDragItem.setSelected(true);
-        if (mDragItem == null) {
+        dragItem = getChildAt(viewIndex);
+        dragItem.setSelected(true);
+        if (dragItem == null) {
             return;
         }
 
-        long id = getItemIdAtPosition(mStartPosition);
+        long id = getItemIdAtPosition(startPosition);
 
-        if (mDragNDropListener != null) {
-            mDragNDropListener.onItemDragStart(this, mDragItem, mStartPosition, id);
+        if (dragNDropListener != null) {
+            dragNDropListener.onItemDragStart(this, dragItem, startPosition, id);
         }
 
         Adapter adapter = getAdapter();
@@ -201,24 +186,23 @@ public class DragNDropListView extends ListView {
 
         // if exists a footer/header we have our adapter wrapped
         if (adapter instanceof WrapperListAdapter) {
-            dndAdapter =
-                    (DragNDropAdapter) ((WrapperListAdapter) adapter).getWrappedAdapter();
+            dndAdapter = (DragNDropAdapter) ((WrapperListAdapter) adapter).getWrappedAdapter();
         } else {
             dndAdapter = (DragNDropAdapter) adapter;
         }
 
-        dndAdapter.onItemDragStart(this, mDragItem, mStartPosition, id);
+        dndAdapter.onItemDragStart(this, dragItem, startPosition, id);
 
-        mDragItem.setDrawingCacheEnabled(true);
+        dragItem.setDrawingCacheEnabled(true);
 
         // Create a copy of the drawing cache so that it does not get recycled
         // by the framework when the list tries to clean up memory
-        Bitmap bitmap = Bitmap.createBitmap(mDragItem.getDrawingCache());
+        Bitmap bitmap = Bitmap.createBitmap(dragItem.getDrawingCache());
 
         WindowManager.LayoutParams mWindowParams = new WindowManager.LayoutParams();
         mWindowParams.gravity = Gravity.TOP;
         mWindowParams.x = 0;
-        mWindowParams.y = y - mDragOriginY;
+        mWindowParams.y = y - dragOriginY;
 
         mWindowParams.height = WindowManager.LayoutParams.WRAP_CONTENT;
         mWindowParams.width = WindowManager.LayoutParams.WRAP_CONTENT;
@@ -234,11 +218,11 @@ public class DragNDropListView extends ListView {
         ImageView v = new ImageView(context);
         v.setImageBitmap(bitmap);
 
-        mWindowManager.addView(v, mWindowParams);
-        mDragView = v;
+        windowManager.addView(v, mWindowParams);
+        dragView = v;
 
-        mDragItem.setVisibility(View.INVISIBLE);
-        mDragItem.invalidate(); // We have not changed anything else.
+        dragItem.setVisibility(View.INVISIBLE);
+        dragItem.invalidate(); // We have not changed anything else.
     }
 
     /**
@@ -247,46 +231,38 @@ public class DragNDropListView extends ListView {
      * @param endPosition the position in the adapter of the dropped item
      */
     private void stopDragging(int endPosition) {
-        if (mDragView == null) {
+        if (dragView == null) {
             return;
         }
-
         if (endPosition != INVALID_POSITION) {
-            long id = getItemIdAtPosition(mStartPosition);
-
-            if (mDragNDropListener != null) {
-                mDragNDropListener.onItemDrop(this, mDragItem, mStartPosition,
-                        endPosition, id);
+            long id = getItemIdAtPosition(startPosition);
+            if (dragNDropListener != null) {
+                dragNDropListener.onItemDrop(this, dragItem, startPosition, endPosition, id);
             }
-
             Adapter adapter = getAdapter();
             DragNDropAdapter dndAdapter;
-
             // if there is a footer/header we have our adapter wrapped
             if (adapter instanceof WrapperListAdapter) {
-                dndAdapter =
-                        (DragNDropAdapter) ((WrapperListAdapter) adapter)
-                                .getWrappedAdapter();
+                dndAdapter = (DragNDropAdapter) ((WrapperListAdapter) adapter).getWrappedAdapter();
             } else {
                 dndAdapter = (DragNDropAdapter) adapter;
             }
-
-            dndAdapter.onItemDrop(this, mDragItem, mStartPosition, endPosition, id);
+            dndAdapter.onItemDrop(this, dragItem, startPosition, endPosition, id);
         }
 
-        mDragView.setVisibility(GONE);
-        mWindowManager.removeView(mDragView);
+        dragView.setVisibility(GONE);
+        windowManager.removeView(dragView);
 
-        mDragView.setImageDrawable(null);
-        mDragView = null;
+        dragView.setImageDrawable(null);
+        dragView = null;
 
-        mDragItem.setDrawingCacheEnabled(false);
-        mDragItem.destroyDrawingCache();
+        dragItem.setDrawingCacheEnabled(false);
+        dragItem.destroyDrawingCache();
 
-        mDragItem.setVisibility(View.VISIBLE);
+        dragItem.setVisibility(View.VISIBLE);
 
-        mStartPosition = INVALID_POSITION;
-        mDragItem = null;
+        startPosition = INVALID_POSITION;
+        dragItem = null;
 
         invalidateViews(); // We have changed the adapter data, so change everything
     }
@@ -298,20 +274,17 @@ public class DragNDropListView extends ListView {
      * @param y y coordinate of the motion event that triggered the drag update
      */
     private void drag(int x, int y) {
-        if (mDragView == null) {
+        if (dragView == null) {
             return;
         }
-
-        WindowManager.LayoutParams layoutParams =
-                (WindowManager.LayoutParams) mDragView.getLayoutParams();
+        WindowManager.LayoutParams layoutParams = (WindowManager.LayoutParams) dragView.getLayoutParams();
         layoutParams.x = x;
-        layoutParams.y = y - mDragOriginY;
+        layoutParams.y = y - dragOriginY;
         int top = getTop();
         int bottom = getBottom();
         double beginScrollOffset = getHeight() / 3;
 
-        mWindowManager.updateViewLayout(mDragView, layoutParams);
-
+        windowManager.updateViewLayout(dragView, layoutParams);
         if (y < top + beginScrollOffset) {
             int distance = (int) (100 - (Math.abs(top - y) / beginScrollOffset) * 100);
             smoothScrollBy(-distance, 7);

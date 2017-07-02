@@ -31,8 +31,7 @@ public class BudgetDbHelper extends OrmLiteSqliteOpenHelper {
 
     public static BudgetDbHelper get() {
         if (INSTANCE == null) {
-            INSTANCE = OpenHelperManager.getHelper(App.getAppContext(),
-                    BudgetDbHelper.class);
+            INSTANCE = OpenHelperManager.getHelper(App.getAppContext(), BudgetDbHelper.class);
         }
         return INSTANCE;
     }
@@ -48,7 +47,7 @@ public class BudgetDbHelper extends OrmLiteSqliteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase database, ConnectionSource connectionSource,
-            int oldVersion, int newVersion) {
+                          int oldVersion, int newVersion) {
         if (oldVersion == 1 && newVersion == 2) {
             database.beginTransaction();
             database.execSQL("ALTER TABLE " + Contract.BudgetItem.TABLE +
@@ -57,9 +56,7 @@ public class BudgetDbHelper extends OrmLiteSqliteOpenHelper {
             database.endTransaction();
             SQLiteQueryBuilder queryBuilder = new SQLiteQueryBuilder();
             queryBuilder.setTables(Contract.BudgetItem.TABLE);
-            Cursor cursor =
-                    queryBuilder.query(database, new String[]{Contract.BudgetItem._ID},
-                            null, null, null, null, null);
+            Cursor cursor = queryBuilder.query(database, new String[]{Contract.BudgetItem._ID}, null, null, null, null, null);
             int length = cursor.getCount();
             Map<Integer, Integer> indexMap = new HashMap<>();
             for (int i = 0; i < length; i++) {

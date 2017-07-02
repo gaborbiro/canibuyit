@@ -8,15 +8,15 @@ import java.sql.SQLException;
 
 public class BudgetItemReadTask extends SQLTaskBase<BudgetItem> {
 
-    private int mBudgetItemId;
+    private int budgetItemId;
 
     public BudgetItemReadTask(int budgetItemId, Callback<BudgetItem> callback) {
         super(callback);
-        this.mBudgetItemId = budgetItemId;
+        this.budgetItemId = budgetItemId;
     }
 
-    @Override protected BudgetItem doWork(Dao<BudgetItem, Integer> dao)
-            throws SQLException {
-        return dao.queryForId(mBudgetItemId);
+    @Override
+    protected BudgetItem doWork(Dao<BudgetItem, Integer> dao) throws SQLException {
+        return dao.queryForId(budgetItemId);
     }
 }

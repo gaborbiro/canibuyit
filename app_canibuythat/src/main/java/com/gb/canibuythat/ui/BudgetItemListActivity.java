@@ -6,10 +6,9 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.NonNull;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.DatePicker;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -46,24 +45,23 @@ import butterknife.Optional;
  * {@link BudgetItemListFragment.FragmentCallback}
  * interface to listen for item selections.
  */
-public class BudgetItemListActivity extends ActionBarActivity
-        implements BudgetItemListFragment.FragmentCallback,
-        BalanceReadingInputDialog.BalanceReadingInputListener {
+public class BudgetItemListActivity extends AppCompatActivity implements BudgetItemListFragment.FragmentCallback, BalanceReadingInputDialog.BalanceReadingInputListener {
 
     private static final int REQUEST_CODE_CHOOSE_FILE = 1;
     private static final int REQUEST_CODE_PERMISSIONS_FOR_DB_EXPORT = 2;
 
-    @Optional @InjectView(R.id.estimate_at_time) TextView mEstimateAtTimeView;
-    @Optional @InjectView(R.id.reference) TextView mReferenceView;
-    @Optional @InjectView(R.id.chart_button) ImageView mChartButton;
+    @Optional @InjectView(R.id.estimate_at_time) TextView estimateAtTimeView;
+    @Optional @InjectView(R.id.reference) TextView referenceView;
+    @Optional @InjectView(R.id.chart_button) ImageView chartButton;
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet device.
      */
     private boolean twoPane;
 
-    private PermissionVerifier mPermissionVerifier;
+    private PermissionVerifier permissionVerifier;
 
-    @Override protected void onCreate(Bundle savedInstanceState) {
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_budget_item_list);
         ButterKnife.inject(this);
@@ -71,8 +69,8 @@ public class BudgetItemListActivity extends ActionBarActivity
         if (findViewById(R.id.budgetmodifier_detail_container) != null) {
             twoPane = true;
         }
-        if (mChartButton != null) {
-            ChartActivity.launchOnClick(this, mChartButton);
+        if (chartButton != null) {
+            ChartActivity.launchOnClick(this, chartButton);
         }
         new CalculateBalanceTask(mBalanceCalculatorCallback).execute();
     }
@@ -81,16 +79,19 @@ public class BudgetItemListActivity extends ActionBarActivity
      * Callback method from {@link BudgetItemListFragment.FragmentCallback} indicating
      * that the budget item with the given database ID was selected.
      */
-    @Override public void onListItemClick(int id) {
+    @Override
+    public void onListItemClick(int id) {
         showEditorScreen(id);
     }
 
-    @Override public boolean onCreateOptionsMenu(Menu menu) {
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
 
-    @Override public boolean onOptionsItemSelected(MenuItem item) {
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_add:
                 showEditorScreen();
@@ -99,15 +100,12 @@ public class BudgetItemListActivity extends ActionBarActivity
                 showBalanceUpdateDialog();
                 break;
             case R.id.menu_export:
-                mPermissionVerifier = new PermissionVerifier(this,
-                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE});
-                if (mPermissionVerifier.verifyPermissions(true,
-                        REQUEST_CODE_PERMISSIONS_FOR_DB_EXPORT)) {
+                permissionVerifier = new PermissionVerifier(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE});
+                if (permissionVerifier.verifyPermissions(true, REQUEST_CODE_PERMISSIONS_FOR_DB_EXPORT)) {
                     new DatabaseExportTask(BudgetDbHelper.DATABASE_NAME) {
-                        @Override protected void onPostExecute(String result) {
-                            Toast.makeText(App.getAppContext(), result,
-                                    Toast.LENGTH_SHORT)
-                                    .show();
+                        @Override
+                        protected void onPostExecute(String result) {
+                            Toast.makeText(App.getAppContext(), result, Toast.LENGTH_SHORT).show();
                         }
                     }.execute();
                 }
@@ -119,16 +117,11 @@ public class BudgetItemListActivity extends ActionBarActivity
         return super.onOptionsItemSelected(item);
     }
 
-    @Override public void onBackPressed() {
-        final BudgetItemEditorFragment detailFragment =
-                (BudgetItemEditorFragment) getFragmentManager().findFragmentById(
-                        R.id.budgetmodifier_detail_container);
+    @Override
+    public void onBackPressed() {
+        final BudgetItemEditorFragment detailFragment = (BudgetItemEditorFragment) getFragmentManager().findFragmentById(R.id.budgetmodifier_detail_container);
         if (detailFragment != null) {
-            detailFragment.saveAndRun(new Runnable() {
-                @Override public void run() {
-                    BudgetItemListActivity.super.onBackPressed();
-                }
-            });
+            detailFragment.saveAndRun(BudgetItemListActivity.super::onBackPressed);
         } else {
             BudgetItemListActivity.super.onBackPressed();
         }
@@ -136,11 +129,8 @@ public class BudgetItemListActivity extends ActionBarActivity
 
     private void importDatabase() {
         Intent i = new Intent(this, FileDialogActivity.class);
-        i.putExtra(FileDialogActivity.EXTRA_START_PATH,
-                Environment.getExternalStorageDirectory()
-                        .getPath() + "/CanIBuyThat/");
-        i.putExtra(FileDialogActivity.EXTRA_SELECTION_MODE,
-                FileDialogActivity.SELECTION_MODE_OPEN);
+        i.putExtra(FileDialogActivity.EXTRA_START_PATH, Environment.getExternalStorageDirectory().getPath() + "/CanIBuyThat/");
+        i.putExtra(FileDialogActivity.EXTRA_SELECTION_MODE, FileDialogActivity.SELECTION_MODE_OPEN);
         startActivityForResult(i, REQUEST_CODE_CHOOSE_FILE);
     }
 
@@ -152,7 +142,8 @@ public class BudgetItemListActivity extends ActionBarActivity
      * Callback from the {@link BalanceReadingInputDialog} notifying that the user has
      * added a new balance reading
      */
-    @Override public void onBalanceReadingSet(BalanceReading balanceReading) {
+    @Override
+    public void onBalanceReadingSet(BalanceReading balanceReading) {
         UserPreferences.setBalanceReading(balanceReading);
         UserPreferences.setEstimateDate(null);
         new CalculateBalanceTask(mBalanceCalculatorCallback).execute();
@@ -163,12 +154,11 @@ public class BudgetItemListActivity extends ActionBarActivity
         switch (requestCode) {
             case REQUEST_CODE_CHOOSE_FILE:
                 if (resultCode == RESULT_OK) {
-                    String path =
-                            data.getStringExtra(FileDialogActivity.EXTRA_RESULT_PATH);
+                    String path = data.getStringExtra(FileDialogActivity.EXTRA_RESULT_PATH);
                     new DatabaseImportTask(path) {
-                        @Override protected void onPostExecute(Void aVoid) {
-                            new CalculateBalanceTask(
-                                    mBalanceCalculatorCallback).execute();
+                        @Override
+                        protected void onPostExecute(Void aVoid) {
+                            new CalculateBalanceTask(mBalanceCalculatorCallback).execute();
                         }
                     }.execute();
                 }
@@ -178,20 +168,17 @@ public class BudgetItemListActivity extends ActionBarActivity
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
-            @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (requestCode == REQUEST_CODE_PERMISSIONS_FOR_DB_EXPORT) {
-            if (mPermissionVerifier.onRequestPermissionsResult(requestCode, permissions,
-                    grantResults)) {
+            if (permissionVerifier.onRequestPermissionsResult(requestCode, permissions, grantResults)) {
                 new DatabaseExportTask(BudgetDbHelper.DATABASE_NAME) {
-                    @Override protected void onPostExecute(String result) {
-                        Toast.makeText(App.getAppContext(), result, Toast.LENGTH_SHORT)
-                                .show();
+                    @Override
+                    protected void onPostExecute(String result) {
+                        Toast.makeText(App.getAppContext(), result, Toast.LENGTH_SHORT).show();
                     }
                 }.execute();
             } else {
-                Toast.makeText(this, "Missing permissions!", Toast.LENGTH_SHORT)
-                        .show();
+                Toast.makeText(this, "Missing permissions!", Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -213,29 +200,19 @@ public class BudgetItemListActivity extends ActionBarActivity
     private void showEditorScreen(final Integer budgetItemId) {
         if (twoPane) {
             final BudgetItemEditorFragment budgetItemEditorFragment =
-                    (BudgetItemEditorFragment) getFragmentManager().findFragmentById(
-                            R.id.budgetmodifier_detail_container);
-
+                    (BudgetItemEditorFragment) getFragmentManager().findFragmentById(R.id.budgetmodifier_detail_container);
             if (budgetItemEditorFragment == null || !budgetItemEditorFragment.isAdded()) {
                 BudgetItemEditorFragment detailFragment = new BudgetItemEditorFragment();
 
                 if (budgetItemId != null) {
                     Bundle arguments = new Bundle();
-                    arguments.putInt(BudgetItemEditorFragment.EXTRA_ITEM_ID,
-                            budgetItemId);
+                    arguments.putInt(BudgetItemEditorFragment.EXTRA_ITEM_ID, budgetItemId);
                     detailFragment.setArguments(arguments);
                 }
-                getFragmentManager().beginTransaction()
-                        .replace(R.id.budgetmodifier_detail_container, detailFragment)
-                        .commit();
+                getFragmentManager().beginTransaction().replace(R.id.budgetmodifier_detail_container, detailFragment).commit();
             } else {
                 // if a detail fragment is already visible
-                budgetItemEditorFragment.saveAndRun(new Runnable() {
-
-                    @Override public void run() {
-                        budgetItemEditorFragment.setContent(budgetItemId, false);
-                    }
-                });
+                budgetItemEditorFragment.saveAndRun(() -> budgetItemEditorFragment.setContent(budgetItemId, false));
             }
         } else {
             if (budgetItemId != null) {
@@ -246,94 +223,61 @@ public class BudgetItemListActivity extends ActionBarActivity
         }
     }
 
-    private Callback<CalculateBalanceTask.BalanceResult> mBalanceCalculatorCallback =
-            new Callback<CalculateBalanceTask.BalanceResult>() {
+    private Callback<CalculateBalanceTask.BalanceResult> mBalanceCalculatorCallback = new Callback<CalculateBalanceTask.BalanceResult>() {
+        @Override
+        public void onSuccess(CalculateBalanceTask.BalanceResult data) {
+            setBalanceInfo(data.balanceReading, data.bestCaseBalance, data.worstCaseBalance);
+        }
 
-                @Override public void onSuccess(CalculateBalanceTask.BalanceResult data) {
-                    setBalanceInfo(data.balanceReading, data.bestCaseBalance,
-                            data.worstCaseBalance);
-                }
+        @Override
+        public void onError(Throwable t) {
+            t.printStackTrace();
+            Toast.makeText(App.getAppContext(), "Error calculating balance. See log for more information.", Toast.LENGTH_SHORT).show();
+        }
+    };
 
-                @Override public void onError(Throwable t) {
-                    t.printStackTrace();
-                    Toast.makeText(App.getAppContext(),
-                            "Error calculating balance. See log for more information.",
-                            Toast.LENGTH_SHORT)
-                            .show();
-                }
-            };
-
-    private void setBalanceInfo(BalanceReading balanceReading, float bestCaseBalance,
-            float worstCaseBalance) {
-        if (mReferenceView != null) {
+    private void setBalanceInfo(BalanceReading balanceReading, float bestCaseBalance, float worstCaseBalance) {
+        if (referenceView != null) {
             String text;
             if (balanceReading != null) {
-                text = App.getAppContext()
-                        .getString(R.string.reading, balanceReading.balance,
-                                DateUtils.FORMAT_MONTH_DAY.format(balanceReading.when));
+                text = App.getAppContext().getString(R.string.reading, balanceReading.balance, DateUtils.FORMAT_MONTH_DAY.format(balanceReading.when));
             } else {
-                text = App.getAppContext()
-                        .getString(R.string.reading_none);
+                text = App.getAppContext().getString(R.string.reading_none);
             }
-            ViewUtils.setTextWithLink(mReferenceView, text, text, new Runnable() {
-                @Override public void run() {
-                    showBalanceUpdateDialog();
-                }
-            });
+            ViewUtils.setTextWithLink(referenceView, text, text, this::showBalanceUpdateDialog);
         }
-        if (mEstimateAtTimeView != null) {
+        if (estimateAtTimeView != null) {
             final Date estimateDate = UserPreferences.getEstimateDate();
-            String estimateDateStr =
-                    estimateDate != null ? DateUtils.FORMAT_MONTH_DAY.format(estimateDate)
-                                         : getString(R.string.today);
-            String estimateAtTime = App.getAppContext()
-                    .getString(R.string.estimate_at_time, bestCaseBalance,
-                            worstCaseBalance, estimateDateStr);
-            ViewUtils.setTextWithLink(mEstimateAtTimeView, estimateAtTime,
-                    estimateDateStr, estimateDateUpdater);
+            String estimateDateStr = estimateDate != null ? DateUtils.FORMAT_MONTH_DAY.format(estimateDate) : getString(R.string.today);
+            String estimateAtTime = App.getAppContext().getString(R.string.estimate_at_time, bestCaseBalance, worstCaseBalance, estimateDateStr);
+            ViewUtils.setTextWithLink(estimateAtTimeView, estimateAtTime, estimateDateStr, estimateDateUpdater);
         }
     }
 
-    private Runnable estimateDateUpdater = new Runnable() {
-        @Override public void run() {
-            DatePickerDialog.OnDateSetListener listener =
-                    new DatePickerDialog.OnDateSetListener() {
-                        @Override
-                        public void onDateSet(DatePicker view, int year, int monthOfYear,
-                                int dayOfMonth) {
-                            Calendar c = Calendar.getInstance();
+    private Runnable estimateDateUpdater = () -> {
+        DatePickerDialog.OnDateSetListener listener = (view, year, monthOfYear, dayOfMonth) -> {
+            Calendar c = Calendar.getInstance();
 
-                            if (c.get(Calendar.YEAR) == year &&
-                                    c.get(Calendar.MONTH) == monthOfYear &&
-                                    c.get(Calendar.DAY_OF_MONTH) == dayOfMonth) {
-                                UserPreferences.setEstimateDate(null);
-                            } else {
-                                c.set(year, monthOfYear, dayOfMonth);
-                                BalanceReading balanceReading =
-                                        UserPreferences.getBalanceReading();
+            if (c.get(Calendar.YEAR) == year
+                    && c.get(Calendar.MONTH) == monthOfYear
+                    && c.get(Calendar.DAY_OF_MONTH) == dayOfMonth) {
+                UserPreferences.setEstimateDate(null);
+            } else {
+                c.set(year, monthOfYear, dayOfMonth);
+                BalanceReading balanceReading = UserPreferences.getBalanceReading();
 
-                                if (balanceReading == null ||
-                                        balanceReading.when.before(c.getTime())) {
-                                    DateUtils.clearLowerBits(c);
-                                    UserPreferences.setEstimateDate(c.getTime());
-                                } else {
-                                    Toast.makeText(BudgetItemListActivity.this,
-                                            "Please set a date after the last balance " +
-                                                    "reading! (" +
-                                                    balanceReading.when + ")",
-                                            Toast.LENGTH_SHORT)
-                                            .show();
-                                }
-                            }
-                            new CalculateBalanceTask(
-                                    mBalanceCalculatorCallback).execute();
-                        }
-                    };
+                if (balanceReading == null || balanceReading.when.before(c.getTime())) {
+                    DateUtils.clearLowerBits(c);
+                    UserPreferences.setEstimateDate(c.getTime());
+                } else {
+                    Toast.makeText(BudgetItemListActivity.this,
+                            "Please set a date after the last balance " + "reading! (" + balanceReading.when + ")", Toast.LENGTH_SHORT).show();
+                }
+            }
+            new CalculateBalanceTask(mBalanceCalculatorCallback).execute();
+        };
 
-            DatePickerDialog datePickerDialog =
-                    DateUtils.getDatePickerDialog(BudgetItemListActivity.this, listener,
-                            UserPreferences.getEstimateDate());
-            datePickerDialog.show();
-        }
+        DatePickerDialog datePickerDialog = DateUtils.getDatePickerDialog(BudgetItemListActivity.this, listener, UserPreferences.getEstimateDate());
+        datePickerDialog.show();
     };
 }

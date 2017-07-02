@@ -10,7 +10,7 @@ import com.gb.canibuythat.R;
 
 public class BudgetItemEditorActivity extends ActionBarActivity {
 
-    private BudgetItemEditorFragment mEditorFragment;
+    private BudgetItemEditorFragment editorFragment;
 
     public static Intent getIntentForUpdate(int budgetItemId) {
         Intent i = getIntentForCreate();
@@ -22,41 +22,31 @@ public class BudgetItemEditorActivity extends ActionBarActivity {
         return new Intent(App.getAppContext(), BudgetItemEditorActivity.class);
     }
 
-    @Override protected void onCreate(Bundle savedInstanceState) {
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_budget_item_editor);
-
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         if (savedInstanceState == null) {
-            mEditorFragment = new BudgetItemEditorFragment();
+            editorFragment = new BudgetItemEditorFragment();
             if (getIntent().hasExtra(BudgetItemEditorFragment.EXTRA_ITEM_ID)) {
                 Bundle arguments = new Bundle();
-                arguments.putInt(BudgetItemEditorFragment.EXTRA_ITEM_ID,
-                        getIntent().getIntExtra(BudgetItemEditorFragment.EXTRA_ITEM_ID,
-                                0));
-                mEditorFragment.setArguments(arguments);
+                arguments.putInt(BudgetItemEditorFragment.EXTRA_ITEM_ID, getIntent().getIntExtra(BudgetItemEditorFragment.EXTRA_ITEM_ID, 0));
+                editorFragment.setArguments(arguments);
             }
-            getFragmentManager().beginTransaction()
-                    .add(R.id.budgetmodifier_detail_container, mEditorFragment)
-                    .commit();
+            getFragmentManager().beginTransaction().add(R.id.budgetmodifier_detail_container, editorFragment).commit();
         } else {
-            mEditorFragment =
-                    (BudgetItemEditorFragment) getFragmentManager().findFragmentById(
-                            R.id.budgetmodifier_detail_container);
+            editorFragment = (BudgetItemEditorFragment) getFragmentManager().findFragmentById(R.id.budgetmodifier_detail_container);
         }
     }
 
-    @Override public boolean onOptionsItemSelected(MenuItem item) {
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == android.R.id.home) {
-            if (mEditorFragment != null) {
-                mEditorFragment.saveAndRun(new Runnable() {
-
-                    @Override public void run() {
-                        finish();
-                    }
-                });
+            if (editorFragment != null) {
+                editorFragment.saveAndRun(this::finish);
             } else {
                 finish();
             }
@@ -65,14 +55,10 @@ public class BudgetItemEditorActivity extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    @Override public void onBackPressed() {
-        if (mEditorFragment != null) {
-            mEditorFragment.saveAndRun(new Runnable() {
-
-                @Override public void run() {
-                    BudgetItemEditorActivity.super.onBackPressed();
-                }
-            });
+    @Override
+    public void onBackPressed() {
+        if (editorFragment != null) {
+            editorFragment.saveAndRun(BudgetItemEditorActivity.super::onBackPressed);
         } else {
             BudgetItemEditorActivity.super.onBackPressed();
         }

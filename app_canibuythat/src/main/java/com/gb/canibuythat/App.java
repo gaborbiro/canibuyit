@@ -22,14 +22,15 @@ public class App extends Application {
     private Activity firstActivity;
 
     public App() {
-        this.appContext = this;
+        appContext = this;
     }
 
     public static Context getAppContext() {
         return appContext;
     }
 
-    @Override public void onCreate() {
+    @Override
+    public void onCreate() {
         super.onCreate();
         registerActivityLifecycleCallbacks(new ActivityWatcher());
     }
@@ -44,11 +45,11 @@ public class App extends Application {
             }
         }
 
-        @Override public void onActivityDestroyed(Activity activity) {
+        @Override
+        public void onActivityDestroyed(Activity activity) {
             if (firstActivity == activity) {
                 Logger.d(TAG, "Releasing sqlite connection");
-                BudgetDbHelper.get()
-                        .cleanup();
+                BudgetDbHelper.get().cleanup();
                 firstActivity = null;
             }
         }
@@ -66,9 +67,7 @@ public class App extends Application {
         UUID deviceUuid = null;
 
         // androidId changes with every factory reset (which is useful in our case)
-        androidId = "" + android.provider.Settings.Secure.getString(
-                getAppContext().getContentResolver(),
-                android.provider.Settings.Secure.ANDROID_ID);
+        androidId = "" + android.provider.Settings.Secure.getString(getAppContext().getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
 
         try {
             if (!"9774d56d682e549c".equals(androidId)) {
@@ -76,15 +75,12 @@ public class App extends Application {
             } else {
                 // On some 2.2 devices androidId is always 9774d56d682e549c,
                 // which is unsafe
-                TelephonyManager tm = (TelephonyManager) getAppContext().getSystemService(
-                        Context.TELEPHONY_SERVICE);
-
+                TelephonyManager tm = (TelephonyManager) getAppContext().getSystemService(Context.TELEPHONY_SERVICE);
                 if (tm != null) {
                     // Tablets may not have imei and/or imsi.
                     // Does not change on factory reset.
                     deviceId = tm.getDeviceId();
                 }
-
                 if (TextUtils.isEmpty(deviceId)) {
                     // worst case scenario as this id is lost when the
                     // application stops

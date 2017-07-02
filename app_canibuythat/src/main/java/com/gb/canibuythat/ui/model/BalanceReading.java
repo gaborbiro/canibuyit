@@ -20,23 +20,26 @@ public class BalanceReading implements Parcelable {
         balance = in.readFloat();
     }
 
-    @Override public int describeContents() {
+    @Override
+    public int describeContents() {
         return 0;
     }
 
-    @Override public void writeToParcel(Parcel dest, int flags) {
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
         dest.writeSerializable(when);
         dest.writeFloat(balance);
     }
 
     public static final Parcelable.Creator<BalanceReading> CREATOR =
             new Parcelable.Creator<BalanceReading>() {
-
-                @Override public BalanceReading createFromParcel(Parcel in) {
+                @Override
+                public BalanceReading createFromParcel(Parcel in) {
                     return new BalanceReading(in);
                 }
 
-                @Override public BalanceReading[] newArray(int size) {
+                @Override
+                public BalanceReading[] newArray(int size) {
                     return new BalanceReading[size];
                 }
             };

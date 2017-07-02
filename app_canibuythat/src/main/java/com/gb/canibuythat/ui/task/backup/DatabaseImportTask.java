@@ -18,13 +18,11 @@ public class DatabaseImportTask extends AsyncTask<Void, Void, Void> {
         this.path = path;
     }
 
-    @Override protected Void doInBackground(Void... params) {
+    @Override
+    protected Void doInBackground(Void... params) {
         BudgetDbHelper helper = BudgetDbHelper.get();
-        DBUtils.importDatabase(new File(path), Contract.BudgetItem.TABLE,
-                Contract.BudgetItem.COLUMNS, helper);
-        App.getAppContext()
-                .getContentResolver()
-                .notifyChange(BudgetProvider.BUDGET_ITEMS_URI, null);
+        DBUtils.importDatabase(new File(path), Contract.BudgetItem.TABLE, Contract.BudgetItem.COLUMNS, helper);
+        App.getAppContext().getContentResolver().notifyChange(BudgetProvider.BUDGET_ITEMS_URI, null);
         return null;
     }
 }

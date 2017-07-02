@@ -12,15 +12,15 @@ import java.util.List;
 
 public class PermissionVerifier {
 
-    private Activity mActivity;
-    private String[] mPermissions;
-    private String[] mRequestedPermissions;
-    private int mRequestCode;
+    private Activity activity;
+    private String[] permissions;
+    private String[] requestedPermissions;
+    private int requestCode;
 
     public PermissionVerifier(Activity activity, String[] permissions) {
-        mActivity = activity;
-        mPermissions = Arrays.copyOfRange(permissions, 0, permissions.length);
-        Arrays.sort(mPermissions);
+        this.activity = activity;
+        this.permissions = Arrays.copyOfRange(permissions, 0, permissions.length);
+        Arrays.sort(this.permissions);
     }
 
     /**
@@ -31,24 +31,20 @@ public class PermissionVerifier {
      * @throws IllegalStateException if method was already invoked but the corresponding
      *                               {@link #onRequestPermissionsResult(int, String[], int[])} was not
      */
-    public boolean verifyPermissions(boolean andAskForThem, int requestCode)
-            throws IllegalStateException {
-        if (mRequestedPermissions != null) {
-            throw new IllegalStateException(
-                    "Still waiting for the results of the previous request. You " +
-                            "probably want to re-create this class.");
+    public boolean verifyPermissions(boolean andAskForThem, int requestCode) throws IllegalStateException {
+        if (requestedPermissions != null) {
+            throw new IllegalStateException("Still waiting for the results of the previous request. You probably want to re-create this class.");
         }
-        mRequestCode = requestCode;
+        this.requestCode = requestCode;
         List<String> permissionsToRequest = new ArrayList<>();
 
-        for (String permission : mPermissions) {
+        for (String permission : permissions) {
             if (!hasPermission(permission)) {
                 permissionsToRequest.add(permission);
             }
         }
         if (andAskForThem && !permissionsToRequest.isEmpty()) {
-            askForPermissions(permissionsToRequest.toArray(
-                    new String[permissionsToRequest.size()]));
+            askForPermissions(permissionsToRequest.toArray(new String[permissionsToRequest.size()]));
             return false;
         }
         return permissionsToRequest.isEmpty();
@@ -59,30 +55,27 @@ public class PermissionVerifier {
      * {@link android.support.v4.app.FragmentActivity#onRequestPermissionsResult(int, String[], int[])} method
      */
     private void askForPermissions(String[] permissions) {
-        mRequestedPermissions = permissions;
-        ActivityCompat.requestPermissions(mActivity, permissions, mRequestCode);
+        requestedPermissions = permissions;
+        ActivityCompat.requestPermissions(activity, permissions, requestCode);
     }
 
     private boolean hasPermission(String permission) {
-        return ContextCompat.checkSelfPermission(mActivity, permission) ==
-                PackageManager.PERMISSION_GRANTED;
+        return ContextCompat.checkSelfPermission(activity, permission) == PackageManager.PERMISSION_GRANTED;
     }
 
     /**
      * @return true if all the permissions were granted
-     * @throws IllegalArgumentException if the specified <code>requestCode</code> does
-     *                                  not equal the one used in the
+     * @throws IllegalArgumentException if the specified <code>requestCode</code> does not equal the one used in the
      *                                  {@link #verifyPermissions(boolean, int)} method
      */
-    public boolean onRequestPermissionsResult(int requestCode,
-            @NonNull String permissions[], @NonNull int[] grantResults)
+    public boolean onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults)
             throws IllegalArgumentException {
         // TODO verify the permissions parameter to see if everything is there
-        if (requestCode == mRequestCode) {
+        if (requestCode == this.requestCode) {
             Arrays.sort(permissions);
-            if (grantResults.length > 0 &&
-                    grantResults[0] == PackageManager.PERMISSION_GRANTED &&
-                    Arrays.equals(mPermissions, permissions)) {
+            if (grantResults.length > 0
+                    && grantResults[0] == PackageManager.PERMISSION_GRANTED
+                    && Arrays.equals(this.permissions, permissions)) {
                 return true;
             }
         } else {

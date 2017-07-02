@@ -15,40 +15,30 @@ import com.gb.canibuythat.App;
 public class ViewUtils {
 
     public static void showKeyboard(final View view) {
-        view.post(new Runnable() {
-
-            @Override public void run() {
-                InputMethodManager imm = (InputMethodManager) App.getAppContext()
-                        .getSystemService(Context.INPUT_METHOD_SERVICE);
-                imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT);
-                view.requestFocus();
-            }
+        view.post(() -> {
+            InputMethodManager imm = (InputMethodManager) App.getAppContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT);
+            view.requestFocus();
         });
     }
 
     public static void hideKeyboard(final View view) {
-        view.post(new Runnable() {
-
-            @Override public void run() {
-                InputMethodManager imm = (InputMethodManager) App.getAppContext()
-                        .getSystemService(Context.INPUT_METHOD_SERVICE);
-                imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-            }
+        view.post(() -> {
+            InputMethodManager imm = (InputMethodManager) App.getAppContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
         });
     }
 
-    public static void setTextWithLink(TextView textView, String text,
-            String linkPart, final Runnable runOnClick) {
+    public static void setTextWithLink(TextView textView, String text, String linkPart, final Runnable runOnClick) {
         textView.setText(text);
         Spannable spannable = new SpannableString(textView.getText());
-        int startIndex = textView.getText()
-                .toString()
-                .indexOf(linkPart);
+        int startIndex = textView.getText().toString().indexOf(linkPart);
         if (startIndex < 0) {
             throw new IllegalArgumentException("linkPart must be included in text");
         }
         spannable.setSpan(new ClickableSpan() {
-            @Override public void onClick(View widget) {
+            @Override
+            public void onClick(View widget) {
                 try {
                     runOnClick.run();
                 } catch (Throwable t) {

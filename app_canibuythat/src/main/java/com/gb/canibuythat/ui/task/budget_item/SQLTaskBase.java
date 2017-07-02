@@ -14,9 +14,9 @@ public abstract class SQLTaskBase<R> extends TaskBase<R> {
         super(callback);
     }
 
-    @Override protected R doWork() throws SQLException {
-        Dao<BudgetItem, Integer> dao = BudgetDbHelper.get()
-                .getDao(BudgetItem.class);
+    @Override
+    protected R doWork() throws SQLException {
+        Dao<BudgetItem, Integer> dao = BudgetDbHelper.get().getDao(BudgetItem.class);
         return doWork(dao);
     }
 

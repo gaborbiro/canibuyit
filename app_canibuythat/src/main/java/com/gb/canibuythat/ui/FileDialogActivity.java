@@ -9,7 +9,6 @@ import android.support.annotation.NonNull;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
@@ -46,155 +45,132 @@ public class FileDialogActivity extends ListActivity {
     public static final String EXTRA_SELECTION_MODE = "SELECTION_MODE";
     public static final String EXTRA_CAN_SELECT_DIR = "CAN_SELECT_DIR";
 
-    private int mSelectionMode = SELECTION_MODE_CREATE;
-    private String[] mFormatFilters = null;
-    private boolean mCanSelectDir = false;
+    private int selectionMode = SELECTION_MODE_CREATE;
+    private String[] formatFilters = null;
+    private boolean canSelectDir = false;
 
-    private TextView mPathView;
-    private EditText mFileNameView;
-    private Button mSelectButton;
-    private LinearLayout mSelectionButtonsContainer;
-    private LinearLayout mCreationButtonsContainer;
-    private InputMethodManager mInputManager;
+    private TextView pathView;
+    private EditText fileNameView;
+    private Button selectButton;
+    private LinearLayout selectionButtonsContainer;
+    private LinearLayout creationButtonsContainer;
+    private InputMethodManager inputManager;
 
-    private FileListAdapter mAdapter;
-    private File mClickedFile;
-    private String mCurrentPath = ROOT;
-    private String mParentPath;
-    private HashMap<String, Integer> mLastPositions = new HashMap<>();
+    private FileListAdapter adapter;
+    private File clickedFile;
+    private String currentPath = ROOT;
+    private String parentPath;
+    private HashMap<String, Integer> lastPositions = new HashMap<>();
 
-    private PermissionVerifier mPermissionVerifier;
+    private PermissionVerifier permissionVerifier;
 
-    @Override public void onCreate(Bundle savedInstanceState) {
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_file_picker);
-
         String[] permissions;
-
-        if (mSelectionMode == SELECTION_MODE_CREATE) {
-            permissions = new String[]{Manifest.permission.READ_EXTERNAL_STORAGE,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE};
+        if (selectionMode == SELECTION_MODE_CREATE) {
+            permissions = new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE};
         } else {
             permissions = new String[]{Manifest.permission.READ_EXTERNAL_STORAGE};
         }
-        mPermissionVerifier = new PermissionVerifier(this, permissions);
-        mPermissionVerifier.verifyPermissions(true,
-                REQUEST_CODE_EXTERNAL_STORAGE_PERMISSION);
+        permissionVerifier = new PermissionVerifier(this, permissions);
+        permissionVerifier.verifyPermissions(true, REQUEST_CODE_EXTERNAL_STORAGE_PERMISSION);
 
         setResult(RESULT_CANCELED, getIntent());
 
-        mSelectionMode =
-                getIntent().getIntExtra(EXTRA_SELECTION_MODE, SELECTION_MODE_CREATE);
-        mFormatFilters = getIntent().getStringArrayExtra(EXTRA_FORMAT_FILTER);
-        mCanSelectDir = getIntent().getBooleanExtra(EXTRA_CAN_SELECT_DIR, false);
+        selectionMode = getIntent().getIntExtra(EXTRA_SELECTION_MODE, SELECTION_MODE_CREATE);
+        formatFilters = getIntent().getStringArrayExtra(EXTRA_FORMAT_FILTER);
+        canSelectDir = getIntent().getBooleanExtra(EXTRA_CAN_SELECT_DIR, false);
 
-        mInputManager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+        inputManager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
 
-        mPathView = (TextView) findViewById(R.id.path);
-        mFileNameView = (EditText) findViewById(R.id.file_name);
-        mSelectButton = (Button) findViewById(R.id.select_btn);
-        mSelectButton.setEnabled(false);
-        mSelectButton.setOnClickListener(new OnClickListener() {
-            @Override public void onClick(View v) {
-                if (mClickedFile != null) {
-                    getIntent().putExtra(EXTRA_RESULT_PATH, mClickedFile.getPath());
-                    setResult(RESULT_OK, getIntent());
-                    finish();
-                }
+        pathView = (TextView) findViewById(R.id.path);
+        fileNameView = (EditText) findViewById(R.id.file_name);
+        selectButton = (Button) findViewById(R.id.select_btn);
+        selectButton.setEnabled(false);
+        selectButton.setOnClickListener(v -> {
+            if (clickedFile != null) {
+                getIntent().putExtra(EXTRA_RESULT_PATH, clickedFile.getPath());
+                setResult(RESULT_OK, getIntent());
+                finish();
             }
         });
         Button newButton = (Button) findViewById(R.id.new_btn);
-        newButton.setOnClickListener(new OnClickListener() {
-
-            @Override public void onClick(View v) {
-                setCreateVisible(v);
-                mFileNameView.setText("");
-                mFileNameView.requestFocus();
-            }
+        newButton.setOnClickListener(v -> {
+            setCreateVisible(v);
+            fileNameView.setText("");
+            fileNameView.requestFocus();
         });
-        if (mSelectionMode == SELECTION_MODE_OPEN) {
+        if (selectionMode == SELECTION_MODE_OPEN) {
             newButton.setEnabled(false);
         }
 
-        mSelectionButtonsContainer =
-                (LinearLayout) findViewById(R.id.selection_buttons_container);
-        mCreationButtonsContainer =
-                (LinearLayout) findViewById(R.id.creation_buttons_container);
-        mCreationButtonsContainer.setVisibility(View.GONE);
+        selectionButtonsContainer = (LinearLayout) findViewById(R.id.selection_buttons_container);
+        creationButtonsContainer = (LinearLayout) findViewById(R.id.creation_buttons_container);
+        creationButtonsContainer.setVisibility(View.GONE);
         Button cancelButton = (Button) findViewById(R.id.cancel_btn);
-        cancelButton.setOnClickListener(new OnClickListener() {
-            @Override public void onClick(View v) {
-                setSelectVisible(v);
-            }
-        });
+        cancelButton.setOnClickListener(this::setSelectVisible);
         Button createButton = (Button) findViewById(R.id.create_btn);
-        createButton.setOnClickListener(new OnClickListener() {
-
-            @Override public void onClick(View v) {
-                if (mFileNameView.getText()
-                        .length() > 0) {
-                    getIntent().putExtra(EXTRA_RESULT_PATH,
-                            mCurrentPath + "/" + mFileNameView.getText());
-                    setResult(RESULT_OK, getIntent());
-                    finish();
-                }
+        createButton.setOnClickListener(v -> {
+            if (fileNameView.getText().length() > 0) {
+                getIntent().putExtra(EXTRA_RESULT_PATH, currentPath + "/" + fileNameView.getText());
+                setResult(RESULT_OK, getIntent());
+                finish();
             }
         });
 
         String startPath = getIntent().getStringExtra(EXTRA_START_PATH);
         startPath = startPath != null ? startPath : ROOT;
-        if (mCanSelectDir) {
-            mClickedFile = new File(startPath);
-            mSelectButton.setEnabled(true);
+        if (canSelectDir) {
+            clickedFile = new File(startPath);
+            selectButton.setEnabled(true);
         }
         setData(startPath);
     }
 
     private void setData(String dirPath) {
-        boolean useAutoSelection = dirPath.length() < mCurrentPath.length();
+        boolean useAutoSelection = dirPath.length() < currentPath.length();
         List<DirUtils.FileInfo> files = null;
         try {
-            files = DirUtils.getDirInfo(dirPath, mFormatFilters);
+            files = DirUtils.getDirInfo(dirPath, formatFilters);
         } catch (DirReadException e) {
             e.printStackTrace();
-            Toast.makeText(FileDialogActivity.this, "Unable to read folder " + dirPath,
-                    Toast.LENGTH_SHORT)
-                    .show();
+            Toast.makeText(FileDialogActivity.this, "Unable to read folder " + dirPath, Toast.LENGTH_SHORT).show();
             try {
                 dirPath = ROOT;
-                files = DirUtils.getDirInfo(dirPath, mFormatFilters);
+                files = DirUtils.getDirInfo(dirPath, formatFilters);
             } catch (DirReadException e1) {
                 e1.printStackTrace();
             }
         }
-        mParentPath = null;
-
+        parentPath = null;
         if (files != null) {
             if (!dirPath.equals(ROOT)) {
                 files.add(0, new DirUtils.FileInfo(ROOT, true));
                 files.add(1, new DirUtils.FileInfo(PARENT, true));
-                mParentPath = new File(dirPath).getParent();
+                parentPath = new File(dirPath).getParent();
             }
 
-            mCurrentPath = dirPath;
-            mAdapter = new FileListAdapter(this, files);
-            setListAdapter(mAdapter);
+            currentPath = dirPath;
+            adapter = new FileListAdapter(this, files);
+            setListAdapter(adapter);
 
-            Integer position = mLastPositions.get(mParentPath);
+            Integer position = lastPositions.get(parentPath);
             if (position != null && useAutoSelection) {
                 getListView().setSelection(position);
             }
-            mPathView.setText(getText(R.string.location) + ": " + mCurrentPath);
+            pathView.setText(getText(R.string.location) + ": " + currentPath);
         } else {
             setListAdapter(null);
-            mAdapter = null;
-            mPathView.setText(null);
+            adapter = null;
+            pathView.setText(null);
         }
     }
 
     private static class FileListAdapter extends ArrayAdapter<DirUtils.FileInfo> {
 
-        public FileListAdapter(Context context, List<DirUtils.FileInfo> items) {
+        FileListAdapter(Context context, List<DirUtils.FileInfo> items) {
             super(context, 0, items);
         }
 
@@ -203,13 +179,15 @@ public class FileDialogActivity extends ListActivity {
             TextView mFilename;
         }
 
-        @Override public View getView(int position, View convertView, ViewGroup parent) {
+        @Override
+        public
+        @NonNull
+        View getView(int position, View convertView, @NonNull ViewGroup parent) {
             View view;
             ViewHolder holder;
 
             if (convertView == null) {
-                view = LayoutInflater.from(getContext())
-                        .inflate(R.layout.file_picker_list_item, parent, false);
+                view = LayoutInflater.from(getContext()).inflate(R.layout.file_picker_list_item, parent, false);
                 holder = new ViewHolder();
                 holder.mIcon = (ImageView) view.findViewById(R.id.icon);
                 holder.mFilename = (TextView) view.findViewById(R.id.file_name);
@@ -219,58 +197,56 @@ public class FileDialogActivity extends ListActivity {
                 holder = (ViewHolder) view.getTag();
             }
             DirUtils.FileInfo fileInfo = getItem(position);
-            holder.mIcon.setImageResource(
-                    fileInfo.isFolder ? R.drawable.folder : R.drawable.file);
+            holder.mIcon.setImageResource(fileInfo.isFolder ? R.drawable.folder : R.drawable.file);
             holder.mFilename.setText(fileInfo.path);
             return view;
         }
     }
 
-    @Override protected void onListItemClick(ListView l, View v, int position, long id) {
-        String path = mAdapter.getItem(position).path;
+    @Override
+    protected void onListItemClick(ListView l, View v, int position, long id) {
+        String path = adapter.getItem(position).path;
         File file;
         if (path.equals(ROOT)) {
             file = new File(path);
         } else {
-            file = new File(mCurrentPath, path);
+            file = new File(currentPath, path);
         }
         setSelectVisible(v);
 
         if (file.isDirectory()) {
-            mSelectButton.setEnabled(false);
+            selectButton.setEnabled(false);
             if (file.canRead()) {
-                mLastPositions.put(mCurrentPath, position);
+                lastPositions.put(currentPath, position);
                 setData(file.getAbsolutePath());
 
-                if (mCanSelectDir) {
-                    mClickedFile = file;
+                if (canSelectDir) {
+                    clickedFile = file;
                     v.setSelected(true);
-                    mSelectButton.setEnabled(true);
+                    selectButton.setEnabled(true);
                 }
             } else {
-                new AlertDialog.Builder(this).setTitle(
-                        "Folder [" + file.getName() + "] " +
-                                getText(R.string.cant_read_folder))
-                        .setPositiveButton("OK", null)
-                        .show();
+                new AlertDialog.Builder(this)
+                        .setTitle("Folder [" + file.getName() + "] " + getText(R.string.cant_read_folder))
+                        .setPositiveButton("OK", null).show();
             }
         } else {
-            mClickedFile = file;
+            clickedFile = file;
             v.setSelected(true);
-            mSelectButton.setEnabled(true);
+            selectButton.setEnabled(true);
         }
     }
 
-    @Override public boolean onKeyDown(int keyCode, KeyEvent event) {
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
         if ((keyCode == KeyEvent.KEYCODE_BACK)) {
-            mSelectButton.setEnabled(false);
-
-            if (mCreationButtonsContainer.getVisibility() == View.VISIBLE) {
-                mCreationButtonsContainer.setVisibility(View.GONE);
-                mSelectionButtonsContainer.setVisibility(View.VISIBLE);
+            selectButton.setEnabled(false);
+            if (creationButtonsContainer.getVisibility() == View.VISIBLE) {
+                creationButtonsContainer.setVisibility(View.GONE);
+                selectionButtonsContainer.setVisibility(View.VISIBLE);
             } else {
-                if (mParentPath != null) {
-                    setData(mParentPath);
+                if (parentPath != null) {
+                    setData(parentPath);
                 } else {
                     return super.onKeyDown(keyCode, event);
                 }
@@ -282,27 +258,23 @@ public class FileDialogActivity extends ListActivity {
     }
 
     private void setCreateVisible(View v) {
-        mCreationButtonsContainer.setVisibility(View.VISIBLE);
-        mSelectionButtonsContainer.setVisibility(View.GONE);
-        mInputManager.hideSoftInputFromWindow(v.getWindowToken(), 0);
-        mSelectButton.setEnabled(false);
+        creationButtonsContainer.setVisibility(View.VISIBLE);
+        selectionButtonsContainer.setVisibility(View.GONE);
+        inputManager.hideSoftInputFromWindow(v.getWindowToken(), 0);
+        selectButton.setEnabled(false);
     }
 
     private void setSelectVisible(View v) {
-        mCreationButtonsContainer.setVisibility(View.GONE);
-        mSelectionButtonsContainer.setVisibility(View.VISIBLE);
-        mInputManager.hideSoftInputFromWindow(v.getWindowToken(), 0);
-        mSelectButton.setEnabled(false);
+        creationButtonsContainer.setVisibility(View.GONE);
+        selectionButtonsContainer.setVisibility(View.VISIBLE);
+        inputManager.hideSoftInputFromWindow(v.getWindowToken(), 0);
+        selectButton.setEnabled(false);
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
-            @NonNull int[] grantResults) {
-        if (!mPermissionVerifier.onRequestPermissionsResult(requestCode, permissions,
-                grantResults)) {
-            Toast.makeText(this, "Missing permissions!",
-                    Toast.LENGTH_SHORT)
-                    .show();
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (!permissionVerifier.onRequestPermissionsResult(requestCode, permissions, grantResults)) {
+            Toast.makeText(this, "Missing permissions!", Toast.LENGTH_SHORT).show();
         }
     }
 }

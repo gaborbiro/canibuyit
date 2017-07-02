@@ -42,39 +42,37 @@ public class ChartActivity extends Activity implements OnChartValueSelectedListe
 
     private static SimpleDateFormat MONTH_ONLY = new SimpleDateFormat("MMM.dd");
     private static SimpleDateFormat MONTH_YEAR = new SimpleDateFormat("yyyy.MMM");
-    protected BarChart mChart;
+    protected BarChart chart;
 
     public static void launchOnClick(final Activity activity, View button) {
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override public void onClick(View v) {
-                Intent i = new Intent(activity, ChartActivity.class);
-                activity.startActivity(i);
-            }
+        button.setOnClickListener(v -> {
+            Intent i = new Intent(activity, ChartActivity.class);
+            activity.startActivity(i);
         });
     }
 
-    @Override protected void onCreate(Bundle savedInstanceState) {
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chart);
-        mChart = (BarChart) findViewById(R.id.chart);
-        mChart.setOnChartValueSelectedListener(this);
-        mChart.setDescription("");
-        mChart.setMaxVisibleValueCount(6);
-        mChart.setPinchZoom(false);
-        mChart.setDrawGridBackground(false);
-        mChart.setDrawBarShadow(false);
-        mChart.setDrawValueAboveBar(false);
+        chart = (BarChart) findViewById(R.id.chart);
+        chart.setOnChartValueSelectedListener(this);
+        chart.setDescription("");
+        chart.setMaxVisibleValueCount(6);
+        chart.setPinchZoom(false);
+        chart.setDrawGridBackground(false);
+        chart.setDrawBarShadow(false);
+        chart.setDrawValueAboveBar(false);
 
         // change the position of the y-labels
-        YAxis leftAxis = mChart.getAxisLeft();
+        YAxis leftAxis = chart.getAxisLeft();
         leftAxis.setValueFormatter(new MyYAxisValueFormatter());
-        mChart.getAxisRight()
-                .setEnabled(false);
+        chart.getAxisRight().setEnabled(false);
 
-        XAxis xLabels = mChart.getXAxis();
+        XAxis xLabels = chart.getXAxis();
         xLabels.setPosition(XAxis.XAxisPosition.TOP);
 
-        Legend l = mChart.getLegend();
+        Legend l = chart.getLegend();
         l.setPosition(Legend.LegendPosition.BELOW_CHART_RIGHT);
         l.setFormSize(8f);
         l.setFormToTextSpace(4f);
@@ -83,19 +81,18 @@ public class ChartActivity extends Activity implements OnChartValueSelectedListe
         new CalculateProjectionsTask().execute();
     }
 
-    @Override public void onValueSelected(Entry e, int dataSetIndex, Highlight h) {
+    @Override
+    public void onValueSelected(Entry e, int dataSetIndex, Highlight h) {
         ProjectionItem projectionItem = (ProjectionItem) e.getData();
         final Date estimateDate = UserPreferences.getEstimateDate();
-        String readingDateStr =
-                estimateDate != null ? DateUtils.FORMAT_MONTH_DAY.format(estimateDate)
-                                     : getString(R.string.today);
+        String readingDateStr = estimateDate != null ? DateUtils.FORMAT_MONTH_DAY.format(estimateDate) : getString(R.string.today);
         Toast.makeText(this, getString(R.string.estimate_at_time, projectionItem.bestCase,
-                projectionItem.worstCase, readingDateStr), Toast.LENGTH_SHORT)
-                .show();
+                projectionItem.worstCase, readingDateStr), Toast.LENGTH_SHORT).show();
     }
 
-    @Override public void onNothingSelected() {
-
+    @Override
+    public void onNothingSelected() {
+        // nothing to do
     }
 
     class ProjectionItem {
@@ -103,7 +100,7 @@ public class ChartActivity extends Activity implements OnChartValueSelectedListe
         Float bestCase;
         Float worstCase;
 
-        public ProjectionItem(Date month, Float bestCase, Float worstCase) {
+        ProjectionItem(Date month, Float bestCase, Float worstCase) {
             this.month = month;
             this.bestCase = bestCase;
             this.worstCase = worstCase;
@@ -113,7 +110,8 @@ public class ChartActivity extends Activity implements OnChartValueSelectedListe
     private class CalculateProjectionsTask
             extends AsyncTask<Void, Void, ProjectionItem[]> {
 
-        @Override protected ProjectionItem[] doInBackground(Void... params) {
+        @Override
+        protected ProjectionItem[] doInBackground(Void... params) {
             BudgetDbHelper helper = BudgetDbHelper.get();
             Calendar currTarget = Calendar.getInstance();
             Calendar oneYearLater = Calendar.getInstance();
@@ -129,8 +127,7 @@ public class ChartActivity extends Activity implements OnChartValueSelectedListe
                 } else {
                     startDate = null;
                 }
-                Dao<BudgetItem, Integer> budgetItemDao =
-                        helper.getDao(com.gb.canibuythat.model.BudgetItem.class);
+                Dao<BudgetItem, Integer> budgetItemDao = helper.getDao(com.gb.canibuythat.model.BudgetItem.class);
                 List<ProjectionItem> result = new ArrayList<>();
 
                 do {
@@ -138,10 +135,8 @@ public class ChartActivity extends Activity implements OnChartValueSelectedListe
                     float worstCase = 0;
 
                     for (com.gb.canibuythat.model.BudgetItem item : budgetItemDao) {
-                        if (item.mEnabled) {
-                            BalanceCalculator.BalanceResult br = BalanceCalculator.get()
-                                    .getEstimatedBalance(item, startDate,
-                                            currTarget.getTime());
+                        if (item.enabled) {
+                            BalanceCalculator.BalanceResult br = BalanceCalculator.get().getEstimatedBalance(item, startDate, currTarget.getTime());
                             bestCase += br.bestCase;
                             worstCase += br.worstCase;
                         }
@@ -151,33 +146,30 @@ public class ChartActivity extends Activity implements OnChartValueSelectedListe
                         bestCase += balanceReading.balance;
                         worstCase += balanceReading.balance;
                     }
-                    result.add(new ProjectionItem(currTarget.getTime(), bestCase,
-                            worstCase));
+                    result.add(new ProjectionItem(currTarget.getTime(), bestCase, worstCase));
                     currTarget.add(Calendar.WEEK_OF_YEAR, 1);
                 } while (currTarget.before(oneYearLater));
+
                 return result.toArray(new ProjectionItem[result.size()]);
             } catch (Exception e) {
                 e.printStackTrace();
-                Toast.makeText(ChartActivity.this,
-                        "Error calculating projection. See logs.", Toast.LENGTH_SHORT)
-                        .show();
+                Toast.makeText(ChartActivity.this, "Error calculating projection. See logs.", Toast.LENGTH_SHORT).show();
             }
             return null;
         }
 
-        @Override protected void onPostExecute(ProjectionItem[] projectionItems) {
+        @Override
+        protected void onPostExecute(ProjectionItem[] projectionItems) {
             setData(projectionItems);
         }
     }
 
     public void setData(ProjectionItem[] projectionItems) {
         ArrayList<String> xValues = new ArrayList<>();
-        int lastYear = Calendar.getInstance()
-                .get(Calendar.YEAR);
+        int lastYear = Calendar.getInstance().get(Calendar.YEAR);
         Calendar c = Calendar.getInstance();
-
-        for (int i = 0; i < projectionItems.length; i++) {
-            c.setTime(projectionItems[i].month);
+        for (ProjectionItem projectionItem : projectionItems) {
+            c.setTime(projectionItem.month);
             String label;
 
             if (c.get(Calendar.YEAR) != lastYear) {
@@ -190,7 +182,6 @@ public class ChartActivity extends Activity implements OnChartValueSelectedListe
         }
 
         ArrayList<BarEntry> yValues = new ArrayList<>();
-
         for (int i = 0; i < projectionItems.length; i++) {
             float best = projectionItems[i].bestCase;
             float worst = projectionItems[i].worstCase;
@@ -209,16 +200,16 @@ public class ChartActivity extends Activity implements OnChartValueSelectedListe
         set.setColors(getColors());
         set.setStackLabels(new String[]{"Best case", "Worst case"});
 
-        ArrayList<IBarDataSet> dataSets = new ArrayList<IBarDataSet>();
+        ArrayList<IBarDataSet> dataSets = new ArrayList<>();
         dataSets.add(set);
 
         BarData data = new BarData(xValues, dataSets);
         data.setValueFormatter(new MyValueFormatter());
         data.setValueTextSize(13f);
 
-        mChart.setData(data);
-        mChart.zoom(12, 5, 0, -3000);
-        mChart.invalidate();
+        chart.setData(data);
+        chart.zoom(12, 5, 0, -3000);
+        chart.invalidate();
     }
 
     private int[] getColors() {
@@ -229,11 +220,12 @@ public class ChartActivity extends Activity implements OnChartValueSelectedListe
 
         private DecimalFormat mFormat;
 
-        public MyYAxisValueFormatter() {
+        MyYAxisValueFormatter() {
             mFormat = new DecimalFormat("###,###,###,##0.00");
         }
 
-        @Override public String getFormattedValue(float value, YAxis yAxis) {
+        @Override
+        public String getFormattedValue(float value, YAxis yAxis) {
             return mFormat.format(value);
         }
     }
@@ -242,13 +234,12 @@ public class ChartActivity extends Activity implements OnChartValueSelectedListe
 
         private DecimalFormat mFormat;
 
-        public MyValueFormatter() {
+        MyValueFormatter() {
             mFormat = new DecimalFormat("###,###,###,##0.00");
         }
 
         @Override
-        public String getFormattedValue(float value, Entry entry, int dataSetIndex,
-                ViewPortHandler viewPortHandler) {
+        public String getFormattedValue(float value, Entry entry, int dataSetIndex, ViewPortHandler viewPortHandler) {
             ProjectionItem item = (ProjectionItem) entry.getData();
             float[] values = getDisplayedValues(item.bestCase, item.worstCase);
             float finalValue;

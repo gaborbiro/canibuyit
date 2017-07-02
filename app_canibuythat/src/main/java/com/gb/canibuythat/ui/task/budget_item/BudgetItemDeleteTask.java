@@ -10,17 +10,17 @@ import java.sql.SQLException;
 
 public class BudgetItemDeleteTask extends SQLTaskBase<Boolean> {
 
-    private int mId;
+    private int id;
 
     public BudgetItemDeleteTask(Callback<Boolean> callback, int id) {
         super(callback);
-        this.mId = id;
+        this.id = id;
     }
 
-    @Override protected Boolean doWork(Dao<BudgetItem, Integer> dao) throws SQLException {
-        boolean success = dao.deleteById(mId) > 0;
-        App.getAppContext().getContentResolver()
-                .notifyChange(BudgetProvider.BUDGET_ITEMS_URI, null);
+    @Override
+    protected Boolean doWork(Dao<BudgetItem, Integer> dao) throws SQLException {
+        boolean success = dao.deleteById(id) > 0;
+        App.getAppContext().getContentResolver().notifyChange(BudgetProvider.BUDGET_ITEMS_URI, null);
         return success;
     }
 }

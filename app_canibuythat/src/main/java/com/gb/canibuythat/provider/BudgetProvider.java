@@ -37,11 +37,11 @@ public class BudgetProvider extends ContentProvider {
 
     private BudgetDbHelper dbHelper;
 
-    private static final UriMatcher sURIMatcher = new UriMatcher(UriMatcher.NO_MATCH);
+    private static final UriMatcher uriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
 
     static {
-        sURIMatcher.addURI(AUTHORITY, PATH_BUDGET_ITEMS, ID_BUDGET_ITEMS);
-        sURIMatcher.addURI(AUTHORITY, PATH_BUDGET_ITEM, ID_BUDGET_ITEM);
+        uriMatcher.addURI(AUTHORITY, PATH_BUDGET_ITEMS, ID_BUDGET_ITEMS);
+        uriMatcher.addURI(AUTHORITY, PATH_BUDGET_ITEM, ID_BUDGET_ITEM);
     }
 
     @Override
@@ -51,15 +51,14 @@ public class BudgetProvider extends ContentProvider {
     }
 
     @Override
-    public Cursor query(Uri uri, String[] projection, String selection,
-            String[] selectionArgs, String sortOrder) {
+    public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
         // Using SQLiteQueryBuilder instead of query() method
         SQLiteQueryBuilder queryBuilder = new SQLiteQueryBuilder();
 
         // Set the table
         queryBuilder.setTables(Contract.BudgetItem.TABLE);
 
-        int uriType = sURIMatcher.match(uri);
+        int uriType = uriMatcher.match(uri);
         switch (uriType) {
             case ID_BUDGET_ITEMS:
                 checkColumns(Contract.BudgetItem.class, projection);
@@ -67,17 +66,14 @@ public class BudgetProvider extends ContentProvider {
             case ID_BUDGET_ITEM:
                 checkColumns(Contract.BudgetItem.class, projection);
                 // adding the ID to the original query
-                queryBuilder.appendWhere(
-                        Contract.BudgetItem._ID + "=" + uri.getLastPathSegment());
+                queryBuilder.appendWhere(Contract.BudgetItem._ID + "=" + uri.getLastPathSegment());
                 break;
             default:
                 throw new IllegalArgumentException("Unknown URI: " + uri);
         }
 
         SQLiteDatabase db = dbHelper.getWritableDatabase();
-        Cursor cursor =
-                queryBuilder.query(db, projection, selection, selectionArgs, null, null,
-                        sortOrder);
+        Cursor cursor = queryBuilder.query(db, projection, selection, selectionArgs, null, null, sortOrder);
         // make sure that potential listeners are getting notified
         cursor.setNotificationUri(getContext().getContentResolver(), uri);
         return cursor;
@@ -90,7 +86,7 @@ public class BudgetProvider extends ContentProvider {
 
     @Override
     public Uri insert(Uri uri, ContentValues values) {
-        int uriType = sURIMatcher.match(uri);
+        int uriType = uriMatcher.match(uri);
         SQLiteDatabase sqlDB = dbHelper.getWritableDatabase();
         long id;
         switch (uriType) {
@@ -100,62 +96,51 @@ public class BudgetProvider extends ContentProvider {
             default:
                 throw new IllegalArgumentException("Unknown URI: " + uri);
         }
-        getContext().getContentResolver()
-                .notifyChange(uri, null);
+        getContext().getContentResolver().notifyChange(uri, null);
         return Uri.parse(PATH_BUDGET_ITEMS + "/" + id);
     }
 
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
-        int uriType = sURIMatcher.match(uri);
+        int uriType = uriMatcher.match(uri);
         SQLiteDatabase sqlDB = dbHelper.getWritableDatabase();
         int rowsDeleted;
         switch (uriType) {
             case ID_BUDGET_ITEMS:
-                rowsDeleted =
-                        sqlDB.delete(Contract.BudgetItem.TABLE, selection, selectionArgs);
+                rowsDeleted = sqlDB.delete(Contract.BudgetItem.TABLE, selection, selectionArgs);
                 break;
             case ID_BUDGET_ITEM:
                 String id = uri.getLastPathSegment();
 
                 if (TextUtils.isEmpty(selection)) {
-                    rowsDeleted = sqlDB.delete(Contract.BudgetItem.TABLE,
-                            Contract.BudgetItem._ID + "=" + id, null);
+                    rowsDeleted = sqlDB.delete(Contract.BudgetItem.TABLE, Contract.BudgetItem._ID + "=" + id, null);
                 } else {
-                    rowsDeleted = sqlDB.delete(Contract.BudgetItem.TABLE,
-                            Contract.BudgetItem._ID + "=" + id + " and " + selection,
-                            selectionArgs);
+                    rowsDeleted = sqlDB.delete(Contract.BudgetItem.TABLE, Contract.BudgetItem._ID + "=" + id + " and " + selection, selectionArgs);
                 }
                 break;
             default:
                 throw new IllegalArgumentException("Unknown URI: " + uri);
         }
-        getContext().getContentResolver()
-                .notifyChange(uri, null);
+        getContext().getContentResolver().notifyChange(uri, null);
         return rowsDeleted;
     }
 
     @Override
-    public int update(Uri uri, ContentValues values, String selection,
-            String[] selectionArgs) {
-        int uriType = sURIMatcher.match(uri);
+    public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+        int uriType = uriMatcher.match(uri);
         SQLiteDatabase sqlDB = dbHelper.getWritableDatabase();
         int rowsUpdated = 0;
         switch (uriType) {
             case ID_BUDGET_ITEMS:
-                rowsUpdated = sqlDB.update(Contract.BudgetItem.TABLE, values, selection,
-                        selectionArgs);
+                rowsUpdated = sqlDB.update(Contract.BudgetItem.TABLE, values, selection, selectionArgs);
                 break;
             case ID_BUDGET_ITEM:
                 String id = uri.getLastPathSegment();
 
                 if (TextUtils.isEmpty(selection)) {
-                    rowsUpdated = sqlDB.update(Contract.BudgetItem.TABLE, values,
-                            Contract.BudgetItem._ID + "=" + id, null);
+                    rowsUpdated = sqlDB.update(Contract.BudgetItem.TABLE, values, Contract.BudgetItem._ID + "=" + id, null);
                 } else {
-                    rowsUpdated = sqlDB.update(Contract.BudgetItem.TABLE, values,
-                            Contract.BudgetItem._ID + "=" + id + " and " + selection,
-                            selectionArgs);
+                    rowsUpdated = sqlDB.update(Contract.BudgetItem.TABLE, values, Contract.BudgetItem._ID + "=" + id + " and " + selection, selectionArgs);
                 }
                 break;
         }
@@ -163,25 +148,17 @@ public class BudgetProvider extends ContentProvider {
         return rowsUpdated;
     }
 
-    private void checkColumns(Class<? extends BaseColumns> tableClass,
-            String[] projection) {
+    private void checkColumns(Class<? extends BaseColumns> tableClass, String[] projection) {
         String[] available;
         try {
-            available = (String[]) tableClass.getDeclaredField("COLUMNS")
-                    .get(null);
-        } catch (IllegalAccessException e) {
-            throw new IllegalArgumentException(
-                    "The specified table class does not have public static field COLUMNS");
-        } catch (NoSuchFieldException e) {
-            throw new IllegalArgumentException(
-                    "The specified table class does not have public static field COLUMNS");
+            available = (String[]) tableClass.getDeclaredField("COLUMNS").get(null);
+        } catch (IllegalAccessException | NoSuchFieldException e) {
+            throw new IllegalArgumentException("The specified table class does not have public static field COLUMNS");
         }
 
         if (projection != null) {
-            HashSet<String> requestedColumns =
-                    new HashSet<String>(Arrays.asList(projection));
-            HashSet<String> availableColumns =
-                    new HashSet<String>(Arrays.asList(available));
+            HashSet<String> requestedColumns = new HashSet<>(Arrays.asList(projection));
+            HashSet<String> availableColumns = new HashSet<>(Arrays.asList(available));
             // check if all columns which are requested are available
             if (!availableColumns.containsAll(requestedColumns)) {
                 throw new IllegalArgumentException("Unknown columns in projection");

@@ -8,23 +8,19 @@ import com.j256.ormlite.dao.Dao;
 
 import java.sql.SQLException;
 
-public class BudgetItemCreateOrUpdateTask
-        extends SQLTaskBase<Dao.CreateOrUpdateStatus> {
+public class BudgetItemCreateOrUpdateTask extends SQLTaskBase<Dao.CreateOrUpdateStatus> {
 
-    private BudgetItem mBudgetItem;
+    private BudgetItem budgetItem;
 
-    public BudgetItemCreateOrUpdateTask(BudgetItem budgetItem,
-            Callback<Dao.CreateOrUpdateStatus> callback) {
+    public BudgetItemCreateOrUpdateTask(BudgetItem budgetItem, Callback<Dao.CreateOrUpdateStatus> callback) {
         super(callback);
-        this.mBudgetItem = budgetItem;
+        this.budgetItem = budgetItem;
     }
 
-    @Override protected Dao.CreateOrUpdateStatus doWork(Dao<BudgetItem, Integer> dao)
-            throws SQLException {
-        Dao.CreateOrUpdateStatus result = dao.createOrUpdate(mBudgetItem);
-        App.getAppContext()
-                .getContentResolver()
-                .notifyChange(BudgetProvider.BUDGET_ITEMS_URI, null);
+    @Override
+    protected Dao.CreateOrUpdateStatus doWork(Dao<BudgetItem, Integer> dao) throws SQLException {
+        Dao.CreateOrUpdateStatus result = dao.createOrUpdate(budgetItem);
+        App.getAppContext().getContentResolver().notifyChange(BudgetProvider.BUDGET_ITEMS_URI, null);
         return result;
     }
 }

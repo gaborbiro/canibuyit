@@ -11,21 +11,16 @@ public class DialogUtils {
      * @param onFinish will be run if user selects Yes and onSave returns true OR if
      *                 user selects Discard (in which case onSave is ignored)
      */
-    public static AlertDialog getSaveOrDiscardDialog(Context context,
-            final Executable onSave, final Runnable onFinish) {
+    public static AlertDialog getSaveOrDiscardDialog(Context context, final Executable onSave, final Runnable onFinish) {
         return getDialog(context, "Save changes?", "Save",
-                new ClickRunner.TaskBuilder(onSave).onSuccess(onFinish)
-                        .build(), "Discard",
-                new ClickRunner.Builder().setOnDiscard(onFinish)
-                        .build(), android.R.string.cancel, null);
+                new ClickRunner.TaskBuilder(onSave).onSuccess(onFinish).build(), "Discard",
+                new ClickRunner.Builder().setOnDiscard(onFinish).build(), android.R.string.cancel, null);
     }
 
 
     public static AlertDialog getErrorDialog(Context context, String message) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setTitle("Error")
-                .setMessage(message)
-                .setPositiveButton(android.R.string.ok, null);
+        builder.setTitle("Error").setMessage(message).setPositiveButton(android.R.string.ok, null);
         return builder.create();
     }
 
@@ -38,10 +33,8 @@ public class DialogUtils {
      * @param fuckOffButton           CharSequence or resource id
      * @param onFuckOffButtonClicked
      */
-    public static AlertDialog getDialog(Context context, Object title,
-            Object positiveButton, ClickRunner onPositiveButtonClicked,
-            Object negativeButton, ClickRunner onNegativeButtonClicked,
-            Object fuckOffButton, ClickRunner onFuckOffButtonClicked) {
+    public static AlertDialog getDialog(Context context, Object title, Object positiveButton, ClickRunner onPositiveButtonClicked,
+                                        Object negativeButton, ClickRunner onNegativeButtonClicked, Object fuckOffButton, ClickRunner onFuckOffButtonClicked) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         if (title != null) {
             if (title instanceof CharSequence) {
@@ -49,41 +42,34 @@ public class DialogUtils {
             } else if (title instanceof Integer) {
                 builder.setTitle((int) title);
             } else {
-                throw new IllegalArgumentException(
-                        "Wrong title type in DialogUtils.getDialog(...)");
+                throw new IllegalArgumentException("Wrong title type in DialogUtils.getDialog(...)");
             }
         }
         if (positiveButton != null) {
             if (positiveButton instanceof CharSequence) {
-                builder.setPositiveButton((CharSequence) positiveButton,
-                        onPositiveButtonClicked);
+                builder.setPositiveButton((CharSequence) positiveButton, onPositiveButtonClicked);
             } else if (positiveButton instanceof Integer) {
                 builder.setPositiveButton((int) positiveButton, onPositiveButtonClicked);
             } else {
-                throw new IllegalArgumentException(
-                        "Wrong positive button text type in DialogUtils.getDialog(...)");
+                throw new IllegalArgumentException("Wrong positive button text type in DialogUtils.getDialog(...)");
             }
         }
         if (negativeButton != null) {
             if (negativeButton instanceof CharSequence) {
-                builder.setNegativeButton((CharSequence) negativeButton,
-                        onNegativeButtonClicked);
+                builder.setNegativeButton((CharSequence) negativeButton, onNegativeButtonClicked);
             } else if (negativeButton instanceof Integer) {
                 builder.setNegativeButton((int) negativeButton, onNegativeButtonClicked);
             } else {
-                throw new IllegalArgumentException(
-                        "Wrong negative button text type in DialogUtils.getDialog(...)");
+                throw new IllegalArgumentException("Wrong negative button text type in DialogUtils.getDialog(...)");
             }
         }
         if (fuckOffButton != null) {
             if (fuckOffButton instanceof CharSequence) {
-                builder.setNeutralButton((CharSequence) fuckOffButton,
-                        onFuckOffButtonClicked);
+                builder.setNeutralButton((CharSequence) fuckOffButton, onFuckOffButtonClicked);
             } else if (fuckOffButton instanceof Integer) {
                 builder.setNeutralButton((int) fuckOffButton, onFuckOffButtonClicked);
             } else {
-                throw new IllegalArgumentException(
-                        "Wrong fuck off button text type in DialogUtils.getDialog(...)");
+                throw new IllegalArgumentException("Wrong fuck off button text type in DialogUtils.getDialog(...)");
             }
         }
         return builder.create();
@@ -95,35 +81,36 @@ public class DialogUtils {
 
     private static class ClickRunner implements DialogInterface.OnClickListener {
 
-        private final Executable mConditionalTask;
-        private final Runnable[] mOnSuccess;
-        private final Runnable[] mOnFail;
+        private final Executable conditionalTask;
+        private final Runnable[] onSuccess;
+        private final Runnable[] onFail;
 
-        public ClickRunner(Builder builder) {
-            mConditionalTask = null;
-            mOnSuccess = builder.mOnDiscard;
-            mOnFail = null;
+        ClickRunner(Builder builder) {
+            conditionalTask = null;
+            onSuccess = builder.onDiscard;
+            onFail = null;
         }
 
-        public ClickRunner(TaskBuilder taskBuilder) {
-            mConditionalTask = taskBuilder.mConditionalTask;
-            mOnSuccess = taskBuilder.mOnSuccess;
-            mOnFail = taskBuilder.mOnFail;
+        ClickRunner(TaskBuilder taskBuilder) {
+            conditionalTask = taskBuilder.conditionalTask;
+            onSuccess = taskBuilder.onSuccess;
+            onFail = taskBuilder.onFail;
         }
 
-        @Override public void onClick(DialogInterface dialog, int which) {
-            boolean result = mConditionalTask == null || mConditionalTask.run();
+        @Override
+        public void onClick(DialogInterface dialog, int which) {
+            boolean result = conditionalTask == null || conditionalTask.run();
 
-            if (result && mOnSuccess != null) {
-                for (Runnable r : mOnSuccess) {
+            if (result && onSuccess != null) {
+                for (Runnable r : onSuccess) {
                     try {
                         r.run();
                     } catch (Throwable t) {
                         Logger.d(ClickRunner.class.getName(), t);
                     }
                 }
-            } else if (mOnFail != null) {
-                for (Runnable r : mOnFail) {
+            } else if (onFail != null) {
+                for (Runnable r : onFail) {
                     try {
                         r.run();
                     } catch (Throwable t) {
@@ -133,39 +120,39 @@ public class DialogUtils {
             }
         }
 
-        public static class Builder {
-            private Runnable[] mOnDiscard;
+        static class Builder {
+            private Runnable[] onDiscard;
 
-            public Builder setOnDiscard(Runnable... onDiscard) {
-                mOnDiscard = onDiscard;
+            Builder setOnDiscard(Runnable... onDiscard) {
+                this.onDiscard = onDiscard;
                 return this;
             }
 
-            public ClickRunner build() {
+            ClickRunner build() {
                 return new ClickRunner(this);
             }
         }
 
-        public static class TaskBuilder {
-            private Executable mConditionalTask;
-            private Runnable[] mOnSuccess;
-            private Runnable[] mOnFail;
+        static class TaskBuilder {
+            private Executable conditionalTask;
+            private Runnable[] onSuccess;
+            private Runnable[] onFail;
 
-            public TaskBuilder(Executable onClickTask) {
-                mConditionalTask = onClickTask;
+            TaskBuilder(Executable onClickTask) {
+                conditionalTask = onClickTask;
             }
 
-            public TaskBuilder onSuccess(Runnable... onSuccess) {
-                mOnSuccess = onSuccess;
+            TaskBuilder onSuccess(Runnable... onSuccess) {
+                this.onSuccess = onSuccess;
                 return this;
             }
 
             public TaskBuilder onFail(Runnable... onFail) {
-                mOnFail = onFail;
+                this.onFail = onFail;
                 return this;
             }
 
-            public ClickRunner build() {
+            ClickRunner build() {
                 return new ClickRunner(this);
             }
         }

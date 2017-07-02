@@ -7,8 +7,7 @@ import java.util.TreeMap;
 
 public class DirUtils {
 
-    public static List<FileInfo> getDirInfo(String dirPath, String[] formatFilters)
-            throws DirReadException {
+    public static List<FileInfo> getDirInfo(String dirPath, String[] formatFilters) throws DirReadException {
         File directory = new File(dirPath);
         File[] files = directory.listFiles();
 
@@ -46,13 +45,11 @@ public class DirUtils {
                 }
             }
         }
-        for (String dir : dirsMap.tailMap("")
-                .values()) {
+        for (String dir : dirsMap.tailMap("").values()) {
             result.add(new FileInfo(dir, true));
         }
 
-        for (String file : filesMap.tailMap("")
-                .values()) {
+        for (String file : filesMap.tailMap("").values()) {
             result.add(new FileInfo(file, false));
         }
         return result;

@@ -28,8 +28,7 @@ public class BalanceCalculator {
      * are periods where the application of the modifier is uncertain), the second is
      * the maximum value
      */
-    public BalanceResult getEstimatedBalance(BudgetItem budgetItem, Date start,
-            Date end) {
+    public BalanceResult getEstimatedBalance(BudgetItem budgetItem, Date start, Date end) {
         if (start != null && end != null && !end.after(start)) {
             throw new IllegalArgumentException("Start must come before end!");
         }
@@ -39,41 +38,35 @@ public class BalanceCalculator {
         List<Date> spendingEvents = new ArrayList<>();
         int count = 0;
         Calendar occurrenceStart = Calendar.getInstance();
-        occurrenceStart.setTime(budgetItem.mFirstOccurrenceStart);
+        occurrenceStart.setTime(budgetItem.firstOccurrenceStart);
         Calendar occurrenceEnd = Calendar.getInstance();
-        occurrenceEnd.setTime(budgetItem.mFirstOccurrenceEnd);
+        occurrenceEnd.setTime(budgetItem.firstOccurrenceEnd);
         Calendar date = Calendar.getInstance();
-
         if (end != null) {
             date.setTime(end);
         }
         DateUtils.clearLowerBits(date);
         start = start != null ? DateUtils.clearLowerBits(start) : null;
-
         do {
             if (start == null || occurrenceEnd.getTimeInMillis() >= start.getTime()) {
                 int r = DateUtils.compare(date, occurrenceStart, occurrenceEnd);
-
                 if (r >= -1) { //after or on start date
-                    worstCase += budgetItem.mAmount * budgetItem.mType.getSign();
+                    worstCase += budgetItem.amount * budgetItem.type.getSign();
                     if (r > 1) { // after end date
-                        bestCase += budgetItem.mAmount * budgetItem.mType.getSign();
+                        bestCase += budgetItem.amount * budgetItem.type.getSign();
                         spendingEvents.add(occurrenceEnd.getTime());
                     }
                 } else {
                     exit = true;
                 }
             }
-            budgetItem.mPeriodType.apply(occurrenceStart, budgetItem.mPeriodMultiplier);
-            budgetItem.mPeriodType.apply(occurrenceEnd, budgetItem.mPeriodMultiplier);
-
-            if (budgetItem.mOccurrenceCount != null &&
-                    ++count >= budgetItem.mOccurrenceCount) {
+            budgetItem.periodType.apply(occurrenceStart, budgetItem.periodMultiplier);
+            budgetItem.periodType.apply(occurrenceEnd, budgetItem.periodMultiplier);
+            if (budgetItem.occurrenceCount != null && ++count >= budgetItem.occurrenceCount) {
                 exit = true;
             }
         } while (!exit);
-        return new BalanceResult(bestCase, worstCase,
-                spendingEvents.toArray(new Date[spendingEvents.size()]));
+        return new BalanceResult(bestCase, worstCase, spendingEvents.toArray(new Date[spendingEvents.size()]));
     }
 
     public static class BalanceResult {
@@ -99,7 +92,7 @@ public class BalanceCalculator {
          */
         public final Date[] spendingEvents;
 
-        public BalanceResult(float bestCase, float worstCase, Date[] spendingEvents) {
+        BalanceResult(float bestCase, float worstCase, Date[] spendingEvents) {
             this.bestCase = bestCase;
             this.worstCase = worstCase;
             this.spendingEvents = spendingEvents;

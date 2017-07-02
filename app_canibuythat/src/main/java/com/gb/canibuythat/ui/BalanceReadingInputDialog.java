@@ -25,26 +25,27 @@ import java.util.Date;
 public class BalanceReadingInputDialog extends DialogFragment
         implements View.OnClickListener {
 
-    private BalanceReadingInputListener mListener;
-    private BalanceReading mLastUpdate;
-    private TextView mLastUpdateView;
-    private EditText mValueView;
-    private DatePickerButton mWhenButton;
+    private BalanceReadingInputListener listener;
+    private BalanceReading lastUpdate;
+    private TextView lastUpdateView;
+    private EditText valueView;
+    private DatePickerButton whenButton;
 
     public BalanceReadingInputDialog() {
-        mLastUpdate = UserPreferences.getBalanceReading();
+        lastUpdate = UserPreferences.getBalanceReading();
         refreshLastUpdate();
     }
 
-    @NonNull @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
-        LinearLayout body = (LinearLayout) LayoutInflater.from(getActivity())
-                .inflate(R.layout.dialog_balance_reading, null);
-        mLastUpdateView = (TextView) body.findViewById(R.id.last_update);
-        mValueView = (EditText) body.findViewById(R.id.value);
-        mWhenButton = (DatePickerButton) body.findViewById(R.id.when);
+    @NonNull
+    @Override
+    public Dialog onCreateDialog(Bundle savedInstanceState) {
+        LinearLayout body = (LinearLayout) LayoutInflater.from(getActivity()).inflate(R.layout.dialog_balance_reading, null);
+        lastUpdateView = (TextView) body.findViewById(R.id.last_update);
+        valueView = (EditText) body.findViewById(R.id.value);
+        whenButton = (DatePickerButton) body.findViewById(R.id.when);
         Date today = new Date();
-        mWhenButton.setText(DateUtils.FORMAT_MONTH_DAY.format(today));
-        mWhenButton.setDate(today);
+        whenButton.setText(DateUtils.FORMAT_MONTH_DAY.format(today));
+        whenButton.setDate(today);
         refreshLastUpdate();
 
         return new AlertDialog.Builder(getActivity()).setTitle("Set starting balance")
@@ -54,7 +55,8 @@ public class BalanceReadingInputDialog extends DialogFragment
                 .create();
     }
 
-    @Override public void onStart() {
+    @Override
+    public void onStart() {
         super.onStart();
         final AlertDialog dialog = (AlertDialog) getDialog();
 
@@ -64,60 +66,58 @@ public class BalanceReadingInputDialog extends DialogFragment
         }
     }
 
-    @Override public void onAttach(Activity activity) {
+    @Override
+    public void onAttach(Activity activity) {
         super.onAttach(activity);
-        mListener = (BalanceReadingInputListener) activity;
+        listener = (BalanceReadingInputListener) activity;
     }
 
-    @Override public void onDetach() {
+    @Override
+    public void onDetach() {
         super.onDetach();
-        mListener = null;
+        listener = null;
     }
 
     private void refreshLastUpdate() {
         if (isAdded()) {
-            if (mLastUpdate != null) {
-                mLastUpdateView.setText(
-                        getString(R.string.balance_update_reading, mLastUpdate.balance,
-                                DateUtils.FORMAT_MONTH_DAY.format(mLastUpdate.when)));
+            if (lastUpdate != null) {
+                lastUpdateView.setText(getString(R.string.balance_update_reading, lastUpdate.balance,
+                        DateUtils.FORMAT_MONTH_DAY.format(lastUpdate.when)));
             } else {
-                mLastUpdateView.setText("None");
+                lastUpdateView.setText("None");
             }
         }
     }
 
-    @Override public void onClick(View view) {
+    @Override
+    public void onClick(View view) {
         if (validate()) {
-            if (mListener != null) {
-                Date selectedDate = mWhenButton.getSelectedDate();
-                BalanceReading balanceUpdateEvent =
-                        new BalanceReading(selectedDate != null ? selectedDate : null,
-                                Float.valueOf(mValueView.getText()
-                                        .toString()));
-                mListener.onBalanceReadingSet(balanceUpdateEvent);
+            if (listener != null) {
+                Date selectedDate = whenButton.getSelectedDate();
+                BalanceReading balanceUpdateEvent = new BalanceReading(selectedDate != null ? selectedDate : null,
+                        Float.valueOf(valueView.getText().toString()));
+                listener.onBalanceReadingSet(balanceUpdateEvent);
             }
             dismiss();
         }
     }
 
     private boolean validate() {
-        if (TextUtils.isEmpty(mValueView.getText())) {
-            mValueView.setError("Please specify an amount!");
-            mValueView.requestFocus();
+        if (TextUtils.isEmpty(valueView.getText())) {
+            valueView.setError("Please specify an amount!");
+            valueView.requestFocus();
             return false;
         }
 
-        Date selectedDate = mWhenButton.getSelectedDate();
+        Date selectedDate = whenButton.getSelectedDate();
         if (!selectedDate.before(new Date())) {
-            Toast.makeText(getActivity(), "Please select a non-future date!",
-                    Toast.LENGTH_SHORT)
-                    .show();
+            Toast.makeText(getActivity(), "Please select a non-future date!", Toast.LENGTH_SHORT).show();
             return false;
         }
         return true;
     }
 
-    public interface BalanceReadingInputListener {
+    interface BalanceReadingInputListener {
         void onBalanceReadingSet(BalanceReading event);
     }
 }

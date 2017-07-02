@@ -44,9 +44,7 @@ public class FileUtils {
             Cursor cursor;
 
             try {
-                cursor = App.getAppContext()
-                        .getContentResolver()
-                        .query(uri, projection, null, null, null);
+                cursor = App.getAppContext().getContentResolver().query(uri, projection, null, null, null);
                 int column_index = cursor.getColumnIndexOrThrow("_data");
                 if (cursor.moveToFirst()) {
                     return cursor.getString(column_index);
@@ -61,9 +59,9 @@ public class FileUtils {
         return null;
     }
 
-    public static String streamToString(InputStream is) throws IOException {
+    static String streamToString(InputStream is) throws IOException {
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is));
-        StringBuffer result = new StringBuffer();
+        StringBuilder result = new StringBuilder();
         String line;
 
         while (!TextUtils.isEmpty(line = bufferedReader.readLine())) {

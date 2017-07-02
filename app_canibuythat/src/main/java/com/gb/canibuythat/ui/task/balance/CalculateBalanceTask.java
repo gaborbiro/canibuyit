@@ -18,8 +18,7 @@ public class CalculateBalanceTask extends TaskBase<CalculateBalanceTask.BalanceR
         public final float bestCaseBalance;
         public final float worstCaseBalance;
 
-        public BalanceResult(BalanceReading balanceReading,
-                float bestCaseBalance, float worstCaseBalance) {
+        BalanceResult(BalanceReading balanceReading, float bestCaseBalance, float worstCaseBalance) {
             this.balanceReading = balanceReading;
             this.bestCaseBalance = bestCaseBalance;
             this.worstCaseBalance = worstCaseBalance;
@@ -31,23 +30,21 @@ public class CalculateBalanceTask extends TaskBase<CalculateBalanceTask.BalanceR
         super(callback);
     }
 
-    @Override protected BalanceResult doWork() throws Exception {
+    @Override
+    protected BalanceResult doWork() throws Exception {
         BudgetDbHelper helper = BudgetDbHelper.get();
         float bestCase = 0;
         float worstCase = 0;
 
         // blocking thread
         BalanceReading balanceReading = UserPreferences.getBalanceReading();
-        Dao<BudgetItem, Integer> budgetItemDao =
-                helper.getDao(com.gb.canibuythat.model.BudgetItem.class);
+        Dao<BudgetItem, Integer> budgetItemDao = helper.getDao(com.gb.canibuythat.model.BudgetItem.class);
 
         for (com.gb.canibuythat.model.BudgetItem item : budgetItemDao) {
-            if (item.mEnabled) {
-                Date startDate =
-                        balanceReading != null ? balanceReading.when : null;
+            if (item.enabled) {
+                Date startDate = balanceReading != null ? balanceReading.when : null;
                 BalanceCalculator.BalanceResult result = BalanceCalculator.get()
-                        .getEstimatedBalance(item, startDate,
-                                UserPreferences.getEstimateDate());
+                        .getEstimatedBalance(item, startDate, UserPreferences.getEstimateDate());
                 bestCase += result.bestCase;
                 worstCase += result.worstCase;
             }

@@ -15,118 +15,114 @@ import java.util.Date;
  * An income or expense that affects the balance of a specified time-span. The user
  * doesn't need to know the exact moment of payment.
  */
-@DatabaseTable(tableName = Contract.BudgetItem.TABLE) public class BudgetItem
-        implements Parcelable {
+@DatabaseTable(tableName = Contract.BudgetItem.TABLE)
+public class BudgetItem implements Parcelable {
 
     @DatabaseField(generatedId = true, columnName = Contract.BudgetItem._ID)
-    public Integer mId;
-    @DatabaseField(index = true, columnName = Contract.BudgetItem.NAME, unique = true,
-            canBeNull = false) public String mName;
-    @DatabaseField(columnName = Contract.BudgetItem.NOTES) public String mNotes;
+    public Integer id;
+    @DatabaseField(index = true, columnName = Contract.BudgetItem.NAME, unique = true, canBeNull = false)
+    public String name;
+    @DatabaseField(columnName = Contract.BudgetItem.NOTES)
+    public String notes;
     @DatabaseField(columnName = Contract.BudgetItem.TYPE, canBeNull = false)
-    public BudgetItemType mType;
+    public BudgetItemType type;
     @DatabaseField(columnName = Contract.BudgetItem.AMOUNT, canBeNull = false)
-    public Float mAmount;
+    public Float amount;
     /**
      * Date before witch the transaction certainly won't happen. The repetition period
      * is added to this date.
      */
-    @DatabaseField(columnName = Contract.BudgetItem.FIRST_OCCURRENCE_START,
-            canBeNull = false) public Date mFirstOccurrenceStart;
+    @DatabaseField(columnName = Contract.BudgetItem.FIRST_OCCURRENCE_START, canBeNull = false)
+    public Date firstOccurrenceStart;
     /**
      * Date by witch the transaction most certainly did happen. The repetition period is
      * added to this date.
      */
-    @DatabaseField(columnName = Contract.BudgetItem.FIRST_OCCURRENCE_END,
-            canBeNull = false) public Date mFirstOccurrenceEnd;
+    @DatabaseField(columnName = Contract.BudgetItem.FIRST_OCCURRENCE_END, canBeNull = false)
+    public Date firstOccurrenceEnd;
     /**
      * How many times this modifier will be spent/cashed in. If 0, the field
      * #periodMultiplier and #period are ignored
      */
-    @DatabaseField(columnName = Contract.BudgetItem.OCCURRENCE_COUNT) public Integer
-            mOccurrenceCount;
+    @DatabaseField(columnName = Contract.BudgetItem.OCCURRENCE_COUNT)
+    public Integer occurrenceCount;
     /**
      * For periods like every 2 days or once every trimester...
      */
-    @DatabaseField(columnName = Contract.BudgetItem.PERIOD_MULTIPLIER) public Integer
-            mPeriodMultiplier;
+    @DatabaseField(columnName = Contract.BudgetItem.PERIOD_MULTIPLIER)
+    public Integer periodMultiplier;
     /**
      * Does this modifier repeat every day/week/month/year. The first affected time-span
-     * (specified by mFirstOccurrenceStart and mFirstOccurrenceEnd) must not be larger
+     * (specified by firstOccurrenceStart and firstOccurrenceEnd) must not be larger
      * the this period.<br>
      * Ex: The first week of every month, cold months of the year, every weekend, every
      * semester
      */
     @DatabaseField(columnName = Contract.BudgetItem.PERIOD_TYPE, canBeNull = false)
-    public PeriodType mPeriodType;
+    public PeriodType periodType;
 
     @DatabaseField(columnName = Contract.BudgetItem.ENABLED, canBeNull = true)
-    public boolean mEnabled = true;
+    public boolean enabled = true;
 
-    @DatabaseField(columnName = Contract.BudgetItem.ORDERING, canBeNull = false)
-    public Integer mOrdering;
+    @DatabaseField(columnName = Contract.BudgetItem.ORDERING, canBeNull = true)
+    public Integer ordering;
 
     public BudgetItem() {
     }
 
     private BudgetItem(Parcel in) {
-        mId = (Integer) in.readValue(Integer.class.getClassLoader());
-        mName = (String) in.readValue(String.class.getClassLoader());
-        mAmount = (Float) in.readValue(Float.class.getClassLoader());
-        mNotes = (String) in.readValue(String.class.getClassLoader());
+        id = (Integer) in.readValue(Integer.class.getClassLoader());
+        name = (String) in.readValue(String.class.getClassLoader());
+        amount = (Float) in.readValue(Float.class.getClassLoader());
+        notes = (String) in.readValue(String.class.getClassLoader());
         try {
-            mType = BudgetItemType.valueOf(
-                    ((String) in.readValue(String.class.getClassLoader())).toUpperCase());
+            type = BudgetItemType.valueOf(((String) in.readValue(String.class.getClassLoader())).toUpperCase());
         } catch (IllegalArgumentException e) {
             // it means the original value was null
         }
         Long lowerDate = (Long) in.readValue(Long.class.getClassLoader());
 
         if (lowerDate != null) {
-            mFirstOccurrenceStart = new Date(lowerDate);
+            firstOccurrenceStart = new Date(lowerDate);
         }
         Long upperDate = (Long) in.readValue(Long.class.getClassLoader());
 
         if (upperDate != null) {
-            mFirstOccurrenceEnd = new Date(upperDate);
+            firstOccurrenceEnd = new Date(upperDate);
         }
-        mOccurrenceCount = (Integer) in.readValue(Integer.class.getClassLoader());
-        mPeriodMultiplier = (Integer) in.readValue(Integer.class.getClassLoader());
+        occurrenceCount = (Integer) in.readValue(Integer.class.getClassLoader());
+        periodMultiplier = (Integer) in.readValue(Integer.class.getClassLoader());
         try {
-            mPeriodType = PeriodType.valueOf((String) ((String) in.readValue(
-                    String.class.getClassLoader())).toUpperCase());
+            periodType = PeriodType.valueOf(((String) in.readValue(String.class.getClassLoader())).toUpperCase());
         } catch (IllegalArgumentException e) {
             // it means the original value was null
         }
-        mOrdering = in.readInt();
+        ordering = in.readInt();
     }
 
-    @Override public boolean equals(Object o) {
+    @Override
+    public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
         BudgetItem that = (BudgetItem) o;
 
-        if (mEnabled != that.mEnabled) return false;
-        if (mId != null ? !mId.equals(that.mId) : that.mId != null) return false;
-        if (mName != null ? !mName.equals(that.mName) : that.mName != null) return false;
-        if (mNotes != null ? !mNotes.equals(that.mNotes) : that.mNotes != null)
+        if (enabled != that.enabled) return false;
+        if (id != null ? !id.equals(that.id) : that.id != null) return false;
+        if (name != null ? !name.equals(that.name) : that.name != null) return false;
+        if (notes != null ? !notes.equals(that.notes) : that.notes != null) return false;
+        if (type != that.type) return false;
+        if (amount != null ? !amount.equals(that.amount) : that.amount != null) return false;
+        if (firstOccurrenceStart != null ? !firstOccurrenceStart.equals(that.firstOccurrenceStart) : that.firstOccurrenceStart != null)
             return false;
-        if (mType != that.mType) return false;
-        if (mAmount != null ? !mAmount.equals(that.mAmount) : that.mAmount != null)
+        if (firstOccurrenceEnd != null ? !firstOccurrenceEnd.equals(that.firstOccurrenceEnd) : that.firstOccurrenceEnd != null)
             return false;
-        if (mFirstOccurrenceStart != null ? !mFirstOccurrenceStart.equals(
-                that.mFirstOccurrenceStart) : that.mFirstOccurrenceStart != null)
+        if (occurrenceCount != null ? !occurrenceCount.equals(that.occurrenceCount) : that.occurrenceCount != null)
             return false;
-        if (mFirstOccurrenceEnd != null ? !mFirstOccurrenceEnd.equals(
-                that.mFirstOccurrenceEnd) : that.mFirstOccurrenceEnd != null)
+        if (periodMultiplier != null ? !periodMultiplier.equals(that.periodMultiplier) : that.periodMultiplier != null)
             return false;
-        if (mOccurrenceCount != null ? !mOccurrenceCount.equals(that.mOccurrenceCount)
-                                     : that.mOccurrenceCount != null) return false;
-        if (mPeriodMultiplier != null ? !mPeriodMultiplier.equals(that.mPeriodMultiplier)
-                                      : that.mPeriodMultiplier != null) return false;
-        if (mPeriodType != that.mPeriodType) return false;
-        return mOrdering != null ? mOrdering.equals(that.mOrdering) : that.mOrdering == null;
+        if (periodType != that.periodType) return false;
+        return ordering != null ? ordering.equals(that.ordering) : that.ordering == null;
     }
 
     public boolean compareForEditing(Object o, boolean ignoreDates) {
@@ -135,96 +131,100 @@ import java.util.Date;
 
         BudgetItem that = (BudgetItem) o;
 
-        if (mEnabled != that.mEnabled) return false;
-        if (mName != null ? !mName.equals(that.mName) : that.mName != null) return false;
-        if (mNotes != null ? !mNotes.equals(that.mNotes) : that.mNotes != null)
+        if (enabled != that.enabled) return false;
+        if (name != null ? !name.equals(that.name) : that.name != null) return false;
+        if (notes != null ? !notes.equals(that.notes) : that.notes != null)
             return false;
-        if (mType != that.mType) return false;
-        if (mAmount != null ? !mAmount.equals(that.mAmount) : that.mAmount != null)
+        if (type != that.type) return false;
+        if (amount != null ? !amount.equals(that.amount) : that.amount != null)
             return false;
         if (!ignoreDates) {
-            if (mFirstOccurrenceStart != null ? !mFirstOccurrenceStart.equals(
-                    that.mFirstOccurrenceStart) : that.mFirstOccurrenceStart != null)
+            if (firstOccurrenceStart != null ? !firstOccurrenceStart.equals(
+                    that.firstOccurrenceStart) : that.firstOccurrenceStart != null)
                 return false;
-            if (mFirstOccurrenceEnd != null ? !mFirstOccurrenceEnd.equals(
-                    that.mFirstOccurrenceEnd) : that.mFirstOccurrenceEnd != null)
+            if (firstOccurrenceEnd != null ? !firstOccurrenceEnd.equals(
+                    that.firstOccurrenceEnd) : that.firstOccurrenceEnd != null)
                 return false;
         }
-        if (mOccurrenceCount != null ? !mOccurrenceCount.equals(that.mOccurrenceCount)
-                                     : that.mOccurrenceCount != null) return false;
-        if (mPeriodMultiplier != null ? !mPeriodMultiplier.equals(that.mPeriodMultiplier)
-                                      : that.mPeriodMultiplier != null) return false;
-        return mPeriodType == that.mPeriodType;
+        if (occurrenceCount != null ? !occurrenceCount.equals(that.occurrenceCount)
+                : that.occurrenceCount != null) return false;
+        if (periodMultiplier != null ? !periodMultiplier.equals(that.periodMultiplier)
+                : that.periodMultiplier != null) return false;
+        return periodType == that.periodType;
     }
 
-    @Override public int hashCode() {
-        int result = mId != null ? mId.hashCode() : 0;
-        result = 31 * result + (mName != null ? mName.hashCode() : 0);
-        result = 31 * result + (mNotes != null ? mNotes.hashCode() : 0);
-        result = 31 * result + (mType != null ? mType.hashCode() : 0);
-        result = 31 * result + (mAmount != null ? mAmount.hashCode() : 0);
+    @Override
+    public int hashCode() {
+        int result = id != null ? id.hashCode() : 0;
+        result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (notes != null ? notes.hashCode() : 0);
+        result = 31 * result + (type != null ? type.hashCode() : 0);
+        result = 31 * result + (amount != null ? amount.hashCode() : 0);
         result = 31 * result +
-                (mFirstOccurrenceStart != null ? mFirstOccurrenceStart.hashCode() : 0);
+                (firstOccurrenceStart != null ? firstOccurrenceStart.hashCode() : 0);
         result = 31 * result +
-                (mFirstOccurrenceEnd != null ? mFirstOccurrenceEnd.hashCode() : 0);
+                (firstOccurrenceEnd != null ? firstOccurrenceEnd.hashCode() : 0);
         result = 31 * result +
-                (mOccurrenceCount != null ? mOccurrenceCount.hashCode() : 0);
+                (occurrenceCount != null ? occurrenceCount.hashCode() : 0);
         result = 31 * result +
-                (mPeriodMultiplier != null ? mPeriodMultiplier.hashCode() : 0);
-        result = 31 * result + (mPeriodType != null ? mPeriodType.hashCode() : 0);
-        result = 31 * result + (mEnabled ? 1 : 0);
-        result = 31 * result + (mOrdering != null ? mOrdering.hashCode() : 0);
+                (periodMultiplier != null ? periodMultiplier.hashCode() : 0);
+        result = 31 * result + (periodType != null ? periodType.hashCode() : 0);
+        result = 31 * result + (enabled ? 1 : 0);
+        result = 31 * result + (ordering != null ? ordering.hashCode() : 0);
         return result;
     }
 
-    @Override public int describeContents() {
+    @Override
+    public int describeContents() {
         return 0;
     }
 
-    @Override public void writeToParcel(Parcel dest, int flags) {
-        dest.writeValue(mId);
-        dest.writeValue(mName);
-        dest.writeValue(mAmount);
-        dest.writeValue(mNotes);
-        if (mType != null) {
-            dest.writeValue(mType.name());
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeValue(id);
+        dest.writeValue(name);
+        dest.writeValue(amount);
+        dest.writeValue(notes);
+        if (type != null) {
+            dest.writeValue(type.name());
         } else {
             dest.writeValue(null);
         }
-        if (mFirstOccurrenceStart != null) {
-            dest.writeLong(mFirstOccurrenceStart.getTime());
+        if (firstOccurrenceStart != null) {
+            dest.writeLong(firstOccurrenceStart.getTime());
         } else {
             dest.writeValue(null);
         }
-        if (mFirstOccurrenceEnd != null) {
-            dest.writeLong(mFirstOccurrenceEnd.getTime());
+        if (firstOccurrenceEnd != null) {
+            dest.writeLong(firstOccurrenceEnd.getTime());
         } else {
             dest.writeValue(null);
         }
-        dest.writeValue(mOccurrenceCount);
-        dest.writeValue(mPeriodMultiplier);
-        if (mPeriodType != null) {
-            dest.writeValue(mPeriodType.name());
+        dest.writeValue(occurrenceCount);
+        dest.writeValue(periodMultiplier);
+        if (periodType != null) {
+            dest.writeValue(periodType.name());
         } else {
             dest.writeValue(null);
         }
-        dest.writeInt(mOrdering);
+        dest.writeInt(ordering);
     }
 
     public static final Parcelable.Creator<BudgetItem> CREATOR =
             new Parcelable.Creator<BudgetItem>() {
-
-                @Override public BudgetItem createFromParcel(Parcel in) {
+                @Override
+                public BudgetItem createFromParcel(Parcel in) {
                     return new BudgetItem(in);
                 }
 
-                @Override public BudgetItem[] newArray(int size) {
+                @Override
+                public BudgetItem[] newArray(int size) {
                     return new BudgetItem[size];
                 }
             };
 
     public boolean isPersisted() {
-        return mId != null;
+        return id != null;
     }
 
     // money comes in
@@ -250,7 +250,8 @@ import java.util.Date;
             this.sign = (byte) sign;
         }
 
-        @Override public String toString() {
+        @Override
+        public String toString() {
             return name().toLowerCase();
         }
 
@@ -286,7 +287,8 @@ import java.util.Date;
             }
         }
 
-        @Override public String toString() {
+        @Override
+        public String toString() {
             return name().toLowerCase();
         }
     }

@@ -14,43 +14,41 @@ import java.util.Map;
 
 public class MoveToIndexTask extends SQLTaskBase<Integer> {
 
-    private int mFrom;
-    private int mTo;
+    private int from;
+    private int to;
 
     public MoveToIndexTask(int sourceIndex, int targetIndex, Callback<Integer> callback) {
         super(callback);
         if (sourceIndex == targetIndex) {
-            throw new IllegalArgumentException(
-                    "Moving to the same index does not make sense!");
+            throw new IllegalArgumentException("Moving to the same index does not make sense!");
         }
-        mFrom = sourceIndex;
-        mTo = targetIndex;
+        from = sourceIndex;
+        to = targetIndex;
     }
 
-    @Override protected Integer doWork(Dao<BudgetItem, Integer> dao) throws SQLException {
+    @Override
+    protected Integer doWork(Dao<BudgetItem, Integer> dao) throws SQLException {
         List<UpdateBuilder<BudgetItem, Integer>> updates = new ArrayList<>();
         Map<String, Object> fieldMap = new HashMap<>();
         BudgetItem item;
 
-        for (int i = mFrom; i != mTo + (mFrom < mTo ? 1 : -1); ) {
+        for (int i = from; i != to + (from < to ? 1 : -1); ) {
             fieldMap.put(Contract.BudgetItem.ORDERING, i);
             item = dao.queryForFieldValues(fieldMap).get(0);
-            int newIndex = modulo(i + (mFrom < mTo ? -1 : 1), Math.abs(mTo - mFrom) + 1);
+            int newIndex = modulo(i + (from < to ? -1 : 1), Math.abs(to - from) + 1);
             UpdateBuilder<BudgetItem, Integer> builder = dao.updateBuilder();
-            builder.where().eq(Contract.BudgetItem._ID, item.mId);
+            builder.where().eq(Contract.BudgetItem._ID, item.id);
             builder.updateColumnValue(Contract.BudgetItem.ORDERING, newIndex);
             updates.add(builder);
-            i += mFrom < mTo ? 1 : -1;
+            i += from < to ? 1 : -1;
         }
 
-        dao.setAutoCommit(dao.getConnectionSource()
-                .getReadWriteConnection(), false);
+        dao.setAutoCommit(dao.getConnectionSource().getReadWriteConnection(), false);
         int result = 0;
         for (UpdateBuilder<BudgetItem, Integer> update : updates) {
             result += update.update();
         }
-        dao.commit(dao.getConnectionSource()
-                .getReadWriteConnection());
+        dao.commit(dao.getConnectionSource().getReadWriteConnection());
 
         return result;
     }

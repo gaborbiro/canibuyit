@@ -2,7 +2,6 @@ package com.gb.canibuythat.ui.task.backup;
 
 import android.os.AsyncTask;
 import android.os.Environment;
-import android.widget.Toast;
 
 import com.gb.canibuythat.App;
 import com.gb.canibuythat.util.FileUtils;
@@ -13,15 +12,15 @@ import java.util.Date;
 
 public class DatabaseExportTask extends AsyncTask<Void, Void, String> {
 
-    private String mDatabaseName;
+    private String databaseName;
 
     public DatabaseExportTask(String databaseName) {
-        this.mDatabaseName = databaseName;
+        this.databaseName = databaseName;
     }
 
-    @Override protected String doInBackground(Void... params) {
-        String pack = App.getAppContext()
-                .getPackageName();
+    @Override
+    protected String doInBackground(Void... params) {
+        String pack = App.getAppContext().getPackageName();
 
         File sd = Environment.getExternalStorageDirectory();
         File targetFolder = new File(sd + "/CanIBuyThat");
@@ -34,7 +33,7 @@ public class DatabaseExportTask extends AsyncTask<Void, Void, String> {
         File to = new File(targetFolder, targetFilename);
 
         File data = Environment.getDataDirectory();
-        String currentDBPath = "/data/" + pack + "/databases/" + mDatabaseName;
+        String currentDBPath = "/data/" + pack + "/databases/" + databaseName;
         File from = new File(data, currentDBPath);
 
         FileUtils.copyFiles(from, to);

@@ -4,24 +4,20 @@ import android.app.DatePickerDialog;
 import android.content.Context;
 import android.widget.DatePicker;
 
-import com.gb.canibuythat.App;
-
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
 public class DateUtils {
 
-    public static final SimpleDateFormat FORMAT_MONTH_DAY =
-            new SimpleDateFormat("MMM.dd");
+    public static final SimpleDateFormat FORMAT_MONTH_DAY = new SimpleDateFormat("MMM.dd");
 
 
     public static Date getDayFromDatePicker(DatePicker datePicker) {
-        return DateUtils.getDay(datePicker.getYear(), datePicker.getMonth(),
-                datePicker.getDayOfMonth());
+        return DateUtils.getDay(datePicker.getYear(), datePicker.getMonth(), datePicker.getDayOfMonth());
     }
 
-    public static Date getDay(int year, int month, int dayOfMonth) {
+    private static Date getDay(int year, int month, int dayOfMonth) {
         Calendar c = Calendar.getInstance();
         c.set(Calendar.YEAR, year);
         c.set(Calendar.MONTH, month);
@@ -68,8 +64,7 @@ public class DateUtils {
         }
     }
 
-    public static DatePickerDialog getDatePickerDialog(Context context,
-            DatePickerDialog.OnDateSetListener listener, Date date) {
+    public static DatePickerDialog getDatePickerDialog(Context context, DatePickerDialog.OnDateSetListener listener, Date date) {
         Calendar c = Calendar.getInstance();
         if (date != null) {
             c.setTime(date);
@@ -77,10 +72,7 @@ public class DateUtils {
         return getDatePickerDialog(context, listener, c);
     }
 
-    public static DatePickerDialog getDatePickerDialog(Context context,
-            DatePickerDialog.OnDateSetListener listener, Calendar date) {
-        return new DatePickerDialog(context, listener,
-                date.get(Calendar.YEAR), date.get(Calendar.MONTH),
-                date.get(Calendar.DAY_OF_MONTH));
+    public static DatePickerDialog getDatePickerDialog(Context context, DatePickerDialog.OnDateSetListener listener, Calendar date) {
+        return new DatePickerDialog(context, listener, date.get(Calendar.YEAR), date.get(Calendar.MONTH), date.get(Calendar.DAY_OF_MONTH));
     }
 }

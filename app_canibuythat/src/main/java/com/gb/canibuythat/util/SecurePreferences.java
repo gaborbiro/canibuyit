@@ -1,6 +1,5 @@
 package com.gb.canibuythat.util;
 
-
 /*
  Copyright (C) 2012 Sveinung Kval Bakken, sveinung.bakken@gmail.com
 
@@ -22,7 +21,6 @@ package com.gb.canibuythat.util;
  LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
  OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
  */
 
 import android.content.Context;
@@ -42,9 +40,7 @@ import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
-
-final class SecurePreferences
-        implements SharedPreferences.OnSharedPreferenceChangeListener {
+final class SecurePreferences implements SharedPreferences.OnSharedPreferenceChangeListener {
 
     private static final String TRANSFORMATION = "AES/CBC/PKCS5Padding";
     private static final String KEY_TRANSFORMATION = "AES/ECB/PKCS5Padding";
@@ -58,27 +54,25 @@ final class SecurePreferences
 
     private Map<String, SharedPreferences.OnSharedPreferenceChangeListener> listeners;
 
-
     /**
      * This will initialize an instance of the SecurePreferences class
      *
      * @param context        your current context.
      * @param preferenceName name of preferences file (preferenceName.xml)
      * @param secureKey      the key used for encryption, finding a good key scheme is
-     *                          hard. Hardcoding your key in the application
+     *                       hard. Hardcoding your key in the application
      *                       is bad, but better than plaintext preferences. Having the
      *                       user enter the key upon application launch
      *                       is a safe(r) alternative, but annoying to the user.
      * @param encryptKeys    settings this to false will only encrypt the values, true
-     *                          will encrypt both values and keys. Keys can
+     *                       will encrypt both values and keys. Keys can
      *                       contain a lot of information about the plaintext value of
      *                       the value which can be used to decipher the
      *                       value.
      * @throws SecurePreferencesException
      */
-    public SecurePreferences(Context context,
-            @SuppressWarnings("SameParameterValue") String preferenceName,
-            String secureKey, @SuppressWarnings("SameParameterValue") boolean encryptKeys)
+    public SecurePreferences(Context context, @SuppressWarnings("SameParameterValue") String preferenceName, String secureKey,
+                             @SuppressWarnings("SameParameterValue") boolean encryptKeys)
             throws SecurePreferencesException {
         try {
             this.writer = Cipher.getInstance(TRANSFORMATION);
@@ -87,22 +81,16 @@ final class SecurePreferences
 
             initCiphers(secureKey);
 
-            this.preferences =
-                    context.getSharedPreferences(preferenceName, Context.MODE_PRIVATE);
+            this.preferences = context.getSharedPreferences(preferenceName, Context.MODE_PRIVATE);
             this.preferences.registerOnSharedPreferenceChangeListener(this);
             this.encryptKeys = encryptKeys;
-            this.listeners =
-                    new HashMap<String, SharedPreferences.OnSharedPreferenceChangeListener>();
-        } catch (GeneralSecurityException e) {
-            throw new SecurePreferencesException(e);
-        } catch (UnsupportedEncodingException e) {
+            this.listeners = new HashMap<>();
+        } catch (GeneralSecurityException | UnsupportedEncodingException e) {
             throw new SecurePreferencesException(e);
         }
     }
 
-
-    private static byte[] convert(Cipher cipher, byte[] bs)
-            throws SecurePreferencesException {
+    private static byte[] convert(Cipher cipher, byte[] bs) throws SecurePreferencesException {
         try {
             return cipher.doFinal(bs);
         } catch (Exception e) {
@@ -110,10 +98,7 @@ final class SecurePreferences
         }
     }
 
-
-    private void initCiphers(String secureKey)
-            throws UnsupportedEncodingException, NoSuchAlgorithmException,
-            InvalidKeyException, InvalidAlgorithmParameterException {
+    private void initCiphers(String secureKey) throws UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeyException, InvalidAlgorithmParameterException {
         IvParameterSpec ivSpec = getIv();
         SecretKeySpec secretKey = getSecretKey(secureKey);
 
@@ -122,29 +107,22 @@ final class SecurePreferences
         keyWriter.init(Cipher.ENCRYPT_MODE, secretKey);
     }
 
-
     private IvParameterSpec getIv() {
         byte[] iv = new byte[writer.getBlockSize()];
-        System.arraycopy("fldsjfodasjifudslfjdsaofshaufihadsf".getBytes(), 0, iv, 0,
-                writer.getBlockSize());
+        System.arraycopy("fldsjfodasjifudslfjdsaofshaufihadsf".getBytes(), 0, iv, 0, writer.getBlockSize());
         return new IvParameterSpec(iv);
     }
 
-
-    private SecretKeySpec getSecretKey(String key)
-            throws UnsupportedEncodingException, NoSuchAlgorithmException {
+    private SecretKeySpec getSecretKey(String key) throws UnsupportedEncodingException, NoSuchAlgorithmException {
         byte[] keyBytes = createKeyBytes(key);
         return new SecretKeySpec(keyBytes, TRANSFORMATION);
     }
 
-
-    private byte[] createKeyBytes(String key)
-            throws UnsupportedEncodingException, NoSuchAlgorithmException {
+    private byte[] createKeyBytes(String key) throws UnsupportedEncodingException, NoSuchAlgorithmException {
         MessageDigest md = MessageDigest.getInstance(SECRET_KEY_HASH_TRANSFORMATION);
         md.reset();
         return md.digest(key.getBytes(CHARSET));
     }
-
 
     private String toKey(String key) {
         if (encryptKeys) {
@@ -154,17 +132,12 @@ final class SecurePreferences
         }
     }
 
-
     private void putValue(String key, String value) throws SecurePreferencesException {
         String secureValueEncoded = encrypt(value, writer);
-        preferences.edit()
-                .putString(key, secureValueEncoded)
-                .apply();
+        preferences.edit().putString(key, secureValueEncoded).apply();
     }
 
-
-    private String encrypt(String value, Cipher writer)
-            throws SecurePreferencesException {
+    private String encrypt(String value, Cipher writer) throws SecurePreferencesException {
         byte[] secureValue;
         try {
             secureValue = convert(writer, value.getBytes(CHARSET));
@@ -173,7 +146,6 @@ final class SecurePreferences
         }
         return Base64.encodeToString(secureValue, Base64.NO_WRAP);
     }
-
 
     private String decrypt(String securedEncodedValue) {
         byte[] securedValue = Base64.decode(securedEncodedValue, Base64.NO_WRAP);
@@ -185,29 +157,22 @@ final class SecurePreferences
         }
     }
 
-
     public void put(String key, String value) {
         if (value == null) {
-            preferences.edit()
-                    .remove(toKey(key))
-                    .apply();
+            preferences.edit().remove(toKey(key)).apply();
         } else {
             putValue(toKey(key), value);
         }
     }
 
-
-    @SuppressWarnings("unused") public boolean containsKey(String key) {
+    @SuppressWarnings("unused")
+    public boolean containsKey(String key) {
         return preferences.contains(toKey(key));
     }
 
-
     public void removeValue(String key) {
-        preferences.edit()
-                .remove(toKey(key))
-                .apply();
+        preferences.edit().remove(toKey(key)).apply();
     }
-
 
     public String getString(String key) throws SecurePreferencesException {
         if (preferences.contains(toKey(key))) {
@@ -218,18 +183,16 @@ final class SecurePreferences
     }
 
 
-    @SuppressWarnings("unused") public void clear() {
-        preferences.edit()
-                .clear()
-                .apply();
+    @SuppressWarnings("unused")
+    public void clear() {
+        preferences.edit().clear().apply();
     }
 
 
-    @Override public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
-            String key) {
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         if (listeners.containsKey(key)) {
-            listeners.get(key)
-                    .onSharedPreferenceChanged(sharedPreferences, key);
+            listeners.get(key).onSharedPreferenceChanged(sharedPreferences, key);
         }
     }
 
@@ -239,12 +202,11 @@ final class SecurePreferences
      * preference.
      *
      * @param key      Preference key for which the specified callback should be
-     *                    registered to
+     *                 registered to
      * @param listener The callback that will run.
      * @see #unregisterOnSharedPreferenceChangeListener
      */
-    void registerOnSharedPreferenceChangeListener(String key,
-            SharedPreferences.OnSharedPreferenceChangeListener listener) {
+    void registerOnSharedPreferenceChangeListener(String key, SharedPreferences.OnSharedPreferenceChangeListener listener) {
         listeners.put(toKey(key), listener);
     }
 
@@ -261,7 +223,7 @@ final class SecurePreferences
 
     public static class SecurePreferencesException extends RuntimeException {
 
-        public SecurePreferencesException(Throwable e) {
+        SecurePreferencesException(Throwable e) {
             super(e);
         }
     }
