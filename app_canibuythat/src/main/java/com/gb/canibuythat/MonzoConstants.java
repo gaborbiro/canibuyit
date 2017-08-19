@@ -15,12 +15,12 @@ public class MonzoConstants {
 
     public static final String MONZO_AUTH_SCHEME = "https";
     public static final String MONZO_AUTH_AUTHORITY = "canibuythat.com";
-    public static final String MONZO_AUTH_PATH_BASE = "/auth";
-    public static final String MONZO_AUTH_PATH_CALLBACK = "/callback";
+    public static final String MONZO_AUTH_PATH_BASE = "auth";
+    public static final String MONZO_AUTH_PATH_CALLBACK = "callback";
 
-    public static final String MONZO_URI_AUTH_BASE = MONZO_AUTH_SCHEME + "://" + MONZO_AUTH_AUTHORITY + MONZO_AUTH_PATH_BASE;
+    public static final String MONZO_URI_AUTH_BASE = MONZO_AUTH_SCHEME + "://" + MONZO_AUTH_AUTHORITY + "/" + MONZO_AUTH_PATH_BASE;
 
-    public static final String MONZO_URI_AUTH_CALLBACK = MONZO_URI_AUTH_BASE + MONZO_AUTH_PATH_CALLBACK;
+    public static final String MONZO_URI_AUTH_CALLBACK = MONZO_URI_AUTH_BASE + "/" + MONZO_AUTH_PATH_CALLBACK;
 
     // Api
 

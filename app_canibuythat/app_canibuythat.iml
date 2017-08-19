@@ -124,7 +124,7 @@
     <orderEntry type="library" exported="" name="javax.inject-1" level="project" />
     <orderEntry type="library" exported="" name="gson-2.7" level="project" />
     <orderEntry type="library" exported="" name="eventbus-3.0.0" level="project" />
-    <orderEntry type="library" exported="" name="okhttp-3.8.0" level="project" />
+    <orderEntry type="library" exported="" name="okhttp-3.8.1" level="project" />
     <orderEntry type="library" exported="" name="ormlite-core-4.48" level="project" />
     <orderEntry type="library" exported="" name="support-compat-25.3.0" level="project" />
     <orderEntry type="library" exported="" name="support-v4-25.3.0" level="project" />
@@ -133,6 +133,7 @@
     <orderEntry type="library" exported="" name="support-media-compat-25.3.0" level="project" />
     <orderEntry type="library" exported="" scope="TEST" name="junit-4.12" level="project" />
     <orderEntry type="library" exported="" name="butterknife-8.5.1" level="project" />
+    <orderEntry type="library" exported="" name="logging-interceptor-3.8.1" level="project" />
     <orderEntry type="library" exported="" name="recyclerview-v7-25.3.0" level="project" />
     <orderEntry type="library" exported="" name="appcompat-v7-25.3.0" level="project" />
     <orderEntry type="library" exported="" scope="TEST" name="powermock-module-junit4-1.6.2" level="project" />

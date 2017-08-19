@@ -1,6 +1,6 @@
 package com.gb.canibuythat.interactor;
 
-import com.gb.canibuythat.exception.DomainException;
+import com.gb.canibuythat.exception.MonzoException;
 import com.gb.canibuythat.model.Login;
 import com.gb.canibuythat.repository.LoginRepository;
 import com.gb.canibuythat.rx.SchedulerProvider;
@@ -22,7 +22,7 @@ public class LoginInteractor {
 
     public Single<Login> login(String authorizationCode) {
         return loginRepository.login(authorizationCode)
-                .onErrorResumeNext(throwable -> Single.error(new DomainException(throwable)))
+                .onErrorResumeNext(throwable -> Single.error(new MonzoException(throwable)))
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread());
     }

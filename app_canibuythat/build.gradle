@@ -37,7 +37,7 @@ final RETROFIT_RXJAVA2='2.3.0'
 final RXJAVA='2.1.0'
 final RXANDROID='2.0.1'
 final LOMBOK='1.16.14'
-
+final OK_HTTP='3.8.1'
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
@@ -81,6 +81,8 @@ dependencies {
     compile "com.squareup.retrofit2:retrofit:${RETROFIT}"
     compile "com.squareup.retrofit2:converter-gson:${RETROFIT}"
     compile "com.squareup.retrofit2:adapter-rxjava2:${RETROFIT_RXJAVA2}"
+
+    compile "com.squareup.okhttp3:logging-interceptor:${OK_HTTP}"
 
     // RxJava2
     compile "io.reactivex.rxjava2:rxjava:${RXJAVA}"

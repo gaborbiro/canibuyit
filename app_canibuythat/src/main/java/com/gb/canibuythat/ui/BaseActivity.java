@@ -45,10 +45,10 @@ public abstract class BaseActivity extends AppCompatActivity {
                     Toast.makeText(this, "HTTP error (" + domainException.getCode() + "): " + domainException.getMessage(), Toast.LENGTH_LONG).show();
                     break;
                 case NETWORK:
-                    Toast.makeText(this, "NETWORK error" + exception.getMessage(), Toast.LENGTH_LONG).show();
+                    Toast.makeText(this, "NETWORK error: " + exception.getMessage(), Toast.LENGTH_LONG).show();
                     break;
                 case GENERIC:
-                    Toast.makeText(this, "GENERIC error" + exception.getMessage(), Toast.LENGTH_LONG).show();
+                    Toast.makeText(this, "GENERIC error " + exception.getMessage(), Toast.LENGTH_LONG).show();
                     break;
             }
         }

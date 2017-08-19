@@ -1,9 +1,14 @@
 package com.gb.canibuythat.exception;
 
+import com.gb.canibuythat.api.model.MonzoErrorResponse;
+import com.google.gson.Gson;
+
 import java.io.IOException;
 
 import okhttp3.ResponseBody;
+import retrofit2.Converter;
 import retrofit2.HttpException;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class DomainException extends Throwable {
 
@@ -12,7 +17,7 @@ public class DomainException extends Throwable {
     private DomainException.KIND kind;
 
     public DomainException(Throwable raw) {
-        this(raw.getMessage(), raw.getCause());
+        this(raw.getMessage(), raw);
     }
 
     public DomainException(String message) {
