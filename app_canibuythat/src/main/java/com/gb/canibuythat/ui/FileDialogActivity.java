@@ -187,7 +187,7 @@ public class FileDialogActivity extends ListActivity {
             ViewHolder holder;
 
             if (convertView == null) {
-                view = LayoutInflater.from(getContext()).inflate(R.layout.file_picker_list_item, parent, false);
+                view = LayoutInflater.from(getContext()).inflate(R.layout.list_item_file_picker, parent, false);
                 holder = new ViewHolder();
                 holder.mIcon = (ImageView) view.findViewById(R.id.icon);
                 holder.mFilename = (TextView) view.findViewById(R.id.file_name);

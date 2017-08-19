@@ -14,7 +14,7 @@ public class DatabaseImportTask extends AsyncTask<Void, Void, Void> {
 
     private String path;
 
-    public DatabaseImportTask(String path) {
+    protected DatabaseImportTask(String path) {
         this.path = path;
     }
 

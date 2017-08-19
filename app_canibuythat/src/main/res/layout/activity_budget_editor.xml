@@ -3,5 +3,5 @@
     android:id="@+id/budgetmodifier_detail_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.BudgetItemEditorActivity"
+    tools:context=".ui.BudgetEditorActivity"
     tools:ignore="MergeRootFrame" />

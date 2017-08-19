@@ -1,7 +1,6 @@
 package com.gb.canibuythat.ui;
 
 import android.app.DatePickerDialog;
-import android.app.Fragment;
 import android.database.sqlite.SQLiteConstraintException;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -41,15 +40,14 @@ import com.j256.ormlite.dao.Dao;
 import java.util.Calendar;
 import java.util.Date;
 
-import butterknife.ButterKnife;
-import butterknife.InjectView;
+import butterknife.BindView;
 
 /**
  * A fragment representing a single BudgetModifier detail screen. This fragment is either
- * contained in a {@link BudgetItemListActivity} in two-pane mode (on tablets) or a
- * {@link BudgetItemEditorActivity} on handsets.
+ * contained in a {@link MainActivity} in two-pane mode (on tablets) or a
+ * {@link BudgetEditorActivity} on handsets.
  */
-public class BudgetItemEditorFragment extends Fragment {
+public class BudgetEditorFragment extends BaseFragment {
 
     public static final String EXTRA_ITEM_ID = "budget_item_id";
 
@@ -65,17 +63,17 @@ public class BudgetItemEditorFragment extends Fragment {
         DEFAULT_FIRST_OCCURRENCE_START = c.getTime();
     }
 
-    @InjectView(R.id.name) EditText nameView;
-    @InjectView(R.id.amount) EditText amountView;
-    @InjectView(R.id.enabled) CheckBox enabledView;
-    @InjectView(R.id.category) Spinner categoryView;
-    @InjectView(R.id.first_occurence_start) Button firstOccurrenceStartView;
-    @InjectView(R.id.first_occurence_end) Button firstOccurrenceEndView;
-    @InjectView(R.id.occurence_count) EditText occurrenceLimitView;
-    @InjectView(R.id.period_multiplier) EditText periodMultiplierView;
-    @InjectView(R.id.period_type) Spinner periodTypeView;
-    @InjectView(R.id.notes) EditText notesView;
-    @InjectView(R.id.spending_events) TextView spendingEventsView;
+    @BindView(R.id.name) EditText nameView;
+    @BindView(R.id.amount) EditText amountView;
+    @BindView(R.id.enabled) CheckBox enabledView;
+    @BindView(R.id.category) Spinner categoryView;
+    @BindView(R.id.first_occurence_start) Button firstOccurrenceStartView;
+    @BindView(R.id.first_occurence_end) Button firstOccurrenceEndView;
+    @BindView(R.id.occurence_count) EditText occurrenceLimitView;
+    @BindView(R.id.period_multiplier) EditText periodMultiplierView;
+    @BindView(R.id.period_type) Spinner periodTypeView;
+    @BindView(R.id.notes) EditText notesView;
+    @BindView(R.id.spending_events) TextView spendingEventsView;
 
     private BudgetItem originalBudgetItem;
     private boolean firstOccurrenceStartDateChanged;
@@ -94,7 +92,7 @@ public class BudgetItemEditorFragment extends Fragment {
             return false;
         }
     };
-    private DatePickerDialog.OnDateSetListener mDateSetListener = new DatePickerDialog.OnDateSetListener() {
+    private DatePickerDialog.OnDateSetListener dateSetListener = new DatePickerDialog.OnDateSetListener() {
 
         @Override
         public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
@@ -111,7 +109,7 @@ public class BudgetItemEditorFragment extends Fragment {
 
                     if (firstOccurrenceEnd.getTime() < c.getTime().getTime()) {
                         firstOccurrenceEndPickerDialog = new DatePickerDialog(getActivity(),
-                                mDateSetListener, c.get(Calendar.YEAR),
+                                dateSetListener, c.get(Calendar.YEAR),
                                 c.get(Calendar.MONTH),
                                 c.get(Calendar.DAY_OF_MONTH));
                         applyFirstOccurrenceEndToScreen(c.getTime());
@@ -124,7 +122,7 @@ public class BudgetItemEditorFragment extends Fragment {
 
                     if (firstOccurrenceStart.getTime() > c.getTime().getTime()) {
                         firstOccurrenceStartPickerDialog = new DatePickerDialog(getActivity(),
-                                mDateSetListener, c.get(Calendar.YEAR),
+                                dateSetListener, c.get(Calendar.YEAR),
                                 c.get(Calendar.MONTH),
                                 c.get(Calendar.DAY_OF_MONTH));
                         applyFirstOccurrenceStartToScreen(c.getTime());
@@ -134,7 +132,7 @@ public class BudgetItemEditorFragment extends Fragment {
             }
         }
     };
-    private View.OnClickListener mDatePickerOnClickListener = new View.OnClickListener() {
+    private View.OnClickListener datePickerOnClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             switch (v.getId()) {
@@ -158,8 +156,12 @@ public class BudgetItemEditorFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        rootView = (ViewGroup) inflater.inflate(R.layout.fragment_budget_item_editor, container, false);
-        ButterKnife.inject(this, rootView);
+        return inflater.inflate(R.layout.fragment_budget_editor, container, false);
+    }
+
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
 
         categoryView.setAdapter(new PlusOneAdapter(BudgetItem.BudgetItemType.values()));
         categoryView.setOnTouchListener(keyboardDismisser);
@@ -179,9 +181,9 @@ public class BudgetItemEditorFragment extends Fragment {
             }
         });
 
-        firstOccurrenceStartView.setOnClickListener(mDatePickerOnClickListener);
+        firstOccurrenceStartView.setOnClickListener(datePickerOnClickListener);
         firstOccurrenceStartView.setOnTouchListener(keyboardDismisser);
-        firstOccurrenceEndView.setOnClickListener(mDatePickerOnClickListener);
+        firstOccurrenceEndView.setOnClickListener(datePickerOnClickListener);
         firstOccurrenceEndView.setOnTouchListener(keyboardDismisser);
 
         if (savedInstanceState != null) {
@@ -192,7 +194,6 @@ public class BudgetItemEditorFragment extends Fragment {
         } else {
             setContent(null, true);
         }
-        return rootView;
     }
 
     private class PlusOneAdapter extends ArrayAdapter {
@@ -228,7 +229,7 @@ public class BudgetItemEditorFragment extends Fragment {
             new BudgetItemReadTask(budgetItemId, new Callback<BudgetItem>() {
                 @Override
                 public void onSuccess(BudgetItem budgetItem) {
-                    BudgetItemEditorFragment.this.originalBudgetItem = budgetItem;
+                    BudgetEditorFragment.this.originalBudgetItem = budgetItem;
                     firstOccurrenceEndPickerDialog = null;
                     firstOccurrenceStartPickerDialog = null;
                     applyBudgetItemToScreen(budgetItem);
@@ -333,7 +334,7 @@ public class BudgetItemEditorFragment extends Fragment {
 
                 @Override
                 public void onSuccess(Dao.CreateOrUpdateStatus result) {
-                    BudgetItemEditorFragment.this.originalBudgetItem = newBudgetItem;
+                    BudgetEditorFragment.this.originalBudgetItem = newBudgetItem;
                     deleteButton.setVisible(true);
                     loadSpendingOccurrences(newBudgetItem);
                     Toast.makeText(App.getAppContext(), "BudgetItem saved", Toast.LENGTH_SHORT).show();
@@ -438,7 +439,7 @@ public class BudgetItemEditorFragment extends Fragment {
             c.setTime(this.originalBudgetItem.firstOccurrenceStart);
         }
         if (firstOccurrenceStartPickerDialog == null) {
-            firstOccurrenceStartPickerDialog = new DatePickerDialog(getActivity(), mDateSetListener,
+            firstOccurrenceStartPickerDialog = new DatePickerDialog(getActivity(), dateSetListener,
                     c.get(Calendar.YEAR), c.get(Calendar.MONTH),
                     c.get(Calendar.DAY_OF_MONTH));
             firstOccurrenceStartPickerDialog.getDatePicker().setTag(R.id.first_occurence_start);
@@ -452,7 +453,7 @@ public class BudgetItemEditorFragment extends Fragment {
             c.setTime(this.originalBudgetItem.firstOccurrenceEnd);
         }
         if (firstOccurrenceEndPickerDialog == null) {
-            firstOccurrenceEndPickerDialog = new DatePickerDialog(getActivity(), mDateSetListener,
+            firstOccurrenceEndPickerDialog = new DatePickerDialog(getActivity(), dateSetListener,
                     c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH));
             firstOccurrenceEndPickerDialog.getDatePicker().setTag(R.id.first_occurence_end);
         }

@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/selector"
-    tools:context=".ui.BudgetItemListActivity">
+    tools:context=".ui.MainActivity">
 
     <ImageView
         android:id="@+id/drag_n_drop_handle"

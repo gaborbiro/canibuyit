@@ -29,12 +29,12 @@ import com.gb.canibuythat.ui.task.budget_item.MoveToIndexTask;
  * tablet devices by allowing list
  * items to be given an 'activated' state upon selection. This helps indicate which
  * item is currently being viewed in a
- * {@link BudgetItemEditorFragment}.
+ * {@link BudgetEditorFragment}.
  * <p/>
  * Activities containing this fragment MUST implement the {@link FragmentCallback}
  * interface.
  */
-public class BudgetItemListFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>, AdapterView.OnItemClickListener, DragNDropListView.OnItemDragNDropListener {
+public class BudgetListFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>, AdapterView.OnItemClickListener, DragNDropListView.OnItemDragNDropListener {
 
     /**
      * A dummy implementation of the {@link FragmentCallback} interface that does
@@ -55,13 +55,13 @@ public class BudgetItemListFragment extends Fragment implements LoaderManager.Lo
      * Mandatory empty constructor for the fragment manager to instantiate the fragment
      * (e.g. upon screen orientation changes).
      */
-    public BudgetItemListFragment() {
+    public BudgetListFragment() {
     }
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View root = inflater.inflate(R.layout.fragment_budget_item_list, container, false);
+        View root = inflater.inflate(R.layout.fragment_budget_list, container, false);
         list = (DragNDropListView) root.findViewById(android.R.id.list);
         list.setOnItemDragNDropListener(this);
         list.setOnItemClickListener(this);
@@ -76,7 +76,7 @@ public class BudgetItemListFragment extends Fragment implements LoaderManager.Lo
 
     private DragNDropCursorAdapter getListAdapter() {
         if (adapter == null) {
-            adapter = new BudgetItemListAdapter(getActivity(), null);
+            adapter = new BudgetListAdapter(getActivity(), null);
 
             if (list != null) {
                 list.setDragNDropAdapter(adapter);

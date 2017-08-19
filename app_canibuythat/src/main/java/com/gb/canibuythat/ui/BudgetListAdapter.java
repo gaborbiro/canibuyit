@@ -12,11 +12,11 @@ import com.gb.canibuythat.model.BudgetItem;
 import com.gb.canibuythat.provider.Contract;
 import com.gb.canibuythat.ui.dragndroplist.DragNDropCursorAdapter;
 
-class BudgetItemListAdapter extends DragNDropCursorAdapter
+class BudgetListAdapter extends DragNDropCursorAdapter
         implements SimpleCursorAdapter.ViewBinder {
 
-    BudgetItemListAdapter(Context context, Cursor c) {
-        super(context, R.layout.budget_item_list_item, c,
+    BudgetListAdapter(Context context, Cursor c) {
+        super(context, R.layout.budget_list_item, c,
                 new String[]{Contract.BudgetItem.NAME, Contract.BudgetItem.AMOUNT},
                 new int[]{R.id.name, R.id.amount_repetition}, R.id.drag_n_drop_handle);
         setViewBinder(this);

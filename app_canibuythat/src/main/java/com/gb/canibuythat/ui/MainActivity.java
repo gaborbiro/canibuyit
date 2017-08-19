@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.NonNull;
-import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ImageView;
@@ -29,30 +28,28 @@ import com.gb.canibuythat.util.ViewUtils;
 import java.util.Calendar;
 import java.util.Date;
 
-import butterknife.ButterKnife;
-import butterknife.InjectView;
-import butterknife.Optional;
+import butterknife.BindView;
 
 /**
  * An activity representing a list of BudgetModifiers. This activity has different
  * presentations for handset and tablet-size devices. On handsets, the activity
  * presents a list of items, which when touched, lead to a
- * {@link BudgetItemEditorActivity} representing item details. On tablets, the activity
+ * {@link BudgetEditorActivity} representing item details. On tablets, the activity
  * presents the list of items and item details side-by-side using two vertical panes. <p/>
  * The activity makes heavy use of fragments. The list of items is a
- * {@link BudgetItemListFragment} and the item details (if present) is a {@link BudgetItemEditorFragment}. <p/>
+ * {@link BudgetListFragment} and the item details (if present) is a {@link BudgetEditorFragment}. <p/>
  * This activity also implements the required
- * {@link BudgetItemListFragment.FragmentCallback}
+ * {@link BudgetListFragment.FragmentCallback}
  * interface to listen for item selections.
  */
-public class BudgetItemListActivity extends AppCompatActivity implements BudgetItemListFragment.FragmentCallback, BalanceReadingInputDialog.BalanceReadingInputListener {
+public class MainActivity extends BaseActivity implements BudgetListFragment.FragmentCallback, BalanceReadingInputDialog.BalanceReadingInputListener {
 
     private static final int REQUEST_CODE_CHOOSE_FILE = 1;
     private static final int REQUEST_CODE_PERMISSIONS_FOR_DB_EXPORT = 2;
 
-    @Optional @InjectView(R.id.estimate_at_time) TextView estimateAtTimeView;
-    @Optional @InjectView(R.id.reference) TextView referenceView;
-    @Optional @InjectView(R.id.chart_button) ImageView chartButton;
+    @BindView(R.id.estimate_at_time) TextView estimateAtTimeView;
+    @BindView(R.id.reference) TextView referenceView;
+    @BindView(R.id.chart_button) ImageView chartButton;
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet device.
      */
@@ -63,8 +60,7 @@ public class BudgetItemListActivity extends AppCompatActivity implements BudgetI
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_budget_item_list);
-        ButterKnife.inject(this);
+        setContentView(R.layout.activity_main);
 
         if (findViewById(R.id.budgetmodifier_detail_container) != null) {
             twoPane = true;
@@ -72,11 +68,11 @@ public class BudgetItemListActivity extends AppCompatActivity implements BudgetI
         if (chartButton != null) {
             ChartActivity.launchOnClick(this, chartButton);
         }
-        new CalculateBalanceTask(mBalanceCalculatorCallback).execute();
+        new CalculateBalanceTask(balanceCalculatorCallback).execute();
     }
 
     /**
-     * Callback method from {@link BudgetItemListFragment.FragmentCallback} indicating
+     * Callback method from {@link BudgetListFragment.FragmentCallback} indicating
      * that the budget item with the given database ID was selected.
      */
     @Override
@@ -119,11 +115,11 @@ public class BudgetItemListActivity extends AppCompatActivity implements BudgetI
 
     @Override
     public void onBackPressed() {
-        final BudgetItemEditorFragment detailFragment = (BudgetItemEditorFragment) getFragmentManager().findFragmentById(R.id.budgetmodifier_detail_container);
+        final BudgetEditorFragment detailFragment = (BudgetEditorFragment) getFragmentManager().findFragmentById(R.id.budgetmodifier_detail_container);
         if (detailFragment != null) {
-            detailFragment.saveAndRun(BudgetItemListActivity.super::onBackPressed);
+            detailFragment.saveAndRun(MainActivity.super::onBackPressed);
         } else {
-            BudgetItemListActivity.super.onBackPressed();
+            MainActivity.super.onBackPressed();
         }
     }
 
@@ -135,7 +131,7 @@ public class BudgetItemListActivity extends AppCompatActivity implements BudgetI
     }
 
 //    @Subscribe public void onEvent(BudgetItemUpdatedEvent event) {
-//        new CalculateBalanceTask(mBalanceCalculatorCallback).execute();
+//        new CalculateBalanceTask(balanceCalculatorCallback).execute();
 //    }
 
     /**
@@ -146,7 +142,7 @@ public class BudgetItemListActivity extends AppCompatActivity implements BudgetI
     public void onBalanceReadingSet(BalanceReading balanceReading) {
         UserPreferences.setBalanceReading(balanceReading);
         UserPreferences.setEstimateDate(null);
-        new CalculateBalanceTask(mBalanceCalculatorCallback).execute();
+        new CalculateBalanceTask(balanceCalculatorCallback).execute();
     }
 
     @Override
@@ -158,7 +154,7 @@ public class BudgetItemListActivity extends AppCompatActivity implements BudgetI
                     new DatabaseImportTask(path) {
                         @Override
                         protected void onPostExecute(Void aVoid) {
-                            new CalculateBalanceTask(mBalanceCalculatorCallback).execute();
+                            new CalculateBalanceTask(balanceCalculatorCallback).execute();
                         }
                     }.execute();
                 }
@@ -199,31 +195,31 @@ public class BudgetItemListActivity extends AppCompatActivity implements BudgetI
      */
     private void showEditorScreen(final Integer budgetItemId) {
         if (twoPane) {
-            final BudgetItemEditorFragment budgetItemEditorFragment =
-                    (BudgetItemEditorFragment) getFragmentManager().findFragmentById(R.id.budgetmodifier_detail_container);
-            if (budgetItemEditorFragment == null || !budgetItemEditorFragment.isAdded()) {
-                BudgetItemEditorFragment detailFragment = new BudgetItemEditorFragment();
+            final BudgetEditorFragment budgetEditorFragment =
+                    (BudgetEditorFragment) getFragmentManager().findFragmentById(R.id.budgetmodifier_detail_container);
+            if (budgetEditorFragment == null || !budgetEditorFragment.isAdded()) {
+                BudgetEditorFragment detailFragment = new BudgetEditorFragment();
 
                 if (budgetItemId != null) {
                     Bundle arguments = new Bundle();
-                    arguments.putInt(BudgetItemEditorFragment.EXTRA_ITEM_ID, budgetItemId);
+                    arguments.putInt(BudgetEditorFragment.EXTRA_ITEM_ID, budgetItemId);
                     detailFragment.setArguments(arguments);
                 }
                 getFragmentManager().beginTransaction().replace(R.id.budgetmodifier_detail_container, detailFragment).commit();
             } else {
                 // if a detail fragment is already visible
-                budgetItemEditorFragment.saveAndRun(() -> budgetItemEditorFragment.setContent(budgetItemId, false));
+                budgetEditorFragment.saveAndRun(() -> budgetEditorFragment.setContent(budgetItemId, false));
             }
         } else {
             if (budgetItemId != null) {
-                startActivity(BudgetItemEditorActivity.getIntentForUpdate(budgetItemId));
+                startActivity(BudgetEditorActivity.getIntentForUpdate(budgetItemId));
             } else {
-                startActivity(BudgetItemEditorActivity.getIntentForCreate());
+                startActivity(BudgetEditorActivity.getIntentForCreate());
             }
         }
     }
 
-    private Callback<CalculateBalanceTask.BalanceResult> mBalanceCalculatorCallback = new Callback<CalculateBalanceTask.BalanceResult>() {
+    private Callback<CalculateBalanceTask.BalanceResult> balanceCalculatorCallback = new Callback<CalculateBalanceTask.BalanceResult>() {
         @Override
         public void onSuccess(CalculateBalanceTask.BalanceResult data) {
             setBalanceInfo(data.balanceReading, data.bestCaseBalance, data.worstCaseBalance);
@@ -270,14 +266,14 @@ public class BudgetItemListActivity extends AppCompatActivity implements BudgetI
                     DateUtils.clearLowerBits(c);
                     UserPreferences.setEstimateDate(c.getTime());
                 } else {
-                    Toast.makeText(BudgetItemListActivity.this,
+                    Toast.makeText(MainActivity.this,
                             "Please set a date after the last balance " + "reading! (" + balanceReading.when + ")", Toast.LENGTH_SHORT).show();
                 }
             }
-            new CalculateBalanceTask(mBalanceCalculatorCallback).execute();
+            new CalculateBalanceTask(balanceCalculatorCallback).execute();
         };
 
-        DatePickerDialog datePickerDialog = DateUtils.getDatePickerDialog(BudgetItemListActivity.this, listener, UserPreferences.getEstimateDate());
+        DatePickerDialog datePickerDialog = DateUtils.getDatePickerDialog(MainActivity.this, listener, UserPreferences.getEstimateDate());
         datePickerDialog.show();
     };
 }

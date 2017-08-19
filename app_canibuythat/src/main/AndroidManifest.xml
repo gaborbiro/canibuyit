@@ -12,7 +12,7 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".ui.BudgetItemListActivity"
+            android:name=".ui.MainActivity"
             android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -21,12 +21,12 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ui.BudgetItemEditorActivity"
+            android:name=".ui.BudgetEditorActivity"
             android:label="@string/title_budgetmodifier_detail"
-            android:parentActivityName=".ui.BudgetItemListActivity">
+            android:parentActivityName=".ui.MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".ui.BudgetItemListActivity"/>
+                android:value=".ui.MainActivity"/>
         </activity>
 
         <provider

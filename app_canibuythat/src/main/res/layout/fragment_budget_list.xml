@@ -16,7 +16,7 @@
             android:drawSelectorOnTop="true"
             android:scrollbars="vertical"
             tools:context=".ui.SongListActivity"
-            tools:listitem="@layout/budget_item_list_item"/>
+            tools:listitem="@layout/budget_list_item"/>
     </FrameLayout>
 
 </FrameLayout>
