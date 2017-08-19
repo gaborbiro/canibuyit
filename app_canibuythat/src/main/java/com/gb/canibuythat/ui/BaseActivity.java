@@ -6,11 +6,14 @@ import android.support.v7.app.AppCompatActivity;
 import android.widget.Toast;
 
 import com.gb.canibuythat.exception.DomainException;
+import com.gb.canibuythat.util.Logger;
 
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
 
 public abstract class BaseActivity extends AppCompatActivity {
+
+    private static final String TAG = "CanIBuyThat";
 
     private Unbinder unbinder;
 
@@ -34,17 +37,23 @@ public abstract class BaseActivity extends AppCompatActivity {
         super.onDestroy();
     }
 
-    protected void showError(DomainException exception) {
-        switch (exception.getKind()) {
-            case HTTP:
-                Toast.makeText(this, "HTTP error (" + exception.getCode() + "): " + exception.getMessage(), Toast.LENGTH_LONG);
-                break;
-            case NETWORK:
-                Toast.makeText(this, "NETWORK error" + exception.getMessage(), Toast.LENGTH_LONG);
-                break;
-            case GENERIC:
-                Toast.makeText(this, "GENERIC error" + exception.getMessage(), Toast.LENGTH_LONG);
-                break;
+    protected void showError(Throwable exception) {
+        if (exception instanceof DomainException) {
+            DomainException domainException = (DomainException) exception;
+            switch (domainException.getKind()) {
+                case HTTP:
+                    Toast.makeText(this, "HTTP error (" + domainException.getCode() + "): " + domainException.getMessage(), Toast.LENGTH_LONG).show();
+                    break;
+                case NETWORK:
+                    Toast.makeText(this, "NETWORK error" + exception.getMessage(), Toast.LENGTH_LONG).show();
+                    break;
+                case GENERIC:
+                    Toast.makeText(this, "GENERIC error" + exception.getMessage(), Toast.LENGTH_LONG).show();
+                    break;
+            }
+        }
+        if (exception.getCause() != null) {
+            Logger.e(TAG, exception.getMessage(), exception.getCause());
         }
     }
 

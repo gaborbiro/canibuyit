@@ -12,16 +12,24 @@ public class DomainException extends Throwable {
     private DomainException.KIND kind;
 
     public DomainException(Throwable raw) {
-        super(raw.getMessage());
+        this(raw.getMessage(), raw.getCause());
+    }
+
+    public DomainException(String message) {
+        this(message, null);
+    }
+
+    public DomainException(String message, Throwable cause) {
+        super(message, cause);
         this.code = -1;
         this.kind = DomainException.KIND.GENERIC;
 
-        if (raw instanceof HttpException) {
+        if (cause instanceof HttpException) {
             this.kind = DomainException.KIND.HTTP;
-            this.code = ((HttpException) raw).code();
-            this.responseBody = ((HttpException) raw).response().errorBody();
+            this.code = ((HttpException) cause).code();
+            this.responseBody = ((HttpException) cause).response().errorBody();
         }
-        if (raw instanceof IOException) {
+        if (cause instanceof IOException) {
             this.kind = DomainException.KIND.NETWORK;
         }
     }

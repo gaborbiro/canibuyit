@@ -10,6 +10,7 @@ import android.widget.Toast;
 
 import com.gb.canibuythat.R;
 import com.gb.canibuythat.UserPreferences;
+import com.gb.canibuythat.di.Injector;
 import com.gb.canibuythat.model.BudgetItem;
 import com.gb.canibuythat.provider.BalanceCalculator;
 import com.gb.canibuythat.provider.BudgetDbHelper;
@@ -38,7 +39,12 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-public class ChartActivity extends Activity implements OnChartValueSelectedListener {
+import javax.inject.Inject;
+
+public class ChartActivity extends BaseActivity implements OnChartValueSelectedListener {
+
+    @Inject BudgetDbHelper budgetDbHelper;
+    @Inject UserPreferences userPreferences;
 
     private static SimpleDateFormat MONTH_ONLY = new SimpleDateFormat("MMM.dd");
     private static SimpleDateFormat MONTH_YEAR = new SimpleDateFormat("yyyy.MMM");
@@ -82,9 +88,14 @@ public class ChartActivity extends Activity implements OnChartValueSelectedListe
     }
 
     @Override
+    protected void inject() {
+        Injector.INSTANCE.getGraph().inject(this);
+    }
+
+    @Override
     public void onValueSelected(Entry e, int dataSetIndex, Highlight h) {
         ProjectionItem projectionItem = (ProjectionItem) e.getData();
-        final Date estimateDate = UserPreferences.getEstimateDate();
+        final Date estimateDate = userPreferences.getEstimateDate();
         String readingDateStr = estimateDate != null ? DateUtils.FORMAT_MONTH_DAY.format(estimateDate) : getString(R.string.today);
         Toast.makeText(this, getString(R.string.estimate_at_time, projectionItem.bestCase,
                 projectionItem.worstCase, readingDateStr), Toast.LENGTH_SHORT).show();
@@ -112,12 +123,11 @@ public class ChartActivity extends Activity implements OnChartValueSelectedListe
 
         @Override
         protected ProjectionItem[] doInBackground(Void... params) {
-            BudgetDbHelper helper = BudgetDbHelper.get();
             Calendar currTarget = Calendar.getInstance();
             Calendar oneYearLater = Calendar.getInstance();
             oneYearLater.add(Calendar.YEAR, 1);
             try {
-                BalanceReading balanceReading = UserPreferences.getBalanceReading();
+                BalanceReading balanceReading = userPreferences.getBalanceReading();
                 Date startDate;
 
                 if (balanceReading != null) {
@@ -127,7 +137,7 @@ public class ChartActivity extends Activity implements OnChartValueSelectedListe
                 } else {
                     startDate = null;
                 }
-                Dao<BudgetItem, Integer> budgetItemDao = helper.getDao(com.gb.canibuythat.model.BudgetItem.class);
+                Dao<BudgetItem, Integer> budgetItemDao = budgetDbHelper.getDao(com.gb.canibuythat.model.BudgetItem.class);
                 List<ProjectionItem> result = new ArrayList<>();
 
                 do {

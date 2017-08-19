@@ -11,8 +11,12 @@ import android.net.Uri;
 import android.provider.BaseColumns;
 import android.text.TextUtils;
 
+import com.gb.canibuythat.di.Injector;
+
 import java.util.Arrays;
 import java.util.HashSet;
+
+import javax.inject.Inject;
 
 public class BudgetProvider extends ContentProvider {
 
@@ -35,7 +39,7 @@ public class BudgetProvider extends ContentProvider {
             .appendPath(PATH_BUDGET_ITEM)
             .build();
 
-    private BudgetDbHelper dbHelper;
+    @Inject BudgetDbHelper dbHelper;
 
     private static final UriMatcher uriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
 
@@ -46,7 +50,7 @@ public class BudgetProvider extends ContentProvider {
 
     @Override
     public boolean onCreate() {
-        dbHelper = BudgetDbHelper.get();
+        Injector.INSTANCE.getGraph().inject(this);
         return true;
     }
 

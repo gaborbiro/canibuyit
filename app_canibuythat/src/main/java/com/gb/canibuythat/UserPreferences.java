@@ -5,21 +5,32 @@ import com.gb.canibuythat.util.PrefsUtil;
 
 import java.util.Date;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
+@Singleton
 public class UserPreferences {
+
+    PrefsUtil prefsUtil;
 
     private static final String PREF_ESTIMATE_DATE = "PREF_ESTIMATE_DATE";
     private static final String PREF_READING = "PREF_READING";
 
-    public static void setEstimateDate(Date date) {
+    @Inject
+    public UserPreferences(PrefsUtil prefsUtil) {
+        this.prefsUtil = prefsUtil;
+    }
+
+    public void setEstimateDate(Date date) {
         if (date != null) {
-            PrefsUtil.put(PREF_ESTIMATE_DATE, date.getTime());
+            prefsUtil.put(PREF_ESTIMATE_DATE, date.getTime());
         } else {
-            PrefsUtil.remove(PREF_ESTIMATE_DATE);
+            prefsUtil.remove(PREF_ESTIMATE_DATE);
         }
     }
 
-    public static Date getEstimateDate() {
-        long estimateDate = PrefsUtil.get(PREF_ESTIMATE_DATE, -1L);
+    public Date getEstimateDate() {
+        long estimateDate = prefsUtil.get(PREF_ESTIMATE_DATE, -1L);
 
         if (estimateDate == -1L) {
             return null;
@@ -28,15 +39,15 @@ public class UserPreferences {
         }
     }
 
-    public static void setBalanceReading(BalanceReading reading) {
+    public void setBalanceReading(BalanceReading reading) {
         if (reading != null) {
-            PrefsUtil.put(PREF_READING, reading);
+            prefsUtil.put(PREF_READING, reading);
         } else {
-            PrefsUtil.remove(PREF_READING);
+            prefsUtil.remove(PREF_READING);
         }
     }
 
-    public static BalanceReading getBalanceReading() {
-        return PrefsUtil.get(PREF_READING, BalanceReading.CREATOR);
+    public BalanceReading getBalanceReading() {
+        return prefsUtil.get(PREF_READING, BalanceReading.CREATOR);
     }
 }

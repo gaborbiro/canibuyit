@@ -13,20 +13,15 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.gb.canibuythat.App;
 import com.gb.canibuythat.CredentialsProvider;
 import com.gb.canibuythat.MonzoConstants;
 import com.gb.canibuythat.R;
 import com.gb.canibuythat.UserPreferences;
 import com.gb.canibuythat.di.Injector;
-import com.gb.canibuythat.exception.DomainException;
+import com.gb.canibuythat.interactor.BudgetInteractor;
 import com.gb.canibuythat.interactor.LoginInteractor;
-import com.gb.canibuythat.provider.BudgetDbHelper;
+import com.gb.canibuythat.model.Balance;
 import com.gb.canibuythat.ui.model.BalanceReading;
-import com.gb.canibuythat.ui.task.Callback;
-import com.gb.canibuythat.ui.task.backup.DatabaseExportTask;
-import com.gb.canibuythat.ui.task.backup.DatabaseImportTask;
-import com.gb.canibuythat.ui.task.balance.CalculateBalanceTask;
 import com.gb.canibuythat.util.DateUtils;
 import com.gb.canibuythat.util.PermissionVerifier;
 import com.gb.canibuythat.util.ViewUtils;
@@ -58,7 +53,9 @@ public class MainActivity extends BaseActivity implements BudgetListFragment.Fra
     private static final int REQUEST_CODE_PERMISSIONS_FOR_DB_EXPORT = 2;
 
     @Inject LoginInteractor loginInteractor;
+    @Inject BudgetInteractor budgetInteractor;
     @Inject CredentialsProvider credentialsProvider;
+    @Inject UserPreferences userPreferences;
 
     @BindView(R.id.estimate_at_time) TextView estimateAtTimeView;
     @BindView(R.id.reference) TextView referenceView;
@@ -81,7 +78,7 @@ public class MainActivity extends BaseActivity implements BudgetListFragment.Fra
         if (chartButton != null) {
             ChartActivity.launchOnClick(this, chartButton);
         }
-        new CalculateBalanceTask(balanceCalculatorCallback).execute();
+        budgetInteractor.calculateBalance().subscribe(this::setBalanceInfo, this::showError);
 
         if (getIntent().getData() != null) {
             Uri data = getIntent().getData();
@@ -131,12 +128,8 @@ public class MainActivity extends BaseActivity implements BudgetListFragment.Fra
             case R.id.menu_export:
                 permissionVerifier = new PermissionVerifier(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE});
                 if (permissionVerifier.verifyPermissions(true, REQUEST_CODE_PERMISSIONS_FOR_DB_EXPORT)) {
-                    new DatabaseExportTask(BudgetDbHelper.DATABASE_NAME) {
-                        @Override
-                        protected void onPostExecute(String result) {
-                            Toast.makeText(App.getAppContext(), result, Toast.LENGTH_SHORT).show();
-                        }
-                    }.execute();
+                    budgetInteractor.exportDatabase().subscribe(() -> {
+                    }, this::showError);
                 }
                 break;
             case R.id.menu_import:
@@ -157,7 +150,7 @@ public class MainActivity extends BaseActivity implements BudgetListFragment.Fra
 
     @Override
     public void onBackPressed() {
-        final BudgetEditorFragment detailFragment = (BudgetEditorFragment) getFragmentManager().findFragmentById(R.id.budgetmodifier_detail_container);
+        final BudgetEditorFragment detailFragment = (BudgetEditorFragment) getSupportFragmentManager().findFragmentById(R.id.budgetmodifier_detail_container);
         if (detailFragment != null) {
             detailFragment.saveAndRun(MainActivity.super::onBackPressed);
         } else {
@@ -182,9 +175,9 @@ public class MainActivity extends BaseActivity implements BudgetListFragment.Fra
      */
     @Override
     public void onBalanceReadingSet(BalanceReading balanceReading) {
-        UserPreferences.setBalanceReading(balanceReading);
-        UserPreferences.setEstimateDate(null);
-        new CalculateBalanceTask(balanceCalculatorCallback).execute();
+        userPreferences.setBalanceReading(balanceReading);
+        userPreferences.setEstimateDate(null);
+        budgetInteractor.calculateBalance().subscribe(this::setBalanceInfo, this::showError);
     }
 
     @Override
@@ -193,12 +186,8 @@ public class MainActivity extends BaseActivity implements BudgetListFragment.Fra
             case REQUEST_CODE_CHOOSE_FILE:
                 if (resultCode == RESULT_OK) {
                     String path = data.getStringExtra(FileDialogActivity.EXTRA_RESULT_PATH);
-                    new DatabaseImportTask(path) {
-                        @Override
-                        protected void onPostExecute(Void aVoid) {
-                            new CalculateBalanceTask(balanceCalculatorCallback).execute();
-                        }
-                    }.execute();
+                    budgetInteractor.importBudgetDatabaseFromFile(path)
+                            .subscribe(() -> budgetInteractor.calculateBalance().subscribe(this::setBalanceInfo, this::showError), this::showError);
                 }
                 break;
         }
@@ -209,12 +198,8 @@ public class MainActivity extends BaseActivity implements BudgetListFragment.Fra
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (requestCode == REQUEST_CODE_PERMISSIONS_FOR_DB_EXPORT) {
             if (permissionVerifier.onRequestPermissionsResult(requestCode, permissions, grantResults)) {
-                new DatabaseExportTask(BudgetDbHelper.DATABASE_NAME) {
-                    @Override
-                    protected void onPostExecute(String result) {
-                        Toast.makeText(App.getAppContext(), result, Toast.LENGTH_SHORT).show();
-                    }
-                }.execute();
+                budgetInteractor.exportDatabase().subscribe(() -> {
+                }, this::showError);
             } else {
                 Toast.makeText(this, "Missing permissions!", Toast.LENGTH_SHORT).show();
             }
@@ -238,7 +223,7 @@ public class MainActivity extends BaseActivity implements BudgetListFragment.Fra
     private void showEditorScreen(final Integer budgetItemId) {
         if (twoPane) {
             final BudgetEditorFragment budgetEditorFragment =
-                    (BudgetEditorFragment) getFragmentManager().findFragmentById(R.id.budgetmodifier_detail_container);
+                    (BudgetEditorFragment) getSupportFragmentManager().findFragmentById(R.id.budgetmodifier_detail_container);
             if (budgetEditorFragment == null || !budgetEditorFragment.isAdded()) {
                 BudgetEditorFragment detailFragment = new BudgetEditorFragment();
 
@@ -247,47 +232,34 @@ public class MainActivity extends BaseActivity implements BudgetListFragment.Fra
                     arguments.putInt(BudgetEditorFragment.EXTRA_ITEM_ID, budgetItemId);
                     detailFragment.setArguments(arguments);
                 }
-                getFragmentManager().beginTransaction().replace(R.id.budgetmodifier_detail_container, detailFragment).commit();
+                getSupportFragmentManager().beginTransaction().replace(R.id.budgetmodifier_detail_container, detailFragment).commit();
             } else {
                 // if a detail fragment is already visible
                 budgetEditorFragment.saveAndRun(() -> budgetEditorFragment.setContent(budgetItemId, false));
             }
         } else {
             if (budgetItemId != null) {
-                startActivity(BudgetEditorActivity.getIntentForUpdate(budgetItemId));
+                startActivity(BudgetEditorActivity.getIntentForUpdate(MainActivity.this, budgetItemId));
             } else {
-                startActivity(BudgetEditorActivity.getIntentForCreate());
+                startActivity(BudgetEditorActivity.getIntentForCreate(MainActivity.this));
             }
         }
     }
 
-    private Callback<CalculateBalanceTask.BalanceResult> balanceCalculatorCallback = new Callback<CalculateBalanceTask.BalanceResult>() {
-        @Override
-        public void onSuccess(CalculateBalanceTask.BalanceResult data) {
-            setBalanceInfo(data.balanceReading, data.bestCaseBalance, data.worstCaseBalance);
-        }
-
-        @Override
-        public void onError(Throwable t) {
-            t.printStackTrace();
-            Toast.makeText(App.getAppContext(), "Error calculating balance. See log for more information.", Toast.LENGTH_SHORT).show();
-        }
-    };
-
-    private void setBalanceInfo(BalanceReading balanceReading, float bestCaseBalance, float worstCaseBalance) {
+    private void setBalanceInfo(Balance balance) {
         if (referenceView != null) {
             String text;
-            if (balanceReading != null) {
-                text = App.getAppContext().getString(R.string.reading, balanceReading.balance, DateUtils.FORMAT_MONTH_DAY.format(balanceReading.when));
+            if (balance.getBalanceReading() != null) {
+                text = getString(R.string.reading, balance.getBalanceReading().balance, DateUtils.FORMAT_MONTH_DAY.format(balance.getBalanceReading().when));
             } else {
-                text = App.getAppContext().getString(R.string.reading_none);
+                text = getString(R.string.reading_none);
             }
             ViewUtils.setTextWithLink(referenceView, text, text, this::showBalanceUpdateDialog);
         }
         if (estimateAtTimeView != null) {
-            final Date estimateDate = UserPreferences.getEstimateDate();
+            final Date estimateDate = userPreferences.getEstimateDate();
             String estimateDateStr = estimateDate != null ? DateUtils.FORMAT_MONTH_DAY.format(estimateDate) : getString(R.string.today);
-            String estimateAtTime = App.getAppContext().getString(R.string.estimate_at_time, bestCaseBalance, worstCaseBalance, estimateDateStr);
+            String estimateAtTime = getString(R.string.estimate_at_time, balance.getBestCaseBalance(), balance.getWorstCaseBalance(), estimateDateStr);
             ViewUtils.setTextWithLink(estimateAtTimeView, estimateAtTime, estimateDateStr, estimateDateUpdater);
         }
     }
@@ -299,23 +271,23 @@ public class MainActivity extends BaseActivity implements BudgetListFragment.Fra
             if (c.get(Calendar.YEAR) == year
                     && c.get(Calendar.MONTH) == monthOfYear
                     && c.get(Calendar.DAY_OF_MONTH) == dayOfMonth) {
-                UserPreferences.setEstimateDate(null);
+                userPreferences.setEstimateDate(null);
             } else {
                 c.set(year, monthOfYear, dayOfMonth);
-                BalanceReading balanceReading = UserPreferences.getBalanceReading();
+                BalanceReading balanceReading = userPreferences.getBalanceReading();
 
                 if (balanceReading == null || balanceReading.when.before(c.getTime())) {
                     DateUtils.clearLowerBits(c);
-                    UserPreferences.setEstimateDate(c.getTime());
+                    userPreferences.setEstimateDate(c.getTime());
                 } else {
                     Toast.makeText(MainActivity.this,
                             "Please set a date after the last balance " + "reading! (" + balanceReading.when + ")", Toast.LENGTH_SHORT).show();
                 }
             }
-            new CalculateBalanceTask(balanceCalculatorCallback).execute();
+            budgetInteractor.calculateBalance().subscribe(this::setBalanceInfo, this::showError);
         };
 
-        DatePickerDialog datePickerDialog = DateUtils.getDatePickerDialog(MainActivity.this, listener, UserPreferences.getEstimateDate());
+        DatePickerDialog datePickerDialog = DateUtils.getDatePickerDialog(MainActivity.this, listener, userPreferences.getEstimateDate());
         datePickerDialog.show();
     };
 
@@ -325,10 +297,6 @@ public class MainActivity extends BaseActivity implements BudgetListFragment.Fra
             credentialsProvider.setRefreshToken(login.getRefreshToken());
             Toast.makeText(this, "AccessToken: " + credentialsProvider.getAccessToken(), Toast.LENGTH_SHORT).show();
             Toast.makeText(this, "RefreshToken: " + credentialsProvider.getRefreshToken(), Toast.LENGTH_SHORT).show();
-        }, throwable -> {
-            if (throwable instanceof DomainException) {
-                showError((DomainException) throwable);
-            }
-        });
+        }, this::showError);
     }
 }

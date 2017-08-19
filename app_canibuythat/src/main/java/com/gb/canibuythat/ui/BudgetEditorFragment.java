@@ -21,24 +21,22 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.gb.canibuythat.App;
 import com.gb.canibuythat.R;
 import com.gb.canibuythat.UserPreferences;
+import com.gb.canibuythat.di.Injector;
+import com.gb.canibuythat.interactor.BudgetInteractor;
 import com.gb.canibuythat.model.BudgetItem;
 import com.gb.canibuythat.provider.BalanceCalculator;
 import com.gb.canibuythat.ui.model.BalanceReading;
-import com.gb.canibuythat.ui.task.Callback;
-import com.gb.canibuythat.ui.task.budget_item.BudgetItemCreateOrUpdateTask;
-import com.gb.canibuythat.ui.task.budget_item.BudgetItemDeleteTask;
-import com.gb.canibuythat.ui.task.budget_item.BudgetItemReadTask;
 import com.gb.canibuythat.util.ArrayUtils;
 import com.gb.canibuythat.util.DateUtils;
 import com.gb.canibuythat.util.DialogUtils;
 import com.gb.canibuythat.util.ViewUtils;
-import com.j256.ormlite.dao.Dao;
 
 import java.util.Calendar;
 import java.util.Date;
+
+import javax.inject.Inject;
 
 import butterknife.BindView;
 
@@ -62,6 +60,9 @@ public class BudgetEditorFragment extends BaseFragment {
         DEFAULT_FIRST_OCCURRENCE_END = c.getTime();
         DEFAULT_FIRST_OCCURRENCE_START = c.getTime();
     }
+
+    @Inject UserPreferences userPreferences;
+    @Inject BudgetInteractor budgetInteractor;
 
     @BindView(R.id.name) EditText nameView;
     @BindView(R.id.amount) EditText amountView;
@@ -162,6 +163,7 @@ public class BudgetEditorFragment extends BaseFragment {
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        rootView = (ViewGroup) view;
 
         categoryView.setAdapter(new PlusOneAdapter(BudgetItem.BudgetItemType.values()));
         categoryView.setOnTouchListener(keyboardDismisser);
@@ -196,6 +198,11 @@ public class BudgetEditorFragment extends BaseFragment {
         }
     }
 
+    @Override
+    protected void inject() {
+        Injector.INSTANCE.getGraph().inject(this);
+    }
+
     private class PlusOneAdapter extends ArrayAdapter {
 
         PlusOneAdapter(Object[] items) {
@@ -226,34 +233,8 @@ public class BudgetEditorFragment extends BaseFragment {
      */
     public void setContent(Integer budgetItemId, final boolean showKeyboardWhenDone) {
         if (budgetItemId != null) {
-            new BudgetItemReadTask(budgetItemId, new Callback<BudgetItem>() {
-                @Override
-                public void onSuccess(BudgetItem budgetItem) {
-                    BudgetEditorFragment.this.originalBudgetItem = budgetItem;
-                    firstOccurrenceEndPickerDialog = null;
-                    firstOccurrenceStartPickerDialog = null;
-                    applyBudgetItemToScreen(budgetItem);
-
-                    if (showKeyboardWhenDone && isAdded()) {
-                        ViewUtils.showKeyboard(nameView);
-                    }
-
-                    if (deleteButton != null) {
-                        deleteButton.setVisible(true);
-                    }
-                }
-
-                @Override
-                public void onFailure() {
-                    Toast.makeText(App.getAppContext(), "BudgetItem was not found", Toast.LENGTH_SHORT).show();
-                }
-
-                @Override
-                public void onError(Throwable t) {
-                    t.printStackTrace();
-                    Toast.makeText(App.getAppContext(), "Error loading data. Check logs for more information.", Toast.LENGTH_SHORT).show();
-                }
-            }).execute();
+            budgetInteractor.read(budgetItemId)
+                    .subscribe(budgetItem -> onBuddgetItemLoaded(budgetItem, showKeyboardWhenDone), this::showError);
         } else {
             clearScreen();
         }
@@ -277,25 +258,8 @@ public class BudgetEditorFragment extends BaseFragment {
                 break;
             case R.id.menu_delete:
                 if (originalBudgetItem != null && originalBudgetItem.isPersisted()) {
-                    new BudgetItemDeleteTask(new Callback<Boolean>() {
-
-                        @Override
-                        public void onSuccess(Boolean result) {
-                            deleteButton.setVisible(false);
-                            Toast.makeText(App.getAppContext(), "BudgetItem deleted", Toast.LENGTH_SHORT).show();
-                        }
-
-                        @Override
-                        public void onFailure() {
-                            Toast.makeText(App.getAppContext(), "BudgetItem was not found", Toast.LENGTH_SHORT).show();
-                        }
-
-                        @Override
-                        public void onError(Throwable t) {
-                            t.printStackTrace();
-                            Toast.makeText(App.getAppContext(), "Error deleting data. Check logs for more information.", Toast.LENGTH_SHORT).show();
-                        }
-                    }, originalBudgetItem.id).execute();
+                    budgetInteractor.delete(originalBudgetItem.id)
+                            .subscribe(() -> deleteButton.setVisible(false), this::showError);
                 }
                 break;
         }
@@ -329,31 +293,41 @@ public class BudgetEditorFragment extends BaseFragment {
                 newBudgetItem.id = originalBudgetItem.id;
                 newBudgetItem.ordering = originalBudgetItem.ordering;
             }
-            new BudgetItemCreateOrUpdateTask(newBudgetItem, new Callback<Dao.CreateOrUpdateStatus>() {
-
-                @Override
-                public void onSuccess(Dao.CreateOrUpdateStatus result) {
-                    BudgetEditorFragment.this.originalBudgetItem = newBudgetItem;
-                    deleteButton.setVisible(true);
-                    loadSpendingOccurrences(newBudgetItem);
-                    Toast.makeText(App.getAppContext(), "BudgetItem saved", Toast.LENGTH_SHORT).show();
-                }
-
-                @Override
-                public void onError(Throwable t) {
-                    if (t.getCause() != null
-                            && t.getCause().getCause() != null
-                            && t.getCause().getCause() instanceof SQLiteConstraintException) {
-                        t = t.getCause().getCause();
-                    }
-                    t.printStackTrace();
-                    Toast.makeText(App.getAppContext(), "Error saving data. Check logs for more information.", Toast.LENGTH_SHORT).show();
-                }
-            }).execute();
+            budgetInteractor.createOrUpdate(newBudgetItem)
+                    .subscribe(createOrUpdateStatus -> {
+                        BudgetEditorFragment.this.originalBudgetItem = newBudgetItem;
+                        deleteButton.setVisible(true);
+                        loadSpendingOccurrences(newBudgetItem);
+                    }, throwable -> {
+                        showError(throwable);
+                        do {
+                            if (throwable.getCause() == null || throwable instanceof SQLiteConstraintException) {
+                                break;
+                            } else {
+                                throwable = throwable.getCause();
+                            }
+                        } while (true);
+                        showError(throwable);
+                    });
             return true;
         } else {
             error.showError();
             return false;
+        }
+    }
+
+    private void onBuddgetItemLoaded(BudgetItem budgetItem, boolean showKeyboardWhenDone) {
+        this.originalBudgetItem = budgetItem;
+        firstOccurrenceEndPickerDialog = null;
+        firstOccurrenceStartPickerDialog = null;
+        applyBudgetItemToScreen(budgetItem);
+
+        if (showKeyboardWhenDone && isAdded()) {
+            ViewUtils.showKeyboard(nameView);
+        }
+
+        if (deleteButton != null) {
+            deleteButton.setVisible(true);
         }
     }
 
@@ -415,10 +389,10 @@ public class BudgetEditorFragment extends BaseFragment {
     }
 
     private void loadSpendingOccurrences(final BudgetItem budgetItem) {
-        BalanceReading balanceReading = UserPreferences.getBalanceReading();
+        BalanceReading balanceReading = userPreferences.getBalanceReading();
         BalanceCalculator.BalanceResult result = BalanceCalculator.get().getEstimatedBalance(budgetItem,
                 balanceReading != null ? balanceReading.when : null,
-                UserPreferences.getEstimateDate());
+                userPreferences.getEstimateDate());
         String spending = ArrayUtils.join("\n", result.spendingEvents, (index, item) -> getString(R.string.spending_occurrence, index + 1, DateUtils.FORMAT_MONTH_DAY.format(item)));
         spending = "Spent: " + result.bestCase + "/" + (result.worstCase) + "\n" + spending;
         spendingEventsView.setText(spending);
@@ -464,7 +438,7 @@ public class BudgetEditorFragment extends BaseFragment {
      * field (with {@link TextView#setError(CharSequence)} and the ones tha are shown
      * as a Toast or Dialog instead (DatePicker, etc...).
      */
-    private static class ValidationError {
+    private class ValidationError {
         static final int TYPE_INPUT_FIELD = 1;
         static final int TYPE_NON_INPUT_FIELD = 2;
 
@@ -495,7 +469,7 @@ public class BudgetEditorFragment extends BaseFragment {
                 textView.setError(errorMessage);
                 textView.requestFocus();
             } else if (type == TYPE_NON_INPUT_FIELD) {
-                Toast.makeText(App.getAppContext(), errorMessage, Toast.LENGTH_SHORT).show();
+                Toast.makeText(getActivity(), errorMessage, Toast.LENGTH_SHORT).show();
                 if (target != null) {
                     target.requestFocus();
                 }

@@ -18,6 +18,10 @@ public class Logger {
         Log.e(TAG, "(" + tag + ") " + message);
     }
 
+    public static void e(String tag, String message, Throwable cause) {
+        Log.e(TAG, "(" + tag + ") " + message, cause);
+    }
+
     public static void e(String tag, Throwable t) {
         Log.e(TAG, "(" + tag + ")", t);
     }

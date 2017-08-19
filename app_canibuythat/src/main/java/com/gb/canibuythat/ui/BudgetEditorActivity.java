@@ -1,25 +1,26 @@
 package com.gb.canibuythat.ui;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
 
-import com.gb.canibuythat.App;
 import com.gb.canibuythat.R;
 
-public class BudgetEditorActivity extends ActionBarActivity {
+public class BudgetEditorActivity extends AppCompatActivity {
 
     private BudgetEditorFragment budgetEditorFragment;
 
-    public static Intent getIntentForUpdate(int budgetItemId) {
-        Intent i = getIntentForCreate();
+    public static Intent getIntentForUpdate(Context context, int budgetItemId) {
+        Intent i = getIntentForCreate(context);
         i.putExtra(BudgetEditorFragment.EXTRA_ITEM_ID, budgetItemId);
         return i;
     }
 
-    public static Intent getIntentForCreate() {
-        return new Intent(App.getAppContext(), BudgetEditorActivity.class);
+    public static Intent getIntentForCreate(Context context) {
+        return new Intent(context, BudgetEditorActivity.class);
     }
 
     @Override
@@ -35,9 +36,9 @@ public class BudgetEditorActivity extends ActionBarActivity {
                 arguments.putInt(BudgetEditorFragment.EXTRA_ITEM_ID, getIntent().getIntExtra(BudgetEditorFragment.EXTRA_ITEM_ID, 0));
                 budgetEditorFragment.setArguments(arguments);
             }
-            getFragmentManager().beginTransaction().add(R.id.budgetmodifier_detail_container, budgetEditorFragment).commit();
+            getSupportFragmentManager().beginTransaction().add(R.id.budgetmodifier_detail_container, budgetEditorFragment).commit();
         } else {
-            budgetEditorFragment = (BudgetEditorFragment) getFragmentManager().findFragmentById(R.id.budgetmodifier_detail_container);
+            budgetEditorFragment = (BudgetEditorFragment) getSupportFragmentManager().findFragmentById(R.id.budgetmodifier_detail_container);
         }
     }
 

@@ -1,31 +1,42 @@
 package com.gb.canibuythat.util;
 
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Base64;
-
-import com.gb.canibuythat.App;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.Map;
+import java.util.UUID;
+
+import javax.inject.Inject;
+import javax.inject.Singleton;
 
 @SuppressWarnings({"SameParameterValue", "unused"})
+@Singleton
 public class PrefsUtil {
 
     private static final String PREFS_NAME = "settings";
     private static final String SEPARATOR = "dfg,hsdfk__jg34n95t";
 
-    private static SecurePreferences securePreferences;
+    private Context appContext;
+    private SecurePreferences securePreferences;
 
+    @Inject
+    public PrefsUtil(Context appContext) {
+        this.appContext = appContext;
+    }
 
-    public static void put(String key, Parcelable parcelable) {
+    public void put(String key, Parcelable parcelable) {
         Parcel parcel = Parcel.obtain();
         parcelable.writeToParcel(parcel, 0);
         byte[] bytes = parcel.marshall();
@@ -34,7 +45,7 @@ public class PrefsUtil {
     }
 
 
-    public static <T> T get(String key, Parcelable.Creator<T> creator) {
+    public <T> T get(String key, Parcelable.Creator<T> creator) {
         String data = get(key, (String) null);
 
         if (data == null) {
@@ -48,7 +59,7 @@ public class PrefsUtil {
     }
 
 
-    public static Map get(String key, Map defaultValues) {
+    public Map get(String key, Map defaultValues) {
         String data = get(key, (String) null);
 
         if (data == null) {
@@ -65,7 +76,7 @@ public class PrefsUtil {
     }
 
 
-    public static void put(String key, Map map) {
+    public void put(String key, Map map) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ObjectOutputStream oos = null;
         try {
@@ -84,7 +95,7 @@ public class PrefsUtil {
         }
     }
 
-    public static String[] get(String key, String[] defaultValues) {
+    public String[] get(String key, String[] defaultValues) {
         String defaultValuesStr;
         if (defaultValues == null) {
             defaultValuesStr = null;
@@ -99,62 +110,62 @@ public class PrefsUtil {
         }
     }
 
-    public static void put(String key, String[] values) {
+    public void put(String key, String[] values) {
         put(key, TextUtils.join(SEPARATOR, values));
     }
 
-    public static void put(String key, boolean value) {
+    public void put(String key, boolean value) {
         getSecurePreferences().put(key, Boolean.toString(value));
     }
 
-    public static boolean get(String key, boolean defaultValue) {
+    public boolean get(String key, boolean defaultValue) {
         String value = getSecurePreferences().getString(key);
         return TextUtils.isEmpty(value) ? defaultValue : Boolean.valueOf(value);
     }
 
-    public static void put(String key, String value) {
+    public void put(String key, String value) {
         getSecurePreferences().put(key, value);
     }
 
-    public static String get(String key, String defaultValue) {
+    public String get(String key, String defaultValue) {
         String value = getSecurePreferences().getString(key);
         return TextUtils.isEmpty(value) ? defaultValue : value;
     }
 
-    public static void put(String key, int value) {
+    public void put(String key, int value) {
         getSecurePreferences().put(key, Integer.toString(value));
     }
 
-    public static int get(String key, int defaultValue) {
+    public int get(String key, int defaultValue) {
         String value = getSecurePreferences().getString(key);
         return TextUtils.isEmpty(value) ? defaultValue : Integer.valueOf(value);
     }
 
-    public static void put(String key, long value) {
+    public void put(String key, long value) {
         getSecurePreferences().put(key, Long.toString(value));
     }
 
-    public static long get(String key, long defaultValue) {
+    public long get(String key, long defaultValue) {
         String value = getSecurePreferences().getString(key);
         return TextUtils.isEmpty(value) ? defaultValue : Long.valueOf(value);
     }
 
-    public static void put(String key, float value) {
+    public void put(String key, float value) {
         getSecurePreferences().put(key, Float.toString(value));
     }
 
-    public static float get(String key, float defaultValue) {
+    public float get(String key, float defaultValue) {
         String value = getSecurePreferences().getString(key);
         return TextUtils.isEmpty(value) ? defaultValue : Float.valueOf(value);
     }
 
-    public static void remove(String key) {
+    public void remove(String key) {
         getSecurePreferences().removeValue(key);
     }
 
-    private static SecurePreferences getSecurePreferences() {
+    private SecurePreferences getSecurePreferences() {
         if (securePreferences == null) {
-            securePreferences = new SecurePreferences(App.getAppContext(), PREFS_NAME, App.generateUDID(), true);
+            securePreferences = new SecurePreferences(appContext, PREFS_NAME, generateUDID(), true);
         }
         return securePreferences;
     }
@@ -167,7 +178,7 @@ public class PrefsUtil {
      * @param listener The callback that will run.
      * @see #unregisterOnSharedPreferenceChangeListener
      */
-    public static void registerOnSharedPreferenceChangeListener(String key, SharedPreferences.OnSharedPreferenceChangeListener listener) {
+    public void registerOnSharedPreferenceChangeListener(String key, SharedPreferences.OnSharedPreferenceChangeListener listener) {
         getSecurePreferences().registerOnSharedPreferenceChangeListener(key, listener);
     }
 
@@ -177,7 +188,47 @@ public class PrefsUtil {
      * @param key PReference key, the callback of which that should be unregistered.
      * @see #registerOnSharedPreferenceChangeListener
      */
-    public static void unregisterOnSharedPreferenceChangeListener(String key) {
+    public void unregisterOnSharedPreferenceChangeListener(String key) {
         getSecurePreferences().unregisterOnSharedPreferenceChangeListener(key);
+    }
+
+    /**
+     * Generate a unique id for the device. Changes with every factory reset. If the
+     * device doesn't have a proper
+     * android_id and deviceId, it falls back to a randomly generated id, that is
+     * persisted in SharedPreferences.
+     */
+    private String generateUDID() {
+        String deviceId = null;
+        String androidId = null;
+        UUID deviceUuid = null;
+
+        // androidId changes with every factory reset (which is useful in our case)
+        androidId = "" + android.provider.Settings.Secure.getString(appContext.getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
+
+        try {
+            if (!"9774d56d682e549c".equals(androidId)) {
+                deviceUuid = UUID.nameUUIDFromBytes(androidId.getBytes("utf8"));
+            } else {
+                // On some 2.2 devices androidId is always 9774d56d682e549c,
+                // which is unsafe
+                TelephonyManager tm = (TelephonyManager) appContext.getSystemService(Context.TELEPHONY_SERVICE);
+                if (tm != null) {
+                    // Tablets may not have imei and/or imsi.
+                    // Does not change on factory reset.
+                    deviceId = tm.getDeviceId();
+                }
+                if (TextUtils.isEmpty(deviceId)) {
+                    // worst case scenario as this id is lost when the
+                    // application stops
+                    deviceUuid = UUID.randomUUID();
+                } else {
+                    deviceUuid = UUID.nameUUIDFromBytes(deviceId.getBytes("utf8"));
+                }
+            }
+        } catch (UnsupportedEncodingException e) {
+            // Change it back to "utf8" right now!!
+        }
+        return deviceUuid.toString();
     }
 }

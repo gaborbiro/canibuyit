@@ -5,7 +5,6 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.v4.app.DialogFragment;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,13 +16,18 @@ import android.widget.Toast;
 
 import com.gb.canibuythat.R;
 import com.gb.canibuythat.UserPreferences;
+import com.gb.canibuythat.di.Injector;
 import com.gb.canibuythat.ui.model.BalanceReading;
 import com.gb.canibuythat.util.DateUtils;
 
 import java.util.Date;
 
-public class BalanceReadingInputDialog extends DialogFragment
+import javax.inject.Inject;
+
+public class BalanceReadingInputDialog extends BaseDialogFragment
         implements View.OnClickListener {
+
+    @Inject UserPreferences userPreferences;
 
     private BalanceReadingInputListener listener;
     private BalanceReading lastUpdate;
@@ -32,7 +36,7 @@ public class BalanceReadingInputDialog extends DialogFragment
     private DatePickerButton whenButton;
 
     public BalanceReadingInputDialog() {
-        lastUpdate = UserPreferences.getBalanceReading();
+        lastUpdate = userPreferences.getBalanceReading();
         refreshLastUpdate();
     }
 
@@ -115,6 +119,11 @@ public class BalanceReadingInputDialog extends DialogFragment
             return false;
         }
         return true;
+    }
+
+    @Override
+    protected void inject() {
+        Injector.INSTANCE.getGraph().inject(this);
     }
 
     interface BalanceReadingInputListener {

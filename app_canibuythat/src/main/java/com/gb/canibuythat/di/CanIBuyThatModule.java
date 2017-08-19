@@ -3,9 +3,10 @@ package com.gb.canibuythat.di;
 import android.app.Application;
 import android.content.Context;
 
-import com.gb.canibuythat.App;
+import com.gb.canibuythat.provider.BudgetDbHelper;
 import com.gb.canibuythat.rx.SchedulerProvider;
 import com.gb.canibuythat.rx.SchedulerProviderImpl;
+import com.j256.ormlite.android.apptools.OpenHelperManager;
 
 import javax.inject.Singleton;
 
@@ -21,13 +22,13 @@ public class CanIBuyThatModule {
     }
 
     @Provides
-    public App provideApp(Application application) {
-        return (App) application;
-    }
-
-    @Provides
     @Singleton
     public SchedulerProvider provideSchedulerProvider(SchedulerProviderImpl schedulerProvider) {
         return schedulerProvider;
+    }
+
+    @Provides
+    public BudgetDbHelper provideBudgetDbHelper(Context appContext) {
+        return OpenHelperManager.getHelper(appContext, BudgetDbHelper.class);
     }
 }

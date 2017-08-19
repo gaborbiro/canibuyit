@@ -1,10 +1,9 @@
 package com.gb.canibuythat.util;
 
+import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.text.TextUtils;
-
-import com.gb.canibuythat.App;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -38,13 +37,13 @@ public class FileUtils {
     }
 
 
-    public static String getPath(Uri uri) throws URISyntaxException {
+    public static String getPath(Context context, Uri uri) throws URISyntaxException {
         if ("content".equalsIgnoreCase(uri.getScheme())) {
             String[] projection = {"_data"};
             Cursor cursor;
 
             try {
-                cursor = App.getAppContext().getContentResolver().query(uri, projection, null, null, null);
+                cursor = context.getContentResolver().query(uri, projection, null, null, null);
                 int column_index = cursor.getColumnIndexOrThrow("_data");
                 if (cursor.moveToFirst()) {
                     return cursor.getString(column_index);

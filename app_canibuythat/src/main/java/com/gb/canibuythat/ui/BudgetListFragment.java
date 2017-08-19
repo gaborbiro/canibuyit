@@ -5,7 +5,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteConstraintException;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
@@ -13,16 +12,16 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.Toast;
 
-import com.gb.canibuythat.App;
 import com.gb.canibuythat.R;
+import com.gb.canibuythat.di.Injector;
+import com.gb.canibuythat.interactor.BudgetInteractor;
 import com.gb.canibuythat.provider.BudgetProvider;
 import com.gb.canibuythat.provider.Contract;
 import com.gb.canibuythat.ui.dragndroplist.DragNDropCursorAdapter;
 import com.gb.canibuythat.ui.dragndroplist.DragNDropListView;
-import com.gb.canibuythat.ui.task.Callback;
-import com.gb.canibuythat.ui.task.budget_item.MoveToIndexTask;
+
+import javax.inject.Inject;
 
 /**
  * A list fragment representing a list of BudgetModifiers. This fragment also supports
@@ -34,7 +33,10 @@ import com.gb.canibuythat.ui.task.budget_item.MoveToIndexTask;
  * Activities containing this fragment MUST implement the {@link FragmentCallback}
  * interface.
  */
-public class BudgetListFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>, AdapterView.OnItemClickListener, DragNDropListView.OnItemDragNDropListener {
+public class BudgetListFragment extends BaseFragment implements LoaderManager.LoaderCallbacks<Cursor>,
+        AdapterView.OnItemClickListener, DragNDropListView.OnItemDragNDropListener {
+
+    @Inject BudgetInteractor budgetInteractor;
 
     /**
      * A dummy implementation of the {@link FragmentCallback} interface that does
@@ -42,7 +44,8 @@ public class BudgetListFragment extends Fragment implements LoaderManager.Loader
      * only when this fragment is not
      * attached to an activity.
      */
-    private static FragmentCallback dummyFragmentCallback = id -> {};
+    private static FragmentCallback dummyFragmentCallback = id -> {
+    };
     /**
      * The fragment's current callback object, which is notified of list item clicks.
      */
@@ -72,6 +75,11 @@ public class BudgetListFragment extends Fragment implements LoaderManager.Loader
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         getLoaderManager().initLoader(hashCode(), null, this);
+    }
+
+    @Override
+    protected void inject() {
+        Injector.INSTANCE.getGraph().inject(this);
     }
 
     private DragNDropCursorAdapter getListAdapter() {
@@ -104,13 +112,13 @@ public class BudgetListFragment extends Fragment implements LoaderManager.Loader
     }
 
     @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        getListAdapter().swapCursor(data);
+    public void onLoaderReset(Loader<Cursor> loader) {
+        getListAdapter().swapCursor(null);
     }
 
     @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
-        getListAdapter().swapCursor(null);
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        getListAdapter().swapCursor(data);
     }
 
     @Override
@@ -135,21 +143,20 @@ public class BudgetListFragment extends Fragment implements LoaderManager.Loader
 
     @Override
     public void onItemDrop(DragNDropListView parent, View view, final int startPosition, final int endPosition, long id) {
-        new MoveToIndexTask(startPosition, endPosition, mReorderCallback).execute();
+        budgetInteractor.moveToIndex(startPosition, endPosition)
+                .subscribe(() -> {
+                }, throwable -> {
+                    showError(throwable);
+                    do {
+                        if (throwable.getCause() == null || throwable instanceof SQLiteConstraintException) {
+                            break;
+                        } else {
+                            throwable = throwable.getCause();
+                        }
+                    } while (true);
+                    showError(throwable);
+                });
     }
-
-    private Callback<Integer> mReorderCallback = new Callback<Integer>() {
-        @Override
-        public void onError(Throwable t) {
-            if (t.getCause() != null
-                    && t.getCause().getCause() != null
-                    && t.getCause().getCause() instanceof SQLiteConstraintException) {
-                t = t.getCause().getCause();
-            }
-            t.printStackTrace();
-            Toast.makeText(App.getAppContext(), "Error saving data. Check logs for more information.", Toast.LENGTH_SHORT).show();
-        }
-    };
 
     /**
      * A callback interface that all activities containing this fragment must implement.
