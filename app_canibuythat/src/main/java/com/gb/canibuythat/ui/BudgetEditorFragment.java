@@ -241,7 +241,6 @@ public class BudgetEditorFragment extends BaseFragment {
                     if (deleteButton != null) {
                         deleteButton.setVisible(true);
                     }
-                    Toast.makeText(App.getAppContext(), "BudgetItem loaded", Toast.LENGTH_SHORT).show();
                 }
 
                 @Override

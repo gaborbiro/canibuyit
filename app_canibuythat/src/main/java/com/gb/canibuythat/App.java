@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 
+import com.gb.canibuythat.di.Injector;
 import com.gb.canibuythat.provider.BudgetDbHelper;
 import com.gb.canibuythat.util.Logger;
 
@@ -33,6 +34,8 @@ public class App extends Application {
     public void onCreate() {
         super.onCreate();
         registerActivityLifecycleCallbacks(new ActivityWatcher());
+
+        Injector.INSTANCE.initializeCanIBuyThatComponent(this);
     }
 
     private class ActivityWatcher extends ActivityLifecycleCallbacksAdapter {

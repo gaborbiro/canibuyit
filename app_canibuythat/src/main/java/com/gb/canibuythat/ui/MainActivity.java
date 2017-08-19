@@ -3,6 +3,7 @@ package com.gb.canibuythat.ui;
 import android.Manifest;
 import android.app.DatePickerDialog;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.NonNull;
@@ -13,8 +14,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.gb.canibuythat.App;
+import com.gb.canibuythat.CredentialsProvider;
+import com.gb.canibuythat.MonzoConstants;
 import com.gb.canibuythat.R;
 import com.gb.canibuythat.UserPreferences;
+import com.gb.canibuythat.di.Injector;
+import com.gb.canibuythat.exception.DomainException;
+import com.gb.canibuythat.interactor.LoginInteractor;
 import com.gb.canibuythat.provider.BudgetDbHelper;
 import com.gb.canibuythat.ui.model.BalanceReading;
 import com.gb.canibuythat.ui.task.Callback;
@@ -25,8 +31,12 @@ import com.gb.canibuythat.util.DateUtils;
 import com.gb.canibuythat.util.PermissionVerifier;
 import com.gb.canibuythat.util.ViewUtils;
 
+import java.net.URLEncoder;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
+
+import javax.inject.Inject;
 
 import butterknife.BindView;
 
@@ -46,6 +56,9 @@ public class MainActivity extends BaseActivity implements BudgetListFragment.Fra
 
     private static final int REQUEST_CODE_CHOOSE_FILE = 1;
     private static final int REQUEST_CODE_PERMISSIONS_FOR_DB_EXPORT = 2;
+
+    @Inject LoginInteractor loginInteractor;
+    @Inject CredentialsProvider credentialsProvider;
 
     @BindView(R.id.estimate_at_time) TextView estimateAtTimeView;
     @BindView(R.id.reference) TextView referenceView;
@@ -69,6 +82,26 @@ public class MainActivity extends BaseActivity implements BudgetListFragment.Fra
             ChartActivity.launchOnClick(this, chartButton);
         }
         new CalculateBalanceTask(balanceCalculatorCallback).execute();
+
+        if (getIntent().getData() != null) {
+            Uri data = getIntent().getData();
+            if (data.getAuthority().equals(MonzoConstants.MONZO_AUTH_AUTHORITY)) {
+                List<String> pathSegments = data.getPathSegments();
+
+                if (pathSegments.get(0).equals(MonzoConstants.MONZO_AUTH_PATH_BASE)) {
+                    if (pathSegments.get(1).equals(MonzoConstants.MONZO_AUTH_PATH_CALLBACK)) {
+                        // finished email authentication -> exchange code for auth token
+                        String authorizationCode = data.getQueryParameter(MonzoConstants.MONZO_OAUTH_PARAM_AUTHORIZATION_CODE);
+                        login(authorizationCode);
+                    }
+                }
+            }
+        }
+    }
+
+    @Override
+    protected void inject() {
+        Injector.INSTANCE.getGraph().inject(this);
     }
 
     /**
@@ -108,6 +141,15 @@ public class MainActivity extends BaseActivity implements BudgetListFragment.Fra
                 break;
             case R.id.menu_import:
                 importDatabase();
+                break;
+            case R.id.menu_monzo:
+                if (credentialsProvider.getAccessToken() == null) {
+                    String url = MonzoConstants.MONZO_OAUTH_URL
+                            + "/?client_id=" + MonzoConstants.CLIENT_ID
+                            + "&redirect_uri=" + URLEncoder.encode(MonzoConstants.MONZO_URI_AUTH_CALLBACK)
+                            + "&response_type=code";
+                    WebActivity.show(this, url);
+                }
                 break;
         }
         return super.onOptionsItemSelected(item);
@@ -276,4 +318,17 @@ public class MainActivity extends BaseActivity implements BudgetListFragment.Fra
         DatePickerDialog datePickerDialog = DateUtils.getDatePickerDialog(MainActivity.this, listener, UserPreferences.getEstimateDate());
         datePickerDialog.show();
     };
+
+    private void login(String authorizationCode) {
+        loginInteractor.login(authorizationCode).subscribe(login -> {
+            credentialsProvider.setAccessToken(login.getAccessToken());
+            credentialsProvider.setRefreshToken(login.getRefreshToken());
+            Toast.makeText(this, "AccessToken: " + credentialsProvider.getAccessToken(), Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "RefreshToken: " + credentialsProvider.getRefreshToken(), Toast.LENGTH_SHORT).show();
+        }, throwable -> {
+            if (throwable instanceof DomainException) {
+                showError((DomainException) throwable);
+            }
+        });
+    }
 }

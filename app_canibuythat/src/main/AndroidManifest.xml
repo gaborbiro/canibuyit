@@ -3,26 +3,37 @@
           package="com.gb.canibuythat">
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
 
     <application
-        android:name=".App"
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
+        android:name=".App"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".ui.MainActivity"
-            android:label="@string/app_name">
+            android:label="@string/app_name"
+            android:name=".ui.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+
+                <data
+                    android:host="canibuythat.com"
+                    android:scheme="https"/>
+            </intent-filter>
         </activity>
         <activity
-            android:name=".ui.BudgetEditorActivity"
             android:label="@string/title_budgetmodifier_detail"
+            android:name=".ui.BudgetEditorActivity"
             android:parentActivityName=".ui.MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
@@ -30,17 +41,24 @@
         </activity>
 
         <provider
-            android:name=".provider.BudgetProvider"
+            android:authorities="com.gb.canibuythat.authority.budget"
             android:exported="false"
-            android:authorities="com.gb.canibuythat.authority.budget"/>
+            android:name=".provider.BudgetProvider"/>
 
         <activity
-            android:name=".ui.ChartActivity"
             android:label="@string/title_activity_chart"
+            android:name=".ui.ChartActivity"
             android:screenOrientation="landscape">
         </activity>
         <activity
             android:name=".ui.FileDialogActivity">
+        </activity>
+        <activity
+            android:name=".ui.WebActivity"
+            android:parentActivityName=".ui.MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".ui.MainActivity"/>
         </activity>
     </application>
 

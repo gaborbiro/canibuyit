@@ -28,18 +28,24 @@ android {
     }
 }
 
-final ANDROID_VERSION = '25.3.0'
-final DAGGER_VERSION = '2.10'
+final SUPPORT_LIBRARY = '25.3.0'
+final DAGGER = '2.10'
 final RETRO_LAMBDA='2.5.1'
 final BUTTERKNIFE='8.5.1'
+final RETROFIT='2.3.0'
+final RETROFIT_RXJAVA2='2.3.0'
+final RXJAVA='2.1.0'
+final RXANDROID='2.0.1'
+final LOMBOK='1.16.14'
+
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.j256.ormlite:ormlite-android:4.48'
-    compile "com.android.support:support-v4:${ANDROID_VERSION}"
-    compile "com.android.support:appcompat-v7:${ANDROID_VERSION}"
-    compile "com.android.support:cardview-v7:${ANDROID_VERSION}"
-    compile "com.android.support:design:${ANDROID_VERSION}"
+    compile "com.android.support:support-v4:${SUPPORT_LIBRARY}"
+    compile "com.android.support:appcompat-v7:${SUPPORT_LIBRARY}"
+    compile "com.android.support:cardview-v7:${SUPPORT_LIBRARY}"
+    compile "com.android.support:design:${SUPPORT_LIBRARY}"
 
     compile 'com.github.PhilJay:MPAndroidChart:v2.2.4'
 
@@ -59,15 +65,28 @@ dependencies {
     testCompile 'org.json:json:20160212'
 
     // Dagger 2
-    compile "com.google.dagger:dagger:${DAGGER_VERSION}"
-    annotationProcessor "com.google.dagger:dagger-compiler:${DAGGER_VERSION}"
+    compile "com.google.dagger:dagger:${DAGGER}"
+    annotationProcessor "com.google.dagger:dagger-compiler:${DAGGER}"
 
     // Dagger 2 + test
-    testAnnotationProcessor "com.google.dagger:dagger-compiler:${DAGGER_VERSION}"
+    testAnnotationProcessor "com.google.dagger:dagger-compiler:${DAGGER}"
 
     // ButterKnife
     compile "com.jakewharton:butterknife:${BUTTERKNIFE}"
     annotationProcessor "com.jakewharton:butterknife-compiler:${BUTTERKNIFE}"
 
     retrolambdaConfig "net.orfjackal.retrolambda:retrolambda:${RETRO_LAMBDA}"
+
+    // Retrofit
+    compile "com.squareup.retrofit2:retrofit:${RETROFIT}"
+    compile "com.squareup.retrofit2:converter-gson:${RETROFIT}"
+    compile "com.squareup.retrofit2:adapter-rxjava2:${RETROFIT_RXJAVA2}"
+
+    // RxJava2
+    compile "io.reactivex.rxjava2:rxjava:${RXJAVA}"
+    compile "io.reactivex.rxjava2:rxandroid:${RXANDROID}"
+
+    // Lombok
+    provided "org.projectlombok:lombok:${LOMBOK}"
+    annotationProcessor "org.projectlombok:lombok:${LOMBOK}"
 }

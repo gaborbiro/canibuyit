@@ -19,9 +19,9 @@ public class UserPreferences {
     }
 
     public static Date getEstimateDate() {
-        long estimateDate = PrefsUtil.get(PREF_ESTIMATE_DATE, -1l);
+        long estimateDate = PrefsUtil.get(PREF_ESTIMATE_DATE, -1L);
 
-        if (estimateDate == -1l) {
+        if (estimateDate == -1L) {
             return null;
         } else {
             return new Date(estimateDate);
