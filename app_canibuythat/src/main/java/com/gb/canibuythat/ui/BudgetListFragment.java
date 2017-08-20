@@ -146,7 +146,7 @@ public class BudgetListFragment extends BaseFragment implements LoaderManager.Lo
         budgetInteractor.moveToIndex(startPosition, endPosition)
                 .subscribe(() -> {
                 }, throwable -> {
-                    showError(throwable);
+                    onError(throwable);
                     do {
                         if (throwable.getCause() == null || throwable instanceof SQLiteConstraintException) {
                             break;
@@ -154,7 +154,7 @@ public class BudgetListFragment extends BaseFragment implements LoaderManager.Lo
                             throwable = throwable.getCause();
                         }
                     } while (true);
-                    showError(throwable);
+                    onError(throwable);
                 });
     }
 

@@ -137,31 +137,30 @@ public class BudgetRepository {
 
     public Completable importDatabaseFromFile(String file) {
         SQLiteDatabase db;
-        Cursor budgetCursor;
+        Cursor cursor;
         try {
             db = budgetDbHelper.getDatabaseFromFile(file);
         } catch (SQLiteException e) {
             return Completable.error(new Exception("Cannot open database from " + file, e));
         }
         try {
-            budgetCursor = budgetDbHelper.getAllCursorFromBudgetTable(db);
+            cursor = budgetDbHelper.getAllCursorFromBudgetTable(db);
         } catch (SQLException e) {
             return Completable.error(new Exception("Error reading " + file, e));
-        } finally {
-            try {
-                db.close();
-            } catch (Throwable t) {
-                // ignore
-            }
         }
         try {
-            budgetDbHelper.replaceBudgetDatabase(budgetCursor);
+            budgetDbHelper.replaceBudgetDatabase(cursor);
             return Completable.complete();
         } catch (SQLException e) {
             return Completable.error(new Exception("Error writing to table " + Contract.BudgetItem.TABLE, e));
         } finally {
             try {
-                budgetCursor.close();
+                cursor.close();
+            } catch (Throwable t) {
+                // ignore
+            }
+            try {
+                db.close();
             } catch (Throwable t) {
                 // ignore
             }

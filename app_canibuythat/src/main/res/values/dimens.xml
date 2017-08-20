@@ -7,4 +7,8 @@
 
     <dimen name="file_dialog_icon_height">32dp</dimen>
     <dimen name="file_dialog_icon_width">32dp</dimen>
+
+    <dimen name="dialog_width">304dp</dimen>
+    <dimen name="dialog_content_padding">24dp</dimen>
+    <dimen name="dialog_button_padding">8dp</dimen>
 </resources>

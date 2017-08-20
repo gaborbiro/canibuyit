@@ -7,23 +7,30 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
 
+import com.gb.canibuythat.CredentialsProvider;
+import com.gb.canibuythat.MonzoConstants;
 import com.gb.canibuythat.R;
+import com.gb.canibuythat.di.Injector;
+import com.gb.canibuythat.util.Logger;
+
+import java.net.URLEncoder;
+
+import javax.inject.Inject;
 
 import butterknife.BindView;
 
-public class WebActivity extends BaseActivity {
+public class LoginActivity extends BaseActivity {
 
-    private static final String EXTRA_URL = "com.gb.canibuythat.ui.WebActivity.EXTRA_URL";
-
+    @Inject CredentialsProvider credentialsProvider;
     @BindView(R.id.webview) WebView webView;
 
-    public static void show(Context context, String url) {
-        Intent i = new Intent(context, WebActivity.class);
-        i.putExtra(EXTRA_URL, url);
+    public static void show(Context context) {
+        Intent i = new Intent(context, LoginActivity.class);
         context.startActivity(i);
     }
 
@@ -32,18 +39,26 @@ public class WebActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_web);
 
+        credentialsProvider.setAccessToken(null);
+
         webView.setWebChromeClient(new WebChromeClient());
         webView.setScrollBarStyle(WebView.SCROLLBARS_OUTSIDE_OVERLAY);
-        webView.setScrollbarFadingEnabled(true);
+        webView.setScrollbarFadingEnabled(false);
         webView.setWebViewClient(new MyWebViewClient());
+        WebSettings webSettings = webView.getSettings();
+        webSettings.setJavaScriptEnabled(true);
 
-        if (getIntent().getStringExtra(EXTRA_URL) != null) {
-            webView.loadUrl(getIntent().getStringExtra(EXTRA_URL));
-        }
+        String url = MonzoConstants.MONZO_OAUTH_URL
+                + "/?client_id=" + MonzoConstants.CLIENT_ID
+                + "&redirect_uri=" + URLEncoder.encode(MonzoConstants.MONZO_URI_AUTH_CALLBACK)
+                + "&response_type=code";
+        Logger.d("CanIBuyThat", url);
+        webView.loadUrl(url);
     }
 
     @Override
     protected void inject() {
+        Injector.INSTANCE.getGraph().inject(this);
     }
 
     private class MyWebViewClient extends WebViewClient {

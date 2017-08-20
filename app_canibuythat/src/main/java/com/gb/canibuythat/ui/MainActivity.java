@@ -24,11 +24,9 @@ import com.gb.canibuythat.interactor.MonzoInteractor;
 import com.gb.canibuythat.model.Balance;
 import com.gb.canibuythat.ui.model.BalanceReading;
 import com.gb.canibuythat.util.DateUtils;
-import com.gb.canibuythat.util.Logger;
 import com.gb.canibuythat.util.PermissionVerifier;
 import com.gb.canibuythat.util.ViewUtils;
 
-import java.net.URLEncoder;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -80,7 +78,7 @@ public class MainActivity extends BaseActivity implements BudgetListFragment.Fra
         if (chartButton != null) {
             ChartActivity.launchOnClick(this, chartButton);
         }
-        budgetInteractor.calculateBalance().subscribe(this::setBalanceInfo, this::showError);
+        budgetInteractor.calculateBalance().subscribe(this::setBalanceInfo, this::onError);
 
         if (getIntent().getData() != null) {
             Uri data = getIntent().getData();
@@ -131,7 +129,7 @@ public class MainActivity extends BaseActivity implements BudgetListFragment.Fra
                 permissionVerifier = new PermissionVerifier(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE});
                 if (permissionVerifier.verifyPermissions(true, REQUEST_CODE_PERMISSIONS_FOR_DB_EXPORT)) {
                     budgetInteractor.exportDatabase().subscribe(() -> {
-                    }, this::showError);
+                    }, this::onError);
                 }
                 break;
             case R.id.menu_import:
@@ -139,15 +137,10 @@ public class MainActivity extends BaseActivity implements BudgetListFragment.Fra
                 break;
             case R.id.menu_monzo:
                 if (TextUtils.isEmpty(credentialsProvider.getAccessToken())) {
-                    String url = MonzoConstants.MONZO_OAUTH_URL
-                            + "/?client_id=" + MonzoConstants.CLIENT_ID
-                            + "&redirect_uri=" + URLEncoder.encode(MonzoConstants.MONZO_URI_AUTH_CALLBACK)
-                            + "&response_type=code";
-                    Logger.d("CanIBuyThat", url);
-                    WebActivity.show(this, url);
+                    LoginActivity.show(this);
                 } else {
                     monzoInteractor.accounts()
-                            .subscribe(accounts -> Toast.makeText(this, accounts[0].getDescription(), Toast.LENGTH_SHORT).show(), this::showError);
+                            .subscribe(accounts -> Toast.makeText(this, accounts[0].getDescription(), Toast.LENGTH_SHORT).show(), this::onError);
                 }
                 break;
         }
@@ -183,7 +176,7 @@ public class MainActivity extends BaseActivity implements BudgetListFragment.Fra
     public void onBalanceReadingSet(BalanceReading balanceReading) {
         userPreferences.setBalanceReading(balanceReading);
         userPreferences.setEstimateDate(null);
-        budgetInteractor.calculateBalance().subscribe(this::setBalanceInfo, this::showError);
+        budgetInteractor.calculateBalance().subscribe(this::setBalanceInfo, this::onError);
     }
 
     @Override
@@ -193,7 +186,7 @@ public class MainActivity extends BaseActivity implements BudgetListFragment.Fra
                 if (resultCode == RESULT_OK) {
                     String path = data.getStringExtra(FileDialogActivity.EXTRA_RESULT_PATH);
                     budgetInteractor.importBudgetDatabaseFromFile(path)
-                            .subscribe(() -> budgetInteractor.calculateBalance().subscribe(this::setBalanceInfo, this::showError), this::showError);
+                            .subscribe(() -> budgetInteractor.calculateBalance().subscribe(this::setBalanceInfo, this::onError), this::onError);
                 }
                 break;
         }
@@ -205,7 +198,7 @@ public class MainActivity extends BaseActivity implements BudgetListFragment.Fra
         if (requestCode == REQUEST_CODE_PERMISSIONS_FOR_DB_EXPORT) {
             if (permissionVerifier.onRequestPermissionsResult(requestCode, permissions, grantResults)) {
                 budgetInteractor.exportDatabase().subscribe(() -> {
-                }, this::showError);
+                }, this::onError);
             } else {
                 Toast.makeText(this, "Missing permissions!", Toast.LENGTH_SHORT).show();
             }
@@ -290,7 +283,7 @@ public class MainActivity extends BaseActivity implements BudgetListFragment.Fra
                             "Please set a date after the last balance " + "reading! (" + balanceReading.when + ")", Toast.LENGTH_SHORT).show();
                 }
             }
-            budgetInteractor.calculateBalance().subscribe(this::setBalanceInfo, this::showError);
+            budgetInteractor.calculateBalance().subscribe(this::setBalanceInfo, this::onError);
         };
 
         DatePickerDialog datePickerDialog = DateUtils.getDatePickerDialog(MainActivity.this, listener, userPreferences.getEstimateDate());
@@ -303,6 +296,6 @@ public class MainActivity extends BaseActivity implements BudgetListFragment.Fra
             credentialsProvider.setRefreshToken(login.getRefreshToken());
             Toast.makeText(this, "AccessToken: " + credentialsProvider.getAccessToken(), Toast.LENGTH_SHORT).show();
             Toast.makeText(this, "RefreshToken: " + credentialsProvider.getRefreshToken(), Toast.LENGTH_SHORT).show();
-        }, this::showError);
+        }, this::onError);
     }
 }

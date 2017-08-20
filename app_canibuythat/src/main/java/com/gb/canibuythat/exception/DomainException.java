@@ -1,20 +1,16 @@
 package com.gb.canibuythat.exception;
 
-import com.gb.canibuythat.api.model.MonzoErrorResponse;
-import com.google.gson.Gson;
-
 import java.io.IOException;
 
 import okhttp3.ResponseBody;
-import retrofit2.Converter;
 import retrofit2.HttpException;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 public class DomainException extends Throwable {
 
     private ResponseBody responseBody;
     private int code;
-    private DomainException.KIND kind;
+    private Kind kind;
+    private Action action;
 
     public DomainException(Throwable raw) {
         this(raw.getMessage(), raw);
@@ -27,15 +23,20 @@ public class DomainException extends Throwable {
     public DomainException(String message, Throwable cause) {
         super(message, cause);
         this.code = -1;
-        this.kind = DomainException.KIND.GENERIC;
+        this.kind = Kind.GENERIC;
 
         if (cause instanceof HttpException) {
-            this.kind = DomainException.KIND.HTTP;
+            this.kind = Kind.HTTP;
             this.code = ((HttpException) cause).code();
+
+            if (code == 401) {
+                action = Action.LOGIN;
+            }
+
             this.responseBody = ((HttpException) cause).response().errorBody();
         }
         if (cause instanceof IOException) {
-            this.kind = DomainException.KIND.NETWORK;
+            this.kind = Kind.NETWORK;
         }
     }
 
@@ -47,13 +48,21 @@ public class DomainException extends Throwable {
         return code;
     }
 
-    public KIND getKind() {
+    public Kind getKind() {
         return kind;
     }
 
-    public enum KIND {
+    public Action getAction() {
+        return action;
+    }
+
+    public enum Kind {
         NETWORK,
         HTTP,
         GENERIC;
+    }
+
+    public enum Action {
+        LOGIN
     }
 }

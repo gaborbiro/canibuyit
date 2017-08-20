@@ -3,17 +3,19 @@ package com.gb.canibuythat.ui;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
-import android.widget.Toast;
 
-import com.gb.canibuythat.exception.DomainException;
-import com.gb.canibuythat.util.Logger;
+import com.gb.canibuythat.di.Injector;
+import com.gb.canibuythat.exception.ErrorHandler;
+import com.gb.canibuythat.exception.FragmentManagerSource;
+
+import javax.inject.Inject;
 
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
 
-public abstract class BaseActivity extends AppCompatActivity {
+public abstract class BaseActivity extends AppCompatActivity implements FragmentManagerSource {
 
-    private static final String TAG = "CanIBuyThat";
+    @Inject ErrorHandler errorHandler;
 
     private Unbinder unbinder;
 
@@ -21,6 +23,18 @@ public abstract class BaseActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         inject();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Injector.INSTANCE.registerDialogHandler(this);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Injector.INSTANCE.unregisterDialogHandler(this);
     }
 
     @Override
@@ -37,24 +51,8 @@ public abstract class BaseActivity extends AppCompatActivity {
         super.onDestroy();
     }
 
-    protected void showError(Throwable exception) {
-        if (exception instanceof DomainException) {
-            DomainException domainException = (DomainException) exception;
-            switch (domainException.getKind()) {
-                case HTTP:
-                    Toast.makeText(this, "HTTP error (" + domainException.getCode() + "): " + domainException.getMessage(), Toast.LENGTH_LONG).show();
-                    break;
-                case NETWORK:
-                    Toast.makeText(this, "NETWORK error: " + exception.getMessage(), Toast.LENGTH_LONG).show();
-                    break;
-                case GENERIC:
-                    Toast.makeText(this, "GENERIC error " + exception.getMessage(), Toast.LENGTH_LONG).show();
-                    break;
-            }
-        }
-        if (exception.getCause() != null) {
-            Logger.e(TAG, exception.getMessage(), exception.getCause());
-        }
+    protected void onError(Throwable throwable) {
+        errorHandler.onError(throwable);
     }
 
     protected abstract void inject();

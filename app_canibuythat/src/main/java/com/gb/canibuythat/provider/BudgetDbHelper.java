@@ -75,14 +75,14 @@ public class BudgetDbHelper extends OrmLiteSqliteOpenHelper {
         return db.query(Contract.BudgetItem.TABLE, Contract.BudgetItem.COLUMNS, null, null, null, null, null);
     }
 
-    public void replaceBudgetDatabase(Cursor c) throws SQLException {
-        if (c.getCount() > 0) {
+    public void replaceBudgetDatabase(Cursor cursor) throws SQLException {
+        if (cursor.getCount() > 0) {
             SQLiteDatabase db = getWritableDatabase();
             try {
                 db.beginTransaction();
                 db.delete(Contract.BudgetItem.TABLE, null, null);
-                for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {
-                    ContentValues contentValues = cursorRowToContentValues(c);
+                for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+                    ContentValues contentValues = cursorRowToContentValues(cursor);
                     db.insert(Contract.BudgetItem.TABLE, null, contentValues);
                 }
                 db.setTransactionSuccessful();
@@ -90,7 +90,7 @@ public class BudgetDbHelper extends OrmLiteSqliteOpenHelper {
                 db.endTransaction();
             }
         }
-        c.close();
+        cursor.close();
     }
 
     private static ContentValues cursorRowToContentValues(Cursor cursor) {

@@ -3,6 +3,7 @@ package com.gb.canibuythat.ui;
 import android.app.DatePickerDialog;
 import android.database.sqlite.SQLiteConstraintException;
 import android.os.Bundle;
+import android.support.v4.app.FragmentManager;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -234,7 +235,7 @@ public class BudgetEditorFragment extends BaseFragment {
     public void setContent(Integer budgetItemId, final boolean showKeyboardWhenDone) {
         if (budgetItemId != null) {
             budgetInteractor.read(budgetItemId)
-                    .subscribe(budgetItem -> onBuddgetItemLoaded(budgetItem, showKeyboardWhenDone), this::showError);
+                    .subscribe(budgetItem -> onBuddgetItemLoaded(budgetItem, showKeyboardWhenDone), this::onError);
         } else {
             clearScreen();
         }
@@ -259,7 +260,7 @@ public class BudgetEditorFragment extends BaseFragment {
             case R.id.menu_delete:
                 if (originalBudgetItem != null && originalBudgetItem.isPersisted()) {
                     budgetInteractor.delete(originalBudgetItem.id)
-                            .subscribe(() -> deleteButton.setVisible(false), this::showError);
+                            .subscribe(() -> deleteButton.setVisible(false), this::onError);
                 }
                 break;
         }
@@ -299,7 +300,7 @@ public class BudgetEditorFragment extends BaseFragment {
                         deleteButton.setVisible(true);
                         loadSpendingOccurrences(newBudgetItem);
                     }, throwable -> {
-                        showError(throwable);
+                        onError(throwable);
                         do {
                             if (throwable.getCause() == null || throwable instanceof SQLiteConstraintException) {
                                 break;
@@ -307,7 +308,7 @@ public class BudgetEditorFragment extends BaseFragment {
                                 throwable = throwable.getCause();
                             }
                         } while (true);
-                        showError(throwable);
+                        onError(throwable);
                     });
             return true;
         } else {

@@ -54,7 +54,7 @@
             android:name=".ui.FileDialogActivity">
         </activity>
         <activity
-            android:name=".ui.WebActivity"
+            android:name=".ui.LoginActivity"
             android:parentActivityName=".ui.MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"

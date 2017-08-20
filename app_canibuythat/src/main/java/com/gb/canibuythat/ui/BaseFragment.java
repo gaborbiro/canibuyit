@@ -4,19 +4,21 @@ package com.gb.canibuythat.ui;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.view.View;
-import android.widget.Toast;
 
-import com.gb.canibuythat.exception.DomainException;
-import com.gb.canibuythat.util.Logger;
+import com.gb.canibuythat.di.Injector;
+import com.gb.canibuythat.exception.ErrorHandler;
+import com.gb.canibuythat.exception.FragmentManagerSource;
+
+import javax.inject.Inject;
 
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
 
-public abstract class BaseFragment extends Fragment {
+public abstract class BaseFragment extends Fragment implements FragmentManagerSource {
 
-    private static final String TAG = "CanIBuyThat";
-
+    @Inject ErrorHandler errorHandler;
     private Unbinder unbinder;
 
     @Override
@@ -32,30 +34,33 @@ public abstract class BaseFragment extends Fragment {
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        Injector.INSTANCE.registerDialogHandler(this);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        Injector.INSTANCE.unregisterDialogHandler(this);
+    }
+
+    @Override
     public void onDestroyView() {
         super.onDestroyView();
         unbinder.unbind();
     }
 
-    protected void showError(Throwable exception) {
-        if (exception instanceof DomainException) {
-            DomainException domainException = (DomainException) exception;
-            switch (domainException.getKind()) {
-                case HTTP:
-                    Toast.makeText(getActivity(), "HTTP error (" + domainException.getCode() + "): " + domainException.getMessage(), Toast.LENGTH_LONG).show();
-                    break;
-                case NETWORK:
-                    Toast.makeText(getActivity(), "NETWORK error" + exception.getMessage(), Toast.LENGTH_LONG).show();
-                    break;
-                case GENERIC:
-                    Toast.makeText(getActivity(), "GENERIC error" + exception.getMessage(), Toast.LENGTH_LONG).show();
-                    break;
-            }
-        }
-        if (exception.getCause() != null) {
-            Logger.e(TAG, exception.getMessage(), exception.getCause());
-        }
+    protected void onError(Throwable throwable) {
+        errorHandler.onError(throwable);
     }
+
+    @Override
+    public FragmentManager getSupportFragmentManager() {
+        return super.getFragmentManager();
+    }
+
+
 
     protected abstract void inject();
 }

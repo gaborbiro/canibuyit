@@ -5,6 +5,8 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.v4.app.DialogFragment;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -24,7 +26,7 @@ import java.util.Date;
 
 import javax.inject.Inject;
 
-public class BalanceReadingInputDialog extends BaseDialogFragment
+public class BalanceReadingInputDialog extends DialogFragment
         implements View.OnClickListener {
 
     @Inject UserPreferences userPreferences;
@@ -38,6 +40,12 @@ public class BalanceReadingInputDialog extends BaseDialogFragment
     public BalanceReadingInputDialog() {
         lastUpdate = userPreferences.getBalanceReading();
         refreshLastUpdate();
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        Injector.INSTANCE.getGraph().inject(this);
     }
 
     @NonNull
@@ -119,11 +127,6 @@ public class BalanceReadingInputDialog extends BaseDialogFragment
             return false;
         }
         return true;
-    }
-
-    @Override
-    protected void inject() {
-        Injector.INSTANCE.getGraph().inject(this);
     }
 
     interface BalanceReadingInputListener {

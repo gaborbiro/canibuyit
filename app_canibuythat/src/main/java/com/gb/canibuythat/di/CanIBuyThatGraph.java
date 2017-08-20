@@ -6,6 +6,7 @@ import com.gb.canibuythat.ui.BalanceReadingInputDialog;
 import com.gb.canibuythat.ui.BudgetEditorFragment;
 import com.gb.canibuythat.ui.BudgetListFragment;
 import com.gb.canibuythat.ui.ChartActivity;
+import com.gb.canibuythat.ui.LoginActivity;
 import com.gb.canibuythat.ui.MainActivity;
 
 public interface CanIBuyThatGraph {
@@ -22,4 +23,6 @@ public interface CanIBuyThatGraph {
     void inject(BudgetListFragment budgetListFragment);
 
     void inject(BudgetProvider budgetProvider);
+
+    void inject(LoginActivity loginActivity);
 }
