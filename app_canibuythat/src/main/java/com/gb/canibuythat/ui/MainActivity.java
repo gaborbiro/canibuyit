@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ImageView;
@@ -19,10 +20,11 @@ import com.gb.canibuythat.R;
 import com.gb.canibuythat.UserPreferences;
 import com.gb.canibuythat.di.Injector;
 import com.gb.canibuythat.interactor.BudgetInteractor;
-import com.gb.canibuythat.interactor.LoginInteractor;
+import com.gb.canibuythat.interactor.MonzoInteractor;
 import com.gb.canibuythat.model.Balance;
 import com.gb.canibuythat.ui.model.BalanceReading;
 import com.gb.canibuythat.util.DateUtils;
+import com.gb.canibuythat.util.Logger;
 import com.gb.canibuythat.util.PermissionVerifier;
 import com.gb.canibuythat.util.ViewUtils;
 
@@ -52,7 +54,7 @@ public class MainActivity extends BaseActivity implements BudgetListFragment.Fra
     private static final int REQUEST_CODE_CHOOSE_FILE = 1;
     private static final int REQUEST_CODE_PERMISSIONS_FOR_DB_EXPORT = 2;
 
-    @Inject LoginInteractor loginInteractor;
+    @Inject MonzoInteractor monzoInteractor;
     @Inject BudgetInteractor budgetInteractor;
     @Inject CredentialsProvider credentialsProvider;
     @Inject UserPreferences userPreferences;
@@ -136,12 +138,16 @@ public class MainActivity extends BaseActivity implements BudgetListFragment.Fra
                 importDatabase();
                 break;
             case R.id.menu_monzo:
-                if (credentialsProvider.getAccessToken() == null) {
+                if (TextUtils.isEmpty(credentialsProvider.getAccessToken())) {
                     String url = MonzoConstants.MONZO_OAUTH_URL
                             + "/?client_id=" + MonzoConstants.CLIENT_ID
                             + "&redirect_uri=" + URLEncoder.encode(MonzoConstants.MONZO_URI_AUTH_CALLBACK)
                             + "&response_type=code";
+                    Logger.d("CanIBuyThat", url);
                     WebActivity.show(this, url);
+                } else {
+                    monzoInteractor.accounts()
+                            .subscribe(accounts -> Toast.makeText(this, accounts[0].getDescription(), Toast.LENGTH_SHORT).show(), this::showError);
                 }
                 break;
         }
@@ -292,7 +298,7 @@ public class MainActivity extends BaseActivity implements BudgetListFragment.Fra
     };
 
     private void login(String authorizationCode) {
-        loginInteractor.login(authorizationCode).subscribe(login -> {
+        monzoInteractor.login(authorizationCode).subscribe(login -> {
             credentialsProvider.setAccessToken(login.getAccessToken());
             credentialsProvider.setRefreshToken(login.getRefreshToken());
             Toast.makeText(this, "AccessToken: " + credentialsProvider.getAccessToken(), Toast.LENGTH_SHORT).show();

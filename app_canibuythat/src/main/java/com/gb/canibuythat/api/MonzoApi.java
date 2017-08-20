@@ -1,15 +1,34 @@
 package com.gb.canibuythat.api;
 
+import com.gb.canibuythat.api.model.ApiAccountsResponse;
 import com.gb.canibuythat.api.model.ApiLogin;
+import com.gb.canibuythat.api.model.RefreshRequest;
 
 import io.reactivex.Single;
+import okhttp3.RequestBody;
+import retrofit2.http.Body;
+import retrofit2.http.GET;
+import retrofit2.http.Multipart;
 import retrofit2.http.POST;
-import retrofit2.http.Query;
+import retrofit2.http.Part;
 
 public interface MonzoApi {
 
+    @Multipart
     @POST("/oauth2/token")
-    Single<ApiLogin> login(@Query("grant_type") String grantType, @Query("client_id") String clientId,
-                           @Query("client_secret") String clientSecret, @Query("redirect_uri") String redirectUri,
-                           @Query("code") String authorizationCode);
+    Single<ApiLogin> login(@Part("grant_type") RequestBody grantType,
+                           @Part("code") RequestBody code,
+                           @Part("redirect_uri") RequestBody redirectUri,
+                           @Part("client_id") RequestBody clientId,
+                           @Part("client_secret") RequestBody clientSecret);
+
+    @Multipart
+    @POST("/oauth2/token")
+    Single<ApiLogin> refresh(@Part("grant_type") RequestBody grantType,
+                             @Part("refresh_token") RequestBody refreshToken,
+                             @Part("client_id") RequestBody clientId,
+                             @Part("client_secret") RequestBody clientSecret);
+
+    @GET("/accounts")
+    Single<ApiAccountsResponse> accounts();
 }

@@ -23,7 +23,7 @@ public class CredentialsProvider {
     }
 
     public String getAccessToken() {
-        return prefsUtil.get(PREF_ACCESS_TOKEN, (String) null);
+        return prefsUtil.get(PREF_ACCESS_TOKEN, "");
     }
 
     public void setRefreshToken(String refreshToken) {

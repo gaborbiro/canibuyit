@@ -2,7 +2,6 @@ package com.gb.canibuythat;
 
 public class MonzoConstants {
 
-    public static final String USER_ID = "user_00009GOVUin6LydhadHxYn";
     public static final String CLIENT_ID = "oauthclient_00009NdpMmS85laW9PUzlh";
     public static final String CLIENT_SECRET = "olQNjJkkXQmi3l9ocGC4yd+uhPXN3K8tfTut71XqYlLP9K9bapIIM87H7Pob2nHQDjoL3ohYxAv2EpFaG29V";
 
