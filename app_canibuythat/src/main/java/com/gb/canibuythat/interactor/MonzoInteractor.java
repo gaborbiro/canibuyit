@@ -3,6 +3,7 @@ package com.gb.canibuythat.interactor;
 import com.gb.canibuythat.exception.MonzoException;
 import com.gb.canibuythat.model.Account;
 import com.gb.canibuythat.model.Login;
+import com.gb.canibuythat.model.Transaction;
 import com.gb.canibuythat.repository.MonzoRepository;
 import com.gb.canibuythat.rx.SchedulerProvider;
 
@@ -37,6 +38,13 @@ public class MonzoInteractor {
 
     public Single<Account[]> accounts() {
         return monzoRepository.accounts()
+                .onErrorResumeNext(throwable -> Single.error(new MonzoException(throwable)))
+                .subscribeOn(schedulerProvider.io())
+                .observeOn(schedulerProvider.mainThread());
+    }
+
+    public Single<Transaction[]> transactions(String accountId) {
+        return monzoRepository.transactions(accountId)
                 .onErrorResumeNext(throwable -> Single.error(new MonzoException(throwable)))
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread());

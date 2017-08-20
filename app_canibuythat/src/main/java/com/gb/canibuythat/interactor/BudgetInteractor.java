@@ -73,7 +73,7 @@ public class BudgetInteractor {
                 .observeOn(schedulerProvider.mainThread());
     }
 
-    public Completable importBudgetDatabaseFromFile(String file) {
+    public Completable importDatabase(String file) {
         return budgetRepository.importDatabaseFromFile(file)
                 .doOnComplete(() -> appContext.getContentResolver().notifyChange(BudgetProvider.BUDGET_ITEMS_URI, null))
                 .onErrorResumeNext(throwable -> Completable.error(new DomainException(throwable.getMessage(), throwable.getCause())))

@@ -3,25 +3,20 @@ package com.gb.canibuythat.ui;
 import android.Manifest;
 import android.app.DatePickerDialog;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.annotation.NonNull;
-import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.gb.canibuythat.CredentialsProvider;
-import com.gb.canibuythat.MonzoConstants;
 import com.gb.canibuythat.R;
 import com.gb.canibuythat.UserPreferences;
 import com.gb.canibuythat.di.Injector;
-import com.gb.canibuythat.interactor.BudgetInteractor;
-import com.gb.canibuythat.interactor.MonzoInteractor;
 import com.gb.canibuythat.model.Balance;
+import com.gb.canibuythat.presenter.MainPresenter;
+import com.gb.canibuythat.screen.MainScreen;
 import com.gb.canibuythat.ui.model.BalanceReading;
 import com.gb.canibuythat.util.DateUtils;
 import com.gb.canibuythat.util.PermissionVerifier;
@@ -29,7 +24,6 @@ import com.gb.canibuythat.util.ViewUtils;
 
 import java.util.Calendar;
 import java.util.Date;
-import java.util.List;
 
 import javax.inject.Inject;
 
@@ -47,15 +41,14 @@ import butterknife.BindView;
  * {@link BudgetListFragment.FragmentCallback}
  * interface to listen for item selections.
  */
-public class MainActivity extends BaseActivity implements BudgetListFragment.FragmentCallback, BalanceReadingInputDialog.BalanceReadingInputListener {
+public class MainActivity extends BaseActivity implements MainScreen, BudgetListFragment.FragmentCallback, BalanceReadingInputDialog.BalanceReadingInputListener {
 
     private static final int REQUEST_CODE_CHOOSE_FILE = 1;
     private static final int REQUEST_CODE_PERMISSIONS_FOR_DB_EXPORT = 2;
 
-    @Inject MonzoInteractor monzoInteractor;
-    @Inject BudgetInteractor budgetInteractor;
-    @Inject CredentialsProvider credentialsProvider;
     @Inject UserPreferences userPreferences;
+
+    private MainPresenter presenter;
 
     @BindView(R.id.estimate_at_time) TextView estimateAtTimeView;
     @BindView(R.id.reference) TextView referenceView;
@@ -72,28 +65,18 @@ public class MainActivity extends BaseActivity implements BudgetListFragment.Fra
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        presenter = new MainPresenter(this);
+
         if (findViewById(R.id.budgetmodifier_detail_container) != null) {
             twoPane = true;
         }
         if (chartButton != null) {
-            ChartActivity.launchOnClick(this, chartButton);
+            chartButton.setOnClickListener(v -> presenter.chartButtonClicked());
         }
-        budgetInteractor.calculateBalance().subscribe(this::setBalanceInfo, this::onError);
-
         if (getIntent().getData() != null) {
-            Uri data = getIntent().getData();
-            if (data.getAuthority().equals(MonzoConstants.MONZO_AUTH_AUTHORITY)) {
-                List<String> pathSegments = data.getPathSegments();
-
-                if (pathSegments.get(0).equals(MonzoConstants.MONZO_AUTH_PATH_BASE)) {
-                    if (pathSegments.get(1).equals(MonzoConstants.MONZO_AUTH_PATH_CALLBACK)) {
-                        // finished email authentication -> exchange code for auth token
-                        String authorizationCode = data.getQueryParameter(MonzoConstants.MONZO_OAUTH_PARAM_AUTHORIZATION_CODE);
-                        login(authorizationCode);
-                    }
-                }
-            }
+            presenter.handleDeepLink(getIntent());
         }
+        presenter.fetchBalance();
     }
 
     @Override
@@ -107,7 +90,7 @@ public class MainActivity extends BaseActivity implements BudgetListFragment.Fra
      */
     @Override
     public void onListItemClick(int id) {
-        showEditorScreen(id);
+        presenter.showEditorScreenForBudgetItem(id);
     }
 
     @Override
@@ -120,28 +103,22 @@ public class MainActivity extends BaseActivity implements BudgetListFragment.Fra
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_add:
-                showEditorScreen();
+                presenter.showEditorScreen();
                 break;
             case R.id.menu_update_balance:
-                showBalanceUpdateDialog();
+                presenter.updateBalance();
                 break;
             case R.id.menu_export:
                 permissionVerifier = new PermissionVerifier(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE});
                 if (permissionVerifier.verifyPermissions(true, REQUEST_CODE_PERMISSIONS_FOR_DB_EXPORT)) {
-                    budgetInteractor.exportDatabase().subscribe(() -> {
-                    }, this::onError);
+                    presenter.exportDatabase();
                 }
                 break;
             case R.id.menu_import:
-                importDatabase();
+                presenter.onImportDatabase();
                 break;
             case R.id.menu_monzo:
-                if (TextUtils.isEmpty(credentialsProvider.getAccessToken())) {
-                    LoginActivity.show(this);
-                } else {
-                    monzoInteractor.accounts()
-                            .subscribe(accounts -> Toast.makeText(this, accounts[0].getDescription(), Toast.LENGTH_SHORT).show(), this::onError);
-                }
+                presenter.doMonzoStuff();
                 break;
         }
         return super.onOptionsItemSelected(item);
@@ -157,17 +134,6 @@ public class MainActivity extends BaseActivity implements BudgetListFragment.Fra
         }
     }
 
-    private void importDatabase() {
-        Intent i = new Intent(this, FileDialogActivity.class);
-        i.putExtra(FileDialogActivity.EXTRA_START_PATH, Environment.getExternalStorageDirectory().getPath() + "/CanIBuyThat/");
-        i.putExtra(FileDialogActivity.EXTRA_SELECTION_MODE, FileDialogActivity.SELECTION_MODE_OPEN);
-        startActivityForResult(i, REQUEST_CODE_CHOOSE_FILE);
-    }
-
-//    @Subscribe public void onEvent(BudgetItemUpdatedEvent event) {
-//        new CalculateBalanceTask(balanceCalculatorCallback).execute();
-//    }
-
     /**
      * Callback from the {@link BalanceReadingInputDialog} notifying that the user has
      * added a new balance reading
@@ -176,7 +142,15 @@ public class MainActivity extends BaseActivity implements BudgetListFragment.Fra
     public void onBalanceReadingSet(BalanceReading balanceReading) {
         userPreferences.setBalanceReading(balanceReading);
         userPreferences.setEstimateDate(null);
-        budgetInteractor.calculateBalance().subscribe(this::setBalanceInfo, this::onError);
+        presenter.fetchBalance();
+    }
+
+    @Override
+    public void showFilePickerActivity(String directory) {
+        Intent i = new Intent(this, FileDialogActivity.class);
+        i.putExtra(FileDialogActivity.EXTRA_START_PATH, directory);
+        i.putExtra(FileDialogActivity.EXTRA_SELECTION_MODE, FileDialogActivity.SELECTION_MODE_OPEN);
+        startActivityForResult(i, REQUEST_CODE_CHOOSE_FILE);
     }
 
     @Override
@@ -185,8 +159,7 @@ public class MainActivity extends BaseActivity implements BudgetListFragment.Fra
             case REQUEST_CODE_CHOOSE_FILE:
                 if (resultCode == RESULT_OK) {
                     String path = data.getStringExtra(FileDialogActivity.EXTRA_RESULT_PATH);
-                    budgetInteractor.importBudgetDatabaseFromFile(path)
-                            .subscribe(() -> budgetInteractor.calculateBalance().subscribe(this::setBalanceInfo, this::onError), this::onError);
+                    presenter.onDatabaseFileSelected(path);
                 }
                 break;
         }
@@ -197,29 +170,18 @@ public class MainActivity extends BaseActivity implements BudgetListFragment.Fra
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (requestCode == REQUEST_CODE_PERMISSIONS_FOR_DB_EXPORT) {
             if (permissionVerifier.onRequestPermissionsResult(requestCode, permissions, grantResults)) {
-                budgetInteractor.exportDatabase().subscribe(() -> {
-                }, this::onError);
+                presenter.exportDatabase();
             } else {
                 Toast.makeText(this, "Missing permissions!", Toast.LENGTH_SHORT).show();
             }
         }
     }
 
-    private void showBalanceUpdateDialog() {
+    public void showBalanceUpdateDialog() {
         new BalanceReadingInputDialog().show(getSupportFragmentManager(), null);
     }
 
-    /**
-     * Display an empty budget item editor screen
-     */
-    private void showEditorScreen() {
-        showEditorScreen(null);
-    }
-
-    /**
-     * Open the specified budget item for editing
-     */
-    private void showEditorScreen(final Integer budgetItemId) {
+    public void showEditorScreen(final Integer budgetItemId) {
         if (twoPane) {
             final BudgetEditorFragment budgetEditorFragment =
                     (BudgetEditorFragment) getSupportFragmentManager().findFragmentById(R.id.budgetmodifier_detail_container);
@@ -245,7 +207,8 @@ public class MainActivity extends BaseActivity implements BudgetListFragment.Fra
         }
     }
 
-    private void setBalanceInfo(Balance balance) {
+    @Override
+    public void setBalanceInfo(Balance balance) {
         if (referenceView != null) {
             String text;
             if (balance.getBalanceReading() != null) {
@@ -283,19 +246,20 @@ public class MainActivity extends BaseActivity implements BudgetListFragment.Fra
                             "Please set a date after the last balance " + "reading! (" + balanceReading.when + ")", Toast.LENGTH_SHORT).show();
                 }
             }
-            budgetInteractor.calculateBalance().subscribe(this::setBalanceInfo, this::onError);
+            presenter.fetchBalance();
         };
 
         DatePickerDialog datePickerDialog = DateUtils.getDatePickerDialog(MainActivity.this, listener, userPreferences.getEstimateDate());
         datePickerDialog.show();
     };
 
-    private void login(String authorizationCode) {
-        monzoInteractor.login(authorizationCode).subscribe(login -> {
-            credentialsProvider.setAccessToken(login.getAccessToken());
-            credentialsProvider.setRefreshToken(login.getRefreshToken());
-            Toast.makeText(this, "AccessToken: " + credentialsProvider.getAccessToken(), Toast.LENGTH_SHORT).show();
-            Toast.makeText(this, "RefreshToken: " + credentialsProvider.getRefreshToken(), Toast.LENGTH_SHORT).show();
-        }, this::onError);
+    @Override
+    public void showLoginActivity() {
+        LoginActivity.show(this);
+    }
+
+    @Override
+    public void showChartScreen() {
+        ChartActivity.show(MainActivity.this);
     }
 }

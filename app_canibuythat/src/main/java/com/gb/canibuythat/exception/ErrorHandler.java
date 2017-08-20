@@ -29,7 +29,7 @@ public class ErrorHandler {
             DomainException domainException = (DomainException) exception;
             switch (domainException.getKind()) {
                 case HTTP:
-                    dialog = PromptDialog.newInstance("Server error", domainException.getMessage());
+                    dialog = PromptDialog.newInstance("Server error " + domainException.getCode(), domainException.getMessage());
                     if (domainException.getAction() == DomainException.Action.LOGIN) {
                         dialog.setPositiveButton(android.R.string.ok, v -> LoginActivity.show(appContext));
                     }

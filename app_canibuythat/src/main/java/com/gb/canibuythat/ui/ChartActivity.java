@@ -1,11 +1,10 @@
 package com.gb.canibuythat.ui;
 
-import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Toast;
 
 import com.gb.canibuythat.R;
@@ -50,11 +49,9 @@ public class ChartActivity extends BaseActivity implements OnChartValueSelectedL
     private static SimpleDateFormat MONTH_YEAR = new SimpleDateFormat("yyyy.MMM");
     protected BarChart chart;
 
-    public static void launchOnClick(final Activity activity, View button) {
-        button.setOnClickListener(v -> {
-            Intent i = new Intent(activity, ChartActivity.class);
-            activity.startActivity(i);
-        });
+    public static void show(Context context) {
+        Intent i = new Intent(context, ChartActivity.class);
+        context.startActivity(i);
     }
 
     @Override

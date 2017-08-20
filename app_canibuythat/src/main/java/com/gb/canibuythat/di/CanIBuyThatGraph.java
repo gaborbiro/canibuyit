@@ -1,6 +1,7 @@
 package com.gb.canibuythat.di;
 
 import com.gb.canibuythat.App;
+import com.gb.canibuythat.presenter.MainPresenter;
 import com.gb.canibuythat.provider.BudgetProvider;
 import com.gb.canibuythat.ui.BalanceReadingInputDialog;
 import com.gb.canibuythat.ui.BudgetEditorFragment;
@@ -25,4 +26,6 @@ public interface CanIBuyThatGraph {
     void inject(BudgetProvider budgetProvider);
 
     void inject(LoginActivity loginActivity);
+
+    void inject(MainPresenter mainPresenter);
 }

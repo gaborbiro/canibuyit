@@ -8,7 +8,7 @@ import lombok.Getter;
 
 @Keep
 @Getter
-public class ApiAccountsResponse {
+public class ApiAccountCollection {
     @SerializedName("accounts")
     private ApiAccount[] accounts;
 }

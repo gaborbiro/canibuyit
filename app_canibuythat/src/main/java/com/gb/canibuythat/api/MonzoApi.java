@@ -1,16 +1,16 @@
 package com.gb.canibuythat.api;
 
-import com.gb.canibuythat.api.model.ApiAccountsResponse;
+import com.gb.canibuythat.api.model.ApiAccountCollection;
 import com.gb.canibuythat.api.model.ApiLogin;
-import com.gb.canibuythat.api.model.RefreshRequest;
+import com.gb.canibuythat.api.model.ApiTransactionCollection;
 
 import io.reactivex.Single;
 import okhttp3.RequestBody;
-import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.Multipart;
 import retrofit2.http.POST;
 import retrofit2.http.Part;
+import retrofit2.http.Query;
 
 public interface MonzoApi {
 
@@ -30,5 +30,8 @@ public interface MonzoApi {
                              @Part("client_secret") RequestBody clientSecret);
 
     @GET("/accounts")
-    Single<ApiAccountsResponse> accounts();
+    Single<ApiAccountCollection> accounts();
+
+    @GET("/transactions")
+    Single<ApiTransactionCollection> transactions(@Query("account_id") String accountId);
 }

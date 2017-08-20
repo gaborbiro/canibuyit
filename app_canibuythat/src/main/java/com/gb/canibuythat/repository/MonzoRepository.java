@@ -5,6 +5,7 @@ import com.gb.canibuythat.api.BaseFormDataApi;
 import com.gb.canibuythat.api.MonzoApi;
 import com.gb.canibuythat.model.Account;
 import com.gb.canibuythat.model.Login;
+import com.gb.canibuythat.model.Transaction;
 
 import javax.inject.Inject;
 
@@ -39,5 +40,9 @@ public class MonzoRepository extends BaseFormDataApi {
 
     public Single<Account[]> accounts() {
         return monzoApi.accounts().map(apiAccountsResponse -> mapper.map(apiAccountsResponse));
+    }
+
+    public Single<Transaction[]> transactions(String accountId) {
+        return monzoApi.transactions(accountId).map(apiTransactionCollection -> mapper.map(apiTransactionCollection));
     }
 }

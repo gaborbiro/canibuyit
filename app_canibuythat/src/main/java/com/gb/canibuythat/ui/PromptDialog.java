@@ -11,7 +11,7 @@ public class PromptDialog extends BaseDialogFragment {
     private static final String EXTRA_TITLE = "title";
     private static final String EXTRA_MESSAGE = "message";
 
-    private @StringRes int btnStringResId = -1;
+    private @StringRes int btnStringResId = android.R.string.ok;
     private View.OnClickListener onClickListener;
 
     public static PromptDialog newInstance(String title, String message) {
@@ -35,7 +35,12 @@ public class PromptDialog extends BaseDialogFragment {
         setHeading(b.getString(EXTRA_TITLE));
         setMessage(b.getString(EXTRA_MESSAGE));
 
-        super.setPositiveButton(btnStringResId, onClickListener);
+        super.setPositiveButton(btnStringResId, v -> {
+            dismiss();
+            if (onClickListener != null) {
+                onClickListener.onClick(v);
+            }
+        });
         return view;
     }
 

@@ -91,4 +91,10 @@ dependencies {
     // Lombok
     provided "org.projectlombok:lombok:${LOMBOK}"
     annotationProcessor "org.projectlombok:lombok:${LOMBOK}"
+
+    // threeten
+    compile 'com.jakewharton.threetenabp:threetenabp:1.0.5'
+
+    // apache commons-lang
+    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.0'
 }
