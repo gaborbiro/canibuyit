@@ -71,7 +71,7 @@ public class BudgetDbHelper extends OrmLiteSqliteOpenHelper {
         return SQLiteDatabase.openDatabase(file, null, 0);
     }
 
-    public Cursor getAllCursorFromBudgetTable(SQLiteDatabase db) throws SQLException {
+    public Cursor getAllBudgetItems(SQLiteDatabase db) throws SQLException {
         return db.query(Contract.BudgetItem.TABLE, Contract.BudgetItem.COLUMNS, null, null, null, null, null);
     }
 

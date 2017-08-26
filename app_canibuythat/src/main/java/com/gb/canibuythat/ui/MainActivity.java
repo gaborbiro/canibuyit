@@ -47,8 +47,7 @@ public class MainActivity extends BaseActivity implements MainScreen, BudgetList
     private static final int REQUEST_CODE_PERMISSIONS_FOR_DB_EXPORT = 2;
 
     @Inject UserPreferences userPreferences;
-
-    private MainPresenter presenter;
+    @Inject MainPresenter presenter;
 
     @BindView(R.id.estimate_at_time) TextView estimateAtTimeView;
     @BindView(R.id.reference) TextView referenceView;
@@ -64,8 +63,7 @@ public class MainActivity extends BaseActivity implements MainScreen, BudgetList
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        presenter = new MainPresenter(this);
+        presenter.setScreen(this);
 
         if (findViewById(R.id.budgetmodifier_detail_container) != null) {
             twoPane = true;

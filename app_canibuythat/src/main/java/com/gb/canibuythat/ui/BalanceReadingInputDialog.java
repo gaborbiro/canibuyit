@@ -106,7 +106,7 @@ public class BalanceReadingInputDialog extends DialogFragment
         if (validate()) {
             if (listener != null) {
                 Date selectedDate = whenButton.getSelectedDate();
-                BalanceReading balanceUpdateEvent = new BalanceReading(selectedDate != null ? selectedDate : null,
+                BalanceReading balanceUpdateEvent = new BalanceReading(selectedDate,
                         Float.valueOf(valueView.getText().toString()));
                 listener.onBalanceReadingSet(balanceUpdateEvent);
             }

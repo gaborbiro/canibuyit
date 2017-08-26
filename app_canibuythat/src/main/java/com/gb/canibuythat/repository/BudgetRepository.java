@@ -144,7 +144,7 @@ public class BudgetRepository {
             return Completable.error(new Exception("Cannot open database from " + file, e));
         }
         try {
-            cursor = budgetDbHelper.getAllCursorFromBudgetTable(db);
+            cursor = budgetDbHelper.getAllBudgetItems(db);
         } catch (SQLException e) {
             return Completable.error(new Exception("Error reading " + file, e));
         }

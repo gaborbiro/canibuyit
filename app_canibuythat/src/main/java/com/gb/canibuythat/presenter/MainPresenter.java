@@ -7,35 +7,29 @@ import android.text.TextUtils;
 
 import com.gb.canibuythat.CredentialsProvider;
 import com.gb.canibuythat.MonzoConstants;
-import com.gb.canibuythat.di.Injector;
 import com.gb.canibuythat.interactor.BudgetInteractor;
 import com.gb.canibuythat.interactor.MonzoInteractor;
 import com.gb.canibuythat.screen.MainScreen;
-import com.gb.canibuythat.ui.FileDialogActivity;
 
 import java.util.List;
 
 import javax.inject.Inject;
 
-public class MainPresenter extends BasePresenter {
+public class MainPresenter extends BasePresenter<MainScreen> {
 
-    @Inject MonzoInteractor monzoInteractor;
-    @Inject BudgetInteractor budgetInteractor;
-    @Inject CredentialsProvider credentialsProvider;
+    private MonzoInteractor monzoInteractor;
+    private BudgetInteractor budgetInteractor;
+    private CredentialsProvider credentialsProvider;
 
-    private MainScreen screen;
-
-    public MainPresenter(MainScreen screen) {
-        this.screen = screen;
-    }
-
-    @Override
-    protected void inject() {
-        Injector.INSTANCE.getGraph().inject(this);
+    @Inject
+    public MainPresenter(MonzoInteractor monzoInteractor, BudgetInteractor budgetInteractor, CredentialsProvider credentialsProvider) {
+        this.monzoInteractor = monzoInteractor;
+        this.budgetInteractor = budgetInteractor;
+        this.credentialsProvider = credentialsProvider;
     }
 
     public void fetchBalance() {
-        budgetInteractor.calculateBalance().subscribe(screen::setBalanceInfo, this::onError);
+        budgetInteractor.calculateBalance().subscribe(getScreen()::setBalanceInfo, this::onError);
     }
 
     public void handleDeepLink(Intent intent) {
@@ -61,12 +55,12 @@ public class MainPresenter extends BasePresenter {
     }
 
     public void chartButtonClicked() {
-        screen.showChartScreen();
+        getScreen().showChartScreen();
     }
 
     public void doMonzoStuff() {
         if (TextUtils.isEmpty(credentialsProvider.getAccessToken())) {
-            screen.showLoginActivity();
+            getScreen().showLoginActivity();
         } else {
             monzoInteractor.transactions(MonzoConstants.ACCOUNT_ID)
                     .subscribe(transactions -> {
@@ -81,7 +75,7 @@ public class MainPresenter extends BasePresenter {
 
     public void onImportDatabase() {
         String directory = Environment.getExternalStorageDirectory().getPath() + "/CanIBuyThat/";
-        screen.showFilePickerActivity(directory);
+        getScreen().showFilePickerActivity(directory);
     }
 
     public void onDatabaseFileSelected(String path) {
@@ -89,14 +83,14 @@ public class MainPresenter extends BasePresenter {
     }
 
     public void updateBalance() {
-        screen.showBalanceUpdateDialog();
+        getScreen().showBalanceUpdateDialog();
     }
 
     public void showEditorScreenForBudgetItem(int id) {
-        screen.showEditorScreen(id);
+        getScreen().showEditorScreen(id);
     }
 
     public void showEditorScreen() {
-        screen.showEditorScreen(null);
+        getScreen().showEditorScreen(null);
     }
 }

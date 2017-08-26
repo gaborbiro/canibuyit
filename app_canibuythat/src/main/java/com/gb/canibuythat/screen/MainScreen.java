@@ -2,7 +2,7 @@ package com.gb.canibuythat.screen;
 
 import com.gb.canibuythat.model.Balance;
 
-public interface MainScreen {
+public interface MainScreen extends Screen {
     void showChartScreen();
 
     void showLoginActivity();
