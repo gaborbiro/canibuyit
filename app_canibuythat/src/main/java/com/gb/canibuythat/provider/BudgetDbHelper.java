@@ -72,7 +72,7 @@ public class BudgetDbHelper extends OrmLiteSqliteOpenHelper {
     }
 
     public Cursor getAllBudgetItems(SQLiteDatabase db) throws SQLException {
-        return db.query(Contract.BudgetItem.TABLE, Contract.BudgetItem.COLUMNS, null, null, null, null, null);
+        return db.query(Contract.BudgetItem.TABLE, Contract.BudgetItem.Companion.getCOLUMNS(), null, null, null, null, null);
     }
 
     public void replaceBudgetDatabase(Cursor cursor) throws SQLException {

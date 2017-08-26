@@ -259,7 +259,7 @@ public class BudgetEditorFragment extends BaseFragment {
                 break;
             case R.id.menu_delete:
                 if (originalBudgetItem != null && originalBudgetItem.isPersisted()) {
-                    budgetInteractor.delete(originalBudgetItem.id)
+                    budgetInteractor.delete(originalBudgetItem.getId())
                             .subscribe(() -> deleteButton.setVisible(false), this::onError);
                 }
                 break;
@@ -291,8 +291,8 @@ public class BudgetEditorFragment extends BaseFragment {
             if (originalBudgetItem != null) {
                 // this will make an already saved item ot be updated instead of a new
                 // one being created
-                newBudgetItem.id = originalBudgetItem.id;
-                newBudgetItem.ordering = originalBudgetItem.ordering;
+                newBudgetItem.setId(originalBudgetItem.getId());
+                newBudgetItem.setOrdering(originalBudgetItem.getOrdering());
             }
             budgetInteractor.createOrUpdate(newBudgetItem)
                     .subscribe(createOrUpdateStatus -> {
@@ -333,41 +333,41 @@ public class BudgetEditorFragment extends BaseFragment {
     }
 
     private void applyBudgetItemToScreen(final BudgetItem budgetItem) {
-        nameView.setText(budgetItem.name);
-        if (budgetItem.amount != null) {
-            amountView.setText(getString(R.string.detail_amount, budgetItem.amount));
+        nameView.setText(budgetItem.getName());
+        if (budgetItem.getAmount() != null) {
+            amountView.setText(getString(R.string.detail_amount, budgetItem.getAmount()));
         } else {
             amountView.setText(null);
         }
-        enabledView.setChecked(budgetItem.enabled);
-        if (budgetItem.type != null) {
-            categoryView.setSelection(budgetItem.type.ordinal() + 1);
+        enabledView.setChecked(budgetItem.getEnabled());
+        if (budgetItem.getType() != null) {
+            categoryView.setSelection(budgetItem.getType().ordinal() + 1);
         }
 
-        Date firstOccurrenceStart = budgetItem.firstOccurrenceStart != null
-                ? budgetItem.firstOccurrenceStart
+        Date firstOccurrenceStart = budgetItem.getFirstOccurrenceStart() != null
+                ? budgetItem.getFirstOccurrenceStart()
                 : DEFAULT_FIRST_OCCURRENCE_START;
         applyFirstOccurrenceStartToScreen(firstOccurrenceStart);
 
-        Date firstOccurrenceEnd = budgetItem.firstOccurrenceEnd != null ? budgetItem.firstOccurrenceEnd : DEFAULT_FIRST_OCCURRENCE_END;
+        Date firstOccurrenceEnd = budgetItem.getFirstOccurrenceEnd() != null ? budgetItem.getFirstOccurrenceEnd() : DEFAULT_FIRST_OCCURRENCE_END;
         applyFirstOccurrenceEndToScreen(firstOccurrenceEnd);
 
-        if (budgetItem.occurrenceCount != null) {
-            occurrenceLimitView.setText(Integer.toString(budgetItem.occurrenceCount));
+        if (budgetItem.getOccurrenceCount() != null) {
+            occurrenceLimitView.setText(Integer.toString(budgetItem.getOccurrenceCount()));
         } else {
             occurrenceLimitView.setText(null);
         }
 
-        if (budgetItem.periodMultiplier != null) {
-            periodMultiplierView.setText(Integer.toString(budgetItem.periodMultiplier));
+        if (budgetItem.getPeriodMultiplier() != null) {
+            periodMultiplierView.setText(Integer.toString(budgetItem.getPeriodMultiplier()));
         } else {
             periodMultiplierView.setText(null);
         }
 
-        if (budgetItem.periodType != null) {
-            periodTypeView.setSelection(budgetItem.periodType.ordinal() + 1);
+        if (budgetItem.getPeriodType() != null) {
+            periodTypeView.setSelection(budgetItem.getPeriodType().ordinal() + 1);
         }
-        notesView.setText(budgetItem.notes);
+        notesView.setText(budgetItem.getNotes());
         loadSpendingOccurrences(budgetItem);
     }
 
@@ -409,8 +409,8 @@ public class BudgetEditorFragment extends BaseFragment {
 
     private DatePickerDialog getFirstOccurrenceStartPickerDialog() {
         Calendar c = Calendar.getInstance();
-        if (originalBudgetItem != null && originalBudgetItem.firstOccurrenceStart != null) {
-            c.setTime(this.originalBudgetItem.firstOccurrenceStart);
+        if (originalBudgetItem != null && originalBudgetItem.getFirstOccurrenceStart() != null) {
+            c.setTime(this.originalBudgetItem.getFirstOccurrenceStart());
         }
         if (firstOccurrenceStartPickerDialog == null) {
             firstOccurrenceStartPickerDialog = new DatePickerDialog(getActivity(), dateSetListener,
@@ -423,8 +423,8 @@ public class BudgetEditorFragment extends BaseFragment {
 
     private DatePickerDialog getFirstOccurrenceEndPickerDialog() {
         Calendar c = Calendar.getInstance();
-        if (originalBudgetItem != null && originalBudgetItem.firstOccurrenceEnd != null) {
-            c.setTime(this.originalBudgetItem.firstOccurrenceEnd);
+        if (originalBudgetItem != null && originalBudgetItem.getFirstOccurrenceEnd() != null) {
+            c.setTime(this.originalBudgetItem.getFirstOccurrenceEnd());
         }
         if (firstOccurrenceEndPickerDialog == null) {
             firstOccurrenceEndPickerDialog = new DatePickerDialog(getActivity(), dateSetListener,
@@ -523,35 +523,35 @@ public class BudgetEditorFragment extends BaseFragment {
         BudgetItem budgetItem = new BudgetItem();
         // title
         if (!TextUtils.isEmpty(nameView.getText())) {
-            budgetItem.name = nameView.getText().toString();
+            budgetItem.setName(nameView.getText().toString());
         }
         // amount
         if (!TextUtils.isEmpty(amountView.getText())) {
-            budgetItem.amount = Float.valueOf(amountView.getText().toString());
+            budgetItem.setAmount(Float.valueOf(amountView.getText().toString()));
         }
         // enabled
-        budgetItem.enabled = enabledView.isChecked();
+        budgetItem.setEnabled(enabledView.isChecked());
         // type
         if (categoryView.getSelectedItem() instanceof BudgetItem.BudgetItemType) {
-            budgetItem.type = (BudgetItem.BudgetItemType) categoryView.getSelectedItem();
+            budgetItem.setType((BudgetItem.BudgetItemType) categoryView.getSelectedItem());
         }
         // firstOccurrenceStart
-        budgetItem.firstOccurrenceStart = getFirstOccurrenceStartFromScreen();
+        budgetItem.setFirstOccurrenceStart(getFirstOccurrenceStartFromScreen());
         // firstOccurrenceEnd
-        budgetItem.firstOccurrenceEnd = getFirstOccurrenceEndFromScreen();
+        budgetItem.setFirstOccurrenceEnd(getFirstOccurrenceEndFromScreen());
         // repetition
         if (!TextUtils.isEmpty(occurrenceLimitView.getText())) {
-            budgetItem.occurrenceCount = Integer.valueOf(occurrenceLimitView.getText().toString());
+            budgetItem.setOccurrenceCount(Integer.valueOf(occurrenceLimitView.getText().toString()));
         }
         // periodMultiplier
-        budgetItem.periodMultiplier = getPeriodMultiplierFromScreen();
+        budgetItem.setPeriodMultiplier(getPeriodMultiplierFromScreen());
         // period
         if (periodTypeView.getSelectedItem() instanceof BudgetItem.PeriodType) {
-            budgetItem.periodType = (BudgetItem.PeriodType) periodTypeView.getSelectedItem();
+            budgetItem.setPeriodType((BudgetItem.PeriodType) periodTypeView.getSelectedItem());
         }
         // notes
         if (!TextUtils.isEmpty(notesView.getText())) {
-            budgetItem.notes = notesView.getText().toString();
+            budgetItem.setNotes(notesView.getText().toString());
         }
         return budgetItem;
     }
@@ -562,9 +562,9 @@ public class BudgetEditorFragment extends BaseFragment {
         if (firstOccurrenceStartPickerDialog != null) {
             // user picked a date
             firstOccurrenceDateStart = DateUtils.getDayFromDatePicker(firstOccurrenceStartPickerDialog.getDatePicker());
-        } else if (originalBudgetItem != null && originalBudgetItem.firstOccurrenceStart != null) {
+        } else if (originalBudgetItem != null && originalBudgetItem.getFirstOccurrenceStart() != null) {
             // user did not pick a date, but this is EDIT, not CREATE
-            firstOccurrenceDateStart = originalBudgetItem.firstOccurrenceStart;
+            firstOccurrenceDateStart = originalBudgetItem.getFirstOccurrenceStart();
         } else {
             // user did not pick a date, and we are in CREATE mode
             firstOccurrenceDateStart = DEFAULT_FIRST_OCCURRENCE_START;
@@ -577,9 +577,9 @@ public class BudgetEditorFragment extends BaseFragment {
         if (firstOccurrenceEndPickerDialog != null) {
             // user picked a date
             firstOccurrenceDateEnd = DateUtils.getDayFromDatePicker(firstOccurrenceEndPickerDialog.getDatePicker());
-        } else if (originalBudgetItem != null && originalBudgetItem.firstOccurrenceEnd != null) {
+        } else if (originalBudgetItem != null && originalBudgetItem.getFirstOccurrenceEnd() != null) {
             // user did not pick a date, but this is EDIT, not CREATE
-            firstOccurrenceDateEnd = originalBudgetItem.firstOccurrenceEnd;
+            firstOccurrenceDateEnd = originalBudgetItem.getFirstOccurrenceEnd();
         } else {
             // user did not pick a date, and we are in CREATE mode
             firstOccurrenceDateEnd = DEFAULT_FIRST_OCCURRENCE_END;
@@ -592,9 +592,9 @@ public class BudgetEditorFragment extends BaseFragment {
         if (!TextUtils.isEmpty(periodMultiplierView.getText())) {
             // user entered value
             periodMultiplier = Integer.valueOf(periodMultiplierView.getText().toString());
-        } else if (originalBudgetItem != null && originalBudgetItem.periodMultiplier != null) {
+        } else if (originalBudgetItem != null && originalBudgetItem.getPeriodMultiplier() != null) {
             // user did not enter a value, but this is EDIT, not CREATE
-            periodMultiplier = originalBudgetItem.periodMultiplier;
+            periodMultiplier = originalBudgetItem.getPeriodMultiplier();
         }
         return periodMultiplier;
     }

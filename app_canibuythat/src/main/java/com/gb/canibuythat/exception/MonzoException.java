@@ -16,7 +16,6 @@ public class MonzoException extends DomainException {
     public MonzoException(Throwable raw) {
         super(raw);
 
-
         if (getResponseBody() != null) {
             try {
                 monzoError = getErrorResponseConverter().convert(getResponseBody());
@@ -31,7 +30,7 @@ public class MonzoException extends DomainException {
         if (monzoError != null) {
             return monzoError.getMessage();
         } else {
-            return super.getMessage();
+            return "Error communicating with Monzo!";
         }
     }
 

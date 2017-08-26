@@ -8,7 +8,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
-import android.provider.BaseColumns;
 import android.text.TextUtils;
 
 import com.gb.canibuythat.di.Injector;
@@ -65,10 +64,10 @@ public class BudgetProvider extends ContentProvider {
         int uriType = uriMatcher.match(uri);
         switch (uriType) {
             case ID_BUDGET_ITEMS:
-                checkColumns(Contract.BudgetItem.class, projection);
+                checkColumns(Contract.BudgetItem.Companion.getCOLUMNS(), projection);
                 break;
             case ID_BUDGET_ITEM:
-                checkColumns(Contract.BudgetItem.class, projection);
+                checkColumns(Contract.BudgetItem.Companion.getCOLUMNS(), projection);
                 // adding the ID to the original query
                 queryBuilder.appendWhere(Contract.BudgetItem._ID + "=" + uri.getLastPathSegment());
                 break;
@@ -152,17 +151,10 @@ public class BudgetProvider extends ContentProvider {
         return rowsUpdated;
     }
 
-    private void checkColumns(Class<? extends BaseColumns> tableClass, String[] projection) {
-        String[] available;
-        try {
-            available = (String[]) tableClass.getDeclaredField("COLUMNS").get(null);
-        } catch (IllegalAccessException | NoSuchFieldException e) {
-            throw new IllegalArgumentException("The specified table class does not have public static field COLUMNS");
-        }
-
+    private void checkColumns(String[] columns, String[] projection) {
         if (projection != null) {
             HashSet<String> requestedColumns = new HashSet<>(Arrays.asList(projection));
-            HashSet<String> availableColumns = new HashSet<>(Arrays.asList(available));
+            HashSet<String> availableColumns = new HashSet<>(Arrays.asList(columns));
             // check if all columns which are requested are available
             if (!availableColumns.containsAll(requestedColumns)) {
                 throw new IllegalArgumentException("Unknown columns in projection");

@@ -38,9 +38,9 @@ public class BalanceCalculator {
         List<Date> spendingEvents = new ArrayList<>();
         int count = 0;
         Calendar occurrenceStart = Calendar.getInstance();
-        occurrenceStart.setTime(budgetItem.firstOccurrenceStart);
+        occurrenceStart.setTime(budgetItem.getFirstOccurrenceStart());
         Calendar occurrenceEnd = Calendar.getInstance();
-        occurrenceEnd.setTime(budgetItem.firstOccurrenceEnd);
+        occurrenceEnd.setTime(budgetItem.getFirstOccurrenceEnd());
         Calendar date = Calendar.getInstance();
         if (end != null) {
             date.setTime(end);
@@ -51,18 +51,18 @@ public class BalanceCalculator {
             if (start == null || occurrenceEnd.getTimeInMillis() >= start.getTime()) {
                 int r = DateUtils.compare(date, occurrenceStart, occurrenceEnd);
                 if (r >= -1) { //after or on start date
-                    worstCase += budgetItem.amount * budgetItem.type.getSign();
+                    worstCase += budgetItem.getAmount() * budgetItem.getType().getSign();
                     if (r > 1) { // after end date
-                        bestCase += budgetItem.amount * budgetItem.type.getSign();
+                        bestCase += budgetItem.getAmount() * budgetItem.getType().getSign();
                         spendingEvents.add(occurrenceEnd.getTime());
                     }
                 } else {
                     exit = true;
                 }
             }
-            budgetItem.periodType.apply(occurrenceStart, budgetItem.periodMultiplier);
-            budgetItem.periodType.apply(occurrenceEnd, budgetItem.periodMultiplier);
-            if (budgetItem.occurrenceCount != null && ++count >= budgetItem.occurrenceCount) {
+            budgetItem.getPeriodType().apply(occurrenceStart, budgetItem.getPeriodMultiplier());
+            budgetItem.getPeriodType().apply(occurrenceEnd, budgetItem.getPeriodMultiplier());
+            if (budgetItem.getOccurrenceCount() != null && ++count >= budgetItem.getOccurrenceCount()) {
                 exit = true;
             }
         } while (!exit);

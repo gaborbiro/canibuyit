@@ -86,7 +86,7 @@ public class BudgetRepository {
         BalanceReading balanceReading = userPreferences.getBalanceReading();
 
         for (BudgetItem item : budgetItemDao) {
-            if (item.enabled) {
+            if (item.getEnabled()) {
                 Date startDate = balanceReading != null ? balanceReading.when : null;
                 BalanceCalculator.BalanceResult result = BalanceCalculator.get()
                         .getEstimatedBalance(item, startDate, userPreferences.getEstimateDate());
@@ -113,7 +113,7 @@ public class BudgetRepository {
                 item = budgetItemDao.queryForFieldValues(fieldMap).get(0);
                 int newIndex = modulo(i + (from < to ? -1 : 1), Math.abs(to - from) + 1);
                 UpdateBuilder<BudgetItem, Integer> builder = budgetItemDao.updateBuilder();
-                builder.where().eq(Contract.BudgetItem._ID, item.id);
+                builder.where().eq(Contract.BudgetItem._ID, item.getId());
                 builder.updateColumnValue(Contract.BudgetItem.ORDERING, newIndex);
                 updates.add(builder);
                 i += from < to ? 1 : -1;

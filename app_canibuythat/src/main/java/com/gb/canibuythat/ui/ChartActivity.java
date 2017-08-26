@@ -142,7 +142,7 @@ public class ChartActivity extends BaseActivity implements OnChartValueSelectedL
                     float worstCase = 0;
 
                     for (com.gb.canibuythat.model.BudgetItem item : budgetItemDao) {
-                        if (item.enabled) {
+                        if (item.getEnabled()) {
                             BalanceCalculator.BalanceResult br = BalanceCalculator.get().getEstimatedBalance(item, startDate, currTarget.getTime());
                             bestCase += br.bestCase;
                             worstCase += br.worstCase;

@@ -35,6 +35,8 @@ class BudgetListAdapter extends DragNDropCursorAdapter
             TextView nameView = (TextView) view;
             if (type.getSign() == BudgetItem.BUDGET_ITEM_TYPE_IN) {
                 nameView.setText(mContext.getString(R.string.income, name));
+            } else if (type.getSign() == BudgetItem.BUDGET_ITEM_TYPE_NONE) {
+                nameView.setText(mContext.getString(R.string.ignored, name));
             } else {
                 nameView.setText(name);
             }
@@ -49,8 +51,8 @@ class BudgetListAdapter extends DragNDropCursorAdapter
                 BudgetItem.PeriodType period = BudgetItem.PeriodType.valueOf(
                         cursor.getString(cursor.getColumnIndex(Contract.BudgetItem.PERIOD_TYPE)));
                 int periodMultiplier = cursor.getInt(cursor.getColumnIndex(Contract.BudgetItem.PERIOD_MULTIPLIER));
-                if (period.strRes > 0) {
-                    String periodStr = mContext.getResources().getQuantityString(period.strRes, periodMultiplier);
+                if (period.getStrRes() > 0) {
+                    String periodStr = mContext.getResources().getQuantityString(period.getStrRes(), periodMultiplier);
                     amountRepetitionView.setText(
                             mContext.getResources().getQuantityString(R.plurals.amount_per_period, periodMultiplier, amount, periodMultiplier, periodStr));
                 }

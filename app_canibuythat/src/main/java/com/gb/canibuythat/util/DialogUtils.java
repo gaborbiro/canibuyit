@@ -106,7 +106,7 @@ public class DialogUtils {
                     try {
                         r.run();
                     } catch (Throwable t) {
-                        Logger.d(ClickRunner.class.getName(), t);
+                        Logger.INSTANCE.d(ClickRunner.class.getName(), t);
                     }
                 }
             } else if (onFail != null) {
@@ -114,7 +114,7 @@ public class DialogUtils {
                     try {
                         r.run();
                     } catch (Throwable t) {
-                        Logger.d(ClickRunner.class.getName(), t);
+                        Logger.INSTANCE.d(ClickRunner.class.getName(), t);
                     }
                 }
             }

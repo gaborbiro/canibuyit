@@ -48,6 +48,6 @@ public class ErrorHandler {
                 dialog.show(fragmentManager, null);
             }
         }
-        Logger.e(TAG, exception);
+        Logger.INSTANCE.e(TAG, exception);
     }
 }

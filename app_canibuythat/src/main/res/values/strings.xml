@@ -9,6 +9,7 @@
     <string name="save">Save</string>
     <string name="delete">Delete</string>
     <string name="income">%1$s (income)</string>
+    <string name="ignored">%1$s (ignored)</string>
 
     <plurals name="amount_per_period">
         <item quantity="one">%1$.2f / %3$s</item>

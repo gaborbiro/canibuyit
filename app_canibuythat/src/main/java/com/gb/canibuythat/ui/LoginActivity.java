@@ -52,7 +52,7 @@ public class LoginActivity extends BaseActivity {
                 + "/?client_id=" + MonzoConstants.CLIENT_ID
                 + "&redirect_uri=" + URLEncoder.encode(MonzoConstants.MONZO_URI_AUTH_CALLBACK)
                 + "&response_type=code";
-        Logger.d("CanIBuyThat", url);
+        Logger.INSTANCE.d("CanIBuyThat", url);
         webView.loadUrl(url);
     }
 
