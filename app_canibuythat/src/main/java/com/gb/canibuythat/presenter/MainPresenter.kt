@@ -60,7 +60,7 @@ constructor(private val monzoInteractor: MonzoInteractor,
     }
 
     fun onTransactionsLoaded(transactions: List<Transaction>) {
-        screen.setBudgetList(transactions.filter { it.created.month == Month.AUGUST }.groupBy(Transaction::category).map {
+        screen.setBudgetList(transactions.groupBy(Transaction::category).map {
             map(it.key, it.value)
         })
     }
@@ -69,6 +69,7 @@ constructor(private val monzoInteractor: MonzoInteractor,
         val budgetItem = BudgetItem()
         budgetItem.type = monzoMapper.mapCategory(category)
         budgetItem.amount = transactions.sumByDouble { it.amount }
+
         budgetItem.enabled = true
         budgetItem.name = category
         budgetItem.occurrenceCount = 1

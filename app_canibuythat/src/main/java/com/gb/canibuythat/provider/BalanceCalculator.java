@@ -51,9 +51,17 @@ public class BalanceCalculator {
             if (start == null || occurrenceEnd.getTimeInMillis() >= start.getTime()) {
                 int r = DateUtils.compare(date, occurrenceStart, occurrenceEnd);
                 if (r >= -1) { //after or on start date
-                    worstCase += budgetItem.getAmount() * budgetItem.getType().getSign();
+                    if (budgetItem.getType().getDefaultSign() == BudgetItem.Sign.OUT) {
+                        worstCase += budgetItem.getAmount();
+                    } else if (budgetItem.getType().getDefaultSign() == BudgetItem.Sign.IN) {
+                        worstCase -= budgetItem.getAmount();
+                    }
                     if (r > 1) { // after end date
-                        bestCase += budgetItem.getAmount() * budgetItem.getType().getSign();
+                        if (budgetItem.getType().getDefaultSign() == BudgetItem.Sign.OUT) {
+                            bestCase += budgetItem.getAmount();
+                        } else {
+                            bestCase -= budgetItem.getAmount();
+                        }
                         spendingEvents.add(occurrenceEnd.getTime());
                     }
                 } else {

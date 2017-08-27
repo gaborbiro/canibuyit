@@ -23,9 +23,9 @@ public class BudgetItemViewHolder extends RecyclerView.ViewHolder {
 
     public void bind(BudgetItem budgetItem) {
         Context context = nameView.getContext();
-        if (budgetItem.getType().getSign() == BudgetItem.BUDGET_ITEM_TYPE_IN) {
+        if (budgetItem.getType().getDefaultSign() == BudgetItem.Sign.IN) {
             nameView.setText(context.getString(R.string.income, budgetItem.getName()));
-        } else if (budgetItem.getType().getSign() == BudgetItem.BUDGET_ITEM_TYPE_NONE) {
+        } else if (budgetItem.getType().getDefaultSign() == BudgetItem.Sign.NONE) {
             nameView.setText(context.getString(R.string.ignored, budgetItem.getName()));
         } else {
             nameView.setText(budgetItem.getName());

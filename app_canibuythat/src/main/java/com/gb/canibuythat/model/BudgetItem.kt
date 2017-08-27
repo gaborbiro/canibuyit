@@ -15,37 +15,46 @@ class BudgetItem {
 
     @DatabaseField(generatedId = true, columnName = Contract.BudgetItem._ID)
     var id: Int? = null
+
     @DatabaseField(index = true, columnName = Contract.BudgetItem.NAME, unique = true, canBeNull = false)
     var name: String? = null
+
     @DatabaseField(columnName = Contract.BudgetItem.NOTES)
     var notes: String? = null
+
     @DatabaseField(columnName = Contract.BudgetItem.TYPE, canBeNull = false)
     var type: BudgetItemType? = null
+
     @DatabaseField(columnName = Contract.BudgetItem.AMOUNT, canBeNull = false)
     var amount: Double? = null
+
     /**
      * Date before witch the transaction certainly won't happen. The repetition period
      * is added to this date.
      */
     @DatabaseField(columnName = Contract.BudgetItem.FIRST_OCCURRENCE_START, canBeNull = false)
     var firstOccurrenceStart: Date? = null
+
     /**
      * Date by witch the transaction most certainly did happen. The repetition period is
      * added to this date.
      */
     @DatabaseField(columnName = Contract.BudgetItem.FIRST_OCCURRENCE_END, canBeNull = false)
     var firstOccurrenceEnd: Date? = null
+
     /**
      * How many times this modifier will be spent/cashed in. If 0, the field
      * #periodMultiplier and #period are ignored
      */
     @DatabaseField(columnName = Contract.BudgetItem.OCCURRENCE_COUNT)
     var occurrenceCount: Int? = null
+
     /**
      * For periods like every 2 days or once every trimester...
      */
     @DatabaseField(columnName = Contract.BudgetItem.PERIOD_MULTIPLIER)
     var periodMultiplier: Int? = null
+
     /**
      * Does this modifier repeat every day/week/month/year. The first affected time-span
      * (specified by firstOccurrenceStart and firstOccurrenceEnd) must not be larger
@@ -143,14 +152,12 @@ class BudgetItem {
     val isPersisted: Boolean
         get() = id != null
 
-    enum class BudgetItemType(sign: Int = BUDGET_ITEM_TYPE_OUT) {
+    enum class BudgetItemType(val defaultSign: Sign = Sign.OUT) {
         ACCOMMODATION, AUTOMOBILE, CHILD_SUPPORT, DONATIONS_GIVEN, ENTERTAINMENT, FOOD,
         GIFTS_GIVEN, GROCERIES, HOUSEHOLD, INSURANCE, MEDICARE, PERSONAL_CARE, PETS,
-        SELF_IMPROVEMENT, SPORTS_RECREATION, TAX, TRANSPORTATION, UTILITIES, VACATION,
-        GIFTS_RECEIVED(BUDGET_ITEM_TYPE_IN), INCOME(BUDGET_ITEM_TYPE_IN), FINES,
-        ONLINE_SERVICES, LUXURY, CASH, SAVINGS, EXPENSES, OTHER;
-
-        val sign: Byte = sign.toByte()
+        SELF_IMPROVEMENT, SPORTS_RECREATION, TAX, TRANSPORTATION, UTILITIES, VACATION(Sign.NONE),
+        GIFTS_RECEIVED(Sign.IN), INCOME(Sign.IN), FINES,
+        ONLINE_SERVICES, LUXURY, CASH, SAVINGS, EXPENSES(Sign.NONE), OTHER;
 
         override fun toString(): String {
             return name.toLowerCase()
@@ -177,12 +184,12 @@ class BudgetItem {
         }
     }
 
-    companion object {
+    enum class Sign {
         // money comes in
-        const val BUDGET_ITEM_TYPE_IN = 1
+        IN,
         // money goes out
-        const val BUDGET_ITEM_TYPE_OUT = -1
+        OUT,
         // does not count towards totals
-        const val BUDGET_ITEM_TYPE_NONE = 0
+        NONE
     }
 }
