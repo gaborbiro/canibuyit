@@ -61,17 +61,19 @@ constructor(private val monzoInteractor: MonzoInteractor,
 
     fun onTransactionsLoaded(transactions: List<Transaction>) {
         screen.setBudgetList(transactions.groupBy { it.category }.map {
-            map(it.key, it.value)
+            mapCategory(category = it.key, transactions = it.value)
         })
     }
 
-    fun map(category: String, transactions: List<Transaction>): BudgetItem {
+    fun mapCategory(category: String, transactions: List<Transaction>): BudgetItem {
         val budgetItem = BudgetItem()
+        budgetItem.amount = transactions.sumByDouble { it.amount } / transactions.groupBy { it.created.month }.size
         budgetItem.type = monzoMapper.mapCategory(category)
-        budgetItem.amount = transactions.sumByDouble { it.amount }
         budgetItem.enabled = budgetItem.type!!.defaultEnabled
         budgetItem.name = WordUtils.capitalizeFully(category.replace("\\_".toRegex(), " "))
-        budgetItem.occurrenceCount = 1
+        budgetItem.occurrenceCount = null
+        budgetItem.periodType = BudgetItem.PeriodType.MONTHS
+        budgetItem.periodMultiplier = 1
         return budgetItem
     }
 
