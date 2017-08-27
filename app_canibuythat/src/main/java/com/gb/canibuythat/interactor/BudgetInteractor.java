@@ -16,6 +16,7 @@ import com.j256.ormlite.dao.Dao;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 import javax.inject.Inject;
 
@@ -35,6 +36,15 @@ public class BudgetInteractor {
         this.budgetRepository = budgetRepository;
         this.appContext = appContext;
         this.schedulerProvider = schedulerProvider;
+    }
+
+    public Maybe<List<BudgetItem>> getAll() {
+        return budgetRepository.getAll()
+                .onErrorResumeNext(throwable -> {
+                    return Maybe.error(new DomainException("Error loading from database"));
+                })
+                .subscribeOn(schedulerProvider.io())
+                .observeOn(schedulerProvider.mainThread());
     }
 
     public Single<Dao.CreateOrUpdateStatus> createOrUpdate(BudgetItem budgetItem) {

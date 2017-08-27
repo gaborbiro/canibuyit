@@ -8,11 +8,11 @@ import javax.inject.Singleton
 @Singleton
 class CredentialsProvider @Inject constructor(private val prefsUtil: PrefsUtil) {
 
-    var accessToken: String
+    var accessToken: String?
         get() = prefsUtil.get(PREF_ACCESS_TOKEN, "")
         set(accessToken) = prefsUtil.put(PREF_ACCESS_TOKEN, accessToken)
 
-    var refreshToken: String
+    var refreshToken: String?
         get() = prefsUtil.get(PREF_REFRESH_TOKEN, null as String?)
         set(refreshToken) = prefsUtil.put(PREF_REFRESH_TOKEN, refreshToken)
 

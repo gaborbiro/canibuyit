@@ -1,23 +1,17 @@
 package com.gb.canibuythat.model
 
-import android.os.Parcel
-import android.os.Parcelable
-
 import com.gb.canibuythat.R
 import com.gb.canibuythat.provider.Contract
-import com.gb.canibuythat.util.createParcel
 import com.j256.ormlite.field.DatabaseField
 import com.j256.ormlite.table.DatabaseTable
-
-import java.util.Calendar
-import java.util.Date
+import java.util.*
 
 /**
  * An income or expense that affects the balance of a specified time-span. The user
  * doesn't need to know the exact moment of payment.
  */
 @DatabaseTable(tableName = Contract.BudgetItem.TABLE)
-class BudgetItem : Parcelable {
+class BudgetItem {
 
     @DatabaseField(generatedId = true, columnName = Contract.BudgetItem._ID)
     var id: Int? = null
@@ -28,7 +22,7 @@ class BudgetItem : Parcelable {
     @DatabaseField(columnName = Contract.BudgetItem.TYPE, canBeNull = false)
     var type: BudgetItemType? = null
     @DatabaseField(columnName = Contract.BudgetItem.AMOUNT, canBeNull = false)
-    var amount: Float? = null
+    var amount: Double? = null
     /**
      * Date before witch the transaction certainly won't happen. The repetition period
      * is added to this date.
@@ -68,45 +62,11 @@ class BudgetItem : Parcelable {
     @DatabaseField(columnName = Contract.BudgetItem.ORDERING, canBeNull = true)
     var ordering: Int? = null
 
-    constructor()
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || javaClass != other.javaClass) return false
 
-    private constructor(`in`: Parcel) {
-        id = `in`.readValue(Int::class.java.classLoader) as Int
-        name = `in`.readValue(String::class.java.classLoader) as String
-        amount = `in`.readValue(Float::class.java.classLoader) as Float
-        notes = `in`.readValue(String::class.java.classLoader) as String
-        try {
-            type = BudgetItemType.valueOf((`in`.readValue(String::class.java.classLoader) as String).toUpperCase())
-        } catch (e: IllegalArgumentException) {
-            // it means the original value was null
-        }
-
-        val lowerDate = `in`.readValue(Long::class.java.classLoader) as Long
-
-        if (lowerDate != null) {
-            firstOccurrenceStart = Date(lowerDate)
-        }
-        val upperDate = `in`.readValue(Long::class.java.classLoader) as Long
-
-        if (upperDate != null) {
-            firstOccurrenceEnd = Date(upperDate)
-        }
-        occurrenceCount = `in`.readValue(Int::class.java.classLoader) as Int
-        periodMultiplier = `in`.readValue(Int::class.java.classLoader) as Int
-        try {
-            periodType = PeriodType.valueOf((`in`.readValue(String::class.java.classLoader) as String).toUpperCase())
-        } catch (e: IllegalArgumentException) {
-            // it means the original value was null
-        }
-
-        ordering = `in`.readInt()
-    }
-
-    override fun equals(o: Any?): Boolean {
-        if (this === o) return true
-        if (o == null || javaClass != o.javaClass) return false
-
-        val that = o as BudgetItem?
+        val that = other as BudgetItem?
 
         if (enabled != that!!.enabled) return false
         if (if (id != null) id != that.id else that.id != null) return false
@@ -180,63 +140,27 @@ class BudgetItem : Parcelable {
         return result
     }
 
-    override fun describeContents(): Int {
-        return 0
-    }
-
-    override fun writeToParcel(dest: Parcel, flags: Int) {
-        dest.writeValue(id)
-        dest.writeValue(name)
-        dest.writeValue(amount)
-        dest.writeValue(notes)
-        if (type != null) {
-            dest.writeValue(type!!.name)
-        } else {
-            dest.writeValue(null)
-        }
-        if (firstOccurrenceStart != null) {
-            dest.writeLong(firstOccurrenceStart!!.time)
-        } else {
-            dest.writeValue(null)
-        }
-        if (firstOccurrenceEnd != null) {
-            dest.writeLong(firstOccurrenceEnd!!.time)
-        } else {
-            dest.writeValue(null)
-        }
-        dest.writeValue(occurrenceCount)
-        dest.writeValue(periodMultiplier)
-        if (periodType != null) {
-            dest.writeValue(periodType!!.name)
-        } else {
-            dest.writeValue(null)
-        }
-        dest.writeInt(ordering!!)
-    }
-
     val isPersisted: Boolean
         get() = id != null
 
-    enum class BudgetItemType private constructor(sign: Int = BUDGET_ITEM_TYPE_OUT) {
+    enum class BudgetItemType(sign: Int = BUDGET_ITEM_TYPE_OUT) {
         ACCOMMODATION, AUTOMOBILE, CHILD_SUPPORT, DONATIONS_GIVEN, ENTERTAINMENT, FOOD,
         GIFTS_GIVEN, GROCERIES, HOUSEHOLD, INSURANCE, MEDICARE, PERSONAL_CARE, PETS,
         SELF_IMPROVEMENT, SPORTS_RECREATION, TAX, TRANSPORTATION, UTILITIES, VACATION,
         GIFTS_RECEIVED(BUDGET_ITEM_TYPE_IN), INCOME(BUDGET_ITEM_TYPE_IN), FINES,
         ONLINE_SERVICES, LUXURY, CASH, SAVINGS, EXPENSES, OTHER;
 
-        val sign: Byte
-
-        init {
-            this.sign = sign.toByte()
-        }
+        val sign: Byte = sign.toByte()
 
         override fun toString(): String {
             return name.toLowerCase()
         }
     }
 
-    enum class PeriodType private constructor(val strRes: Int) {
-        DAYS(R.plurals.days), WEEKS(R.plurals.weeks), MONTHS(R.plurals.months),
+    enum class PeriodType(val strRes: Int) {
+        DAYS(R.plurals.days),
+        WEEKS(R.plurals.weeks),
+        MONTHS(R.plurals.months),
         YEARS(R.plurals.years);
 
         fun apply(c: Calendar, increment: Int) {
@@ -254,8 +178,6 @@ class BudgetItem : Parcelable {
     }
 
     companion object {
-        @JvmField val CREATOR = createParcel { BudgetItem(it) }
-
         // money comes in
         const val BUDGET_ITEM_TYPE_IN = 1
         // money goes out

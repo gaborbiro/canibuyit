@@ -19,22 +19,22 @@ constructor(private val schedulerProvider: SchedulerProvider, private val monzoR
                 .observeOn(schedulerProvider.mainThread())
     }
 
-    fun refresh(refreshToken: String): Single<Login> {
-        return monzoRepository.refresh(refreshToken)
+    fun refreshSession(refreshToken: String): Single<Login> {
+        return monzoRepository.refreshSession(refreshToken)
                 .onErrorResumeNext { throwable -> Single.error<Login>(MonzoException(throwable)) }
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())
     }
 
-    fun accounts(): Single<List<Account>> {
-        return monzoRepository.accounts()
+    fun getAccounts(): Single<List<Account>> {
+        return monzoRepository.getAccounts()
                 .onErrorResumeNext { throwable -> Single.error<List<Account>>(MonzoException(throwable)) }
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())
     }
 
-    fun transactions(accountId: String): Single<List<Transaction>> {
-        return monzoRepository.transactions(accountId)
+    fun getTransactions(accountId: String): Single<List<Transaction>> {
+        return monzoRepository.getTransactions(accountId)
                 .onErrorResumeNext { throwable -> Single.error<List<Transaction>>(MonzoException(throwable)) }
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())

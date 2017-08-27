@@ -31,7 +31,7 @@ public class ErrorHandler {
                 case HTTP:
                     dialog = PromptDialog.newInstance("Server error " + domainException.getCode(), domainException.getMessage());
                     if (domainException.getAction() == DomainException.Action.LOGIN) {
-                        dialog.setPositiveButton(android.R.string.ok, v -> LoginActivity.show(appContext));
+                        dialog.setPositiveButton(android.R.string.ok, v -> LoginActivity.show(Injector.INSTANCE.getContext()));
                     }
                     break;
                 case NETWORK:

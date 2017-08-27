@@ -6,14 +6,14 @@ import android.support.v7.app.AppCompatActivity;
 
 import com.gb.canibuythat.di.Injector;
 import com.gb.canibuythat.exception.ErrorHandler;
-import com.gb.canibuythat.exception.FragmentManagerSource;
+import com.gb.canibuythat.exception.ContextSource;
 
 import javax.inject.Inject;
 
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
 
-public abstract class BaseActivity extends AppCompatActivity implements FragmentManagerSource {
+public abstract class BaseActivity extends AppCompatActivity implements ContextSource {
 
     @Inject ErrorHandler errorHandler;
 
@@ -28,13 +28,13 @@ public abstract class BaseActivity extends AppCompatActivity implements Fragment
     @Override
     protected void onResume() {
         super.onResume();
-        Injector.INSTANCE.registerDialogHandler(this);
+        Injector.INSTANCE.registerContextSource(this);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        Injector.INSTANCE.unregisterDialogHandler(this);
+        Injector.INSTANCE.unregisterContextSource(this);
     }
 
     @Override

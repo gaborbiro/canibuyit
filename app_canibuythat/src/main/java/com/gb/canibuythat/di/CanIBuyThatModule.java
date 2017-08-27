@@ -26,9 +26,4 @@ public class CanIBuyThatModule {
     public SchedulerProvider provideSchedulerProvider(SchedulerProviderImpl schedulerProvider) {
         return schedulerProvider;
     }
-
-    @Provides
-    public BudgetDbHelper provideBudgetDbHelper(Context appContext) {
-        return OpenHelperManager.getHelper(appContext, BudgetDbHelper.class);
-    }
 }

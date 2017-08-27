@@ -2,9 +2,11 @@ package com.gb.canibuythat.ui;
 
 import android.Manifest;
 import android.app.DatePickerDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ImageView;
@@ -15,6 +17,7 @@ import com.gb.canibuythat.R;
 import com.gb.canibuythat.UserPreferences;
 import com.gb.canibuythat.di.Injector;
 import com.gb.canibuythat.model.Balance;
+import com.gb.canibuythat.model.BudgetItem;
 import com.gb.canibuythat.presenter.MainPresenter;
 import com.gb.canibuythat.screen.MainScreen;
 import com.gb.canibuythat.ui.model.BalanceReading;
@@ -24,6 +27,7 @@ import com.gb.canibuythat.util.ViewUtils;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 import javax.inject.Inject;
 
@@ -49,9 +53,10 @@ public class MainActivity extends BaseActivity implements MainScreen, BudgetList
     @Inject UserPreferences userPreferences;
     @Inject MainPresenter presenter;
 
-    @BindView(R.id.estimate_at_time) TextView estimateAtTimeView;
-    @BindView(R.id.reference) TextView referenceView;
-    @BindView(R.id.chart_button) ImageView chartButton;
+    @Nullable @BindView(R.id.estimate_at_time) TextView estimateAtTimeView;
+    @Nullable @BindView(R.id.reference) TextView referenceView;
+    @Nullable @BindView(R.id.chart_button) ImageView chartButton;
+
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet device.
      */
@@ -87,7 +92,7 @@ public class MainActivity extends BaseActivity implements MainScreen, BudgetList
      * that the budget item with the given database ID was selected.
      */
     @Override
-    public void onListItemClick(int id) {
+    public void onBudgetItemSelected(int id) {
         presenter.showEditorScreenForBudgetItem(id);
     }
 
@@ -194,7 +199,7 @@ public class MainActivity extends BaseActivity implements MainScreen, BudgetList
                 getSupportFragmentManager().beginTransaction().replace(R.id.budgetmodifier_detail_container, detailFragment).commit();
             } else {
                 // if a detail fragment is already visible
-                budgetEditorFragment.saveAndRun(() -> budgetEditorFragment.setContent(budgetItemId, false));
+                budgetEditorFragment.saveAndRun(() -> budgetEditorFragment.showBudgetItem(budgetItemId, false));
             }
         } else {
             if (budgetItemId != null) {
@@ -203,6 +208,11 @@ public class MainActivity extends BaseActivity implements MainScreen, BudgetList
                 startActivity(BudgetEditorActivity.getIntentForCreate(MainActivity.this));
             }
         }
+    }
+
+    @Override
+    public void setBudgetList(List<BudgetItem> budgetItems) {
+        ((BudgetListFragment) getSupportFragmentManager().findFragmentById(R.id.budget_list)).setData(budgetItems);
     }
 
     @Override

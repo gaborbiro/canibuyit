@@ -1,27 +1,27 @@
 package com.gb.canibuythat.ui;
 
 import android.content.Context;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteConstraintException;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.CursorLoader;
-import android.support.v4.content.Loader;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.widget.DividerItemDecoration;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 
 import com.gb.canibuythat.R;
 import com.gb.canibuythat.di.Injector;
-import com.gb.canibuythat.interactor.BudgetInteractor;
-import com.gb.canibuythat.provider.BudgetProvider;
-import com.gb.canibuythat.provider.Contract;
-import com.gb.canibuythat.ui.dragndroplist.DragNDropCursorAdapter;
-import com.gb.canibuythat.ui.dragndroplist.DragNDropListView;
+import com.gb.canibuythat.model.BudgetItem;
+import com.gb.canibuythat.presenter.BudgetListPresenter;
+import com.gb.canibuythat.screen.BudgetListScreen;
+import com.gb.canibuythat.ui.adapter.BudgetItemAdapter;
+
+import java.util.List;
 
 import javax.inject.Inject;
+
+import butterknife.BindView;
 
 /**
  * A list fragment representing a list of BudgetModifiers. This fragment also supports
@@ -33,10 +33,7 @@ import javax.inject.Inject;
  * Activities containing this fragment MUST implement the {@link FragmentCallback}
  * interface.
  */
-public class BudgetListFragment extends BaseFragment implements LoaderManager.LoaderCallbacks<Cursor>,
-        AdapterView.OnItemClickListener, DragNDropListView.OnItemDragNDropListener {
-
-    @Inject BudgetInteractor budgetInteractor;
+public class BudgetListFragment extends BaseFragment implements BudgetListScreen, BudgetItemAdapter.OnBudgetItemClickedListener {
 
     /**
      * A dummy implementation of the {@link FragmentCallback} interface that does
@@ -51,8 +48,11 @@ public class BudgetListFragment extends BaseFragment implements LoaderManager.Lo
      */
     private FragmentCallback callback = dummyFragmentCallback;
 
-    private DragNDropListView list;
-    private DragNDropCursorAdapter adapter;
+    @BindView(android.R.id.list) RecyclerView list;
+
+    private BudgetItemAdapter adapter;
+
+    @Inject BudgetListPresenter presenter;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the fragment
@@ -65,32 +65,20 @@ public class BudgetListFragment extends BaseFragment implements LoaderManager.Lo
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_budget_list, container, false);
-        list = (DragNDropListView) root.findViewById(android.R.id.list);
-        list.setOnItemDragNDropListener(this);
-        list.setOnItemClickListener(this);
+        presenter.setScreen(this);
         return root;
     }
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        getLoaderManager().initLoader(hashCode(), null, this);
+        list.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL));
+        presenter.fetch();
     }
 
     @Override
     protected void inject() {
         Injector.INSTANCE.getGraph().inject(this);
-    }
-
-    private DragNDropCursorAdapter getListAdapter() {
-        if (adapter == null) {
-            adapter = new BudgetListAdapter(getActivity(), null);
-
-            if (list != null) {
-                list.setDragNDropAdapter(adapter);
-            }
-        }
-        return adapter;
     }
 
     @Override
@@ -105,20 +93,10 @@ public class BudgetListFragment extends BaseFragment implements LoaderManager.Lo
         callback = (FragmentCallback) getActivity();
     }
 
-
     @Override
-    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        return new CursorLoader(getActivity(), BudgetProvider.BUDGET_ITEMS_URI, null, null, null, Contract.BudgetItem.ORDERING + " ASC");
-    }
-
-    @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
-        getListAdapter().swapCursor(null);
-    }
-
-    @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        getListAdapter().swapCursor(data);
+    public void setData(List<BudgetItem> budgetItems) {
+        adapter = new BudgetItemAdapter(budgetItems, this);
+        list.setAdapter(adapter);
     }
 
     @Override
@@ -130,32 +108,10 @@ public class BudgetListFragment extends BaseFragment implements LoaderManager.Lo
     }
 
     @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        // Notify the active callback interface (the activity, if the
-        // fragment is attached to one) that an item has been selected.
-        callback.onListItemClick((int) getListAdapter().getItemId(position));
-    }
-
-    @Override
-    public void onItemDragStart(DragNDropListView parent, View view, int position, long id) {
-
-    }
-
-    @Override
-    public void onItemDrop(DragNDropListView parent, View view, final int startPosition, final int endPosition, long id) {
-        budgetInteractor.moveToIndex(startPosition, endPosition)
-                .subscribe(() -> {
-                }, throwable -> {
-                    onError(throwable);
-                    do {
-                        if (throwable.getCause() == null || throwable instanceof SQLiteConstraintException) {
-                            break;
-                        } else {
-                            throwable = throwable.getCause();
-                        }
-                    } while (true);
-                    onError(throwable);
-                });
+    // Notify the active callback interface (the activity, if the
+    // fragment is attached to one) that an item has been selected.
+    public void onBudgetItemClicked(BudgetItem budgetItem) {
+        callback.onBudgetItemSelected(budgetItem.getId());
     }
 
     /**
@@ -169,6 +125,6 @@ public class BudgetListFragment extends BaseFragment implements LoaderManager.Lo
          *
          * @param id database id of the budget item
          */
-        void onListItemClick(int id);
+        void onBudgetItemSelected(int id);
     }
 }

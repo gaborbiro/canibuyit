@@ -1,6 +1,7 @@
 package com.gb.canibuythat.ui;
 
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -9,14 +10,14 @@ import android.view.View;
 
 import com.gb.canibuythat.di.Injector;
 import com.gb.canibuythat.exception.ErrorHandler;
-import com.gb.canibuythat.exception.FragmentManagerSource;
+import com.gb.canibuythat.exception.ContextSource;
 
 import javax.inject.Inject;
 
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
 
-public abstract class BaseFragment extends Fragment implements FragmentManagerSource {
+public abstract class BaseFragment extends Fragment implements ContextSource {
 
     @Inject ErrorHandler errorHandler;
     private Unbinder unbinder;
@@ -36,13 +37,13 @@ public abstract class BaseFragment extends Fragment implements FragmentManagerSo
     @Override
     public void onResume() {
         super.onResume();
-        Injector.INSTANCE.registerDialogHandler(this);
+        Injector.INSTANCE.registerContextSource(this);
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        Injector.INSTANCE.unregisterDialogHandler(this);
+        Injector.INSTANCE.unregisterContextSource(this);
     }
 
     @Override
@@ -57,10 +58,13 @@ public abstract class BaseFragment extends Fragment implements FragmentManagerSo
 
     @Override
     public FragmentManager getSupportFragmentManager() {
-        return super.getFragmentManager();
+        return getFragmentManager();
     }
 
-
+    @Override
+    public Context getBaseContext() {
+        return getActivity();
+    }
 
     protected abstract void inject();
 }

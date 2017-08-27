@@ -1,21 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
              xmlns:tools="http://schemas.android.com/tools"
+             android:layout_height="match_parent"
              android:layout_width="match_parent"
-             android:layout_height="match_parent">
+             xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <FrameLayout
         android:id="@+id/listContainer"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:layout_width="match_parent">
 
-        <com.gb.canibuythat.ui.dragndroplist.DragNDropListView
-            android:id="@android:id/list"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
+        <android.support.v7.widget.RecyclerView
             android:drawSelectorOnTop="true"
+            android:id="@android:id/list"
+            android:layout_height="match_parent"
+            android:layout_width="match_parent"
             android:scrollbars="vertical"
-            tools:context=".ui.SongListActivity"
+            app:layoutManager="android.support.v7.widget.LinearLayoutManager"
+            tools:context=".ui.MainActivity"
             tools:listitem="@layout/budget_list_item"/>
     </FrameLayout>
 

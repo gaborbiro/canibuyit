@@ -19,22 +19,22 @@ constructor(private val monzoApi: MonzoApi) : BaseFormDataApi() {
                 text(MonzoConstants.MONZO_URI_AUTH_CALLBACK),
                 text(MonzoConstants.CLIENT_ID),
                 text(MonzoConstants.CLIENT_SECRET))
-                .map { apiLogin -> mapper.map(apiLogin) }
+                .map(mapper::map)
     }
 
-    fun refresh(refreshToken: String): Single<Login> {
+    fun refreshSession(refreshToken: String): Single<Login> {
         return monzoApi.refresh(text("refresh_token"),
                 text(refreshToken),
                 text(MonzoConstants.CLIENT_ID),
                 text(MonzoConstants.CLIENT_SECRET))
-                .map { apiLogin -> mapper.map(apiLogin) }
+                .map(mapper::map)
     }
 
-    fun accounts(): Single<List<Account>> {
-        return monzoApi.accounts().map { apiAccountsResponse -> mapper.map(apiAccountsResponse) }
+    fun getAccounts(): Single<List<Account>> {
+        return monzoApi.accounts().map(mapper::map)
     }
 
-    fun transactions(accountId: String): Single<List<Transaction>> {
-        return monzoApi.transactions(accountId).map { apiTransactionCollection -> mapper.map(apiTransactionCollection) }
+    fun getTransactions(accountId: String): Single<List<Transaction>> {
+        return monzoApi.transactions(accountId).map(mapper::map)
     }
 }

@@ -11,6 +11,7 @@ import com.gb.canibuythat.model.BudgetItem
 import com.gb.canibuythat.model.Transaction
 import com.gb.canibuythat.repository.MonzoMapper
 import com.gb.canibuythat.screen.MainScreen
+import org.threeten.bp.Month
 import javax.inject.Inject
 
 class MainPresenter @Inject
@@ -53,19 +54,25 @@ constructor(private val monzoInteractor: MonzoInteractor,
         if (TextUtils.isEmpty(credentialsProvider.accessToken)) {
             screen.showLoginActivity()
         } else {
-            monzoInteractor.transactions(MonzoConstants.ACCOUNT_ID)
+            monzoInteractor.getTransactions(MonzoConstants.ACCOUNT_ID)
                     .subscribe(this::onTransactionsLoaded, this::onError)
         }
     }
 
     fun onTransactionsLoaded(transactions: List<Transaction>) {
-        val categoryMap: Map<String, List<Transaction>> = transactions.groupBy { it.category }
-
-        categoryMap.forEach({ (category, transactions) ->
-            val budgetItem: BudgetItem = BudgetItem()
-            budgetItem.type = monzoMapper.mapCategory(category)
-//            budgetItem.amount = transactions.sumByDouble { transaction -> transaction.amount * 100 }
+        screen.setBudgetList(transactions.filter { it.created.month == Month.AUGUST }.groupBy(Transaction::category).map {
+            map(it.key, it.value)
         })
+    }
+
+    fun map(category: String, transactions: List<Transaction>): BudgetItem {
+        val budgetItem = BudgetItem()
+        budgetItem.type = monzoMapper.mapCategory(category)
+        budgetItem.amount = transactions.sumByDouble { it.amount }
+        budgetItem.enabled = true
+        budgetItem.name = category
+        budgetItem.occurrenceCount = 1
+        return budgetItem
     }
 
     fun exportDatabase() {

@@ -17,11 +17,14 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.inject.Inject;
+
 public class BudgetDbHelper extends OrmLiteSqliteOpenHelper {
 
     public static final String DATABASE_NAME = "budget.sqlite";
     private static final int DATABASE_VERSION = 2;
 
+    @Inject
     public BudgetDbHelper(Context appContext) {
         super(appContext, DATABASE_NAME, null, DATABASE_VERSION);
     }

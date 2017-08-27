@@ -44,6 +44,14 @@ public class BudgetRepository {
         this.userPreferences = userPreferences;
     }
 
+    public Maybe<List<BudgetItem>> getAll() {
+        try {
+            return Maybe.just(budgetItemDao.queryForAll());
+        } catch (SQLException e) {
+            return Maybe.error(e);
+        }
+    }
+
     public Single<Dao.CreateOrUpdateStatus> createOrUpdate(BudgetItem budgetItem) {
         try {
             return Single.just(budgetItemDao.createOrUpdate(budgetItem));

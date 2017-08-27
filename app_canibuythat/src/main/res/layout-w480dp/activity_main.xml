@@ -17,7 +17,7 @@
         tools:context=".BudgetModifierListActivity">
 
         <fragment
-            android:id="@+id/budgetmodifier_list"
+            android:id="@+id/budget_list"
             android:name="com.gb.canibuythat.ui.BudgetListFragment"
             android:layout_width="0dp"
             android:layout_height="match_parent"

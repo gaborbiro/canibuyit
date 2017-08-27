@@ -3,7 +3,6 @@ package com.gb.canibuythat.ui;
 import android.app.DatePickerDialog;
 import android.database.sqlite.SQLiteConstraintException;
 import android.os.Bundle;
-import android.support.v4.app.FragmentManager;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -189,13 +188,10 @@ public class BudgetEditorFragment extends BaseFragment {
         firstOccurrenceEndView.setOnClickListener(datePickerOnClickListener);
         firstOccurrenceEndView.setOnTouchListener(keyboardDismisser);
 
-        if (savedInstanceState != null) {
-            originalBudgetItem = savedInstanceState.getParcelable(EXTRA_ITEM);
-        }
         if (originalBudgetItem == null && getArguments() != null && getArguments().containsKey(EXTRA_ITEM_ID)) {
-            setContent(getArguments().getInt(EXTRA_ITEM_ID), true);
+            showBudgetItem(getArguments().getInt(EXTRA_ITEM_ID), true);
         } else {
-            setContent(null, true);
+            showBudgetItem(null, true);
         }
     }
 
@@ -232,7 +228,7 @@ public class BudgetEditorFragment extends BaseFragment {
      *                             displayed, focus on the name
      *                             EditText and show the keyboard
      */
-    public void setContent(Integer budgetItemId, final boolean showKeyboardWhenDone) {
+    public void showBudgetItem(Integer budgetItemId, final boolean showKeyboardWhenDone) {
         if (budgetItemId != null) {
             budgetInteractor.read(budgetItemId)
                     .subscribe(budgetItem -> onBuddgetItemLoaded(budgetItem, showKeyboardWhenDone), this::onError);
@@ -527,7 +523,7 @@ public class BudgetEditorFragment extends BaseFragment {
         }
         // amount
         if (!TextUtils.isEmpty(amountView.getText())) {
-            budgetItem.setAmount(Float.valueOf(amountView.getText().toString()));
+            budgetItem.setAmount(Double.valueOf(amountView.getText().toString()));
         }
         // enabled
         budgetItem.setEnabled(enabledView.isChecked());
