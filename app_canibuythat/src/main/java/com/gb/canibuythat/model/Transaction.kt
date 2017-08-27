@@ -11,4 +11,9 @@ class Transaction(val amount: Double,
                   val notes: String?,
                   val isLoad: Boolean?,
                   val settled: ZonedDateTime?,
-                  val category: String)
+                  val category: String) {
+
+    override fun toString(): String {
+        return "Transaction(amount=$amount, created=$created, currency='$currency', description=$description, id='$id', merchant=$merchant, notes=$notes, isLoad=$isLoad, settled=$settled, category='$category')"
+    }
+}

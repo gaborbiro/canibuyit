@@ -23,9 +23,9 @@ public class BudgetItemViewHolder extends RecyclerView.ViewHolder {
 
     public void bind(BudgetItem budgetItem) {
         Context context = nameView.getContext();
-        if (budgetItem.getType().getDefaultSign() == BudgetItem.Sign.IN) {
+        if (budgetItem.getAmount() > 0) {
             nameView.setText(context.getString(R.string.income, budgetItem.getName()));
-        } else if (budgetItem.getType().getDefaultSign() == BudgetItem.Sign.NONE) {
+        } else if (!budgetItem.getEnabled()) {
             nameView.setText(context.getString(R.string.ignored, budgetItem.getName()));
         } else {
             nameView.setText(budgetItem.getName());
@@ -36,10 +36,10 @@ public class BudgetItemViewHolder extends RecyclerView.ViewHolder {
             if (periodType.getStrRes() > 0) {
                 String periodStr = context.getResources().getQuantityString(periodType.getStrRes(), budgetItem.getPeriodMultiplier());
                 amountRepetitionView.setText(
-                        context.getResources().getQuantityString(R.plurals.amount_per_period, budgetItem.getPeriodMultiplier(), budgetItem.getAmount(), budgetItem.getPeriodMultiplier(), periodStr));
+                        context.getResources().getQuantityString(R.plurals.amount_per_period, budgetItem.getPeriodMultiplier(), Math.abs(budgetItem.getAmount()), budgetItem.getPeriodMultiplier(), periodStr));
             }
         } else {
-            amountRepetitionView.setText(context.getResources().getQuantityString(R.plurals.amount_times, budgetItem.getOccurrenceCount(), budgetItem.getAmount(), budgetItem.getOccurrenceCount()));
+            amountRepetitionView.setText(context.getResources().getQuantityString(R.plurals.amount_times, budgetItem.getOccurrenceCount(), Math.abs(budgetItem.getAmount()), budgetItem.getOccurrenceCount()));
         }
     }
 }

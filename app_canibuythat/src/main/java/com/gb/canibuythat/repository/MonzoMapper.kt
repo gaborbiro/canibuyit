@@ -5,7 +5,6 @@ import com.gb.canibuythat.model.Account
 import com.gb.canibuythat.model.BudgetItem
 import com.gb.canibuythat.model.Login
 import com.gb.canibuythat.model.Transaction
-import org.apache.commons.lang3.text.WordUtils
 import org.threeten.bp.ZonedDateTime
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -41,7 +40,7 @@ class MonzoMapper @Inject constructor() {
                 apiTransaction.notes,
                 apiTransaction.is_load,
                 if (!apiTransaction.settled.isEmpty()) ZonedDateTime.parse(apiTransaction.settled) else null,
-                getModelCategory(apiTransaction.category))
+                apiTransaction.category)
     }
 
     fun mapCategory(monzoCategory: String): BudgetItem.BudgetItemType {
@@ -59,10 +58,5 @@ class MonzoMapper @Inject constructor() {
             "groceries" -> return BudgetItem.BudgetItemType.GROCERIES
             else -> return BudgetItem.BudgetItemType.OTHER
         }
-    }
-
-    private fun getModelCategory(apiCategory: String): String {
-        val noUnderscore = apiCategory.replace("\\_".toRegex(), " ")
-        return WordUtils.capitalizeFully(noUnderscore)
     }
 }

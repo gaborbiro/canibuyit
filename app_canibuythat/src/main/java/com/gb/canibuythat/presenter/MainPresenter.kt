@@ -11,7 +11,7 @@ import com.gb.canibuythat.model.BudgetItem
 import com.gb.canibuythat.model.Transaction
 import com.gb.canibuythat.repository.MonzoMapper
 import com.gb.canibuythat.screen.MainScreen
-import org.threeten.bp.Month
+import org.apache.commons.lang3.text.WordUtils
 import javax.inject.Inject
 
 class MainPresenter @Inject
@@ -60,7 +60,7 @@ constructor(private val monzoInteractor: MonzoInteractor,
     }
 
     fun onTransactionsLoaded(transactions: List<Transaction>) {
-        screen.setBudgetList(transactions.groupBy(Transaction::category).map {
+        screen.setBudgetList(transactions.groupBy { it.category }.map {
             map(it.key, it.value)
         })
     }
@@ -69,9 +69,8 @@ constructor(private val monzoInteractor: MonzoInteractor,
         val budgetItem = BudgetItem()
         budgetItem.type = monzoMapper.mapCategory(category)
         budgetItem.amount = transactions.sumByDouble { it.amount }
-
-        budgetItem.enabled = true
-        budgetItem.name = category
+        budgetItem.enabled = budgetItem.type!!.defaultEnabled
+        budgetItem.name = WordUtils.capitalizeFully(category.replace("\\_".toRegex(), " "))
         budgetItem.occurrenceCount = 1
         return budgetItem
     }

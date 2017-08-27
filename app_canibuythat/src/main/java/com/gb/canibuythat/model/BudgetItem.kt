@@ -152,12 +152,12 @@ class BudgetItem {
     val isPersisted: Boolean
         get() = id != null
 
-    enum class BudgetItemType(val defaultSign: Sign = Sign.OUT) {
+    enum class BudgetItemType(val defaultEnabled: Boolean = true) {
         ACCOMMODATION, AUTOMOBILE, CHILD_SUPPORT, DONATIONS_GIVEN, ENTERTAINMENT, FOOD,
         GIFTS_GIVEN, GROCERIES, HOUSEHOLD, INSURANCE, MEDICARE, PERSONAL_CARE, PETS,
-        SELF_IMPROVEMENT, SPORTS_RECREATION, TAX, TRANSPORTATION, UTILITIES, VACATION(Sign.NONE),
-        GIFTS_RECEIVED(Sign.IN), INCOME(Sign.IN), FINES,
-        ONLINE_SERVICES, LUXURY, CASH, SAVINGS, EXPENSES(Sign.NONE), OTHER;
+        SELF_IMPROVEMENT, SPORTS_RECREATION, TAX, TRANSPORTATION, UTILITIES, VACATION(false),
+        GIFTS_RECEIVED, INCOME, FINES,
+        ONLINE_SERVICES, LUXURY, CASH, SAVINGS, EXPENSES(false), OTHER;
 
         override fun toString(): String {
             return name.toLowerCase()
@@ -182,14 +182,5 @@ class BudgetItem {
         override fun toString(): String {
             return name.toLowerCase()
         }
-    }
-
-    enum class Sign {
-        // money comes in
-        IN,
-        // money goes out
-        OUT,
-        // does not count towards totals
-        NONE
     }
 }

@@ -73,6 +73,11 @@ public class BudgetListFragment extends BaseFragment implements BudgetListScreen
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         list.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL));
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
         presenter.fetch();
     }
 

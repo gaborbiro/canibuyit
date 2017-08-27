@@ -34,7 +34,7 @@
             android:layout_height="wrap_content"
             android:hint="@string/amount"
             android:imeOptions="actionNext"
-            android:inputType="numberDecimal"
+            android:inputType="numberDecimal|numberSigned"
             android:lines="1"
             android:minWidth="64dp"
             android:nextFocusDown="@+id/category"
