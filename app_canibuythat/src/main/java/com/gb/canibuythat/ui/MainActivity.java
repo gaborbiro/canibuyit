@@ -2,7 +2,6 @@ package com.gb.canibuythat.ui;
 
 import android.Manifest;
 import android.app.DatePickerDialog;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -79,7 +78,7 @@ public class MainActivity extends BaseActivity implements MainScreen, BudgetList
         if (getIntent().getData() != null) {
             presenter.handleDeepLink(getIntent());
         }
-        presenter.fetchBalance();
+        presenter.loadMonzoData();
     }
 
     @Override
@@ -121,7 +120,7 @@ public class MainActivity extends BaseActivity implements MainScreen, BudgetList
                 presenter.onImportDatabase();
                 break;
             case R.id.menu_monzo:
-                presenter.doMonzoStuff();
+                presenter.loadMonzoData();
                 break;
         }
         return super.onOptionsItemSelected(item);

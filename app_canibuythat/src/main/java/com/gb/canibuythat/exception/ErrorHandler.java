@@ -1,6 +1,5 @@
 package com.gb.canibuythat.exception;
 
-import android.content.Context;
 import android.support.v4.app.FragmentManager;
 
 import com.gb.canibuythat.di.Injector;
@@ -16,11 +15,8 @@ public class ErrorHandler {
 
     private static final String TAG = "CanIBuyThat";
 
-    private Context appContext;
-
     @Inject
-    public ErrorHandler(Context appContext) {
-        this.appContext = appContext;
+    public ErrorHandler() {
     }
 
     public void onError(Throwable exception) {

@@ -21,7 +21,10 @@ constructor(private val monzoInteractor: MonzoInteractor,
             private val credentialsProvider: CredentialsProvider) : BasePresenter<MainScreen>() {
 
     fun fetchBalance() {
-        budgetInteractor.calculateBalance().subscribe(screen::setBalanceInfo, this::onError)
+        budgetInteractor.calculateBalance()
+                .doOnSubscribe { screen.showProgress() }
+                .doAfterTerminate { screen.hideProgress() }
+                .subscribe(screen::setBalanceInfo, this::onError)
     }
 
     fun handleDeepLink(intent: Intent) {
@@ -40,21 +43,26 @@ constructor(private val monzoInteractor: MonzoInteractor,
     }
 
     private fun login(authorizationCode: String) {
-        monzoInteractor.login(authorizationCode).subscribe({ login ->
-            credentialsProvider.accessToken = login.accessToken
-            credentialsProvider.refreshToken = login.refreshToken
-        }, this::onError)
+        monzoInteractor.login(authorizationCode)
+                .doOnSubscribe { screen.showProgress() }
+                .doAfterTerminate { screen.hideProgress() }
+                .subscribe({ login ->
+                    credentialsProvider.accessToken = login.accessToken
+                    credentialsProvider.refreshToken = login.refreshToken
+                }, this::onError)
     }
 
     fun chartButtonClicked() {
         screen.showChartScreen()
     }
 
-    fun doMonzoStuff() {
+    fun loadMonzoData() {
         if (TextUtils.isEmpty(credentialsProvider.accessToken)) {
             screen.showLoginActivity()
         } else {
             monzoInteractor.getTransactions(MonzoConstants.ACCOUNT_ID)
+                    .doOnSubscribe { screen.showProgress() }
+                    .doAfterTerminate { screen.hideProgress() }
                     .subscribe(this::onTransactionsLoaded, this::onError)
         }
     }

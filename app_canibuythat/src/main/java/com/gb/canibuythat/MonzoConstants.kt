@@ -2,8 +2,8 @@ package com.gb.canibuythat
 
 class MonzoConstants {
     companion object {
-        const val CLIENT_ID = "oauthclient_00009NdpMmS85laW9PUzlh"
-        const val CLIENT_SECRET = "olQNjJkkXQmi3l9ocGC4yd+uhPXN3K8tfTut71XqYlLP9K9bapIIM87H7Pob2nHQDjoL3ohYxAv2EpFaG29V"
+        const val CLIENT_ID = "oauthclient_00009NwZL762SfIFWuVJE9"
+        const val CLIENT_SECRET = "2WIqPL+7cdaH1Dgl6Gi776GUPPWlHPs2kLjvC7cB0389MCJvVOqZrystvq4nbeLf25p9Cxkks3WpYZXPQflI"
 
         const val ACCOUNT_ID = "acc_00009GgHgzFZ5EffRUGtxR"
 

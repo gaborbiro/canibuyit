@@ -3,7 +3,6 @@ package com.gb.canibuythat.ui;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -78,7 +77,7 @@ public class BudgetListFragment extends BaseFragment implements BudgetListScreen
     @Override
     public void onResume() {
         super.onResume();
-        presenter.fetch();
+//        presenter.fetch();
     }
 
     @Override

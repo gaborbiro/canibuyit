@@ -24,9 +24,8 @@
     </LinearLayout>
 
     <RelativeLayout
-        android:id="@+id/buttons_parent"
         android:layout_height="match_parent"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:padding="@dimen/dialog_button_padding">
 
         <Button
@@ -42,9 +41,10 @@
             style="?android:attr/progressBarStyleLarge"
             android:id="@+id/progress_bar"
             android:layout_alignWithParentIfMissing="true"
+            android:layout_centerHorizontal="true"
             android:layout_height="wrap_content"
-            android:layout_toStartOf="@id/positive_button"
             android:layout_width="wrap_content"
+            android:layout_marginBottom="20dp"
             android:visibility="gone"
             tools:visibility="visible"/>
     </RelativeLayout>

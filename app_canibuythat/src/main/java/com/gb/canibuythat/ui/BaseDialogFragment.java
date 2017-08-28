@@ -21,7 +21,7 @@ public abstract class BaseDialogFragment extends DialogFragment {
 
     private Unbinder unbinder;
 
-    @BindView(R.id.positive_button) Button positive;
+    @BindView(R.id.positive_button) Button positiveBtn;
     @BindView(R.id.progress_bar) ProgressBar activityIndicator;
     @BindView(R.id.heading) TextView heading;
     @BindView(R.id.message) TextView body;
@@ -59,10 +59,10 @@ public abstract class BaseDialogFragment extends DialogFragment {
 
     public void setPositiveButton(int buttonTextId, View.OnClickListener listener) {
         if (listener != null) {
-            positive.setOnClickListener(listener);
+            positiveBtn.setOnClickListener(listener);
         }
-        positive.setText(getString(buttonTextId));
-        positive.setVisibility(View.VISIBLE);
+        positiveBtn.setText(getString(buttonTextId));
+        positiveBtn.setVisibility(View.VISIBLE);
         activityIndicator.setVisibility(View.GONE);
     }
 
