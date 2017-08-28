@@ -2,9 +2,11 @@ package com.gb.canibuythat.model
 
 import com.gb.canibuythat.R
 import com.gb.canibuythat.provider.Contract
+import com.j256.ormlite.field.DataType
 import com.j256.ormlite.field.DatabaseField
 import com.j256.ormlite.table.DatabaseTable
 import java.util.*
+
 
 /**
  * An income or expense that affects the balance of a specified time-span. The user
@@ -12,6 +14,10 @@ import java.util.*
  */
 @DatabaseTable(tableName = Contract.BudgetItem.TABLE)
 class BudgetItem {
+
+    companion object {
+        val SOURCE_MONZO_CATEGORY: String = "monzo_category"
+    }
 
     @DatabaseField(generatedId = true, columnName = Contract.BudgetItem._ID)
     var id: Int? = null
@@ -68,86 +74,75 @@ class BudgetItem {
     @DatabaseField(columnName = Contract.BudgetItem.ENABLED, canBeNull = true)
     var enabled = true
 
-    @DatabaseField(columnName = Contract.BudgetItem.ORDERING, canBeNull = true)
-    var ordering: Int? = null
+    @DatabaseField(columnName = Contract.BudgetItem.SOURCE_DATA, canBeNull = false, dataType = DataType.SERIALIZABLE)
+    val sourceData: SerializableMap<String, String> = SerializableMap()
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other == null || javaClass != other.javaClass) return false
+        if (other?.javaClass != javaClass) return false
 
-        val that = other as BudgetItem?
+        other as BudgetItem
 
-        if (enabled != that!!.enabled) return false
-        if (if (id != null) id != that.id else that.id != null) return false
-        if (if (name != null) name != that.name else that.name != null) return false
-        if (if (notes != null) notes != that.notes else that.notes != null) return false
-        if (type != that.type) return false
-        if (if (amount != null) amount != that.amount else that.amount != null) return false
-        if (if (firstOccurrenceStart != null) firstOccurrenceStart != that.firstOccurrenceStart else that.firstOccurrenceStart != null)
-            return false
-        if (if (firstOccurrenceEnd != null) firstOccurrenceEnd != that.firstOccurrenceEnd else that.firstOccurrenceEnd != null)
-            return false
-        if (if (occurrenceCount != null) occurrenceCount != that.occurrenceCount else that.occurrenceCount != null)
-            return false
-        if (if (periodMultiplier != null) periodMultiplier != that.periodMultiplier else that.periodMultiplier != null)
-            return false
-        if (periodType != that.periodType) return false
-        return if (ordering != null) ordering == that.ordering else that.ordering == null
+        if (id != other.id) return false
+        if (name != other.name) return false
+        if (notes != other.notes) return false
+        if (type != other.type) return false
+        if (amount != other.amount) return false
+        if (firstOccurrenceStart != other.firstOccurrenceStart) return false
+        if (firstOccurrenceEnd != other.firstOccurrenceEnd) return false
+        if (occurrenceCount != other.occurrenceCount) return false
+        if (periodMultiplier != other.periodMultiplier) return false
+        if (periodType != other.periodType) return false
+        if (enabled != other.enabled) return false
+        if (!sourceData.equals(other.sourceData)) return false
+
+        return true
     }
 
-    fun compareForEditing(o: Any?, ignoreDates: Boolean): Boolean {
-        if (this === o) return true
-        if (o == null || javaClass != o.javaClass) return false
+    fun compareForEditing(other: Any?, ignoreDates: Boolean): Boolean {
+        if (this === other) return true
+        if (other?.javaClass != javaClass) return false
 
-        val that = o as BudgetItem?
+        other as BudgetItem
 
-        if (enabled != that!!.enabled) return false
-        if (if (name != null) name != that.name else that.name != null) return false
-        if (if (notes != null) notes != that.notes else that.notes != null)
-            return false
-        if (type != that.type) return false
-        if (if (amount != null) amount != that.amount else that.amount != null)
-            return false
+        if (id != other.id) return false
+        if (enabled != other.enabled) return false
+        if (name != other.name) return false
+        if (notes != other.notes) return false
+        if (type != other.type) return false
+        if (amount != other.amount) return false
         if (!ignoreDates) {
-            if (if (firstOccurrenceStart != null)
-                firstOccurrenceStart != that.firstOccurrenceStart
-            else
-                that.firstOccurrenceStart != null)
-                return false
-            if (if (firstOccurrenceEnd != null)
-                firstOccurrenceEnd != that.firstOccurrenceEnd
-            else
-                that.firstOccurrenceEnd != null)
-                return false
+            if (firstOccurrenceStart != other.firstOccurrenceStart) return false
+            if (firstOccurrenceEnd != other.firstOccurrenceEnd) return false
         }
-        if (if (occurrenceCount != null)
-            occurrenceCount != that.occurrenceCount
-        else
-            that.occurrenceCount != null)
-            return false
-        if (if (periodMultiplier != null)
-            periodMultiplier != that.periodMultiplier
-        else
-            that.periodMultiplier != null)
-            return false
-        return periodType == that.periodType
+        if (occurrenceCount != other.occurrenceCount) return false
+        if (periodMultiplier != other.periodMultiplier) return false
+        if (periodType != other.periodType) return false
+        if (enabled != other.enabled) return false
+        if (!sourceData.equals(other.sourceData)) return false
+        return true
     }
 
     override fun hashCode(): Int {
-        var result = if (id != null) id!!.hashCode() else 0
-        result = 31 * result + if (name != null) name!!.hashCode() else 0
-        result = 31 * result + if (notes != null) notes!!.hashCode() else 0
-        result = 31 * result + if (type != null) type!!.hashCode() else 0
-        result = 31 * result + if (amount != null) amount!!.hashCode() else 0
-        result = 31 * result + if (firstOccurrenceStart != null) firstOccurrenceStart!!.hashCode() else 0
-        result = 31 * result + if (firstOccurrenceEnd != null) firstOccurrenceEnd!!.hashCode() else 0
-        result = 31 * result + if (occurrenceCount != null) occurrenceCount!!.hashCode() else 0
-        result = 31 * result + if (periodMultiplier != null) periodMultiplier!!.hashCode() else 0
-        result = 31 * result + if (periodType != null) periodType!!.hashCode() else 0
-        result = 31 * result + if (enabled) 1 else 0
-        result = 31 * result + if (ordering != null) ordering!!.hashCode() else 0
+        var result = id ?: 0
+        result = 31 * result + (name?.hashCode() ?: 0)
+        result = 31 * result + (notes?.hashCode() ?: 0)
+        result = 31 * result + (type?.hashCode() ?: 0)
+        result = 31 * result + (amount?.hashCode() ?: 0)
+        result = 31 * result + (firstOccurrenceStart?.hashCode() ?: 0)
+        result = 31 * result + (firstOccurrenceEnd?.hashCode() ?: 0)
+        result = 31 * result + (occurrenceCount ?: 0)
+        result = 31 * result + (periodMultiplier ?: 0)
+        result = 31 * result + (periodType?.hashCode() ?: 0)
+        result = 31 * result + enabled.hashCode()
+        result = 31 * result + (sourceData.hashCode())
         return result
     }
+
+    override fun toString(): String {
+        return "BudgetItem(id=$id, name=$name, notes=$notes, type=$type, amount=$amount, firstOccurrenceStart=$firstOccurrenceStart, firstOccurrenceEnd=$firstOccurrenceEnd, occurrenceCount=$occurrenceCount, periodMultiplier=$periodMultiplier, periodType=$periodType, enabled=$enabled, sourceData=$sourceData)"
+    }
+
 
     val isPersisted: Boolean
         get() = id != null

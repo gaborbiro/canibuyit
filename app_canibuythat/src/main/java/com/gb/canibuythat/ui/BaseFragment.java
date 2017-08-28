@@ -72,7 +72,7 @@ public abstract class BaseFragment extends Fragment implements Screen, ContextSo
     @Override
     public void showProgress() {
         if (progressDialog != null && progressDialog.isAdded()) {
-            progressDialog.dismiss();
+            progressDialog.dismissAllowingStateLoss();
         }
         progressDialog = ProgressDialog.newInstance("Please wait");
         progressDialog.show(getSupportFragmentManager(), "progress");
@@ -81,7 +81,7 @@ public abstract class BaseFragment extends Fragment implements Screen, ContextSo
     @Override
     public void hideProgress() {
         if (progressDialog != null && progressDialog.isAdded()) {
-            progressDialog.dismiss();
+            progressDialog.dismissAllowingStateLoss();
         }
     }
 

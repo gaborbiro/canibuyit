@@ -16,5 +16,5 @@ interface MainScreen : Screen {
 
     fun showEditorScreen(budgetItemId: Int?)
 
-    fun setBudgetList(budgetItems: List<BudgetItem>)
+    fun setData(budgetItems: List<BudgetItem>)
 }

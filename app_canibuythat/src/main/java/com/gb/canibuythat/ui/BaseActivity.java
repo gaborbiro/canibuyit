@@ -60,7 +60,7 @@ public abstract class BaseActivity extends AppCompatActivity implements Screen, 
     @Override
     public void showProgress() {
         if (progressDialog != null && progressDialog.isAdded()) {
-            progressDialog.dismiss();
+            progressDialog.dismissAllowingStateLoss();
         }
         progressDialog = ProgressDialog.newInstance("Please wait");
         progressDialog.show(getSupportFragmentManager(), "progress");
@@ -68,8 +68,8 @@ public abstract class BaseActivity extends AppCompatActivity implements Screen, 
 
     @Override
     public void hideProgress() {
-        if (progressDialog != null && progressDialog.isAdded()) {
-            progressDialog.dismiss();
+        if (progressDialog != null && progressDialog.isAdded() && !progressDialog.isRemoving()) {
+            progressDialog.dismissAllowingStateLoss();
         }
     }
 

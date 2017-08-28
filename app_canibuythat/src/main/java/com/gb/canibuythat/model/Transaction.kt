@@ -2,7 +2,7 @@ package com.gb.canibuythat.model
 
 import org.threeten.bp.ZonedDateTime
 
-class Transaction(val amount: Double,
+class Transaction(val amount: Int,
                   val created: ZonedDateTime,
                   val currency: String,
                   val description: String?,

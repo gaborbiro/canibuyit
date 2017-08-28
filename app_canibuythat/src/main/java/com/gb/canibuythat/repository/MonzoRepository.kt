@@ -4,14 +4,14 @@ import com.gb.canibuythat.MonzoConstants
 import com.gb.canibuythat.api.BaseFormDataApi
 import com.gb.canibuythat.api.MonzoApi
 import com.gb.canibuythat.model.Account
+import com.gb.canibuythat.model.BudgetItem
 import com.gb.canibuythat.model.Login
-import com.gb.canibuythat.model.Transaction
 import io.reactivex.Single
 import javax.inject.Inject
 
 class MonzoRepository @Inject
-constructor(private val monzoApi: MonzoApi) : BaseFormDataApi() {
-    private val mapper = MonzoMapper()
+
+constructor(private val monzoApi: MonzoApi, private val mapper: MonzoMapper) : BaseFormDataApi() {
 
     fun login(authorizationCode: String): Single<Login> {
         return monzoApi.login(text("authorization_code"),
@@ -19,7 +19,7 @@ constructor(private val monzoApi: MonzoApi) : BaseFormDataApi() {
                 text(MonzoConstants.MONZO_URI_AUTH_CALLBACK),
                 text(MonzoConstants.CLIENT_ID),
                 text(MonzoConstants.CLIENT_SECRET))
-                .map(mapper::map)
+                .map(mapper::mapToLogin)
     }
 
     fun refreshSession(refreshToken: String): Single<Login> {
@@ -27,14 +27,21 @@ constructor(private val monzoApi: MonzoApi) : BaseFormDataApi() {
                 text(refreshToken),
                 text(MonzoConstants.CLIENT_ID),
                 text(MonzoConstants.CLIENT_SECRET))
-                .map(mapper::map)
+                .map(mapper::mapToLogin)
     }
 
     fun getAccounts(): Single<List<Account>> {
-        return monzoApi.accounts().map(mapper::map)
+        return monzoApi.accounts().map(mapper::mapToAccounts)
     }
 
-    fun getTransactions(accountId: String): Single<List<Transaction>> {
-        return monzoApi.transactions(accountId).map(mapper::map)
+    fun getBudgetItems(accountId: String): Single<List<BudgetItem>> {
+        return monzoApi.transactions(accountId)
+                .map(mapper::mapToTransactions)
+                .map {
+                    it.groupBy { it.category }.map {
+                        val (category, transactionsForCategory) = it
+                        mapper.mapToBudgetItem(category, transactionsForCategory)
+                    }
+                }
     }
 }

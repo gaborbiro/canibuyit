@@ -77,7 +77,7 @@ public class BudgetListFragment extends BaseFragment implements BudgetListScreen
     @Override
     public void onResume() {
         super.onResume();
-//        presenter.fetch();
+        presenter.fetch();
     }
 
     @Override

@@ -78,7 +78,6 @@ public class MainActivity extends BaseActivity implements MainScreen, BudgetList
         if (getIntent().getData() != null) {
             presenter.handleDeepLink(getIntent());
         }
-        presenter.loadMonzoData();
     }
 
     @Override
@@ -210,7 +209,7 @@ public class MainActivity extends BaseActivity implements MainScreen, BudgetList
     }
 
     @Override
-    public void setBudgetList(List<BudgetItem> budgetItems) {
+    public void setData(List<BudgetItem> budgetItems) {
         ((BudgetListFragment) getSupportFragmentManager().findFragmentById(R.id.budget_list)).setData(budgetItems);
     }
 

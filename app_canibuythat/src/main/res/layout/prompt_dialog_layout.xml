@@ -9,43 +9,47 @@
 
         <TextView
             style="@style/DialogTitle"
-            android:id="@+id/heading"
+            android:id="@+id/title"
             android:visibility="gone"
-            tools:text="Title Text"
-            tools:visibility="visible"/>
+            tools:text="Title Text"/>
 
-        <TextView
-            style="@style/DialogMessage"
-            android:id="@+id/message"
-            android:paddingTop="20dp"
-            android:visibility="gone"
-            tools:text="Message Text will be displayed"
-            tools:visibility="visible"/>
+        <RelativeLayout
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent">
+
+            <ProgressBar
+                style="?android:attr/progressBarStyleLarge"
+                android:id="@+id/progress_bar"
+                android:layout_alignParentRight="true"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:visibility="gone"
+                tools:visibility="visible"/>
+
+            <TextView
+                style="@style/DialogMessage"
+                android:id="@+id/message"
+                android:layout_marginTop="20dp"
+                android:visibility="gone"
+                android:layout_centerVertical="true"
+                android:layout_toLeftOf="@id/progress_bar"
+                tools:text="Message Text will be displayed"
+                tools:visibility="visible"/>
+        </RelativeLayout>
     </LinearLayout>
 
     <RelativeLayout
+        android:id="@+id/buttons_parent"
         android:layout_height="match_parent"
-        android:layout_width="match_parent"
-        android:padding="@dimen/dialog_button_padding">
+        android:layout_width="wrap_content">
 
         <Button
             style="@style/DialogButtonHorizontal"
             android:id="@+id/positive_button"
+            android:layout_margin="@dimen/dialog_button_padding"
             android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
             android:visibility="gone"
-            tools:text="ok"
-            tools:visibility="visible"/>
-
-        <ProgressBar
-            style="?android:attr/progressBarStyleLarge"
-            android:id="@+id/progress_bar"
-            android:layout_alignWithParentIfMissing="true"
-            android:layout_centerHorizontal="true"
-            android:layout_height="wrap_content"
-            android:layout_width="wrap_content"
-            android:layout_marginBottom="20dp"
-            android:visibility="gone"
-            tools:visibility="visible"/>
+            tools:text="ok"/>
     </RelativeLayout>
 </LinearLayout>

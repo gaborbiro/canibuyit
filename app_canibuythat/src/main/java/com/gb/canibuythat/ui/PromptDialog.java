@@ -32,7 +32,7 @@ public class PromptDialog extends BaseDialogFragment {
 
         Bundle b = getArguments();
 
-        setHeading(b.getString(EXTRA_TITLE));
+        setTitle(b.getString(EXTRA_TITLE));
         setMessage(b.getString(EXTRA_MESSAGE));
 
         super.setPositiveButton(btnStringResId, v -> {

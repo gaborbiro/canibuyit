@@ -231,7 +231,7 @@ public class BudgetEditorFragment extends BaseFragment {
     public void showBudgetItem(Integer budgetItemId, final boolean showKeyboardWhenDone) {
         if (budgetItemId != null) {
             budgetInteractor.read(budgetItemId)
-                    .subscribe(budgetItem -> onBuddgetItemLoaded(budgetItem, showKeyboardWhenDone), this::onError);
+                    .subscribe(budgetItem -> onBudgetItemLoaded(budgetItem, showKeyboardWhenDone), this::onError);
         } else {
             clearScreen();
         }
@@ -283,13 +283,6 @@ public class BudgetEditorFragment extends BaseFragment {
         ValidationError error = validateUserInput();
         if (error == null) {
             final BudgetItem newBudgetItem = getBudgetItemFromScreen();
-
-            if (originalBudgetItem != null) {
-                // this will make an already saved item ot be updated instead of a new
-                // one being created
-                newBudgetItem.setId(originalBudgetItem.getId());
-                newBudgetItem.setOrdering(originalBudgetItem.getOrdering());
-            }
             budgetInteractor.createOrUpdate(newBudgetItem)
                     .subscribe(createOrUpdateStatus -> {
                         BudgetEditorFragment.this.originalBudgetItem = newBudgetItem;
@@ -313,7 +306,7 @@ public class BudgetEditorFragment extends BaseFragment {
         }
     }
 
-    private void onBuddgetItemLoaded(BudgetItem budgetItem, boolean showKeyboardWhenDone) {
+    private void onBudgetItemLoaded(BudgetItem budgetItem, boolean showKeyboardWhenDone) {
         this.originalBudgetItem = budgetItem;
         firstOccurrenceEndPickerDialog = null;
         firstOccurrenceStartPickerDialog = null;
@@ -549,6 +542,12 @@ public class BudgetEditorFragment extends BaseFragment {
         if (!TextUtils.isEmpty(notesView.getText())) {
             budgetItem.setNotes(notesView.getText().toString());
         }
+        if (originalBudgetItem != null) {
+            // this will make an already saved item ot be updated instead of a new
+            // one being created
+            budgetItem.setId(originalBudgetItem.getId());
+            budgetItem.getSourceData().putAll(originalBudgetItem.getSourceData());
+        }
         return budgetItem;
     }
 
@@ -600,10 +599,10 @@ public class BudgetEditorFragment extends BaseFragment {
      * this fragment contains unsaved user input
      */
     private boolean shouldSave() {
-        BudgetItem userInput = getBudgetItemFromScreen();
+        BudgetItem newBudgetItem = getBudgetItemFromScreen();
         boolean isNew = originalBudgetItem == null
-                && !new BudgetItem().compareForEditing(userInput, !(firstOccurrenceStartDateChanged || firstOccurrenceEndDateChanged));
-        boolean changed = originalBudgetItem != null && !originalBudgetItem.compareForEditing(userInput, false);
+                && !new BudgetItem().compareForEditing(newBudgetItem, !(firstOccurrenceStartDateChanged || firstOccurrenceEndDateChanged));
+        boolean changed = originalBudgetItem != null && !originalBudgetItem.compareForEditing(newBudgetItem, false);
         return isNew || changed;
     }
 }

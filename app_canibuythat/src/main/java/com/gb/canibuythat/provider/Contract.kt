@@ -23,9 +23,9 @@ class Contract {
             const val PERIOD_MULTIPLIER = "period_multiplier"
             const val PERIOD_TYPE = "period_type"
             const val ENABLED = "enabled"
-            const val ORDERING = "ordering"
+            const val SOURCE_DATA = "source_data"
 
-            val COLUMNS = arrayOf(BaseColumns._ID, NAME, NOTES, AMOUNT, TYPE, FIRST_OCCURRENCE_START, FIRST_OCCURRENCE_END, OCCURRENCE_COUNT, PERIOD_MULTIPLIER, PERIOD_TYPE, ENABLED, ORDERING)
+            val COLUMNS = arrayOf(BaseColumns._ID, NAME, NOTES, AMOUNT, TYPE, FIRST_OCCURRENCE_START, FIRST_OCCURRENCE_END, OCCURRENCE_COUNT, PERIOD_MULTIPLIER, PERIOD_TYPE, ENABLED, SOURCE_DATA)
         }
     }
 }

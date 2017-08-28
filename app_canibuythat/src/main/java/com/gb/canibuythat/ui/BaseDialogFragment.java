@@ -23,8 +23,8 @@ public abstract class BaseDialogFragment extends DialogFragment {
 
     @BindView(R.id.positive_button) Button positiveBtn;
     @BindView(R.id.progress_bar) ProgressBar activityIndicator;
-    @BindView(R.id.heading) TextView heading;
-    @BindView(R.id.message) TextView body;
+    @BindView(R.id.title) TextView title;
+    @BindView(R.id.message) TextView message;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -39,22 +39,22 @@ public abstract class BaseDialogFragment extends DialogFragment {
         unbinder.unbind();
     }
 
-    public void setHeading(@StringRes int headingTextId) {
-        setHeading(getString(headingTextId));
+    public void setTitle(@StringRes int title) {
+        setTitle(getString(title));
     }
 
-    public void setHeading(String headingText) {
-        heading.setText(headingText);
-        heading.setVisibility(View.VISIBLE);
+    public void setTitle(String title) {
+        this.title.setText(title);
+        this.title.setVisibility(View.VISIBLE);
     }
 
-    public void setMessage(@StringRes int messageTextId) {
-        setMessage(getString(messageTextId));
+    public void setMessage(@StringRes int message) {
+        setMessage(getString(message));
     }
 
-    public void setMessage(String messageText) {
-        body.setText(messageText);
-        body.setVisibility(View.VISIBLE);
+    public void setMessage(String body) {
+        this.message.setText(body);
+        this.message.setVisibility(View.VISIBLE);
     }
 
     public void setPositiveButton(int buttonTextId, View.OnClickListener listener) {

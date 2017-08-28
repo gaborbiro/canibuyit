@@ -5,33 +5,35 @@ import com.gb.canibuythat.model.Account
 import com.gb.canibuythat.model.BudgetItem
 import com.gb.canibuythat.model.Login
 import com.gb.canibuythat.model.Transaction
+import org.apache.commons.lang3.text.WordUtils
 import org.threeten.bp.ZonedDateTime
+import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class MonzoMapper @Inject constructor() {
 
-    fun map(apiLogin: ApiLogin): Login {
+    fun mapToLogin(apiLogin: ApiLogin): Login {
         return Login(apiLogin.access_token, apiLogin.refresh_token)
     }
 
-    fun map(apiAccountCollection: ApiAccountCollection): List<Account> {
-        return apiAccountCollection.accounts.map { map(it) }
+    fun mapToAccounts(apiAccountCollection: ApiAccountCollection): List<Account> {
+        return apiAccountCollection.accounts.map { mapToAccount(it) }
     }
 
-    fun map(apiAccount: ApiAccount): Account {
+    fun mapToAccount(apiAccount: ApiAccount): Account {
         return Account(apiAccount.id,
                 apiAccount.created,
                 apiAccount.description)
     }
 
-    fun map(apiTransactionCollection: ApiTransactionCollection): List<Transaction> {
-        return apiTransactionCollection.transactions.map { map(it) }
+    fun mapToTransactions(apiTransactionCollection: ApiTransactionCollection): List<Transaction> {
+        return apiTransactionCollection.transactions.map { mapToTransaction(it) }
     }
 
-    fun map(apiTransaction: ApiTransaction): Transaction {
-        return Transaction(apiTransaction.amount / 100.0,
+    fun mapToTransaction(apiTransaction: ApiTransaction): Transaction {
+        return Transaction(apiTransaction.amount,
                 ZonedDateTime.parse(apiTransaction.created),
                 apiTransaction.currency,
                 apiTransaction.description,
@@ -43,7 +45,23 @@ class MonzoMapper @Inject constructor() {
                 apiTransaction.category)
     }
 
-    fun mapCategory(monzoCategory: String): BudgetItem.BudgetItemType {
+    fun mapToBudgetItem(category: String, transactions: List<Transaction>): BudgetItem {
+        val budgetItem = BudgetItem()
+        budgetItem.amount = transactions.sumBy { it.amount } / transactions.groupBy { it.created.month }.size / 100.0
+        budgetItem.type = mapBudgetItemType(category)
+        budgetItem.enabled = budgetItem.type!!.defaultEnabled
+        budgetItem.name = WordUtils.capitalizeFully(category.replace("\\_".toRegex(), " "))
+        budgetItem.occurrenceCount = null
+        budgetItem.periodMultiplier = 1
+        budgetItem.periodType = BudgetItem.PeriodType.MONTHS
+        val firstOccurrence: ZonedDateTime = transactions.minBy { it.created }!!.created
+        budgetItem.firstOccurrenceStart = Date(firstOccurrence.toEpochSecond() * 1000)
+        budgetItem.firstOccurrenceEnd = Date(firstOccurrence.plusMonths(1).toEpochSecond() * 1000)
+        budgetItem.sourceData.put(BudgetItem.SOURCE_MONZO_CATEGORY, category)
+        return budgetItem
+    }
+
+    fun mapBudgetItemType(monzoCategory: String): BudgetItem.BudgetItemType {
         when (monzoCategory) {
             "mondo" -> return BudgetItem.BudgetItemType.INCOME
             "general" -> return BudgetItem.BudgetItemType.OTHER
