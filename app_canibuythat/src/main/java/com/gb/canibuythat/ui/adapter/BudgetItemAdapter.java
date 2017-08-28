@@ -23,7 +23,7 @@ public class BudgetItemAdapter extends RecyclerView.Adapter<BudgetItemViewHolder
     @Override
     public BudgetItemViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
-        View view = inflater.inflate(R.layout.budget_list_item, parent, false);
+        View view = inflater.inflate(R.layout.list_item_budget, parent, false);
         return new BudgetItemViewHolder(view);
     }
 

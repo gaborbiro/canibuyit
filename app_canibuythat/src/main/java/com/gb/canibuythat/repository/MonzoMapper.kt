@@ -6,6 +6,7 @@ import com.gb.canibuythat.model.BudgetItem
 import com.gb.canibuythat.model.Login
 import com.gb.canibuythat.model.Transaction
 import org.apache.commons.lang3.text.WordUtils
+import org.apache.commons.lang3.time.DateUtils
 import org.threeten.bp.ZonedDateTime
 import java.util.*
 import javax.inject.Inject
@@ -53,7 +54,7 @@ class MonzoMapper @Inject constructor() {
         budgetItem.name = WordUtils.capitalizeFully(category.replace("\\_".toRegex(), " "))
         budgetItem.occurrenceCount = null
         budgetItem.periodMultiplier = 1
-        budgetItem.periodType = BudgetItem.PeriodType.MONTHS
+        budgetItem.periodType = getPeriodType(transactions)
         val firstOccurrence: ZonedDateTime = transactions.minBy { it.created }!!.created
         budgetItem.firstOccurrenceStart = Date(firstOccurrence.toEpochSecond() * 1000)
         budgetItem.firstOccurrenceEnd = Date(firstOccurrence.plusMonths(1).toEpochSecond() * 1000)
@@ -76,5 +77,20 @@ class MonzoMapper @Inject constructor() {
             "groceries" -> return BudgetItem.BudgetItemType.GROCERIES
             else -> return BudgetItem.BudgetItemType.OTHER
         }
+    }
+
+    fun getPeriodType(transactions: List<Transaction>): BudgetItem.PeriodType {
+        var highestDistanceSeconds = 0L
+        val sortedList = transactions.sortedBy { it.created }
+        var distance: Long = 0
+
+        for (i in sortedList.indices) {
+            if (i > 0 && { distance = sortedList[i].created.toEpochSecond() - sortedList[i - 1].created.toEpochSecond(); distance }() > highestDistanceSeconds) {
+                highestDistanceSeconds = distance
+            }
+        }
+        return if (highestDistanceSeconds <= DateUtils.MILLIS_PER_DAY * 7 / 1000) BudgetItem.PeriodType.WEEKS else
+            if (highestDistanceSeconds <= DateUtils.MILLIS_PER_DAY * 365 / 1000) BudgetItem.PeriodType.MONTHS else
+                BudgetItem.PeriodType.YEARS
     }
 }
