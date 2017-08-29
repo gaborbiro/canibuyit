@@ -78,6 +78,7 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
         if (getIntent().getData() != null) {
             presenter.handleDeepLink(getIntent());
         }
+        presenter.fetchBalance();
     }
 
     @Override
