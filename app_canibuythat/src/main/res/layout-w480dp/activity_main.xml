@@ -14,18 +14,18 @@
         android:layout_marginLeft="@dimen/padding"
         android:layout_marginRight="@dimen/padding"
         android:layout_toLeftOf="@id/statistics"
-        tools:context=".BudgetModifierListActivity">
+        tools:context=".ui.MainActivity">
 
         <fragment
-            android:id="@+id/budget_list"
-            android:name="com.gb.canibuythat.ui.BudgetListFragment"
+            android:id="@+id/spending_list_fragment"
+            android:name="com.gb.canibuythat.ui.SpendingListFragment"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="3"
             tools:layout="@android:layout/list_content" />
 
         <FrameLayout
-            android:id="@+id/budgetmodifier_detail_container"
+            android:id="@+id/spending_editor_container"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="5" />

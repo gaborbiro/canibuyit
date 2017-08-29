@@ -7,6 +7,7 @@ import android.widget.Toast;
 
 import com.gb.canibuythat.di.Injector;
 import com.j256.ormlite.android.apptools.OpenHelperManager;
+import com.jakewharton.threetenabp.AndroidThreeTen;
 
 public class App extends Application {
 
@@ -21,6 +22,7 @@ public class App extends Application {
     public void onCreate() {
         super.onCreate();
         registerActivityLifecycleCallbacks(new ActivityWatcher());
+        AndroidThreeTen.init(this);
     }
 
     private class ActivityWatcher extends ActivityLifecycleCallbacksAdapter {

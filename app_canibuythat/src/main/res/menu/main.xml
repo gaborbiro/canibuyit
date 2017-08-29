@@ -20,7 +20,7 @@
         android:id="@+id/menu_import"
         app:showAsAction="never|withText" />
     <item
-        android:title="Monzo"
+        android:title="Refresh Monzo data"
         android:icon="@drawable/monzo"
         android:id="@+id/menu_monzo" />
 </menu>

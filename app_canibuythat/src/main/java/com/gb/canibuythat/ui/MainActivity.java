@@ -16,7 +16,7 @@ import com.gb.canibuythat.R;
 import com.gb.canibuythat.UserPreferences;
 import com.gb.canibuythat.di.Injector;
 import com.gb.canibuythat.model.Balance;
-import com.gb.canibuythat.model.BudgetItem;
+import com.gb.canibuythat.model.Spending;
 import com.gb.canibuythat.presenter.MainPresenter;
 import com.gb.canibuythat.screen.MainScreen;
 import com.gb.canibuythat.ui.model.BalanceReading;
@@ -35,18 +35,16 @@ import javax.inject.Inject;
 import butterknife.BindView;
 
 /**
- * An activity representing a list of BudgetModifiers. This activity has different
- * presentations for handset and tablet-size devices. On handsets, the activity
- * presents a list of items, which when touched, lead to a
- * {@link BudgetEditorActivity} representing item details. On tablets, the activity
+ * An activity representing a list of Spendings. This activity has different presentations for handset
+ * and tablet-size devices. On handsets, the activity presents a list of items, which when touched,
+ * lead to a {@link SpendingEditorActivity} representing item details. On tablets, the activity
  * presents the list of items and item details side-by-side using two vertical panes. <p/>
- * The activity makes heavy use of fragments. The list of items is a
- * {@link BudgetListFragment} and the item details (if present) is a {@link BudgetEditorFragment}. <p/>
- * This activity also implements the required
- * {@link BudgetListFragment.FragmentCallback}
+ * The activity makes heavy use of fragments. The list of items is a {@link SpendingListFragment}
+ * and the item details (if present) is a {@link SpendingEditorFragment}. <p/>
+ * This activity also implements the required {@link SpendingListFragment.FragmentCallback}
  * interface to listen for item selections.
  */
-public class MainActivity extends BaseActivity implements MainScreen, BudgetListFragment.FragmentCallback, BalanceReadingInputDialog.BalanceReadingInputListener {
+public class MainActivity extends BaseActivity implements MainScreen, SpendingListFragment.FragmentCallback, BalanceReadingInputDialog.BalanceReadingInputListener {
 
     private static final int REQUEST_CODE_CHOOSE_FILE = 1;
     private static final int REQUEST_CODE_PERMISSIONS_FOR_DB_EXPORT = 2;
@@ -71,7 +69,7 @@ public class MainActivity extends BaseActivity implements MainScreen, BudgetList
         setContentView(R.layout.activity_main);
         presenter.setScreen(this);
 
-        if (findViewById(R.id.budgetmodifier_detail_container) != null) {
+        if (findViewById(R.id.spending_editor_container) != null) {
             twoPane = true;
         }
         if (chartButton != null) {
@@ -88,12 +86,12 @@ public class MainActivity extends BaseActivity implements MainScreen, BudgetList
     }
 
     /**
-     * Callback method from {@link BudgetListFragment.FragmentCallback} indicating
-     * that the budget item with the given database ID was selected.
+     * Callback method from {@link SpendingListFragment.FragmentCallback} indicating
+     * that the spending with the given database ID was selected.
      */
     @Override
-    public void onBudgetItemSelected(int id) {
-        presenter.showEditorScreenForBudgetItem(id);
+    public void onSpendingSelected(int id) {
+        presenter.showEditorScreenForSpending(id);
     }
 
     @Override
@@ -129,7 +127,7 @@ public class MainActivity extends BaseActivity implements MainScreen, BudgetList
 
     @Override
     public void onBackPressed() {
-        final BudgetEditorFragment detailFragment = (BudgetEditorFragment) getSupportFragmentManager().findFragmentById(R.id.budgetmodifier_detail_container);
+        final SpendingEditorFragment detailFragment = (SpendingEditorFragment) getSupportFragmentManager().findFragmentById(R.id.spending_editor_container);
         if (detailFragment != null) {
             detailFragment.saveAndRun(MainActivity.super::onBackPressed);
         } else {
@@ -184,35 +182,35 @@ public class MainActivity extends BaseActivity implements MainScreen, BudgetList
         new BalanceReadingInputDialog().show(getSupportFragmentManager(), null);
     }
 
-    public void showEditorScreen(final Integer budgetItemId) {
+    public void showEditorScreen(final Integer spendingId) {
         if (twoPane) {
-            final BudgetEditorFragment budgetEditorFragment =
-                    (BudgetEditorFragment) getSupportFragmentManager().findFragmentById(R.id.budgetmodifier_detail_container);
-            if (budgetEditorFragment == null || !budgetEditorFragment.isAdded()) {
-                BudgetEditorFragment detailFragment = new BudgetEditorFragment();
+            final SpendingEditorFragment spendingEditorFragment =
+                    (SpendingEditorFragment) getSupportFragmentManager().findFragmentById(R.id.spending_editor_container);
+            if (spendingEditorFragment == null || !spendingEditorFragment.isAdded()) {
+                SpendingEditorFragment detailFragment = new SpendingEditorFragment();
 
-                if (budgetItemId != null) {
+                if (spendingId != null) {
                     Bundle arguments = new Bundle();
-                    arguments.putInt(BudgetEditorFragment.EXTRA_ITEM_ID, budgetItemId);
+                    arguments.putInt(SpendingEditorFragment.EXTRA_ITEM_ID, spendingId);
                     detailFragment.setArguments(arguments);
                 }
-                getSupportFragmentManager().beginTransaction().replace(R.id.budgetmodifier_detail_container, detailFragment).commit();
+                getSupportFragmentManager().beginTransaction().replace(R.id.spending_editor_container, detailFragment).commit();
             } else {
                 // if a detail fragment is already visible
-                budgetEditorFragment.saveAndRun(() -> budgetEditorFragment.showBudgetItem(budgetItemId, false));
+                spendingEditorFragment.saveAndRun(() -> spendingEditorFragment.showSpending(spendingId, false));
             }
         } else {
-            if (budgetItemId != null) {
-                startActivity(BudgetEditorActivity.getIntentForUpdate(MainActivity.this, budgetItemId));
+            if (spendingId != null) {
+                startActivity(SpendingEditorActivity.getIntentForUpdate(MainActivity.this, spendingId));
             } else {
-                startActivity(BudgetEditorActivity.getIntentForCreate(MainActivity.this));
+                startActivity(SpendingEditorActivity.getIntentForCreate(MainActivity.this));
             }
         }
     }
 
     @Override
-    public void setData(List<BudgetItem> budgetItems) {
-        ((BudgetListFragment) getSupportFragmentManager().findFragmentById(R.id.budget_list)).setData(budgetItems);
+    public void setData(List<Spending> spendings) {
+        ((SpendingListFragment) getSupportFragmentManager().findFragmentById(R.id.spending_list_fragment)).setData(spendings);
     }
 
     @Override

@@ -11,18 +11,18 @@
         android:layout_width="match_parent"/>
 
     <fragment
-        android:id="@+id/budget_list"
+        android:id="@+id/spending_list_fragment"
         android:layout_above="@id/statistics"
         android:layout_height="match_parent"
         android:layout_width="match_parent"
-        android:name="com.gb.canibuythat.ui.BudgetListFragment"
+        android:name="com.gb.canibuythat.ui.SpendingListFragment"
         tools:context=".ui.MainActivity"
-        tools:layout="@layout/fragment_budget_list"/>
+        tools:layout="@layout/fragment_spending_list"/>
 
     <View
         android:background="@drawable/shadow"
         android:id="@+id/shadow"
-        android:layout_alignBottom="@id/budget_list"
+        android:layout_alignBottom="@id/spending_list_fragment"
         android:layout_height="@dimen/statistics_shadow_height"
         android:layout_width="match_parent"/>
 </RelativeLayout>

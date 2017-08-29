@@ -1,6 +1,6 @@
 package com.gb.canibuythat.provider;
 
-import com.gb.canibuythat.model.BudgetItem;
+import com.gb.canibuythat.model.Spending;
 import com.gb.canibuythat.util.DateUtils;
 
 import java.util.ArrayList;
@@ -20,7 +20,7 @@ public class BalanceCalculator {
     }
 
     /**
-     * Calculate how many times the specified <code>budgetItem</code> has been
+     * Calculate how many times the specified <code>spending</code> has been
      * applied up until the specified <code>end</code> (usually today) and sum up
      * it's value.
      *
@@ -28,7 +28,7 @@ public class BalanceCalculator {
      * are periods where the application of the modifier is uncertain), the second is
      * the maximum value
      */
-    public BalanceResult getEstimatedBalance(BudgetItem budgetItem, Date start, Date end) {
+    public BalanceResult getEstimatedBalance(Spending spending, Date start, Date end) {
         if (start != null && end != null && !end.after(start)) {
             throw new IllegalArgumentException("Start must come before end!");
         }
@@ -38,9 +38,9 @@ public class BalanceCalculator {
         List<Date> spendingEvents = new ArrayList<>();
         int count = 0;
         Calendar occurrenceStart = Calendar.getInstance();
-        occurrenceStart.setTime(budgetItem.getFirstOccurrenceStart());
+        occurrenceStart.setTime(spending.getFirstOccurrenceStart());
         Calendar occurrenceEnd = Calendar.getInstance();
-        occurrenceEnd.setTime(budgetItem.getFirstOccurrenceEnd());
+        occurrenceEnd.setTime(spending.getFirstOccurrenceEnd());
         Calendar date = Calendar.getInstance();
         if (end != null) {
             date.setTime(end);
@@ -51,12 +51,12 @@ public class BalanceCalculator {
             if (start == null || occurrenceEnd.getTimeInMillis() >= start.getTime()) {
                 int r = DateUtils.compare(date, occurrenceStart, occurrenceEnd);
                 if (r >= -1) { //after or on start date
-                    if (budgetItem.getEnabled()) {
-                        worstCase += budgetItem.getAmount();
+                    if (spending.getEnabled()) {
+                        worstCase += spending.getAmount();
                     }
                     if (r > 1) { // after end date
-                        if (budgetItem.getEnabled()) {
-                            bestCase += budgetItem.getAmount();
+                        if (spending.getEnabled()) {
+                            bestCase += spending.getAmount();
                         }
                         spendingEvents.add(occurrenceEnd.getTime());
                     }
@@ -64,9 +64,9 @@ public class BalanceCalculator {
                     exit = true;
                 }
             }
-            budgetItem.getPeriodType().apply(occurrenceStart, budgetItem.getPeriodMultiplier());
-            budgetItem.getPeriodType().apply(occurrenceEnd, budgetItem.getPeriodMultiplier());
-            if (budgetItem.getOccurrenceCount() != null && ++count >= budgetItem.getOccurrenceCount()) {
+            spending.getPeriod().apply(occurrenceStart, spending.getPeriodMultiplier());
+            spending.getPeriod().apply(occurrenceEnd, spending.getPeriodMultiplier());
+            if (spending.getOccurrenceCount() != null && ++count >= spending.getOccurrenceCount()) {
                 exit = true;
             }
         } while (!exit);
@@ -90,7 +90,7 @@ public class BalanceCalculator {
         public final float worstCase;
         /**
          * Spending event is the latest day on which we expect a payment/income to happen.
-         * For eg if a weekly BudgetItem starts on a Monday, than the array of spending
+         * For eg if a weekly Spending starts on a Monday, than the array of spending
          * events will be all the Sundays after that Monday and before today (including
          * today).
          */

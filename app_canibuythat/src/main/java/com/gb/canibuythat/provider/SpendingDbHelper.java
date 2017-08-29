@@ -7,7 +7,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 
-import com.gb.canibuythat.model.BudgetItem;
+import com.gb.canibuythat.model.Spending;
 import com.j256.ormlite.android.apptools.OrmLiteSqliteOpenHelper;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
@@ -16,20 +16,20 @@ import java.sql.SQLException;
 
 import javax.inject.Inject;
 
-public class BudgetDbHelper extends OrmLiteSqliteOpenHelper {
+public class SpendingDbHelper extends OrmLiteSqliteOpenHelper {
 
-    public static final String DATABASE_NAME = "budget.sqlite";
+    public static final String DATABASE_NAME = "spendings.sqlite";
     private static final int DATABASE_VERSION = 1;
 
     @Inject
-    public BudgetDbHelper(Context appContext) {
+    public SpendingDbHelper(Context appContext) {
         super(appContext, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
     @Override
     public void onCreate(SQLiteDatabase database, ConnectionSource connectionSource) {
         try {
-            TableUtils.createTable(connectionSource, BudgetItem.class);
+            TableUtils.createTable(connectionSource, Spending.class);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -43,19 +43,19 @@ public class BudgetDbHelper extends OrmLiteSqliteOpenHelper {
         return SQLiteDatabase.openDatabase(file, null, 0);
     }
 
-    public Cursor getAllBudgetItems(SQLiteDatabase db) throws SQLException {
-        return db.query(Contract.BudgetItem.TABLE, Contract.BudgetItem.Companion.getCOLUMNS(), null, null, null, null, null);
+    public Cursor getAllSpendings(SQLiteDatabase db) throws SQLException {
+        return db.query(Contract.Spending.TABLE, Contract.Spending.Companion.getCOLUMNS(), null, null, null, null, null);
     }
 
-    public void replaceBudgetDatabase(Cursor cursor) throws SQLException {
+    public void replaceSpendingDatabase(Cursor cursor) throws SQLException {
         if (cursor.getCount() > 0) {
             SQLiteDatabase db = getWritableDatabase();
             try {
                 db.beginTransaction();
-                db.delete(Contract.BudgetItem.TABLE, null, null);
+                db.delete(Contract.Spending.TABLE, null, null);
                 for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
                     ContentValues contentValues = cursorRowToContentValues(cursor);
-                    db.insert(Contract.BudgetItem.TABLE, null, contentValues);
+                    db.insert(Contract.Spending.TABLE, null, contentValues);
                 }
                 db.setTransactionSuccessful();
             } finally {

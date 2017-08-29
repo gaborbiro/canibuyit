@@ -4,7 +4,7 @@ import com.gb.canibuythat.MonzoConstants
 import com.gb.canibuythat.api.BaseFormDataApi
 import com.gb.canibuythat.api.MonzoApi
 import com.gb.canibuythat.model.Account
-import com.gb.canibuythat.model.BudgetItem
+import com.gb.canibuythat.model.Spending
 import com.gb.canibuythat.model.Login
 import io.reactivex.Single
 import javax.inject.Inject
@@ -34,13 +34,13 @@ constructor(private val monzoApi: MonzoApi, private val mapper: MonzoMapper) : B
         return monzoApi.accounts().map(mapper::mapToAccounts)
     }
 
-    fun getBudgetItems(accountId: String): Single<List<BudgetItem>> {
+    fun getSpendings(accountId: String): Single<List<Spending>> {
         return monzoApi.transactions(accountId)
                 .map(mapper::mapToTransactions)
                 .map {
                     it.groupBy { it.category }.map {
                         val (category, transactionsForCategory) = it
-                        mapper.mapToBudgetItem(category, transactionsForCategory)
+                        mapper.mapToSpending(category, transactionsForCategory)
                     }
                 }
     }

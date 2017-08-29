@@ -33,8 +33,8 @@
             </intent-filter>
         </activity>
         <activity
-            android:label="@string/title_budgetmodifier_detail"
-            android:name=".ui.BudgetEditorActivity"
+            android:label="@string/title_spending_modifier_detail"
+            android:name=".ui.SpendingEditorActivity"
             android:parentActivityName=".ui.MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
@@ -42,9 +42,9 @@
         </activity>
 
         <provider
-            android:authorities="com.gb.canibuythat.authority.budget"
+            android:authorities="com.gb.canibuythat.authority.spending"
             android:exported="false"
-            android:name=".provider.BudgetProvider"/>
+            android:name=".provider.SpendingProvider"/>
 
         <activity
             android:label="@string/title_activity_chart"

@@ -18,7 +18,7 @@
             android:scrollbars="vertical"
             app:layoutManager="android.support.v7.widget.LinearLayoutManager"
             tools:context=".ui.MainActivity"
-            tools:listitem="@layout/list_item_budget"/>
+            tools:listitem="@layout/list_item_spending"/>
     </FrameLayout>
 
 </FrameLayout>

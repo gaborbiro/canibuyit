@@ -12,53 +12,53 @@ import java.util.*
  * An income or expense that affects the balance of a specified time-span. The user
  * doesn't need to know the exact moment of payment.
  */
-@DatabaseTable(tableName = Contract.BudgetItem.TABLE)
-class BudgetItem {
+@DatabaseTable(tableName = Contract.Spending.TABLE)
+class Spending {
 
     companion object {
         val SOURCE_MONZO_CATEGORY: String = "monzo_category"
     }
 
-    @DatabaseField(generatedId = true, columnName = Contract.BudgetItem._ID)
+    @DatabaseField(generatedId = true, columnName = Contract.Spending._ID)
     var id: Int? = null
 
-    @DatabaseField(index = true, columnName = Contract.BudgetItem.NAME, unique = true, canBeNull = false)
+    @DatabaseField(index = true, columnName = Contract.Spending.NAME, unique = true, canBeNull = false)
     var name: String? = null
 
-    @DatabaseField(columnName = Contract.BudgetItem.NOTES)
+    @DatabaseField(columnName = Contract.Spending.NOTES)
     var notes: String? = null
 
-    @DatabaseField(columnName = Contract.BudgetItem.TYPE, canBeNull = false)
-    var type: BudgetItemType? = null
+    @DatabaseField(columnName = Contract.Spending.TYPE, canBeNull = false)
+    var type: Category? = null
 
-    @DatabaseField(columnName = Contract.BudgetItem.AMOUNT, canBeNull = false)
+    @DatabaseField(columnName = Contract.Spending.AMOUNT, canBeNull = false)
     var amount: Double? = null
 
     /**
      * Date before witch the transaction certainly won't happen. The repetition period
      * is added to this date.
      */
-    @DatabaseField(columnName = Contract.BudgetItem.FIRST_OCCURRENCE_START, canBeNull = false)
+    @DatabaseField(columnName = Contract.Spending.FIRST_OCCURRENCE_START, canBeNull = false)
     var firstOccurrenceStart: Date? = null
 
     /**
      * Date by witch the transaction most certainly did happen. The repetition period is
      * added to this date.
      */
-    @DatabaseField(columnName = Contract.BudgetItem.FIRST_OCCURRENCE_END, canBeNull = false)
+    @DatabaseField(columnName = Contract.Spending.FIRST_OCCURRENCE_END, canBeNull = false)
     var firstOccurrenceEnd: Date? = null
 
     /**
      * How many times this modifier will be spent/cashed in. If 0, the field
      * #periodMultiplier and #period are ignored
      */
-    @DatabaseField(columnName = Contract.BudgetItem.OCCURRENCE_COUNT)
+    @DatabaseField(columnName = Contract.Spending.OCCURRENCE_COUNT)
     var occurrenceCount: Int? = null
 
     /**
      * For periods like every 2 days or once every trimester...
      */
-    @DatabaseField(columnName = Contract.BudgetItem.PERIOD_MULTIPLIER)
+    @DatabaseField(columnName = Contract.Spending.PERIOD_MULTIPLIER)
     var periodMultiplier: Int? = null
 
     /**
@@ -68,26 +68,26 @@ class BudgetItem {
      * Ex: The first week of every month, cold months of the year, every weekend, every
      * semester
      */
-    @DatabaseField(columnName = Contract.BudgetItem.PERIOD_TYPE, canBeNull = false)
-    var periodType: PeriodType? = null
+    @DatabaseField(columnName = Contract.Spending.PERIOD_TYPE, canBeNull = false)
+    var period: Period? = null
 
-    @DatabaseField(columnName = Contract.BudgetItem.ENABLED, canBeNull = true)
+    @DatabaseField(columnName = Contract.Spending.ENABLED, canBeNull = true)
     var enabled = true
 
-    @DatabaseField(columnName = Contract.BudgetItem.SOURCE_DATA, canBeNull = false, dataType = DataType.SERIALIZABLE)
+    @DatabaseField(columnName = Contract.Spending.SOURCE_DATA, canBeNull = false, dataType = DataType.SERIALIZABLE)
     val sourceData: SerializableMap<String, String> = SerializableMap()
 
-    @DatabaseField(columnName = Contract.BudgetItem.SPENT, canBeNull = true)
+    @DatabaseField(columnName = Contract.Spending.SPENT, canBeNull = true)
     var spent: Double? = null
 
-    @DatabaseField(columnName = Contract.BudgetItem.TARGET, canBeNull = true)
+    @DatabaseField(columnName = Contract.Spending.TARGET, canBeNull = true)
     var target: Double? = null
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other?.javaClass != javaClass) return false
 
-        other as BudgetItem
+        other as Spending
 
         if (id != other.id) return false
         if (name != other.name) return false
@@ -98,7 +98,7 @@ class BudgetItem {
         if (firstOccurrenceEnd != other.firstOccurrenceEnd) return false
         if (occurrenceCount != other.occurrenceCount) return false
         if (periodMultiplier != other.periodMultiplier) return false
-        if (periodType != other.periodType) return false
+        if (period != other.period) return false
         if (enabled != other.enabled) return false
         if (!sourceData.equals(other.sourceData)) return false
         if (spent != other.spent) return false
@@ -110,7 +110,7 @@ class BudgetItem {
         if (this === other) return true
         if (other?.javaClass != javaClass) return false
 
-        other as BudgetItem
+        other as Spending
 
         if (id != other.id) return false
         if (enabled != other.enabled) return false
@@ -124,7 +124,7 @@ class BudgetItem {
         }
         if (occurrenceCount != other.occurrenceCount) return false
         if (periodMultiplier != other.periodMultiplier) return false
-        if (periodType != other.periodType) return false
+        if (period != other.period) return false
         if (enabled != other.enabled) return false
         if (!sourceData.equals(other.sourceData)) return false
         if (spent != other.spent) return false
@@ -141,7 +141,7 @@ class BudgetItem {
         result = 31 * result + (firstOccurrenceEnd?.hashCode() ?: 0)
         result = 31 * result + (occurrenceCount ?: 0)
         result = 31 * result + (periodMultiplier ?: 0)
-        result = 31 * result + (periodType?.hashCode() ?: 0)
+        result = 31 * result + (period?.hashCode() ?: 0)
         result = 31 * result + enabled.hashCode()
         result = 31 * result + (sourceData.hashCode())
         result = 31 * result + (spent?.hashCode() ?: 0)
@@ -149,13 +149,13 @@ class BudgetItem {
     }
 
     override fun toString(): String {
-        return "BudgetItem(id=$id, name=$name, notes=$notes, type=$type, amount=$amount, firstOccurrenceStart=$firstOccurrenceStart, firstOccurrenceEnd=$firstOccurrenceEnd, occurrenceCount=$occurrenceCount, periodMultiplier=$periodMultiplier, periodType=$periodType, enabled=$enabled, sourceData=$sourceData, spent=$spent)"
+        return "Spending(id=$id, name=$name, notes=$notes, type=$type, amount=$amount, firstOccurrenceStart=$firstOccurrenceStart, firstOccurrenceEnd=$firstOccurrenceEnd, occurrenceCount=$occurrenceCount, periodMultiplier=$periodMultiplier, period=$period, enabled=$enabled, sourceData=$sourceData, spent=$spent)"
     }
 
     val isPersisted: Boolean
         get() = id != null
 
-    enum class BudgetItemType(val defaultEnabled: Boolean = true) {
+    enum class Category(val defaultEnabled: Boolean = true) {
         ACCOMMODATION, AUTOMOBILE, CHILD_SUPPORT, DONATIONS_GIVEN, ENTERTAINMENT, FOOD,
         GIFTS_GIVEN, GROCERIES, HOUSEHOLD, INSURANCE, MEDICARE, PERSONAL_CARE, PETS,
         SELF_IMPROVEMENT, SPORTS_RECREATION, TAX, TRANSPORTATION, UTILITIES, VACATION(false),
@@ -167,7 +167,7 @@ class BudgetItem {
         }
     }
 
-    enum class PeriodType(val strRes: Int) {
+    enum class Period(val strRes: Int) {
         DAYS(R.plurals.days),
         WEEKS(R.plurals.weeks),
         MONTHS(R.plurals.months),

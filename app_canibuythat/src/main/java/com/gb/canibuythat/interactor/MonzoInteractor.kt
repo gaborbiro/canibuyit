@@ -2,7 +2,7 @@ package com.gb.canibuythat.interactor
 
 import com.gb.canibuythat.exception.MonzoException
 import com.gb.canibuythat.model.Account
-import com.gb.canibuythat.model.BudgetItem
+import com.gb.canibuythat.model.Spending
 import com.gb.canibuythat.model.Login
 import com.gb.canibuythat.repository.MonzoRepository
 import com.gb.canibuythat.rx.SchedulerProvider
@@ -10,7 +10,7 @@ import io.reactivex.Single
 import javax.inject.Inject
 
 class MonzoInteractor @Inject
-constructor(private val schedulerProvider: SchedulerProvider, private val monzoRepository: MonzoRepository, private val budgetInteractor: BudgetInteractor) {
+constructor(private val schedulerProvider: SchedulerProvider, private val monzoRepository: MonzoRepository, private val spendingInteractor: SpendingInteractor) {
 
     fun login(authorizationCode: String): Single<Login> {
         return monzoRepository.login(authorizationCode)
@@ -33,9 +33,9 @@ constructor(private val schedulerProvider: SchedulerProvider, private val monzoR
                 .observeOn(schedulerProvider.mainThread())
     }
 
-    fun getBudgetItems(accountId: String): Single<List<BudgetItem>> {
-        return monzoRepository.getBudgetItems(accountId)
-                .onErrorResumeNext { throwable -> Single.error<List<BudgetItem>>(MonzoException(throwable)) }
+    fun getSpendings(accountId: String): Single<List<Spending>> {
+        return monzoRepository.getSpendings(accountId)
+                .onErrorResumeNext { throwable -> Single.error<List<Spending>>(MonzoException(throwable)) }
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())
     }

@@ -7,10 +7,10 @@ import android.provider.BaseColumns
  * well.
  */
 class Contract {
-    class BudgetItem {
+    class Spending {
         companion object {
 
-            const val TABLE = "budget_item"
+            const val TABLE = "spending"
 
             const val _ID = "_id"
             const val NAME = "name"

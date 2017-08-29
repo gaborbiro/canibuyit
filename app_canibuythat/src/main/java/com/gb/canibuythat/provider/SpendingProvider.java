@@ -17,34 +17,34 @@ import java.util.HashSet;
 
 import javax.inject.Inject;
 
-public class BudgetProvider extends ContentProvider {
+public class SpendingProvider extends ContentProvider {
 
-    public static final String AUTHORITY = "com.gb.canibuythat.authority.budget";
+    public static final String AUTHORITY = "com.gb.canibuythat.authority.spending";
 
     public static final Uri BASE_CONTENT_URI =
             new Uri.Builder().scheme(ContentResolver.SCHEME_CONTENT)
                     .authority(AUTHORITY)
                     .build();
 
-    public static final int ID_BUDGET_ITEMS = 0;
-    public static final String PATH_BUDGET_ITEMS = "budget_items";
-    public static final Uri BUDGET_ITEMS_URI = BASE_CONTENT_URI.buildUpon()
-            .appendPath(PATH_BUDGET_ITEMS)
+    public static final int ID_SPENDINGS = 0;
+    public static final String PATH_SPENDINGS = "spendings";
+    public static final Uri SPENDINGS_URI = BASE_CONTENT_URI.buildUpon()
+            .appendPath(PATH_SPENDINGS)
             .build();
 
-    public static final int ID_BUDGET_ITEM = 1;
-    public static final String PATH_BUDGET_ITEM = "budget_items/#";
-    public static final Uri BUDGET_ITEM_URI = BASE_CONTENT_URI.buildUpon()
-            .appendPath(PATH_BUDGET_ITEM)
+    public static final int ID_SPENDING = 1;
+    public static final String PATH_SPENDING = "spendings/#";
+    public static final Uri SPENDING_URI = BASE_CONTENT_URI.buildUpon()
+            .appendPath(PATH_SPENDING)
             .build();
 
-    @Inject BudgetDbHelper dbHelper;
+    @Inject SpendingDbHelper dbHelper;
 
     private static final UriMatcher uriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
 
     static {
-        uriMatcher.addURI(AUTHORITY, PATH_BUDGET_ITEMS, ID_BUDGET_ITEMS);
-        uriMatcher.addURI(AUTHORITY, PATH_BUDGET_ITEM, ID_BUDGET_ITEM);
+        uriMatcher.addURI(AUTHORITY, PATH_SPENDINGS, ID_SPENDINGS);
+        uriMatcher.addURI(AUTHORITY, PATH_SPENDING, ID_SPENDING);
     }
 
     @Override
@@ -59,17 +59,17 @@ public class BudgetProvider extends ContentProvider {
         SQLiteQueryBuilder queryBuilder = new SQLiteQueryBuilder();
 
         // Set the table
-        queryBuilder.setTables(Contract.BudgetItem.TABLE);
+        queryBuilder.setTables(Contract.Spending.TABLE);
 
         int uriType = uriMatcher.match(uri);
         switch (uriType) {
-            case ID_BUDGET_ITEMS:
-                checkColumns(Contract.BudgetItem.Companion.getCOLUMNS(), projection);
+            case ID_SPENDINGS:
+                checkColumns(Contract.Spending.Companion.getCOLUMNS(), projection);
                 break;
-            case ID_BUDGET_ITEM:
-                checkColumns(Contract.BudgetItem.Companion.getCOLUMNS(), projection);
+            case ID_SPENDING:
+                checkColumns(Contract.Spending.Companion.getCOLUMNS(), projection);
                 // adding the ID to the original query
-                queryBuilder.appendWhere(Contract.BudgetItem._ID + "=" + uri.getLastPathSegment());
+                queryBuilder.appendWhere(Contract.Spending._ID + "=" + uri.getLastPathSegment());
                 break;
             default:
                 throw new IllegalArgumentException("Unknown URI: " + uri);
@@ -93,14 +93,14 @@ public class BudgetProvider extends ContentProvider {
         SQLiteDatabase sqlDB = dbHelper.getWritableDatabase();
         long id;
         switch (uriType) {
-            case ID_BUDGET_ITEMS:
-                id = sqlDB.insert(Contract.BudgetItem.TABLE, null, values);
+            case ID_SPENDINGS:
+                id = sqlDB.insert(Contract.Spending.TABLE, null, values);
                 break;
             default:
                 throw new IllegalArgumentException("Unknown URI: " + uri);
         }
         getContext().getContentResolver().notifyChange(uri, null);
-        return Uri.parse(PATH_BUDGET_ITEMS + "/" + id);
+        return Uri.parse(PATH_SPENDINGS + "/" + id);
     }
 
     @Override
@@ -109,16 +109,16 @@ public class BudgetProvider extends ContentProvider {
         SQLiteDatabase sqlDB = dbHelper.getWritableDatabase();
         int rowsDeleted;
         switch (uriType) {
-            case ID_BUDGET_ITEMS:
-                rowsDeleted = sqlDB.delete(Contract.BudgetItem.TABLE, selection, selectionArgs);
+            case ID_SPENDINGS:
+                rowsDeleted = sqlDB.delete(Contract.Spending.TABLE, selection, selectionArgs);
                 break;
-            case ID_BUDGET_ITEM:
+            case ID_SPENDING:
                 String id = uri.getLastPathSegment();
 
                 if (TextUtils.isEmpty(selection)) {
-                    rowsDeleted = sqlDB.delete(Contract.BudgetItem.TABLE, Contract.BudgetItem._ID + "=" + id, null);
+                    rowsDeleted = sqlDB.delete(Contract.Spending.TABLE, Contract.Spending._ID + "=" + id, null);
                 } else {
-                    rowsDeleted = sqlDB.delete(Contract.BudgetItem.TABLE, Contract.BudgetItem._ID + "=" + id + " and " + selection, selectionArgs);
+                    rowsDeleted = sqlDB.delete(Contract.Spending.TABLE, Contract.Spending._ID + "=" + id + " and " + selection, selectionArgs);
                 }
                 break;
             default:
@@ -134,16 +134,16 @@ public class BudgetProvider extends ContentProvider {
         SQLiteDatabase sqlDB = dbHelper.getWritableDatabase();
         int rowsUpdated = 0;
         switch (uriType) {
-            case ID_BUDGET_ITEMS:
-                rowsUpdated = sqlDB.update(Contract.BudgetItem.TABLE, values, selection, selectionArgs);
+            case ID_SPENDINGS:
+                rowsUpdated = sqlDB.update(Contract.Spending.TABLE, values, selection, selectionArgs);
                 break;
-            case ID_BUDGET_ITEM:
+            case ID_SPENDING:
                 String id = uri.getLastPathSegment();
 
                 if (TextUtils.isEmpty(selection)) {
-                    rowsUpdated = sqlDB.update(Contract.BudgetItem.TABLE, values, Contract.BudgetItem._ID + "=" + id, null);
+                    rowsUpdated = sqlDB.update(Contract.Spending.TABLE, values, Contract.Spending._ID + "=" + id, null);
                 } else {
-                    rowsUpdated = sqlDB.update(Contract.BudgetItem.TABLE, values, Contract.BudgetItem._ID + "=" + id + " and " + selection, selectionArgs);
+                    rowsUpdated = sqlDB.update(Contract.Spending.TABLE, values, Contract.Spending._ID + "=" + id + " and " + selection, selectionArgs);
                 }
                 break;
         }

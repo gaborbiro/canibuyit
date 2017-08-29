@@ -2,14 +2,13 @@ package com.gb.canibuythat.repository
 
 import com.gb.canibuythat.api.model.*
 import com.gb.canibuythat.model.Account
-import com.gb.canibuythat.model.BudgetItem
+import com.gb.canibuythat.model.Spending
+import com.gb.canibuythat.model.Spending.Period
 import com.gb.canibuythat.model.Login
 import com.gb.canibuythat.model.Transaction
 import org.apache.commons.lang3.text.WordUtils
-import org.apache.commons.lang3.time.DateUtils
 import org.threeten.bp.LocalDate
-import org.threeten.bp.LocalDateTime
-import org.threeten.bp.ZoneOffset
+import org.threeten.bp.ZoneId
 import org.threeten.bp.ZonedDateTime
 import org.threeten.bp.temporal.ChronoField
 import java.util.*
@@ -39,7 +38,7 @@ class MonzoMapper @Inject constructor() {
 
     fun mapToTransaction(apiTransaction: ApiTransaction): Transaction {
         return Transaction(apiTransaction.amount,
-                LocalDateTime.parse(apiTransaction.created),
+                ZonedDateTime.parse(apiTransaction.created),
                 apiTransaction.currency,
                 apiTransaction.description,
                 apiTransaction.id,
@@ -50,65 +49,76 @@ class MonzoMapper @Inject constructor() {
                 apiTransaction.category)
     }
 
-    fun mapToBudgetItem(category: String, transactions: List<Transaction>): BudgetItem {
-        val budgetItem = BudgetItem()
-        budgetItem.periodType = getPeriodType(transactions)
+    fun mapToSpending(category: String, transactions: List<Transaction>): Spending {
+        val spending = Spending()
+        val period = getOptimalPeriod(transactions)
+        spending.period = period
 
-        fun period(periodType: BudgetItem.PeriodType): Int {
-            return when (periodType) {
-                BudgetItem.PeriodType.DAYS -> LocalDate.now().toEpochDay().toInt()
-                BudgetItem.PeriodType.WEEKS -> LocalDate.now()[ChronoField.ALIGNED_WEEK_OF_YEAR]
-                BudgetItem.PeriodType.MONTHS -> LocalDate.now().monthValue
-                BudgetItem.PeriodType.YEARS -> LocalDate.now().year
-            }
-        }
-
-        val monthMap: Map<Int, List<Transaction>> = transactions.groupBy { period(budgetItem.periodType!!) }
-        budgetItem.amount = transactions.sumBy { it.amount }.div(monthMap.size).div(100.0)
-        budgetItem.type = mapBudgetItemType(category)
-        budgetItem.enabled = budgetItem.type!!.defaultEnabled
-        budgetItem.name = WordUtils.capitalizeFully(category.replace("\\_".toRegex(), " "))
-        budgetItem.occurrenceCount = null
-        budgetItem.periodMultiplier = 1
-        val firstOccurrence: LocalDateTime = transactions.minBy { it.created }!!.created
-        budgetItem.firstOccurrenceStart = fromLocalDate(firstOccurrence)
-        budgetItem.firstOccurrenceEnd = fromLocalDate(firstOccurrence.plusMonths(1))
-        budgetItem.sourceData.put(BudgetItem.SOURCE_MONZO_CATEGORY, category)
-        monthMap[period(budgetItem.periodType!!)]?.let { budgetItem.spent = it.sumBy { it.amount }.div(100.0) }
-        return budgetItem
+        val timeMap: Map<Int, List<Transaction>> = transactions.groupBy { period.get(it.created.toLocalDate()) }
+        spending.amount = transactions.sumBy { it.amount }.div(timeMap.size).div(100.0)
+        spending.type = mapSpendingType(category)
+        spending.enabled = spending.type!!.defaultEnabled
+        spending.name = WordUtils.capitalizeFully(category.replace("\\_".toRegex(), " "))
+        spending.occurrenceCount = null
+        spending.periodMultiplier = 1
+        val firstOccurrence: LocalDate = transactions.minBy { it.created }!!.created.toLocalDate()
+        spending.firstOccurrenceStart = fromLocalDate(firstOccurrence)
+        spending.firstOccurrenceEnd = fromLocalDate(firstOccurrence.add(period, 1))
+        spending.sourceData.put(Spending.SOURCE_MONZO_CATEGORY, category)
+        spending.spent = 0.0
+        timeMap[period.get(LocalDate.now(ZoneId.systemDefault()))]?.let { spending.spent = it.sumBy { it.amount }.div(100.0) }
+        return spending
     }
 
-    fun mapBudgetItemType(monzoCategory: String): BudgetItem.BudgetItemType {
+    fun Period.get(date: LocalDate): Int {
+        return when (this) {
+            Period.DAYS -> date.toEpochDay().toInt()
+            Period.WEEKS -> date[ChronoField.ALIGNED_WEEK_OF_YEAR]
+            Period.MONTHS -> date.monthValue
+            Period.YEARS -> date.year
+        }
+    }
+
+    fun LocalDate.add(period: Period, amount: Long): LocalDate {
+        return when (period) {
+            Period.DAYS -> this.plusDays(amount)
+            Period.WEEKS -> this.plusWeeks(amount)
+            Period.MONTHS -> this.plusMonths(amount)
+            Period.YEARS -> this.plusYears(amount)
+        }
+    }
+
+    fun mapSpendingType(monzoCategory: String): Spending.Category {
         when (monzoCategory) {
-            "mondo" -> return BudgetItem.BudgetItemType.INCOME
-            "general" -> return BudgetItem.BudgetItemType.OTHER
-            "eating_out" -> return BudgetItem.BudgetItemType.FOOD
-            "expenses" -> return BudgetItem.BudgetItemType.EXPENSES
-            "transport" -> return BudgetItem.BudgetItemType.TRANSPORTATION
-            "cash" -> return BudgetItem.BudgetItemType.CASH
-            "bills" -> return BudgetItem.BudgetItemType.UTILITIES
-            "entertainment" -> return BudgetItem.BudgetItemType.ENTERTAINMENT
-            "shopping" -> return BudgetItem.BudgetItemType.LUXURY
-            "holidays" -> return BudgetItem.BudgetItemType.VACATION
-            "groceries" -> return BudgetItem.BudgetItemType.GROCERIES
-            else -> return BudgetItem.BudgetItemType.OTHER
+            "mondo" -> return Spending.Category.INCOME
+            "general" -> return Spending.Category.OTHER
+            "eating_out" -> return Spending.Category.FOOD
+            "expenses" -> return Spending.Category.EXPENSES
+            "transport" -> return Spending.Category.TRANSPORTATION
+            "cash" -> return Spending.Category.CASH
+            "bills" -> return Spending.Category.UTILITIES
+            "entertainment" -> return Spending.Category.ENTERTAINMENT
+            "shopping" -> return Spending.Category.LUXURY
+            "holidays" -> return Spending.Category.VACATION
+            "groceries" -> return Spending.Category.GROCERIES
+            else -> return Spending.Category.OTHER
         }
     }
 
-    fun getPeriodType(transactions: List<Transaction>): BudgetItem.PeriodType {
-        var highestDistanceSeconds = 0L
-        val sortedList = transactions.sortedBy { it.created }
+    fun getOptimalPeriod(transactions: List<Transaction>): Spending.Period {
+        var highestDistanceDays = 0L
+        val sortedList = transactions.sortedBy { it.created }.map { it.created.toLocalDate() }
         var distance: Long = 0
 
         for (i in sortedList.indices) {
-            if (i > 0 && { distance = sortedList[i].created.toEpochSecond(ZoneOffset.ofTotalSeconds(0)) - sortedList[i - 1].created.toEpochSecond(ZoneOffset.ofTotalSeconds(0)); distance }() > highestDistanceSeconds) {
-                highestDistanceSeconds = distance
+            if (i > 0 && { distance = sortedList[i].toEpochDay() - sortedList[i - 1].toEpochDay(); distance }() > highestDistanceDays) {
+                highestDistanceDays = distance
             }
         }
-        return if (highestDistanceSeconds <= DateUtils.MILLIS_PER_DAY * 7 / 1000) BudgetItem.PeriodType.WEEKS else
-            if (highestDistanceSeconds <= DateUtils.MILLIS_PER_DAY * 365 / 1000) BudgetItem.PeriodType.MONTHS else
-                BudgetItem.PeriodType.YEARS
+        return if (highestDistanceDays <= 7) Spending.Period.WEEKS else
+            if (highestDistanceDays <= 365) Spending.Period.MONTHS else
+                Spending.Period.YEARS
     }
 
-    fun fromLocalDate(localDateTime: LocalDateTime): Date = Date(localDateTime.year, localDateTime.monthValue, localDateTime.dayOfMonth)
+    fun fromLocalDate(localDate: LocalDate): Date = Date(localDate.year, localDate.monthValue, localDate.dayOfMonth)
 }

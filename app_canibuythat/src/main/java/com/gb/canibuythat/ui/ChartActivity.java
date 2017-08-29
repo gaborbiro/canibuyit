@@ -10,9 +10,9 @@ import android.widget.Toast;
 import com.gb.canibuythat.R;
 import com.gb.canibuythat.UserPreferences;
 import com.gb.canibuythat.di.Injector;
-import com.gb.canibuythat.model.BudgetItem;
+import com.gb.canibuythat.model.Spending;
 import com.gb.canibuythat.provider.BalanceCalculator;
-import com.gb.canibuythat.provider.BudgetDbHelper;
+import com.gb.canibuythat.provider.SpendingDbHelper;
 import com.gb.canibuythat.ui.model.BalanceReading;
 import com.gb.canibuythat.util.DateUtils;
 import com.github.mikephil.charting.charts.BarChart;
@@ -42,7 +42,7 @@ import javax.inject.Inject;
 
 public class ChartActivity extends BaseActivity implements OnChartValueSelectedListener {
 
-    @Inject BudgetDbHelper budgetDbHelper;
+    @Inject SpendingDbHelper spendingDbHelper;
     @Inject UserPreferences userPreferences;
 
     private static SimpleDateFormat MONTH_ONLY = new SimpleDateFormat("MMM.dd");
@@ -134,14 +134,14 @@ public class ChartActivity extends BaseActivity implements OnChartValueSelectedL
                 } else {
                     startDate = null;
                 }
-                Dao<BudgetItem, Integer> budgetItemDao = budgetDbHelper.getDao(com.gb.canibuythat.model.BudgetItem.class);
+                Dao<Spending, Integer> spendingDao = spendingDbHelper.getDao(com.gb.canibuythat.model.Spending.class);
                 List<ProjectionItem> result = new ArrayList<>();
 
                 do {
                     float bestCase = 0;
                     float worstCase = 0;
 
-                    for (com.gb.canibuythat.model.BudgetItem item : budgetItemDao) {
+                    for (com.gb.canibuythat.model.Spending item : spendingDao) {
                         if (item.getEnabled()) {
                             BalanceCalculator.BalanceResult br = BalanceCalculator.get().getEstimatedBalance(item, startDate, currTarget.getTime());
                             bestCase += br.bestCase;
@@ -203,7 +203,7 @@ public class ChartActivity extends BaseActivity implements OnChartValueSelectedL
             yValues.add(entry);
         }
 
-        BarDataSet set = new BarDataSet(yValues, "Budget Projections");
+        BarDataSet set = new BarDataSet(yValues, "Spending Projections");
         set.setColors(getColors());
         set.setStackLabels(new String[]{"Best case", "Worst case"});
 

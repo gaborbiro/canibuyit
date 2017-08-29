@@ -3,22 +3,21 @@ package com.gb.canibuythat.presenter
 import android.content.Intent
 import android.os.Environment
 import android.text.TextUtils
-import android.widget.Toast
 import com.gb.canibuythat.CredentialsProvider
 import com.gb.canibuythat.MonzoConstants
-import com.gb.canibuythat.interactor.BudgetInteractor
+import com.gb.canibuythat.interactor.SpendingInteractor
 import com.gb.canibuythat.interactor.MonzoInteractor
-import com.gb.canibuythat.model.BudgetItem
+import com.gb.canibuythat.model.Spending
 import com.gb.canibuythat.screen.MainScreen
 import javax.inject.Inject
 
 class MainPresenter @Inject
 constructor(private val monzoInteractor: MonzoInteractor,
-            private val budgetInteractor: BudgetInteractor,
+            private val spendingInteractor: SpendingInteractor,
             private val credentialsProvider: CredentialsProvider) : BasePresenter<MainScreen>() {
 
     fun fetchBalance() {
-        budgetInteractor.calculateBalance()
+        spendingInteractor.calculateBalance()
                 .doOnSubscribe { screen.showProgress() }
                 .doAfterTerminate { screen.hideProgress() }
                 .subscribe(screen::setBalanceInfo, this::onError)
@@ -58,17 +57,17 @@ constructor(private val monzoInteractor: MonzoInteractor,
         if (TextUtils.isEmpty(credentialsProvider.accessToken)) {
             screen.showLoginActivity()
         } else {
-            monzoInteractor.getBudgetItems(MonzoConstants.ACCOUNT_ID)
+            monzoInteractor.getSpendings(MonzoConstants.ACCOUNT_ID)
                     .doOnSubscribe { screen.showProgress() }
                     .doAfterTerminate { screen.hideProgress() }
-                    .subscribe(this::onTransactionsLoaded, this::onError)
+                    .subscribe(this::onSpendingsLoaded, this::onError)
         }
     }
 
-    fun onTransactionsLoaded(budgetItems: List<BudgetItem>) {
-        budgetInteractor.createOrUpdateMonzoCategories(budgetItems)
+    fun onSpendingsLoaded(spendings: List<Spending>) {
+        spendingInteractor.createOrUpdateMonzoCategories(spendings)
                 .subscribe({
-                    budgetInteractor.all.subscribe({
+                    spendingInteractor.all.subscribe({
                         screen.setData(it)
                     }, {
                         this.onError(it)
@@ -78,7 +77,7 @@ constructor(private val monzoInteractor: MonzoInteractor,
 
 
     fun exportDatabase() {
-        budgetInteractor.exportDatabase().subscribe(this::onImportDatabase, this::onError)
+        spendingInteractor.exportDatabase().subscribe(this::onImportDatabase, this::onError)
     }
 
     fun onImportDatabase() {
@@ -87,14 +86,14 @@ constructor(private val monzoInteractor: MonzoInteractor,
     }
 
     fun onDatabaseFileSelected(path: String) {
-        budgetInteractor.importDatabase(path).subscribe(this::fetchBalance, this::onError)
+        spendingInteractor.importDatabase(path).subscribe(this::fetchBalance, this::onError)
     }
 
     fun updateBalance() {
         screen.showBalanceUpdateDialog()
     }
 
-    fun showEditorScreenForBudgetItem(id: Int) {
+    fun showEditorScreenForSpending(id: Int) {
         screen.showEditorScreen(id)
     }
 

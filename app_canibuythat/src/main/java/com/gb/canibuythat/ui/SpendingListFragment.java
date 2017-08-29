@@ -11,10 +11,10 @@ import android.view.ViewGroup;
 
 import com.gb.canibuythat.R;
 import com.gb.canibuythat.di.Injector;
-import com.gb.canibuythat.model.BudgetItem;
-import com.gb.canibuythat.presenter.BudgetListPresenter;
-import com.gb.canibuythat.screen.BudgetListScreen;
-import com.gb.canibuythat.ui.adapter.BudgetItemAdapter;
+import com.gb.canibuythat.model.Spending;
+import com.gb.canibuythat.presenter.SpendingListPresenter;
+import com.gb.canibuythat.screen.SpendingListScreen;
+import com.gb.canibuythat.ui.adapter.SpendingAdapter;
 
 import java.util.List;
 
@@ -23,16 +23,13 @@ import javax.inject.Inject;
 import butterknife.BindView;
 
 /**
- * A list fragment representing a list of BudgetModifiers. This fragment also supports
- * tablet devices by allowing list
- * items to be given an 'activated' state upon selection. This helps indicate which
- * item is currently being viewed in a
- * {@link BudgetEditorFragment}.
+ * A list fragment representing a list of Spendings. This fragment also supports
+ * tablet devices by allowing list items to be given an 'activated' state upon selection.
+ * This helps indicate which item is currently being viewed in a {@link SpendingEditorFragment}.
  * <p/>
- * Activities containing this fragment MUST implement the {@link FragmentCallback}
- * interface.
+ * Activities containing this fragment MUST implement the {@link FragmentCallback} interface.
  */
-public class BudgetListFragment extends BaseFragment implements BudgetListScreen, BudgetItemAdapter.OnBudgetItemClickedListener {
+public class SpendingListFragment extends BaseFragment implements SpendingListScreen, SpendingAdapter.OnSpendingClickedListener {
 
     /**
      * A dummy implementation of the {@link FragmentCallback} interface that does
@@ -49,21 +46,21 @@ public class BudgetListFragment extends BaseFragment implements BudgetListScreen
 
     @BindView(android.R.id.list) RecyclerView list;
 
-    private BudgetItemAdapter adapter;
+    private SpendingAdapter adapter;
 
-    @Inject BudgetListPresenter presenter;
+    @Inject SpendingListPresenter presenter;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the fragment
      * (e.g. upon screen orientation changes).
      */
-    public BudgetListFragment() {
+    public SpendingListFragment() {
     }
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View root = inflater.inflate(R.layout.fragment_budget_list, container, false);
+        View root = inflater.inflate(R.layout.fragment_spending_list, container, false);
         presenter.setScreen(this);
         return root;
     }
@@ -98,8 +95,8 @@ public class BudgetListFragment extends BaseFragment implements BudgetListScreen
     }
 
     @Override
-    public void setData(List<BudgetItem> budgetItems) {
-        adapter = new BudgetItemAdapter(budgetItems, this);
+    public void setData(List<Spending> spendings) {
+        adapter = new SpendingAdapter(spendings, this);
         list.setAdapter(adapter);
     }
 
@@ -114,8 +111,8 @@ public class BudgetListFragment extends BaseFragment implements BudgetListScreen
     @Override
     // Notify the active callback interface (the activity, if the
     // fragment is attached to one) that an item has been selected.
-    public void onBudgetItemClicked(BudgetItem budgetItem) {
-        callback.onBudgetItemSelected(budgetItem.getId());
+    public void onSpendingClicked(Spending spending) {
+        callback.onSpendingSelected(spending.getId());
     }
 
     /**
@@ -125,10 +122,10 @@ public class BudgetListFragment extends BaseFragment implements BudgetListScreen
     interface FragmentCallback {
 
         /**
-         * Callback for when a budget item has been selected.
+         * Callback for when a spending has been selected.
          *
-         * @param id database id of the budget item
+         * @param id database id of the spending
          */
-        void onBudgetItemSelected(int id);
+        void onSpendingSelected(int id);
     }
 }

@@ -5,9 +5,9 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteException
 import com.gb.canibuythat.UserPreferences
 import com.gb.canibuythat.model.Balance
-import com.gb.canibuythat.model.BudgetItem
+import com.gb.canibuythat.model.Spending
 import com.gb.canibuythat.provider.BalanceCalculator
-import com.gb.canibuythat.provider.BudgetDbHelper
+import com.gb.canibuythat.provider.SpendingDbHelper
 import com.gb.canibuythat.provider.Contract
 import com.j256.ormlite.dao.Dao
 import io.reactivex.Completable
@@ -16,53 +16,53 @@ import io.reactivex.Single
 import java.sql.SQLException
 import javax.inject.Inject
 
-class BudgetRepository @Inject
-constructor(private val budgetDbHelper: BudgetDbHelper, private val userPreferences: UserPreferences) {
-    private val budgetItemDao: Dao<BudgetItem, Int> = budgetDbHelper.getDao<Dao<BudgetItem, Int>, BudgetItem>(BudgetItem::class.java)
+class SpendingsRepository @Inject
+constructor(private val spendingDbHelper: SpendingDbHelper, private val userPreferences: UserPreferences) {
+    private val spendingDao: Dao<Spending, Int> = spendingDbHelper.getDao<Dao<Spending, Int>, Spending>(Spending::class.java)
 
-    val all: Maybe<List<BudgetItem>>
+    val all: Maybe<List<Spending>>
         get() {
-            return Maybe.create<List<BudgetItem>> { emitter ->
+            return Maybe.create<List<Spending>> { emitter ->
                 try {
-                    emitter.onSuccess(budgetItemDao.queryForAll())
+                    emitter.onSuccess(spendingDao.queryForAll())
                 } catch (e: SQLException) {
                     emitter.onError(e)
                 }
             }
         }
 
-    fun createOrUpdate(budgetItem: BudgetItem): Single<Dao.CreateOrUpdateStatus> {
+    fun createOrUpdate(spending: Spending): Single<Dao.CreateOrUpdateStatus> {
         return Single.create { emitter ->
             try {
-                emitter.onSuccess(budgetItemDao.createOrUpdate(budgetItem))
+                emitter.onSuccess(spendingDao.createOrUpdate(spending))
             } catch (e: SQLException) {
                 emitter.onError(e)
             }
         }
     }
 
-    fun createOrUpdateMonzoCategories(budgetItems: List<BudgetItem>): Completable {
+    fun createOrUpdateMonzoCategories(spendings: List<Spending>): Completable {
         return Completable.create { emitter ->
-            val savedBudgetItems: List<BudgetItem> = budgetItemDao.queryForAll()
-                    .filter { it.sourceData[BudgetItem.SOURCE_MONZO_CATEGORY] != null }
-                    .sortedBy { it.sourceData[BudgetItem.SOURCE_MONZO_CATEGORY] }
+            val savedSpendings: List<Spending> = spendingDao.queryForAll()
+                    .filter { it.sourceData[Spending.SOURCE_MONZO_CATEGORY] != null }
+                    .sortedBy { it.sourceData[Spending.SOURCE_MONZO_CATEGORY] }
 
             try {
-                budgetItems.forEach {
-                    val category: String? = it.sourceData[BudgetItem.SOURCE_MONZO_CATEGORY]
+                spendings.forEach {
+                    val category: String? = it.sourceData[Spending.SOURCE_MONZO_CATEGORY]
 
                     if (category == null) {
-                        emitter.onError(Exception("BudgetItem '" + it.name + "' has no category"))
+                        emitter.onError(Exception("Spending '" + it.name + "' has no category"))
                     } else {
-                        val index = savedBudgetItems.indexOfFirst { it.sourceData[BudgetItem.SOURCE_MONZO_CATEGORY] == category }
+                        val index = savedSpendings.indexOfFirst { it.sourceData[Spending.SOURCE_MONZO_CATEGORY] == category }
 
                         if (index >= 0) {
-                            it.id = savedBudgetItems[index].id
-                            it.notes = savedBudgetItems[index].notes
-                            it.target = savedBudgetItems[index].target
-                            budgetItemDao.update(it)
+                            it.id = savedSpendings[index].id
+                            it.notes = savedSpendings[index].notes
+                            it.target = savedSpendings[index].target
+                            spendingDao.update(it)
                         } else {
-                            budgetItemDao.create(it)
+                            spendingDao.create(it)
                         }
                     }
                 }
@@ -76,10 +76,10 @@ constructor(private val budgetDbHelper: BudgetDbHelper, private val userPreferen
     fun delete(id: Int): Completable {
         return Completable.create { emitter ->
             try {
-                if (budgetItemDao.deleteById(id) > 0) {
+                if (spendingDao.deleteById(id) > 0) {
                     emitter.onComplete()
                 } else {
-                    emitter.onError(Exception("Delete error: budget item $id was not found in the database"))
+                    emitter.onError(Exception("Delete error: spending $id was not found in the database"))
                 }
             } catch (e: SQLException) {
                 emitter.onError(e)
@@ -87,13 +87,13 @@ constructor(private val budgetDbHelper: BudgetDbHelper, private val userPreferen
         }
     }
 
-    fun read(id: Int): Maybe<BudgetItem> {
-        return Maybe.create<BudgetItem> { emitter ->
+    fun read(id: Int): Maybe<Spending> {
+        return Maybe.create<Spending> { emitter ->
             try {
-                val budgetItem = budgetItemDao.queryForId(id)
+                val spending = spendingDao.queryForId(id)
 
-                if (budgetItem != null) {
-                    emitter.onSuccess(budgetItem)
+                if (spending != null) {
+                    emitter.onSuccess(spending)
                 } else {
                     emitter.onComplete()
                 }
@@ -110,7 +110,7 @@ constructor(private val budgetDbHelper: BudgetDbHelper, private val userPreferen
         // blocking thread
         val balanceReading = userPreferences.balanceReading
 
-        for (item in budgetItemDao) {
+        for (item in spendingDao) {
             if (item.enabled) {
                 val startDate = balanceReading?.`when`
                 val result = BalanceCalculator.get()
@@ -131,20 +131,20 @@ constructor(private val budgetDbHelper: BudgetDbHelper, private val userPreferen
         val db: SQLiteDatabase
         val cursor: Cursor
         try {
-            db = budgetDbHelper.getDatabaseFromFile(file)
+            db = spendingDbHelper.getDatabaseFromFile(file)
         } catch (e: SQLiteException) {
             return Completable.error(Exception("Cannot open database from " + file, e))
         }
         try {
-            cursor = budgetDbHelper.getAllBudgetItems(db)
+            cursor = spendingDbHelper.getAllSpendings(db)
         } catch (e: SQLException) {
             return Completable.error(Exception("Error reading " + file, e))
         }
         try {
-            budgetDbHelper.replaceBudgetDatabase(cursor)
+            spendingDbHelper.replaceSpendingDatabase(cursor)
             return Completable.complete()
         } catch (e: SQLException) {
-            return Completable.error(Exception("Error writing to table " + Contract.BudgetItem.TABLE, e))
+            return Completable.error(Exception("Error writing to table " + Contract.Spending.TABLE, e))
         } finally {
             try {
                 cursor.close()

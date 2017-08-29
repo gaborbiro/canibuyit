@@ -4,10 +4,10 @@ import android.content.Context
 import android.os.Environment
 import com.gb.canibuythat.exception.DomainException
 import com.gb.canibuythat.model.Balance
-import com.gb.canibuythat.model.BudgetItem
-import com.gb.canibuythat.provider.BudgetDbHelper
-import com.gb.canibuythat.provider.BudgetProvider
-import com.gb.canibuythat.repository.BudgetRepository
+import com.gb.canibuythat.model.Spending
+import com.gb.canibuythat.provider.SpendingDbHelper
+import com.gb.canibuythat.provider.SpendingProvider
+import com.gb.canibuythat.repository.SpendingsRepository
 import com.gb.canibuythat.rx.SchedulerProvider
 import com.gb.canibuythat.util.FileUtils
 import com.j256.ormlite.dao.Dao
@@ -19,55 +19,55 @@ import java.text.SimpleDateFormat
 import java.util.*
 import javax.inject.Inject
 
-class BudgetInteractor @Inject
-constructor(private val budgetRepository: BudgetRepository, private val appContext: Context, private val schedulerProvider: SchedulerProvider) {
+class SpendingInteractor @Inject
+constructor(private val spendingsRepository: SpendingsRepository, private val appContext: Context, private val schedulerProvider: SchedulerProvider) {
 
-    val all: Maybe<List<BudgetItem>>
-        get() = budgetRepository.all
-                .onErrorResumeNext { throwable: Throwable -> Maybe.error<List<BudgetItem>>(DomainException("Error loading from database. See logs.", throwable)) }
+    val all: Maybe<List<Spending>>
+        get() = spendingsRepository.all
+                .onErrorResumeNext { throwable: Throwable -> Maybe.error<List<Spending>>(DomainException("Error loading from database. See logs.", throwable)) }
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())
 
-    fun createOrUpdate(budgetItem: BudgetItem): Single<Dao.CreateOrUpdateStatus> {
-        return budgetRepository.createOrUpdate(budgetItem)
-                .onErrorResumeNext { throwable -> Single.error<Dao.CreateOrUpdateStatus>(DomainException("Error updating budget item in database. See logs.", throwable)) }
-                .doOnSuccess { appContext.contentResolver.notifyChange(BudgetProvider.BUDGET_ITEMS_URI, null) }
+    fun createOrUpdate(spending: Spending): Single<Dao.CreateOrUpdateStatus> {
+        return spendingsRepository.createOrUpdate(spending)
+                .onErrorResumeNext { throwable -> Single.error<Dao.CreateOrUpdateStatus>(DomainException("Error updating spending in database. See logs.", throwable)) }
+                .doOnSuccess { appContext.contentResolver.notifyChange(SpendingProvider.SPENDINGS_URI, null) }
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())
     }
 
-    fun createOrUpdateMonzoCategories(budgetItems: List<BudgetItem>): Completable {
-        return budgetRepository.createOrUpdateMonzoCategories(budgetItems)
+    fun createOrUpdateMonzoCategories(spendings: List<Spending>): Completable {
+        return spendingsRepository.createOrUpdateMonzoCategories(spendings)
                 .onErrorResumeNext { throwable -> Completable.error(DomainException("Error updating monzo cache. See logs.", throwable)) }
-                .doOnComplete { appContext.contentResolver.notifyChange(BudgetProvider.BUDGET_ITEMS_URI, null) }
+                .doOnComplete { appContext.contentResolver.notifyChange(SpendingProvider.SPENDINGS_URI, null) }
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())
     }
 
     fun delete(id: Int): Completable {
-        return budgetRepository.delete(id)
-                .onErrorResumeNext { Completable.error(DomainException("Error deleting budget item $id in database. See logs.")) }
-                .doOnComplete { appContext.contentResolver.notifyChange(BudgetProvider.BUDGET_ITEMS_URI, null) }
+        return spendingsRepository.delete(id)
+                .onErrorResumeNext { Completable.error(DomainException("Error deleting spending $id in database. See logs.")) }
+                .doOnComplete { appContext.contentResolver.notifyChange(SpendingProvider.SPENDINGS_URI, null) }
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())
     }
 
-    fun read(id: Int): Maybe<BudgetItem> {
-        return budgetRepository.read(id)
-                .onErrorResumeNext { throwable: Throwable -> Maybe.error<BudgetItem>(DomainException("Error reading budget item $id from database. See logs.", throwable)) }
+    fun read(id: Int): Maybe<Spending> {
+        return spendingsRepository.read(id)
+                .onErrorResumeNext { throwable: Throwable -> Maybe.error<Spending>(DomainException("Error reading spending $id from database. See logs.", throwable)) }
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())
     }
 
     fun calculateBalance(): Single<Balance> {
-        return budgetRepository.calculateBalance()
+        return spendingsRepository.calculateBalance()
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())
     }
 
     fun importDatabase(file: String): Completable {
-        return budgetRepository.importDatabaseFromFile(file)
-                .doOnComplete { appContext.contentResolver.notifyChange(BudgetProvider.BUDGET_ITEMS_URI, null) }
+        return spendingsRepository.importDatabaseFromFile(file)
+                .doOnComplete { appContext.contentResolver.notifyChange(SpendingProvider.SPENDINGS_URI, null) }
                 .onErrorResumeNext { throwable -> Completable.error(DomainException("Error importing database. See logs.", throwable)) }
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())
@@ -84,11 +84,11 @@ constructor(private val budgetRepository: BudgetRepository, private val appConte
                 targetFolder.mkdirs()
             }
             val sdf = SimpleDateFormat("yyyyMMdd'T'HHmmssZ")
-            val targetFilename = "budget-" + sdf.format(Date()) + ".sqlite"
+            val targetFilename = "spendings-" + sdf.format(Date()) + ".sqlite"
             val to = File(targetFolder, targetFilename)
 
             val data = Environment.getDataDirectory()
-            val currentDBPath = "/data/" + pack + "/databases/" + BudgetDbHelper.DATABASE_NAME
+            val currentDBPath = "/data/" + pack + "/databases/" + SpendingDbHelper.DATABASE_NAME
             val from = File(data, currentDBPath)
 
             FileUtils.copyFiles(from, to)

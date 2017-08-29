@@ -1,10 +1,9 @@
 package com.gb.canibuythat.model
 
-import org.threeten.bp.LocalDateTime
 import org.threeten.bp.ZonedDateTime
 
 class Transaction(val amount: Int,
-                  val created: LocalDateTime,
+                  val created: ZonedDateTime,
                   val currency: String,
                   val description: String?,
                   val id: String,

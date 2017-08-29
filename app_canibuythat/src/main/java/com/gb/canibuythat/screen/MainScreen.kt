@@ -1,7 +1,7 @@
 package com.gb.canibuythat.screen
 
 import com.gb.canibuythat.model.Balance
-import com.gb.canibuythat.model.BudgetItem
+import com.gb.canibuythat.model.Spending
 
 interface MainScreen : Screen {
     fun showChartScreen()
@@ -14,9 +14,9 @@ interface MainScreen : Screen {
 
     fun showBalanceUpdateDialog()
 
-    fun showEditorScreen(budgetItemId: Int?)
+    fun showEditorScreen(spendingId: Int?)
 
-    fun setData(budgetItems: List<BudgetItem>)
+    fun setData(spendings: List<Spending>)
 
     fun showToast(message: String)
 }

@@ -3,10 +3,8 @@ package com.gb.canibuythat.di;
 import android.app.Application;
 import android.content.Context;
 
-import com.gb.canibuythat.provider.BudgetDbHelper;
 import com.gb.canibuythat.rx.SchedulerProvider;
 import com.gb.canibuythat.rx.SchedulerProviderImpl;
-import com.j256.ormlite.android.apptools.OpenHelperManager;
 
 import javax.inject.Singleton;
 

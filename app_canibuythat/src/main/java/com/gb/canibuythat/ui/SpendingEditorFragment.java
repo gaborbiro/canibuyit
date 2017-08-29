@@ -24,8 +24,8 @@ import android.widget.Toast;
 import com.gb.canibuythat.R;
 import com.gb.canibuythat.UserPreferences;
 import com.gb.canibuythat.di.Injector;
-import com.gb.canibuythat.interactor.BudgetInteractor;
-import com.gb.canibuythat.model.BudgetItem;
+import com.gb.canibuythat.interactor.SpendingInteractor;
+import com.gb.canibuythat.model.Spending;
 import com.gb.canibuythat.provider.BalanceCalculator;
 import com.gb.canibuythat.ui.model.BalanceReading;
 import com.gb.canibuythat.util.ArrayUtils;
@@ -41,15 +41,13 @@ import javax.inject.Inject;
 import butterknife.BindView;
 
 /**
- * A fragment representing a single BudgetModifier detail screen. This fragment is either
+ * A fragment representing a single Spending detail screen. This fragment is either
  * contained in a {@link MainActivity} in two-pane mode (on tablets) or a
- * {@link BudgetEditorActivity} on handsets.
+ * {@link SpendingEditorActivity} on handsets.
  */
-public class BudgetEditorFragment extends BaseFragment {
+public class SpendingEditorFragment extends BaseFragment {
 
-    public static final String EXTRA_ITEM_ID = "budget_item_id";
-
-    private static final String EXTRA_ITEM = "budget_item";
+    public static final String EXTRA_ITEM_ID = "spending_id";
 
     private static final Date DEFAULT_FIRST_OCCURRENCE_END;
     private static final Date DEFAULT_FIRST_OCCURRENCE_START;
@@ -62,7 +60,7 @@ public class BudgetEditorFragment extends BaseFragment {
     }
 
     @Inject UserPreferences userPreferences;
-    @Inject BudgetInteractor budgetInteractor;
+    @Inject SpendingInteractor spendingInteractor;
 
     @BindView(R.id.name) EditText nameView;
     @BindView(R.id.amount) EditText amountView;
@@ -73,11 +71,11 @@ public class BudgetEditorFragment extends BaseFragment {
     @BindView(R.id.first_occurence_end) Button firstOccurrenceEndView;
     @BindView(R.id.occurence_count) EditText occurrenceLimitView;
     @BindView(R.id.period_multiplier) EditText periodMultiplierView;
-    @BindView(R.id.period_type) Spinner periodTypeView;
+    @BindView(R.id.period_type) Spinner periodView;
     @BindView(R.id.notes) EditText notesView;
     @BindView(R.id.spending_events) TextView spendingEventsView;
 
-    private BudgetItem originalBudgetItem;
+    private Spending originalSpending;
     private boolean firstOccurrenceStartDateChanged;
     private boolean firstOccurrenceEndDateChanged;
 
@@ -158,7 +156,7 @@ public class BudgetEditorFragment extends BaseFragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_budget_editor, container, false);
+        return inflater.inflate(R.layout.fragment_spending_editor, container, false);
     }
 
     @Override
@@ -166,12 +164,12 @@ public class BudgetEditorFragment extends BaseFragment {
         super.onViewCreated(view, savedInstanceState);
         rootView = (ViewGroup) view;
 
-        categoryView.setAdapter(new PlusOneAdapter(BudgetItem.BudgetItemType.values()));
+        categoryView.setAdapter(new PlusOneAdapter(Spending.Category.values()));
         categoryView.setOnTouchListener(keyboardDismisser);
 
-        periodTypeView.setAdapter(new PlusOneAdapter(BudgetItem.PeriodType.values()));
-        periodTypeView.setOnTouchListener(keyboardDismisser);
-        periodTypeView.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        periodView.setAdapter(new PlusOneAdapter(Spending.Period.values()));
+        periodView.setOnTouchListener(keyboardDismisser);
+        periodView.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
 
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -189,10 +187,10 @@ public class BudgetEditorFragment extends BaseFragment {
         firstOccurrenceEndView.setOnClickListener(datePickerOnClickListener);
         firstOccurrenceEndView.setOnTouchListener(keyboardDismisser);
 
-        if (originalBudgetItem == null && getArguments() != null && getArguments().containsKey(EXTRA_ITEM_ID)) {
-            showBudgetItem(getArguments().getInt(EXTRA_ITEM_ID), true);
+        if (originalSpending == null && getArguments() != null && getArguments().containsKey(EXTRA_ITEM_ID)) {
+            showSpending(getArguments().getInt(EXTRA_ITEM_ID), true);
         } else {
-            showBudgetItem(null, true);
+            showSpending(null, true);
         }
     }
 
@@ -224,15 +222,15 @@ public class BudgetEditorFragment extends BaseFragment {
     }
 
     /**
-     * @param budgetItemId         can be null, in which case the content is cleared
+     * @param spendingId           can be null, in which case the content is cleared
      * @param showKeyboardWhenDone after data has been loaded from the database and
      *                             displayed, focus on the name
      *                             EditText and show the keyboard
      */
-    public void showBudgetItem(Integer budgetItemId, final boolean showKeyboardWhenDone) {
-        if (budgetItemId != null) {
-            budgetInteractor.read(budgetItemId)
-                    .subscribe(budgetItem -> onBudgetItemLoaded(budgetItem, showKeyboardWhenDone), this::onError);
+    public void showSpending(Integer spendingId, final boolean showKeyboardWhenDone) {
+        if (spendingId != null) {
+            spendingInteractor.read(spendingId)
+                    .subscribe(spending -> onSpendingLoaded(spending, showKeyboardWhenDone), this::onError);
         } else {
             clearScreen();
         }
@@ -255,8 +253,8 @@ public class BudgetEditorFragment extends BaseFragment {
                 saveUserInputOrShowError();
                 break;
             case R.id.menu_delete:
-                if (originalBudgetItem != null && originalBudgetItem.isPersisted()) {
-                    budgetInteractor.delete(originalBudgetItem.getId())
+                if (originalSpending != null && originalSpending.isPersisted()) {
+                    spendingInteractor.delete(originalSpending.getId())
                             .subscribe(() -> deleteButton.setVisible(false), this::onError);
                 }
                 break;
@@ -283,12 +281,12 @@ public class BudgetEditorFragment extends BaseFragment {
     private synchronized boolean saveUserInputOrShowError() {
         ValidationError error = validateUserInput();
         if (error == null) {
-            final BudgetItem newBudgetItem = getBudgetItemFromScreen();
-            budgetInteractor.createOrUpdate(newBudgetItem)
+            final Spending newSpending = getSpendingFromScreen();
+            spendingInteractor.createOrUpdate(newSpending)
                     .subscribe(createOrUpdateStatus -> {
-                        BudgetEditorFragment.this.originalBudgetItem = newBudgetItem;
+                        SpendingEditorFragment.this.originalSpending = newSpending;
                         deleteButton.setVisible(true);
-                        loadSpendingOccurrences(newBudgetItem);
+                        loadSpendingOccurrences(newSpending);
                     }, throwable -> {
                         onError(throwable);
                         do {
@@ -307,11 +305,11 @@ public class BudgetEditorFragment extends BaseFragment {
         }
     }
 
-    private void onBudgetItemLoaded(BudgetItem budgetItem, boolean showKeyboardWhenDone) {
-        this.originalBudgetItem = budgetItem;
+    private void onSpendingLoaded(Spending spending, boolean showKeyboardWhenDone) {
+        this.originalSpending = spending;
         firstOccurrenceEndPickerDialog = null;
         firstOccurrenceStartPickerDialog = null;
-        applyBudgetItemToScreen(budgetItem);
+        applySpendingToScreen(spending);
 
         if (showKeyboardWhenDone && isAdded()) {
             ViewUtils.showKeyboard(nameView);
@@ -322,48 +320,48 @@ public class BudgetEditorFragment extends BaseFragment {
         }
     }
 
-    private void applyBudgetItemToScreen(final BudgetItem budgetItem) {
-        nameView.setText(budgetItem.getName());
-        if (budgetItem.getAmount() != null) {
-            amountView.setText(getString(R.string.detail_amount, budgetItem.getAmount()));
+    private void applySpendingToScreen(final Spending spending) {
+        nameView.setText(spending.getName());
+        if (spending.getAmount() != null) {
+            amountView.setText(getString(R.string.detail_amount, spending.getAmount()));
         } else {
             amountView.setText(null);
         }
-        if (budgetItem.getTarget() != null) {
-            targetView.setText(getString(R.string.detail_amount, budgetItem.getTarget()));
+        if (spending.getTarget() != null) {
+            targetView.setText(getString(R.string.detail_amount, spending.getTarget()));
         } else {
             targetView.setText(null);
         }
-        enabledView.setChecked(budgetItem.getEnabled());
-        if (budgetItem.getType() != null) {
-            categoryView.setSelection(budgetItem.getType().ordinal() + 1);
+        enabledView.setChecked(spending.getEnabled());
+        if (spending.getType() != null) {
+            categoryView.setSelection(spending.getType().ordinal() + 1);
         }
 
-        Date firstOccurrenceStart = budgetItem.getFirstOccurrenceStart() != null
-                ? budgetItem.getFirstOccurrenceStart()
+        Date firstOccurrenceStart = spending.getFirstOccurrenceStart() != null
+                ? spending.getFirstOccurrenceStart()
                 : DEFAULT_FIRST_OCCURRENCE_START;
         applyFirstOccurrenceStartToScreen(firstOccurrenceStart);
 
-        Date firstOccurrenceEnd = budgetItem.getFirstOccurrenceEnd() != null ? budgetItem.getFirstOccurrenceEnd() : DEFAULT_FIRST_OCCURRENCE_END;
+        Date firstOccurrenceEnd = spending.getFirstOccurrenceEnd() != null ? spending.getFirstOccurrenceEnd() : DEFAULT_FIRST_OCCURRENCE_END;
         applyFirstOccurrenceEndToScreen(firstOccurrenceEnd);
 
-        if (budgetItem.getOccurrenceCount() != null) {
-            occurrenceLimitView.setText(Integer.toString(budgetItem.getOccurrenceCount()));
+        if (spending.getOccurrenceCount() != null) {
+            occurrenceLimitView.setText(Integer.toString(spending.getOccurrenceCount()));
         } else {
             occurrenceLimitView.setText(null);
         }
 
-        if (budgetItem.getPeriodMultiplier() != null) {
-            periodMultiplierView.setText(Integer.toString(budgetItem.getPeriodMultiplier()));
+        if (spending.getPeriodMultiplier() != null) {
+            periodMultiplierView.setText(Integer.toString(spending.getPeriodMultiplier()));
         } else {
             periodMultiplierView.setText(null);
         }
 
-        if (budgetItem.getPeriodType() != null) {
-            periodTypeView.setSelection(budgetItem.getPeriodType().ordinal() + 1);
+        if (spending.getPeriod() != null) {
+            periodView.setSelection(spending.getPeriod().ordinal() + 1);
         }
-        notesView.setText(budgetItem.getNotes());
-        loadSpendingOccurrences(budgetItem);
+        notesView.setText(spending.getNotes());
+        loadSpendingOccurrences(spending);
     }
 
     private void clearScreen() {
@@ -375,23 +373,23 @@ public class BudgetEditorFragment extends BaseFragment {
         applyFirstOccurrenceEndToScreen(DEFAULT_FIRST_OCCURRENCE_END);
         occurrenceLimitView.setText(null);
         periodMultiplierView.setText(null);
-        periodTypeView.setSelection(0);
+        periodView.setSelection(0);
         notesView.setText(null);
         spendingEventsView.setText(null);
 
-        originalBudgetItem = null;
+        originalSpending = null;
         firstOccurrenceEndPickerDialog = null;
         firstOccurrenceStartPickerDialog = null;
     }
 
-    private void loadSpendingOccurrences(final BudgetItem budgetItem) {
+    private void loadSpendingOccurrences(final Spending spending) {
         BalanceReading balanceReading = userPreferences.getBalanceReading();
-        BalanceCalculator.BalanceResult result = BalanceCalculator.get().getEstimatedBalance(budgetItem,
+        BalanceCalculator.BalanceResult result = BalanceCalculator.get().getEstimatedBalance(spending,
                 balanceReading != null ? balanceReading.when : null,
                 userPreferences.getEstimateDate());
-        String spending = ArrayUtils.join("\n", result.spendingEvents, (index, item) -> getString(R.string.spending_occurrence, index + 1, DateUtils.FORMAT_MONTH_DAY.format(item)));
-        spending = "Spent: " + result.bestCase + "/" + (result.worstCase) + "\n" + spending;
-        spendingEventsView.setText(spending);
+        String spentStr = ArrayUtils.join("\n", result.spendingEvents, (index, item) -> getString(R.string.spending_occurrence, index + 1, DateUtils.FORMAT_MONTH_DAY.format(item)));
+        spentStr = "Spent: " + result.bestCase + "/" + (result.worstCase) + "\n" + spentStr;
+        spendingEventsView.setText(spentStr);
     }
 
     private void applyFirstOccurrenceStartToScreen(Date firstOccurrenceStart) {
@@ -404,8 +402,8 @@ public class BudgetEditorFragment extends BaseFragment {
 
     private DatePickerDialog getFirstOccurrenceStartPickerDialog() {
         Calendar c = Calendar.getInstance();
-        if (originalBudgetItem != null && originalBudgetItem.getFirstOccurrenceStart() != null) {
-            c.setTime(this.originalBudgetItem.getFirstOccurrenceStart());
+        if (originalSpending != null && originalSpending.getFirstOccurrenceStart() != null) {
+            c.setTime(this.originalSpending.getFirstOccurrenceStart());
         }
         if (firstOccurrenceStartPickerDialog == null) {
             firstOccurrenceStartPickerDialog = new DatePickerDialog(getActivity(), dateSetListener,
@@ -418,8 +416,8 @@ public class BudgetEditorFragment extends BaseFragment {
 
     private DatePickerDialog getFirstOccurrenceEndPickerDialog() {
         Calendar c = Calendar.getInstance();
-        if (originalBudgetItem != null && originalBudgetItem.getFirstOccurrenceEnd() != null) {
-            c.setTime(this.originalBudgetItem.getFirstOccurrenceEnd());
+        if (originalSpending != null && originalSpending.getFirstOccurrenceEnd() != null) {
+            c.setTime(this.originalSpending.getFirstOccurrenceEnd());
         }
         if (firstOccurrenceEndPickerDialog == null) {
             firstOccurrenceEndPickerDialog = new DatePickerDialog(getActivity(), dateSetListener,
@@ -485,10 +483,10 @@ public class BudgetEditorFragment extends BaseFragment {
         if (TextUtils.isEmpty(amountView.getText())) {
             return new ValidationError(ValidationError.TYPE_INPUT_FIELD, amountView, "Please specify an amount");
         }
-        if (!(categoryView.getSelectedItem() instanceof BudgetItem.BudgetItemType)) {
+        if (!(categoryView.getSelectedItem() instanceof Spending.Category)) {
             return new ValidationError(ValidationError.TYPE_NON_INPUT_FIELD, null, "Please select a category");
         }
-        if (!(periodTypeView.getSelectedItem() instanceof BudgetItem.PeriodType)) {
+        if (!(periodView.getSelectedItem() instanceof Spending.Period)) {
             return new ValidationError(ValidationError.TYPE_NON_INPUT_FIELD, null, "Please select a period");
         }
         if (TextUtils.isEmpty(periodMultiplierView.getText())) {
@@ -504,7 +502,7 @@ public class BudgetEditorFragment extends BaseFragment {
         c.setTime(firstOccurrenceStart);
         DateUtils.clearLowerBits(c);
 
-        ((BudgetItem.PeriodType) periodTypeView.getSelectedItem()).apply(c, getPeriodMultiplierFromScreen());
+        ((Spending.Period) periodView.getSelectedItem()).apply(c, getPeriodMultiplierFromScreen());
         c.add(Calendar.DAY_OF_MONTH, -1);
 
         if (firstOccurrenceEnd.after(c.getTime())) {
@@ -514,52 +512,52 @@ public class BudgetEditorFragment extends BaseFragment {
         return null;
     }
 
-    private BudgetItem getBudgetItemFromScreen() {
-        BudgetItem budgetItem = new BudgetItem();
+    private Spending getSpendingFromScreen() {
+        Spending spending = new Spending();
         // title
         if (!TextUtils.isEmpty(nameView.getText())) {
-            budgetItem.setName(nameView.getText().toString());
+            spending.setName(nameView.getText().toString());
         }
         // amount
         if (!TextUtils.isEmpty(amountView.getText())) {
-            budgetItem.setAmount(Double.valueOf(amountView.getText().toString()));
+            spending.setAmount(Double.valueOf(amountView.getText().toString()));
         }
         // enabled
-        budgetItem.setEnabled(enabledView.isChecked());
+        spending.setEnabled(enabledView.isChecked());
         // type
-        if (categoryView.getSelectedItem() instanceof BudgetItem.BudgetItemType) {
-            budgetItem.setType((BudgetItem.BudgetItemType) categoryView.getSelectedItem());
+        if (categoryView.getSelectedItem() instanceof Spending.Category) {
+            spending.setType((Spending.Category) categoryView.getSelectedItem());
         }
         // firstOccurrenceStart
-        budgetItem.setFirstOccurrenceStart(getFirstOccurrenceStartFromScreen());
+        spending.setFirstOccurrenceStart(getFirstOccurrenceStartFromScreen());
         // firstOccurrenceEnd
-        budgetItem.setFirstOccurrenceEnd(getFirstOccurrenceEndFromScreen());
+        spending.setFirstOccurrenceEnd(getFirstOccurrenceEndFromScreen());
         // repetition
         if (!TextUtils.isEmpty(occurrenceLimitView.getText())) {
-            budgetItem.setOccurrenceCount(Integer.valueOf(occurrenceLimitView.getText().toString()));
+            spending.setOccurrenceCount(Integer.valueOf(occurrenceLimitView.getText().toString()));
         }
         // periodMultiplier
-        budgetItem.setPeriodMultiplier(getPeriodMultiplierFromScreen());
+        spending.setPeriodMultiplier(getPeriodMultiplierFromScreen());
         // period
-        if (periodTypeView.getSelectedItem() instanceof BudgetItem.PeriodType) {
-            budgetItem.setPeriodType((BudgetItem.PeriodType) periodTypeView.getSelectedItem());
+        if (periodView.getSelectedItem() instanceof Spending.Period) {
+            spending.setPeriod((Spending.Period) periodView.getSelectedItem());
         }
         // notes
         if (!TextUtils.isEmpty(notesView.getText())) {
-            budgetItem.setNotes(notesView.getText().toString());
+            spending.setNotes(notesView.getText().toString());
         }
         // target
         if (!TextUtils.isEmpty(targetView.getText())) {
-            budgetItem.setTarget(Double.valueOf(targetView.getText().toString()));
+            spending.setTarget(Double.valueOf(targetView.getText().toString()));
         }
-        if (originalBudgetItem != null) {
+        if (originalSpending != null) {
             // this will make an already saved item ot be updated instead of a new
             // one being created
-            budgetItem.setId(originalBudgetItem.getId());
-            budgetItem.getSourceData().putAll(originalBudgetItem.getSourceData());
-            budgetItem.setSpent(originalBudgetItem.getSpent());
+            spending.setId(originalSpending.getId());
+            spending.getSourceData().putAll(originalSpending.getSourceData());
+            spending.setSpent(originalSpending.getSpent());
         }
-        return budgetItem;
+        return spending;
     }
 
     private Date getFirstOccurrenceStartFromScreen() {
@@ -568,9 +566,9 @@ public class BudgetEditorFragment extends BaseFragment {
         if (firstOccurrenceStartPickerDialog != null) {
             // user picked a date
             firstOccurrenceDateStart = DateUtils.getDayFromDatePicker(firstOccurrenceStartPickerDialog.getDatePicker());
-        } else if (originalBudgetItem != null && originalBudgetItem.getFirstOccurrenceStart() != null) {
+        } else if (originalSpending != null && originalSpending.getFirstOccurrenceStart() != null) {
             // user did not pick a date, but this is EDIT, not CREATE
-            firstOccurrenceDateStart = originalBudgetItem.getFirstOccurrenceStart();
+            firstOccurrenceDateStart = originalSpending.getFirstOccurrenceStart();
         } else {
             // user did not pick a date, and we are in CREATE mode
             firstOccurrenceDateStart = DEFAULT_FIRST_OCCURRENCE_START;
@@ -583,9 +581,9 @@ public class BudgetEditorFragment extends BaseFragment {
         if (firstOccurrenceEndPickerDialog != null) {
             // user picked a date
             firstOccurrenceDateEnd = DateUtils.getDayFromDatePicker(firstOccurrenceEndPickerDialog.getDatePicker());
-        } else if (originalBudgetItem != null && originalBudgetItem.getFirstOccurrenceEnd() != null) {
+        } else if (originalSpending != null && originalSpending.getFirstOccurrenceEnd() != null) {
             // user did not pick a date, but this is EDIT, not CREATE
-            firstOccurrenceDateEnd = originalBudgetItem.getFirstOccurrenceEnd();
+            firstOccurrenceDateEnd = originalSpending.getFirstOccurrenceEnd();
         } else {
             // user did not pick a date, and we are in CREATE mode
             firstOccurrenceDateEnd = DEFAULT_FIRST_OCCURRENCE_END;
@@ -598,22 +596,22 @@ public class BudgetEditorFragment extends BaseFragment {
         if (!TextUtils.isEmpty(periodMultiplierView.getText())) {
             // user entered value
             periodMultiplier = Integer.valueOf(periodMultiplierView.getText().toString());
-        } else if (originalBudgetItem != null && originalBudgetItem.getPeriodMultiplier() != null) {
+        } else if (originalSpending != null && originalSpending.getPeriodMultiplier() != null) {
             // user did not enter a value, but this is EDIT, not CREATE
-            periodMultiplier = originalBudgetItem.getPeriodMultiplier();
+            periodMultiplier = originalSpending.getPeriodMultiplier();
         }
         return periodMultiplier;
     }
 
     /**
-     * @return true if the content differs from the originally loaded BudgetItem, or if
+     * @return true if the content differs from the originally loaded Spending, or if
      * this fragment contains unsaved user input
      */
     private boolean shouldSave() {
-        BudgetItem newBudgetItem = getBudgetItemFromScreen();
-        boolean isNew = originalBudgetItem == null
-                && !new BudgetItem().compareForEditing(newBudgetItem, !(firstOccurrenceStartDateChanged || firstOccurrenceEndDateChanged));
-        boolean changed = originalBudgetItem != null && !originalBudgetItem.compareForEditing(newBudgetItem, false);
+        Spending newSpending = getSpendingFromScreen();
+        boolean isNew = originalSpending == null
+                && !new Spending().compareForEditing(newSpending, !(firstOccurrenceStartDateChanged || firstOccurrenceEndDateChanged));
+        boolean changed = originalSpending != null && !originalSpending.compareForEditing(newSpending, false);
         return isNew || changed;
     }
 }
