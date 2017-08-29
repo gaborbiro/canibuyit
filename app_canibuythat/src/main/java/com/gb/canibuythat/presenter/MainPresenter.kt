@@ -53,7 +53,7 @@ constructor(private val monzoInteractor: MonzoInteractor,
         screen.showChartScreen()
     }
 
-    fun loadMonzoData() {
+    fun fetchMonzoData() {
         if (TextUtils.isEmpty(credentialsProvider.accessToken)) {
             screen.showLoginActivity()
         } else {

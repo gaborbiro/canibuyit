@@ -55,7 +55,7 @@ class MonzoMapper @Inject constructor() {
         spending.period = period
 
         val timeMap: Map<Int, List<Transaction>> = transactions.groupBy { period.get(it.created.toLocalDate()) }
-        spending.amount = transactions.sumBy { it.amount }.div(timeMap.size).div(100.0)
+        spending.average = transactions.sumBy { it.amount }.div(timeMap.size).div(100.0)
         spending.type = mapSpendingType(category)
         spending.enabled = spending.type!!.defaultEnabled
         spending.name = WordUtils.capitalizeFully(category.replace("\\_".toRegex(), " "))
@@ -120,5 +120,5 @@ class MonzoMapper @Inject constructor() {
                 Spending.Period.YEARS
     }
 
-    fun fromLocalDate(localDate: LocalDate): Date = Date(localDate.year, localDate.monthValue, localDate.dayOfMonth)
+    fun fromLocalDate(localDate: LocalDate): Date = Date(localDate.year - 1900, localDate.monthValue - 1, localDate.dayOfMonth)
 }

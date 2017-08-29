@@ -38,8 +38,6 @@ public class BalanceReadingInputDialog extends DialogFragment
     private DatePickerButton whenButton;
 
     public BalanceReadingInputDialog() {
-        lastUpdate = userPreferences.getBalanceReading();
-        refreshLastUpdate();
     }
 
     @Override
@@ -65,6 +63,13 @@ public class BalanceReadingInputDialog extends DialogFragment
                 .setNegativeButton(getText(android.R.string.cancel), null)
                 .setView(body)
                 .create();
+    }
+
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        lastUpdate = userPreferences.getBalanceReading();
+        refreshLastUpdate();
     }
 
     @Override

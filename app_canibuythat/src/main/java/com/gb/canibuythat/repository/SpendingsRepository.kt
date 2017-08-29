@@ -60,6 +60,12 @@ constructor(private val spendingDbHelper: SpendingDbHelper, private val userPref
                             it.id = savedSpendings[index].id
                             it.notes = savedSpendings[index].notes
                             it.target = savedSpendings[index].target
+                            it.period = savedSpendings[index].period
+                            it.periodMultiplier = savedSpendings[index].periodMultiplier
+
+                            if (savedSpendings[index].average != 0.0) {
+                                it.average = savedSpendings[index].average
+                            }
                             spendingDao.update(it)
                         } else {
                             spendingDao.create(it)
@@ -110,11 +116,11 @@ constructor(private val spendingDbHelper: SpendingDbHelper, private val userPref
         // blocking thread
         val balanceReading = userPreferences.balanceReading
 
-        for (item in spendingDao) {
-            if (item.enabled) {
+        for (spending in spendingDao) {
+            if (spending.enabled) {
                 val startDate = balanceReading?.`when`
                 val result = BalanceCalculator.get()
-                        .getEstimatedBalance(item, startDate, userPreferences.estimateDate)
+                        .getEstimatedBalance(spending, startDate, userPreferences.estimateDate)
                 bestCase += result.bestCase
                 worstCase += result.worstCase
             }

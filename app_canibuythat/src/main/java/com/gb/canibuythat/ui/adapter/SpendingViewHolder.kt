@@ -11,11 +11,11 @@ class SpendingViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
     val nameView: TextView = itemView.findViewById(R.id.name) as TextView
     val iconView: ImageView = itemView.findViewById(R.id.icon) as ImageView
-    val amountRepetitionSpentView: TextView = itemView.findViewById(R.id.amount_repetition_spent) as TextView
+    val detailView: TextView = itemView.findViewById(R.id.details) as TextView
 
     fun bind(spending: Spending) {
         val context = nameView.context
-        if (spending.amount!! > 0) {
+        if (spending.average!! > 0) {
             nameView.text = context.getString(R.string.income, spending.name)
         } else if (!spending.enabled) {
             nameView.text = context.getString(R.string.ignored, spending.name)
@@ -23,23 +23,16 @@ class SpendingViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
             nameView.text = spending.name
         }
         nameView.paint.isStrikeThruText = !spending.enabled
+        var periodStr = ""
         if (spending.occurrenceCount == null) {
             val period = spending.period
             if (period!!.strRes > 0) {
-                val periodStr = context.resources.getQuantityString(period.strRes, spending.periodMultiplier!!)
-                amountRepetitionSpentView.text = context.resources.getQuantityString(R.plurals.amount_per_period,
-                        spending.periodMultiplier!!,
-                        Math.abs(spending.amount!!),
-                        spending.periodMultiplier, periodStr,
-                        Math.abs(spending.spent!!))
+                periodStr = context.resources.getQuantityString(R.plurals.period, spending.periodMultiplier!!, spending.periodMultiplier!!, context.getString(period.strRes))
             }
         } else {
-            amountRepetitionSpentView.text = context.resources.getQuantityString(R.plurals.amount_times,
-                    spending.occurrenceCount!!,
-                    Math.abs(spending.amount!!),
-                    spending.occurrenceCount,
-                    Math.abs(spending.spent!!))
+            periodStr = context.resources.getQuantityString(R.plurals.times, spending.occurrenceCount!!, spending.occurrenceCount!!)
         }
+        detailView.text = context.getString(R.string.spending, Math.abs(spending.spent!!), spending.target, periodStr)
         if (spending.sourceData.containsKey(Spending.SOURCE_MONZO_CATEGORY)) {
             iconView.setImageResource(R.drawable.monzo)
             iconView.visibility = View.VISIBLE

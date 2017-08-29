@@ -63,7 +63,7 @@ public class SpendingEditorFragment extends BaseFragment {
     @Inject SpendingInteractor spendingInteractor;
 
     @BindView(R.id.name) EditText nameView;
-    @BindView(R.id.amount) EditText amountView;
+    @BindView(R.id.amount) EditText averageView;
     @BindView(R.id.target) EditText targetView;
     @BindView(R.id.enabled) CheckBox enabledView;
     @BindView(R.id.category) Spinner categoryView;
@@ -322,10 +322,10 @@ public class SpendingEditorFragment extends BaseFragment {
 
     private void applySpendingToScreen(final Spending spending) {
         nameView.setText(spending.getName());
-        if (spending.getAmount() != null) {
-            amountView.setText(getString(R.string.detail_amount, spending.getAmount()));
+        if (spending.getAverage() != null) {
+            averageView.setText(getString(R.string.detail_amount, spending.getAverage()));
         } else {
-            amountView.setText(null);
+            averageView.setText(null);
         }
         if (spending.getTarget() != null) {
             targetView.setText(getString(R.string.detail_amount, spending.getTarget()));
@@ -366,7 +366,7 @@ public class SpendingEditorFragment extends BaseFragment {
 
     private void clearScreen() {
         nameView.setText(null);
-        amountView.setText(null);
+        averageView.setText(null);
         enabledView.setChecked(true);
         categoryView.setSelection(0);
         applyFirstOccurrenceStartToScreen(DEFAULT_FIRST_OCCURRENCE_START);
@@ -480,8 +480,8 @@ public class SpendingEditorFragment extends BaseFragment {
         if (TextUtils.isEmpty(nameView.getText())) {
             return new ValidationError(ValidationError.TYPE_INPUT_FIELD, nameView, "Please specify a name");
         }
-        if (TextUtils.isEmpty(amountView.getText())) {
-            return new ValidationError(ValidationError.TYPE_INPUT_FIELD, amountView, "Please specify an amount");
+        if (TextUtils.isEmpty(averageView.getText())) {
+            return new ValidationError(ValidationError.TYPE_INPUT_FIELD, averageView, "Please specify an average");
         }
         if (!(categoryView.getSelectedItem() instanceof Spending.Category)) {
             return new ValidationError(ValidationError.TYPE_NON_INPUT_FIELD, null, "Please select a category");
@@ -518,9 +518,9 @@ public class SpendingEditorFragment extends BaseFragment {
         if (!TextUtils.isEmpty(nameView.getText())) {
             spending.setName(nameView.getText().toString());
         }
-        // amount
-        if (!TextUtils.isEmpty(amountView.getText())) {
-            spending.setAmount(Double.valueOf(amountView.getText().toString()));
+        // average
+        if (!TextUtils.isEmpty(averageView.getText())) {
+            spending.setAverage(Double.valueOf(averageView.getText().toString()));
         }
         // enabled
         spending.setEnabled(enabledView.isChecked());

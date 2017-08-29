@@ -31,8 +31,8 @@ class Spending {
     @DatabaseField(columnName = Contract.Spending.TYPE, canBeNull = false)
     var type: Category? = null
 
-    @DatabaseField(columnName = Contract.Spending.AMOUNT, canBeNull = false)
-    var amount: Double? = null
+    @DatabaseField(columnName = Contract.Spending.SPENDING, canBeNull = false)
+    var average: Double? = null
 
     /**
      * Date before witch the transaction certainly won't happen. The repetition period
@@ -93,7 +93,7 @@ class Spending {
         if (name != other.name) return false
         if (notes != other.notes) return false
         if (type != other.type) return false
-        if (amount != other.amount) return false
+        if (average != other.average) return false
         if (firstOccurrenceStart != other.firstOccurrenceStart) return false
         if (firstOccurrenceEnd != other.firstOccurrenceEnd) return false
         if (occurrenceCount != other.occurrenceCount) return false
@@ -118,7 +118,7 @@ class Spending {
         if (name != other.name) return false
         if (notes != other.notes) return false
         if (type != other.type) return false
-        if (amount != other.amount) return false
+        if (average != other.average) return false
         if (!ignoreDates) {
             if (firstOccurrenceStart != other.firstOccurrenceStart) return false
             if (firstOccurrenceEnd != other.firstOccurrenceEnd) return false
@@ -138,7 +138,7 @@ class Spending {
         result = 31 * result + (name?.hashCode() ?: 0)
         result = 31 * result + (notes?.hashCode() ?: 0)
         result = 31 * result + (type?.hashCode() ?: 0)
-        result = 31 * result + (amount?.hashCode() ?: 0)
+        result = 31 * result + (average?.hashCode() ?: 0)
         result = 31 * result + (firstOccurrenceStart?.hashCode() ?: 0)
         result = 31 * result + (firstOccurrenceEnd?.hashCode() ?: 0)
         result = 31 * result + (occurrenceCount ?: 0)
@@ -152,7 +152,7 @@ class Spending {
     }
 
     override fun toString(): String {
-        return "Spending(id=$id, name=$name, notes=$notes, type=$type, amount=$amount, firstOccurrenceStart=$firstOccurrenceStart, firstOccurrenceEnd=$firstOccurrenceEnd, occurrenceCount=$occurrenceCount, periodMultiplier=$periodMultiplier, period=$period, enabled=$enabled, sourceData=$sourceData, spent=$spent, target=$target)"
+        return "Spending(id=$id, name=$name, notes=$notes, type=$type, average=$average, firstOccurrenceStart=$firstOccurrenceStart, firstOccurrenceEnd=$firstOccurrenceEnd, occurrenceCount=$occurrenceCount, periodMultiplier=$periodMultiplier, period=$period, enabled=$enabled, sourceData=$sourceData, spent=$spent, target=$target)"
     }
 
 
@@ -172,10 +172,10 @@ class Spending {
     }
 
     enum class Period(val strRes: Int) {
-        DAYS(R.plurals.days),
-        WEEKS(R.plurals.weeks),
-        MONTHS(R.plurals.months),
-        YEARS(R.plurals.years);
+        DAYS(R.string.daily),
+        WEEKS(R.string.weekly),
+        MONTHS(R.string.monthly),
+        YEARS(R.string.yearly);
 
         fun apply(c: Calendar, increment: Int) {
             when (this) {

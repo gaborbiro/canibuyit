@@ -52,11 +52,11 @@ public class BalanceCalculator {
                 int r = DateUtils.compare(date, occurrenceStart, occurrenceEnd);
                 if (r >= -1) { //after or on start date
                     if (spending.getEnabled()) {
-                        worstCase += spending.getAmount();
+                        worstCase += spending.getAverage();
                     }
                     if (r > 1) { // after end date
                         if (spending.getEnabled()) {
-                            bestCase += spending.getAmount();
+                            bestCase += spending.getAverage();
                         }
                         spendingEvents.add(occurrenceEnd.getTime());
                     }

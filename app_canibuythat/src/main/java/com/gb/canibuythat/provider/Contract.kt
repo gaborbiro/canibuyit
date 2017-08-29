@@ -15,7 +15,7 @@ class Contract {
             const val _ID = "_id"
             const val NAME = "name"
             const val NOTES = "notes"
-            const val AMOUNT = "amount"
+            const val SPENDING = "average"
             const val TYPE = "type"
             const val FIRST_OCCURRENCE_START = "first_occurrence_start"
             const val FIRST_OCCURRENCE_END = "first_occurrence_end"
@@ -27,7 +27,7 @@ class Contract {
             const val SPENT = "spent"
             const val TARGET = "target"
 
-            val COLUMNS = arrayOf(BaseColumns._ID, NAME, NOTES, AMOUNT, TYPE, FIRST_OCCURRENCE_START, FIRST_OCCURRENCE_END, OCCURRENCE_COUNT, PERIOD_MULTIPLIER, PERIOD_TYPE, ENABLED, SOURCE_DATA, SPENT, TARGET)
+            val COLUMNS = arrayOf(BaseColumns._ID, NAME, NOTES, SPENDING, TYPE, FIRST_OCCURRENCE_START, FIRST_OCCURRENCE_END, OCCURRENCE_COUNT, PERIOD_MULTIPLIER, PERIOD_TYPE, ENABLED, SOURCE_DATA, SPENT, TARGET)
         }
     }
 }

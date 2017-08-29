@@ -33,8 +33,13 @@
             android:layout_width="wrap_content"
             android:orientation="horizontal">
 
+            <TextView
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="8dp"
+                android:layout_width="wrap_content"
+                android:text="Avg: "/>
+
             <EditText
-                android:hint="@string/amount"
                 android:id="@+id/amount"
                 android:imeOptions="actionNext"
                 android:inputType="numberDecimal|numberSigned"

@@ -120,7 +120,7 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
                 presenter.onImportDatabase();
                 break;
             case R.id.menu_monzo:
-                presenter.loadMonzoData();
+                presenter.fetchMonzoData();
                 break;
         }
         return super.onOptionsItemSelected(item);
