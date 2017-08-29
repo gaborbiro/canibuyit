@@ -63,7 +63,7 @@ class MonzoMapper @Inject constructor() {
         spending.periodMultiplier = 1
         val firstOccurrence: LocalDate = transactions.minBy { it.created }!!.created.toLocalDate()
         spending.firstOccurrenceStart = fromLocalDate(firstOccurrence)
-        spending.firstOccurrenceEnd = fromLocalDate(firstOccurrence.add(period, 1))
+        spending.firstOccurrenceEnd = fromLocalDate(firstOccurrence.add(period, 1).minusDays(1))
         spending.sourceData.put(Spending.SOURCE_MONZO_CATEGORY, category)
         spending.spent = 0.0
         timeMap[period.get(LocalDate.now(ZoneId.systemDefault()))]?.let { spending.spent = it.sumBy { it.amount }.div(100.0) }

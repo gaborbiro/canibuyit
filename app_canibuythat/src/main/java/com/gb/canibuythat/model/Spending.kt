@@ -102,6 +102,7 @@ class Spending {
         if (enabled != other.enabled) return false
         if (!sourceData.equals(other.sourceData)) return false
         if (spent != other.spent) return false
+        if (target != other.target) return false
 
         return true
     }
@@ -128,6 +129,7 @@ class Spending {
         if (enabled != other.enabled) return false
         if (!sourceData.equals(other.sourceData)) return false
         if (spent != other.spent) return false
+        if (target != other.target) return false
         return true
     }
 
@@ -145,12 +147,14 @@ class Spending {
         result = 31 * result + enabled.hashCode()
         result = 31 * result + (sourceData.hashCode())
         result = 31 * result + (spent?.hashCode() ?: 0)
+        result = 31 * result + (target?.hashCode() ?: 0)
         return result
     }
 
     override fun toString(): String {
-        return "Spending(id=$id, name=$name, notes=$notes, type=$type, amount=$amount, firstOccurrenceStart=$firstOccurrenceStart, firstOccurrenceEnd=$firstOccurrenceEnd, occurrenceCount=$occurrenceCount, periodMultiplier=$periodMultiplier, period=$period, enabled=$enabled, sourceData=$sourceData, spent=$spent)"
+        return "Spending(id=$id, name=$name, notes=$notes, type=$type, amount=$amount, firstOccurrenceStart=$firstOccurrenceStart, firstOccurrenceEnd=$firstOccurrenceEnd, occurrenceCount=$occurrenceCount, periodMultiplier=$periodMultiplier, period=$period, enabled=$enabled, sourceData=$sourceData, spent=$spent, target=$target)"
     }
+
 
     val isPersisted: Boolean
         get() = id != null

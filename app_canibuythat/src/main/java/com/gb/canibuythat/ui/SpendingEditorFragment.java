@@ -498,16 +498,16 @@ public class SpendingEditorFragment extends BaseFragment {
             return new ValidationError(ValidationError.TYPE_NON_INPUT_FIELD, null, "Start date must not be higher then end date");
         }
 
-        Calendar c = Calendar.getInstance();
-        c.setTime(firstOccurrenceStart);
-        DateUtils.clearLowerBits(c);
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(firstOccurrenceStart);
+        DateUtils.clearLowerBits(calendar);
 
-        ((Spending.Period) periodView.getSelectedItem()).apply(c, getPeriodMultiplierFromScreen());
-        c.add(Calendar.DAY_OF_MONTH, -1);
+        ((Spending.Period) periodView.getSelectedItem()).apply(calendar, getPeriodMultiplierFromScreen());
+        calendar.add(Calendar.DAY_OF_MONTH, -1);
 
-        if (firstOccurrenceEnd.after(c.getTime())) {
+        if (firstOccurrenceEnd.after(calendar.getTime())) {
             return new ValidationError(ValidationError.TYPE_NON_INPUT_FIELD, firstOccurrenceEndView,
-                    "End date cannot be higher than " + DateUtils.FORMAT_MONTH_DAY.format(c.getTime()));
+                    "End date cannot be higher than " + DateUtils.FORMAT_MONTH_DAY.format(calendar.getTime()));
         }
         return null;
     }
