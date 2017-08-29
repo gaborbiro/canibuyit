@@ -7,6 +7,7 @@ import com.gb.canibuythat.model.Account
 import com.gb.canibuythat.model.Spending
 import com.gb.canibuythat.model.Login
 import io.reactivex.Single
+import org.threeten.bp.ZonedDateTime
 import javax.inject.Inject
 
 class MonzoRepository @Inject
@@ -35,6 +36,7 @@ constructor(private val monzoApi: MonzoApi, private val mapper: MonzoMapper) : B
     }
 
     fun getSpendings(accountId: String): Single<List<Spending>> {
+//        val sixMonthsAgo: ZonedDateTime = ZonedDateTime.now().minusMonths(6)
         return monzoApi.transactions(accountId)
                 .map(mapper::mapToTransactions)
                 .map {

@@ -1,15 +1,17 @@
-<LinearLayout
+<com.gb.canibuythat.ui.ProgressRelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:background="?android:attr/selectableItemBackground"
+    android:id="@+id/progress"
     android:layout_height="wrap_content"
     android:layout_width="match_parent"
-    android:orientation="vertical"
-    android:padding="@dimen/padding">
+    android:orientation="vertical">
 
     <RelativeLayout
+        android:id="@+id/icon_and_name"
         android:layout_height="wrap_content"
-        android:layout_width="match_parent">
+        android:layout_width="match_parent"
+        android:padding="@dimen/padding">
 
         <ImageView
             android:id="@+id/icon"
@@ -35,8 +37,11 @@
     <TextView
         style="?android:attr/textAppearanceListItemSmall"
         android:id="@+id/details"
+        android:layout_below="@id/icon_and_name"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/padding"
+        android:layout_marginBottom="@dimen/padding"
+        android:layout_marginLeft="@dimen/padding"
+        android:layout_marginRight="@dimen/padding"
         android:layout_width="wrap_content"
         tools:text="12.34 / month"/>
-</LinearLayout>
+</com.gb.canibuythat.ui.ProgressRelativeLayout>
