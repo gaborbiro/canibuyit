@@ -59,6 +59,7 @@ constructor(private val budgetDbHelper: BudgetDbHelper, private val userPreferen
                         if (index >= 0) {
                             it.id = savedBudgetItems[index].id
                             it.notes = savedBudgetItems[index].notes
+                            it.target = savedBudgetItems[index].target
                             budgetItemDao.update(it)
                         } else {
                             budgetItemDao.create(it)

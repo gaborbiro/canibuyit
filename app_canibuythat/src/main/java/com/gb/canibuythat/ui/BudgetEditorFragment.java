@@ -66,6 +66,7 @@ public class BudgetEditorFragment extends BaseFragment {
 
     @BindView(R.id.name) EditText nameView;
     @BindView(R.id.amount) EditText amountView;
+    @BindView(R.id.target) EditText targetView;
     @BindView(R.id.enabled) CheckBox enabledView;
     @BindView(R.id.category) Spinner categoryView;
     @BindView(R.id.first_occurence_start) Button firstOccurrenceStartView;
@@ -328,6 +329,11 @@ public class BudgetEditorFragment extends BaseFragment {
         } else {
             amountView.setText(null);
         }
+        if (budgetItem.getTarget() != null) {
+            targetView.setText(getString(R.string.detail_amount, budgetItem.getTarget()));
+        } else {
+            targetView.setText(null);
+        }
         enabledView.setChecked(budgetItem.getEnabled());
         if (budgetItem.getType() != null) {
             categoryView.setSelection(budgetItem.getType().ordinal() + 1);
@@ -542,11 +548,16 @@ public class BudgetEditorFragment extends BaseFragment {
         if (!TextUtils.isEmpty(notesView.getText())) {
             budgetItem.setNotes(notesView.getText().toString());
         }
+        // target
+        if (!TextUtils.isEmpty(targetView.getText())) {
+            budgetItem.setTarget(Double.valueOf(targetView.getText().toString()));
+        }
         if (originalBudgetItem != null) {
             // this will make an already saved item ot be updated instead of a new
             // one being created
             budgetItem.setId(originalBudgetItem.getId());
             budgetItem.getSourceData().putAll(originalBudgetItem.getSourceData());
+            budgetItem.setSpent(originalBudgetItem.getSpent());
         }
         return budgetItem;
     }

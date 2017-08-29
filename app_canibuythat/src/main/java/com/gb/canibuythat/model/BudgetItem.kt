@@ -77,6 +77,12 @@ class BudgetItem {
     @DatabaseField(columnName = Contract.BudgetItem.SOURCE_DATA, canBeNull = false, dataType = DataType.SERIALIZABLE)
     val sourceData: SerializableMap<String, String> = SerializableMap()
 
+    @DatabaseField(columnName = Contract.BudgetItem.SPENT, canBeNull = true)
+    var spent: Double? = null
+
+    @DatabaseField(columnName = Contract.BudgetItem.TARGET, canBeNull = true)
+    var target: Double? = null
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other?.javaClass != javaClass) return false
@@ -95,6 +101,7 @@ class BudgetItem {
         if (periodType != other.periodType) return false
         if (enabled != other.enabled) return false
         if (!sourceData.equals(other.sourceData)) return false
+        if (spent != other.spent) return false
 
         return true
     }
@@ -120,6 +127,7 @@ class BudgetItem {
         if (periodType != other.periodType) return false
         if (enabled != other.enabled) return false
         if (!sourceData.equals(other.sourceData)) return false
+        if (spent != other.spent) return false
         return true
     }
 
@@ -136,13 +144,13 @@ class BudgetItem {
         result = 31 * result + (periodType?.hashCode() ?: 0)
         result = 31 * result + enabled.hashCode()
         result = 31 * result + (sourceData.hashCode())
+        result = 31 * result + (spent?.hashCode() ?: 0)
         return result
     }
 
     override fun toString(): String {
-        return "BudgetItem(id=$id, name=$name, notes=$notes, type=$type, amount=$amount, firstOccurrenceStart=$firstOccurrenceStart, firstOccurrenceEnd=$firstOccurrenceEnd, occurrenceCount=$occurrenceCount, periodMultiplier=$periodMultiplier, periodType=$periodType, enabled=$enabled, sourceData=$sourceData)"
+        return "BudgetItem(id=$id, name=$name, notes=$notes, type=$type, amount=$amount, firstOccurrenceStart=$firstOccurrenceStart, firstOccurrenceEnd=$firstOccurrenceEnd, occurrenceCount=$occurrenceCount, periodMultiplier=$periodMultiplier, periodType=$periodType, enabled=$enabled, sourceData=$sourceData, spent=$spent)"
     }
-
 
     val isPersisted: Boolean
         get() = id != null

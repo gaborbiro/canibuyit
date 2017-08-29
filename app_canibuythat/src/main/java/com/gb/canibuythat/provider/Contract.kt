@@ -24,8 +24,10 @@ class Contract {
             const val PERIOD_TYPE = "period_type"
             const val ENABLED = "enabled"
             const val SOURCE_DATA = "source_data"
+            const val SPENT = "spent"
+            const val TARGET = "target"
 
-            val COLUMNS = arrayOf(BaseColumns._ID, NAME, NOTES, AMOUNT, TYPE, FIRST_OCCURRENCE_START, FIRST_OCCURRENCE_END, OCCURRENCE_COUNT, PERIOD_MULTIPLIER, PERIOD_TYPE, ENABLED, SOURCE_DATA)
+            val COLUMNS = arrayOf(BaseColumns._ID, NAME, NOTES, AMOUNT, TYPE, FIRST_OCCURRENCE_START, FIRST_OCCURRENCE_END, OCCURRENCE_COUNT, PERIOD_MULTIPLIER, PERIOD_TYPE, ENABLED, SOURCE_DATA, SPENT, TARGET)
         }
     }
 }

@@ -34,7 +34,7 @@
 
     <TextView
         style="?android:attr/textAppearanceListItemSmall"
-        android:id="@+id/amount_repetition"
+        android:id="@+id/amount_repetition_spent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/padding"
         android:layout_width="wrap_content"

@@ -3,6 +3,7 @@ package com.gb.canibuythat.presenter
 import android.content.Intent
 import android.os.Environment
 import android.text.TextUtils
+import android.widget.Toast
 import com.gb.canibuythat.CredentialsProvider
 import com.gb.canibuythat.MonzoConstants
 import com.gb.canibuythat.interactor.BudgetInteractor
@@ -45,6 +46,7 @@ constructor(private val monzoInteractor: MonzoInteractor,
                 .subscribe({ login ->
                     credentialsProvider.accessToken = login.accessToken
                     credentialsProvider.refreshToken = login.refreshToken
+                    screen.showToast("You are now logged in")
                 }, this::onError)
     }
 

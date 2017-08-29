@@ -1,20 +1,20 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:layout_width="match_parent">
 
     <LinearLayout
-        android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_width="match_parent"
         android:orientation="vertical"
         android:padding="@dimen/padding">
 
         <EditText
-            android:id="@+id/name"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
             android:hint="@string/name"
+            android:id="@+id/name"
             android:imeOptions="actionNext"
             android:inputType="textCapSentences"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
             android:lines="1"
             android:selectAllOnFocus="true">
 
@@ -22,80 +22,103 @@
         </EditText>
 
         <CheckBox
-            android:id="@+id/enabled"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
             android:checked="true"
+            android:id="@+id/enabled"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
             android:text="@string/enabled"/>
 
-        <EditText
-            android:id="@+id/amount"
+        <LinearLayout
+            android:layout_height="match_parent"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:hint="@string/amount"
-            android:imeOptions="actionNext"
-            android:inputType="numberDecimal|numberSigned"
-            android:lines="1"
-            android:minWidth="64dp"
-            android:nextFocusDown="@+id/category"
-            android:selectAllOnFocus="true"/>
+            android:orientation="horizontal">
+
+            <EditText
+                android:hint="@string/amount"
+                android:id="@+id/amount"
+                android:imeOptions="actionNext"
+                android:inputType="numberDecimal|numberSigned"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:lines="1"
+                android:minWidth="64dp"
+                android:nextFocusDown="@+id/category"
+                android:selectAllOnFocus="true"/>
+
+            <TextView
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="8dp"
+                android:layout_width="wrap_content"
+                android:text="Target: "/>
+
+            <EditText
+                android:id="@+id/target"
+                android:imeOptions="actionNext"
+                android:inputType="numberDecimal|numberSigned"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:lines="1"
+                android:minWidth="64dp"
+                android:nextFocusDown="@+id/category"
+                android:selectAllOnFocus="true"/>
+        </LinearLayout>
 
         <LinearLayout
-            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_width="match_parent"
             android:orientation="horizontal">
 
             <TextView
-                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
                 android:text="Category: "/>
 
             <Spinner
                 android:id="@+id/category"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"/>
 
         </LinearLayout>
 
         <TextView
-            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
             android:text="First occurence: "/>
 
         <LinearLayout
-            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_width="match_parent"
             android:orientation="horizontal">
 
             <Button
                 android:id="@+id/first_occurence_start"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"/>
 
             <Button
                 android:id="@+id/first_occurence_end"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"/>
         </LinearLayout>
 
         <LinearLayout
-            android:id="@+id/period_container"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
             android:gravity="center_vertical"
+            android:id="@+id/period_container"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
             android:orientation="horizontal">
 
             <TextView
-                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
                 android:text="Repeat every "/>
 
             <EditText
                 android:id="@+id/period_multiplier"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
                 android:imeOptions="actionNext"
                 android:inputType="number"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
                 android:lines="1"
                 android:minWidth="32dp"
                 android:selectAllOnFocus="true"
@@ -103,52 +126,52 @@
 
             <Spinner
                 android:id="@+id/period_type"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"/>
 
         </LinearLayout>
 
         <LinearLayout
-            android:layout_width="match_parent"
+            android:gravity="bottom"
             android:layout_height="wrap_content"
-            android:gravity="bottom">
+            android:layout_width="match_parent">
 
             <TextView
-                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
                 android:text="for a total of "/>
 
             <EditText
                 android:id="@+id/occurence_count"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/padding"
                 android:imeOptions="actionNext"
                 android:inputType="number"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/padding"
+                android:layout_width="wrap_content"
                 android:lines="1"
                 android:minWidth="32dp"
                 android:selectAllOnFocus="true"/>
 
             <TextView
-                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
                 android:text=" times"/>
         </LinearLayout>
 
         <EditText
-            android:id="@+id/notes"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/padding"
             android:hint="@string/notes"
+            android:id="@+id/notes"
             android:imeOptions="actionDone"
             android:inputType="textAutoComplete|textMultiLine"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/padding"
+            android:layout_width="match_parent"
             android:selectAllOnFocus="true"/>
 
         <TextView
             android:id="@+id/spending_events"
-            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/padding"/>
+            android:layout_marginTop="@dimen/padding"
+            android:layout_width="match_parent"/>
     </LinearLayout>
 </ScrollView>

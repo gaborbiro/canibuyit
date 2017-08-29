@@ -66,13 +66,11 @@ public class LoginActivity extends BaseActivity {
         @Override
         public void onPageStarted(WebView view, String url, Bitmap favicon) {
             super.onPageStarted(view, url, favicon);
-            Toast.makeText(view.getContext(), url + " loading", Toast.LENGTH_SHORT).show();
         }
 
         @Override
         public void onPageFinished(WebView view, String url) {
             super.onPageFinished(view, url);
-            Toast.makeText(view.getContext(), url + " finished", Toast.LENGTH_SHORT).show();
         }
 
         @Override

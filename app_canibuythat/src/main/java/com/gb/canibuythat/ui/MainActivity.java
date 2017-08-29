@@ -24,6 +24,8 @@ import com.gb.canibuythat.util.DateUtils;
 import com.gb.canibuythat.util.PermissionVerifier;
 import com.gb.canibuythat.util.ViewUtils;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -267,5 +269,10 @@ public class MainActivity extends BaseActivity implements MainScreen, BudgetList
     @Override
     public void showChartScreen() {
         ChartActivity.show(MainActivity.this);
+    }
+
+    @Override
+    public void showToast(@NotNull String message) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 }
