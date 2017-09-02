@@ -284,7 +284,7 @@ public class SpendingEditorFragment extends BaseFragment {
         BalanceCalculator.BalanceResult result = BalanceCalculator.getEstimatedBalance(spending,
                 balanceReading != null ? balanceReading.when : null,
                 userPreferences.getEstimateDate());
-        String spentStr = ArrayUtils.join("\n", result.spendingEvents, (index, item) -> getString(R.string.spending_occurrence, index + 1, DateUtils.FORMAT_MONTH_DAY.format(item)));
+        String spentStr = ArrayUtils.join("\n", result.spendingEvents, (index, item) -> getString(R.string.spending_occurrence, index + 1, DateUtils.FORMAT_MONTH_DAY_YR.format(item)));
         spentStr = "Spent: " + result.bestCase + "/" + (result.worstCase) + "\n" + spentStr;
         spendingEventsLayout.setText(spentStr);
     }
@@ -325,7 +325,7 @@ public class SpendingEditorFragment extends BaseFragment {
 
         if (firstOccurrenceEnd.after(calendar.getTime())) {
             return new ValidationError(ValidationError.TYPE_NON_INPUT_FIELD, null,
-                    "End date cannot be higher than " + DateUtils.FORMAT_MONTH_DAY.format(calendar.getTime()));
+                    "End date cannot be higher than " + DateUtils.FORMAT_MONTH_DAY_YR.format(calendar.getTime()));
         }
         return null;
     }

@@ -20,7 +20,7 @@ public class DatePickerButton extends AppCompatButton {
     private DatePickerDialog mDatePickerDialog;
     private GestureDetector mDetector;
     private DatePickerDialog.OnDateSetListener mOnDateSetListener = (view, year, monthOfYear, dayOfMonth) ->
-            setText(DateUtils.FORMAT_MONTH_DAY.format(new GregorianCalendar(year, monthOfYear, dayOfMonth).getTime()));
+            setText(DateUtils.FORMAT_MONTH_DAY_YR.format(new GregorianCalendar(year, monthOfYear, dayOfMonth).getTime()));
 
     public DatePickerButton(Context context) {
         super(context);

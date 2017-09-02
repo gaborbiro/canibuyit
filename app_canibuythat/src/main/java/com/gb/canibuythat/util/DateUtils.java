@@ -10,20 +10,7 @@ import java.util.Date;
 
 public class DateUtils {
 
-    public static final SimpleDateFormat FORMAT_MONTH_DAY = new SimpleDateFormat("MMM.dd");
-
-    public static Date getDayFromDatePicker(DatePicker datePicker) {
-        return DateUtils.getDay(datePicker.getYear(), datePicker.getMonth(), datePicker.getDayOfMonth());
-    }
-
-    private static Date getDay(int year, int month, int dayOfMonth) {
-        Calendar c = Calendar.getInstance();
-        c.set(Calendar.YEAR, year);
-        c.set(Calendar.MONTH, month);
-        c.set(Calendar.DAY_OF_MONTH, dayOfMonth);
-        DateUtils.clearLowerBits(c);
-        return c.getTime();
-    }
+    public static final SimpleDateFormat FORMAT_MONTH_DAY_YR = new SimpleDateFormat("MMM.dd yy");
 
     /**
      * Only day. No hour, minute, second or millisecond.

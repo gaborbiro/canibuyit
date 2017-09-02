@@ -219,7 +219,7 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
         if (referenceView != null) {
             String text;
             if (balance.getBalanceReading() != null) {
-                text = getString(R.string.reading, balance.getBalanceReading().balance, DateUtils.FORMAT_MONTH_DAY.format(balance.getBalanceReading().when));
+                text = getString(R.string.reading, balance.getBalanceReading().balance, DateUtils.FORMAT_MONTH_DAY_YR.format(balance.getBalanceReading().when));
             } else {
                 text = getString(R.string.reading_none);
             }
@@ -227,8 +227,8 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
         }
         if (estimateAtTimeView != null) {
             final Date estimateDate = userPreferences.getEstimateDate();
-            String estimateDateStr = estimateDate != null ? DateUtils.FORMAT_MONTH_DAY.format(estimateDate) : getString(R.string.today);
-            String estimateAtTime = getString(R.string.estimate_at_time, balance.getBestCaseBalance(), balance.getWorstCaseBalance(), estimateDateStr);
+            String estimateDateStr = estimateDate != null ? DateUtils.FORMAT_MONTH_DAY_YR.format(estimateDate) : getString(R.string.today);
+            String estimateAtTime = getString(R.string.estimate_at_date, balance.getBestCaseBalance(), balance.getWorstCaseBalance(), estimateDateStr);
             ViewUtils.setTextWithLink(estimateAtTimeView, estimateAtTime, estimateDateStr, estimateDateUpdater);
         }
     }
