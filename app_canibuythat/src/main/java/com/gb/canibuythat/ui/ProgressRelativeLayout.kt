@@ -12,7 +12,8 @@ import com.gb.canibuythat.R
 class ProgressRelativeLayout @JvmOverloads constructor(context: Context,
                                                        attrs: AttributeSet? = null,
                                                        defStyleAttr: Int = 0) : RelativeLayout(context, attrs, defStyleAttr) {
-    var progress: Float = 0.0f
+
+    internal var progress: Float = 0.0f
         set(value) {
             if (value > 1) {
                 field = 1f
