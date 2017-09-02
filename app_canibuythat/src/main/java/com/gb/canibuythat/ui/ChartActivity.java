@@ -143,7 +143,7 @@ public class ChartActivity extends BaseActivity implements OnChartValueSelectedL
 
                     for (com.gb.canibuythat.model.Spending item : spendingDao) {
                         if (item.getEnabled()) {
-                            BalanceCalculator.BalanceResult br = BalanceCalculator.get().getEstimatedBalance(item, startDate, currTarget.getTime());
+                            BalanceCalculator.BalanceResult br = BalanceCalculator.getEstimatedBalance(item, startDate, currTarget.getTime());
                             bestCase += br.bestCase;
                             worstCase += br.worstCase;
                         }

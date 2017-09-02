@@ -192,7 +192,7 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
 
                 if (spendingId != null) {
                     Bundle arguments = new Bundle();
-                    arguments.putInt(SpendingEditorFragment.EXTRA_ITEM_ID, spendingId);
+                    arguments.putInt(SpendingEditorFragment.EXTRA_SPENDING_ID, spendingId);
                     detailFragment.setArguments(arguments);
                 }
                 getSupportFragmentManager().beginTransaction().replace(R.id.spending_editor_container, detailFragment).commit();

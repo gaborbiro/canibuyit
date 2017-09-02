@@ -14,7 +14,7 @@ public class SpendingEditorActivity extends AppCompatActivity {
 
     public static Intent getIntentForUpdate(Context context, int spendingId) {
         Intent i = getIntentForCreate(context);
-        i.putExtra(SpendingEditorFragment.EXTRA_ITEM_ID, spendingId);
+        i.putExtra(SpendingEditorFragment.EXTRA_SPENDING_ID, spendingId);
         return i;
     }
 
@@ -30,9 +30,9 @@ public class SpendingEditorActivity extends AppCompatActivity {
 
         if (savedInstanceState == null) {
             spendingEditorFragment = new SpendingEditorFragment();
-            if (getIntent().hasExtra(SpendingEditorFragment.EXTRA_ITEM_ID)) {
+            if (getIntent().hasExtra(SpendingEditorFragment.EXTRA_SPENDING_ID)) {
                 Bundle arguments = new Bundle();
-                arguments.putInt(SpendingEditorFragment.EXTRA_ITEM_ID, getIntent().getIntExtra(SpendingEditorFragment.EXTRA_ITEM_ID, 0));
+                arguments.putInt(SpendingEditorFragment.EXTRA_SPENDING_ID, getIntent().getIntExtra(SpendingEditorFragment.EXTRA_SPENDING_ID, 0));
                 spendingEditorFragment.setArguments(arguments);
             }
             getSupportFragmentManager().beginTransaction().add(R.id.spending_editor_container, spendingEditorFragment).commit();

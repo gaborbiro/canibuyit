@@ -24,20 +24,20 @@ class SpendingViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         }
         nameView.paint.isStrikeThruText = !spending.enabled
         if (spending.spent != null) {
-            var periodStr = ""
+            var cycleStr = ""
             if (spending.occurrenceCount == null) {
-                val period = spending.period
-                if (period!!.strRes > 0) {
-                    periodStr = context.resources.getQuantityString(R.plurals.period, spending.periodMultiplier!!, spending.periodMultiplier!!, context.getString(period.strRes))
+                val cycle = spending.cycle
+                if (cycle!!.strRes > 0) {
+                    cycleStr = context.resources.getQuantityString(R.plurals.cycle, spending.cycleMultiplier!!, spending.cycleMultiplier!!, context.getString(cycle.strRes))
                 }
             } else {
-                periodStr = context.resources.getQuantityString(R.plurals.times, spending.occurrenceCount!!, spending.occurrenceCount!!)
+                cycleStr = context.resources.getQuantityString(R.plurals.times, spending.occurrenceCount!!, spending.occurrenceCount!!)
             }
 
             if (spending.target != null) {
-                detailView.text = context.getString(R.string.spending, Math.abs(spending.spent!!), spending.target, periodStr)
+                detailView.text = context.getString(R.string.spending, Math.abs(spending.spent!!), spending.target, cycleStr)
             } else {
-                detailView.text = context.getString(R.string.spending_no_target, Math.abs(spending.spent!!), periodStr)
+                detailView.text = context.getString(R.string.spending_no_target, Math.abs(spending.spent!!), cycleStr)
             }
         } else {
             detailView.text = "?"

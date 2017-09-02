@@ -10,27 +10,18 @@ import java.util.List;
 
 public class BalanceCalculator {
 
-    private static BalanceCalculator INSTANCE;
-
-    public static BalanceCalculator get() {
-        if (INSTANCE == null) {
-            INSTANCE = new BalanceCalculator();
-        }
-        return INSTANCE;
-    }
-
     /**
      * Calculate how many times the specified <code>spending</code> has been
-     * applied up until the specified <code>end</code> (usually today) and sum up
+     * applied up until the specified <code>end</code> date (usually today) and sum up
      * it's value.
      *
-     * @return two floating point values, the first is the minimum value (because there
-     * are periods where the application of the modifier is uncertain), the second is
-     * the maximum value
+     * @param end if null, `today` is used instead
+     * @return two floating point values, the first is the minimum possible value, the second is
+     * the maximum possible value
      */
-    public BalanceResult getEstimatedBalance(Spending spending, Date start, Date end) {
+    public static BalanceResult getEstimatedBalance(Spending spending, Date start, Date end) {
         if (start != null && end != null && !end.after(start)) {
-            throw new IllegalArgumentException("Start must come before end!");
+            throw new IllegalArgumentException("Start date must come before end date!");
         }
         boolean exit = false;
         float bestCase = 0;
@@ -38,9 +29,9 @@ public class BalanceCalculator {
         List<Date> spendingEvents = new ArrayList<>();
         int count = 0;
         Calendar occurrenceStart = Calendar.getInstance();
-        occurrenceStart.setTime(spending.getFirstOccurrenceStart());
+        occurrenceStart.setTime(spending.getFromStartDate());
         Calendar occurrenceEnd = Calendar.getInstance();
-        occurrenceEnd.setTime(spending.getFirstOccurrenceEnd());
+        occurrenceEnd.setTime(spending.getFromEndDate());
         Calendar date = Calendar.getInstance();
         if (end != null) {
             date.setTime(end);
@@ -64,8 +55,8 @@ public class BalanceCalculator {
                     exit = true;
                 }
             }
-            spending.getPeriod().apply(occurrenceStart, spending.getPeriodMultiplier());
-            spending.getPeriod().apply(occurrenceEnd, spending.getPeriodMultiplier());
+            spending.getCycle().apply(occurrenceStart, spending.getCycleMultiplier());
+            spending.getCycle().apply(occurrenceEnd, spending.getCycleMultiplier());
             if (spending.getOccurrenceCount() != null && ++count >= spending.getOccurrenceCount()) {
                 exit = true;
             }

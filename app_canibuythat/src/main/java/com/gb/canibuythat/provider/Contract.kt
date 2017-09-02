@@ -17,17 +17,17 @@ class Contract {
             const val NOTES = "notes"
             const val SPENDING = "average"
             const val TYPE = "type"
-            const val FIRST_OCCURRENCE_START = "first_occurrence_start"
-            const val FIRST_OCCURRENCE_END = "first_occurrence_end"
+            const val FROM_START_DATE = "from_start_date"
+            const val FROM_END_DATE = "from_end_date"
             const val OCCURRENCE_COUNT = "occurrence_count"
-            const val PERIOD_MULTIPLIER = "period_multiplier"
-            const val PERIOD_TYPE = "period_type"
+            const val CYCLE_MULTIPLIER = "cycle_multiplier"
+            const val CYCLE = "cycle"
             const val ENABLED = "enabled"
             const val SOURCE_DATA = "source_data"
             const val SPENT = "spent"
             const val TARGET = "target"
 
-            val COLUMNS = arrayOf(BaseColumns._ID, NAME, NOTES, SPENDING, TYPE, FIRST_OCCURRENCE_START, FIRST_OCCURRENCE_END, OCCURRENCE_COUNT, PERIOD_MULTIPLIER, PERIOD_TYPE, ENABLED, SOURCE_DATA, SPENT, TARGET)
+            val COLUMNS = arrayOf(BaseColumns._ID, NAME, NOTES, SPENDING, TYPE, FROM_START_DATE, FROM_END_DATE, OCCURRENCE_COUNT, CYCLE_MULTIPLIER, CYCLE, ENABLED, SOURCE_DATA, SPENT, TARGET)
         }
     }
 }

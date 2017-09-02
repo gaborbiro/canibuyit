@@ -3,7 +3,7 @@ package com.gb.canibuythat.repository
 import com.gb.canibuythat.api.model.*
 import com.gb.canibuythat.model.Account
 import com.gb.canibuythat.model.Spending
-import com.gb.canibuythat.model.Spending.Period
+import com.gb.canibuythat.model.Spending.Cycle
 import com.gb.canibuythat.model.Login
 import com.gb.canibuythat.model.Transaction
 import org.apache.commons.lang3.text.WordUtils
@@ -51,40 +51,40 @@ class MonzoMapper @Inject constructor() {
 
     fun mapToSpending(category: String, transactions: List<Transaction>): Spending {
         val spending = Spending()
-        val period = getOptimalPeriod(transactions)
-        spending.period = period
+        val cycle = getOptimalCycle(transactions)
+        spending.cycle = cycle
 
-        val timeMap: Map<Int, List<Transaction>> = transactions.groupBy { period.get(it.created.toLocalDate()) }
+        val timeMap: Map<Int, List<Transaction>> = transactions.groupBy { cycle.get(it.created.toLocalDate()) }
         spending.average = transactions.sumBy { it.amount }.div(timeMap.size).div(100.0)
         spending.type = mapSpendingType(category)
         spending.enabled = spending.type!!.defaultEnabled
         spending.name = WordUtils.capitalizeFully(category.replace("\\_".toRegex(), " "))
         spending.occurrenceCount = null
-        spending.periodMultiplier = 1
+        spending.cycleMultiplier = 1
         val firstOccurrence: LocalDate = transactions.minBy { it.created }!!.created.toLocalDate()
-        spending.firstOccurrenceStart = fromLocalDate(firstOccurrence)
-        spending.firstOccurrenceEnd = fromLocalDate(firstOccurrence.add(period, 1).minusDays(1))
+        spending.fromStartDate = fromLocalDate(firstOccurrence)
+        spending.fromEndDate = fromLocalDate(firstOccurrence.add(cycle, 1).minusDays(1))
         spending.sourceData.put(Spending.SOURCE_MONZO_CATEGORY, category)
         spending.spent = 0.0
-        timeMap[period.get(LocalDate.now(ZoneId.systemDefault()))]?.let { spending.spent = it.sumBy { it.amount }.div(100.0) }
+        timeMap[cycle.get(LocalDate.now(ZoneId.systemDefault()))]?.let { spending.spent = it.sumBy { it.amount }.div(100.0) }
         return spending
     }
 
-    fun Period.get(date: LocalDate): Int {
+    fun Cycle.get(date: LocalDate): Int {
         return when (this) {
-            Period.DAYS -> date.toEpochDay().toInt()
-            Period.WEEKS -> date[ChronoField.ALIGNED_WEEK_OF_YEAR]
-            Period.MONTHS -> date.monthValue
-            Period.YEARS -> date.year
+            Cycle.DAYS -> date.toEpochDay().toInt()
+            Cycle.WEEKS -> date[ChronoField.ALIGNED_WEEK_OF_YEAR]
+            Cycle.MONTHS -> date.monthValue
+            Cycle.YEARS -> date.year
         }
     }
 
-    fun LocalDate.add(period: Period, amount: Long): LocalDate {
-        return when (period) {
-            Period.DAYS -> this.plusDays(amount)
-            Period.WEEKS -> this.plusWeeks(amount)
-            Period.MONTHS -> this.plusMonths(amount)
-            Period.YEARS -> this.plusYears(amount)
+    fun LocalDate.add(cycle: Cycle, amount: Long): LocalDate {
+        return when (cycle) {
+            Cycle.DAYS -> this.plusDays(amount)
+            Cycle.WEEKS -> this.plusWeeks(amount)
+            Cycle.MONTHS -> this.plusMonths(amount)
+            Cycle.YEARS -> this.plusYears(amount)
         }
     }
 
@@ -105,7 +105,7 @@ class MonzoMapper @Inject constructor() {
         }
     }
 
-    fun getOptimalPeriod(transactions: List<Transaction>): Spending.Period {
+    fun getOptimalCycle(transactions: List<Transaction>): Spending.Cycle {
         var highestDistanceDays = 0L
         val sortedList = transactions.sortedBy { it.created }.map { it.created.toLocalDate() }
         var distance: Long = 0
@@ -115,9 +115,9 @@ class MonzoMapper @Inject constructor() {
                 highestDistanceDays = distance
             }
         }
-        return if (highestDistanceDays <= 7) Spending.Period.WEEKS else
-            if (highestDistanceDays <= 365) Spending.Period.MONTHS else
-                Spending.Period.YEARS
+        return if (highestDistanceDays <= 7) Spending.Cycle.WEEKS else
+            if (highestDistanceDays <= 365) Spending.Cycle.MONTHS else
+                Spending.Cycle.YEARS
     }
 
     fun fromLocalDate(localDate: LocalDate): Date = Date(localDate.year - 1900, localDate.monthValue - 1, localDate.dayOfMonth)

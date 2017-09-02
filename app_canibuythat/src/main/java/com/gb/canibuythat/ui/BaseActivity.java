@@ -60,11 +60,10 @@ public abstract class BaseActivity extends AppCompatActivity implements Progress
 
     @Override
     public void showProgress() {
-        if (progressDialog != null && progressDialog.isAdded()) {
-            progressDialog.dismissAllowingStateLoss();
+        if (progressDialog == null) {
+            progressDialog = ProgressDialog.newInstance("Please wait");
+            progressDialog.show(getSupportFragmentManager(), "progress");
         }
-        progressDialog = ProgressDialog.newInstance("Please wait");
-        progressDialog.show(getSupportFragmentManager(), "progress");
     }
 
     @Override

@@ -31,6 +31,7 @@ import com.gb.canibuythat.ui.model.BalanceReading;
 import com.gb.canibuythat.util.ArrayUtils;
 import com.gb.canibuythat.util.DateUtils;
 import com.gb.canibuythat.util.DialogUtils;
+import com.gb.canibuythat.util.TextChangeListener;
 import com.gb.canibuythat.util.ViewUtils;
 
 import java.util.Calendar;
@@ -47,43 +48,45 @@ import butterknife.BindView;
  */
 public class SpendingEditorFragment extends BaseFragment {
 
-    public static final String EXTRA_ITEM_ID = "spending_id";
+    public static final String EXTRA_SPENDING_ID = "spending_id";
 
-    private static final Date DEFAULT_FIRST_OCCURRENCE_END;
-    private static final Date DEFAULT_FIRST_OCCURRENCE_START;
+    private static final Date DEFAULT_END_DATE;
+    private static final Date DEFAULT_START_DATE;
 
     static {
         Calendar c = Calendar.getInstance();
         DateUtils.clearLowerBits(c);
-        DEFAULT_FIRST_OCCURRENCE_END = c.getTime();
-        DEFAULT_FIRST_OCCURRENCE_START = c.getTime();
+        DEFAULT_END_DATE = c.getTime();
+        DEFAULT_START_DATE = c.getTime();
     }
 
     @Inject UserPreferences userPreferences;
     @Inject SpendingInteractor spendingInteractor;
 
-    @BindView(R.id.name) EditText nameView;
-    @BindView(R.id.amount) EditText averageView;
-    @BindView(R.id.target) EditText targetView;
-    @BindView(R.id.enabled) CheckBox enabledView;
-    @BindView(R.id.category) Spinner categoryView;
-    @BindView(R.id.first_occurence_start) Button firstOccurrenceStartView;
-    @BindView(R.id.first_occurence_end) Button firstOccurrenceEndView;
-    @BindView(R.id.occurence_count) EditText occurrenceLimitView;
-    @BindView(R.id.period_multiplier) EditText periodMultiplierView;
-    @BindView(R.id.period_type) Spinner periodView;
-    @BindView(R.id.notes) EditText notesView;
-    @BindView(R.id.spending_events) TextView spendingEventsView;
+    @BindView(R.id.name) EditText nameInput;
+    @BindView(R.id.amount) EditText averageInput;
+    @BindView(R.id.target) EditText targetInput;
+    @BindView(R.id.enabled) CheckBox enabledCB;
+    @BindView(R.id.category) Spinner categoryPicker;
+    @BindView(R.id.date_from) Button dateFromBtn;
+    @BindView(R.id.date_to) Button dateToBtn;
+    @BindView(R.id.occurrence_count) EditText occurrenceInput;
+    @BindView(R.id.cycle_multiplier) EditText cycleMultiplierInput;
+    @BindView(R.id.cycle_picker) Spinner cyclePicker;
+    @BindView(R.id.notes) EditText notesInput;
+    @BindView(R.id.spending_events) TextView spendingEventsLayout;
 
     private Spending originalSpending;
-    private boolean firstOccurrenceStartDateChanged;
-    private boolean firstOccurrenceEndDateChanged;
+    private boolean startDateChanged;
+    private boolean endDateChanged;
+    private boolean cycleMultiplierChanged;
 
-    private DatePickerDialog firstOccurrenceStartPickerDialog;
-    private DatePickerDialog firstOccurrenceEndPickerDialog;
-    private MenuItem deleteButton;
+    private DatePickerDialog dateFromPickerDialog;
+    private DatePickerDialog dateToPickerDialog;
+    private MenuItem deleteBtn;
     private ViewGroup rootView;
     private View.OnTouchListener keyboardDismisser = new View.OnTouchListener() {
+
         @Override
         public boolean onTouch(View v, MotionEvent event) {
             if (event.getAction() == MotionEvent.ACTION_DOWN && rootView.getFocusedChild() != null) {
@@ -103,31 +106,31 @@ public class SpendingEditorFragment extends BaseFragment {
             DateUtils.clearLowerBits(c);
 
             switch ((int) view.getTag()) {
-                case R.id.first_occurence_start:
-                    firstOccurrenceStartView.setText(DateUtils.FORMAT_MONTH_DAY.format(c.getTime()));
-                    Date firstOccurrenceEnd = getFirstOccurrenceEndFromScreen();
+                case R.id.date_from:
+                    dateFromBtn.setText(DateUtils.FORMAT_MONTH_DAY.format(c.getTime()));
+                    Date endDate = getEndDateFromScreen();
 
-                    if (firstOccurrenceEnd.getTime() < c.getTime().getTime()) {
-                        firstOccurrenceEndPickerDialog = new DatePickerDialog(getActivity(),
+                    if (endDate.getTime() < c.getTime().getTime()) {
+                        dateToPickerDialog = new DatePickerDialog(getActivity(),
                                 dateSetListener, c.get(Calendar.YEAR),
                                 c.get(Calendar.MONTH),
                                 c.get(Calendar.DAY_OF_MONTH));
-                        applyFirstOccurrenceEndToScreen(c.getTime());
+                        applyEndDateToScreen(c.getTime());
                     }
-                    firstOccurrenceStartDateChanged = !c.getTime().equals(DEFAULT_FIRST_OCCURRENCE_START);
+                    startDateChanged = !c.getTime().equals(DEFAULT_START_DATE);
                     break;
-                case R.id.first_occurence_end:
-                    firstOccurrenceEndView.setText(DateUtils.FORMAT_MONTH_DAY.format(c.getTime()));
-                    Date firstOccurrenceStart = getFirstOccurrenceStartFromScreen();
+                case R.id.date_to:
+                    dateToBtn.setText(DateUtils.FORMAT_MONTH_DAY.format(c.getTime()));
+                    Date startDate = getStartDateFromScreen();
 
-                    if (firstOccurrenceStart.getTime() > c.getTime().getTime()) {
-                        firstOccurrenceStartPickerDialog = new DatePickerDialog(getActivity(),
+                    if (startDate.getTime() > c.getTime().getTime()) {
+                        dateFromPickerDialog = new DatePickerDialog(getActivity(),
                                 dateSetListener, c.get(Calendar.YEAR),
                                 c.get(Calendar.MONTH),
                                 c.get(Calendar.DAY_OF_MONTH));
-                        applyFirstOccurrenceStartToScreen(c.getTime());
+                        applyFirstFromDateToScreen(c.getTime());
                     }
-                    firstOccurrenceEndDateChanged = !c.getTime().equals(DEFAULT_FIRST_OCCURRENCE_END);
+                    endDateChanged = !c.getTime().equals(DEFAULT_END_DATE);
                     break;
             }
         }
@@ -136,13 +139,13 @@ public class SpendingEditorFragment extends BaseFragment {
         @Override
         public void onClick(View v) {
             switch (v.getId()) {
-                case R.id.first_occurence_start:
-                    getFirstOccurrenceStartPickerDialog().show();
-                    firstOccurrenceStartView.setError(null);
+                case R.id.date_from:
+                    getDateFromPickerDialog().show();
+                    dateFromBtn.setError(null);
                     break;
-                case R.id.first_occurence_end:
-                    getFirstOccurrenceEndPickerDialog().show();
-                    firstOccurrenceEndView.setError(null);
+                case R.id.date_to:
+                    getDateToPickerDialog().show();
+                    dateToBtn.setError(null);
                     break;
             }
         }
@@ -164,16 +167,16 @@ public class SpendingEditorFragment extends BaseFragment {
         super.onViewCreated(view, savedInstanceState);
         rootView = (ViewGroup) view;
 
-        categoryView.setAdapter(new PlusOneAdapter(Spending.Category.values()));
-        categoryView.setOnTouchListener(keyboardDismisser);
+        categoryPicker.setAdapter(new PlusOneAdapter(Spending.Category.values()));
+        categoryPicker.setOnTouchListener(keyboardDismisser);
 
-        periodView.setAdapter(new PlusOneAdapter(Spending.Period.values()));
-        periodView.setOnTouchListener(keyboardDismisser);
-        periodView.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        cyclePicker.setAdapter(new PlusOneAdapter(Spending.Cycle.values()));
+        cyclePicker.setOnTouchListener(keyboardDismisser);
+        cyclePicker.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
 
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                firstOccurrenceEndView.setError(null);
+                dateToBtn.setError(null);
             }
 
             @Override
@@ -182,16 +185,23 @@ public class SpendingEditorFragment extends BaseFragment {
             }
         });
 
-        firstOccurrenceStartView.setOnClickListener(datePickerOnClickListener);
-        firstOccurrenceStartView.setOnTouchListener(keyboardDismisser);
-        firstOccurrenceEndView.setOnClickListener(datePickerOnClickListener);
-        firstOccurrenceEndView.setOnTouchListener(keyboardDismisser);
+        dateFromBtn.setOnClickListener(datePickerOnClickListener);
+        dateFromBtn.setOnTouchListener(keyboardDismisser);
+        dateToBtn.setOnClickListener(datePickerOnClickListener);
+        dateToBtn.setOnTouchListener(keyboardDismisser);
 
-        if (originalSpending == null && getArguments() != null && getArguments().containsKey(EXTRA_ITEM_ID)) {
-            showSpending(getArguments().getInt(EXTRA_ITEM_ID), true);
+        if (originalSpending == null && getArguments() != null && getArguments().containsKey(EXTRA_SPENDING_ID)) {
+            showSpending(getArguments().getInt(EXTRA_SPENDING_ID), true);
         } else {
             showSpending(null, true);
         }
+
+        cycleMultiplierInput.addTextChangedListener(new TextChangeListener() {
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                cycleMultiplierChanged = true;
+            }
+        });
     }
 
     @Override
@@ -232,17 +242,18 @@ public class SpendingEditorFragment extends BaseFragment {
             spendingInteractor.read(spendingId)
                     .subscribe(spending -> onSpendingLoaded(spending, showKeyboardWhenDone), this::onError);
         } else {
-            clearScreen();
+            applyFirstFromDateToScreen(DEFAULT_START_DATE);
+            applyEndDateToScreen(DEFAULT_END_DATE);
         }
     }
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.edit, menu);
-        this.deleteButton = menu.findItem(R.id.menu_delete);
+        this.deleteBtn = menu.findItem(R.id.menu_delete);
 
-        if (getArguments() == null || !getArguments().containsKey(EXTRA_ITEM_ID)) {
-            deleteButton.setVisible(false);
+        if (getArguments() == null || !getArguments().containsKey(EXTRA_SPENDING_ID)) {
+            deleteBtn.setVisible(false);
         }
     }
 
@@ -255,7 +266,7 @@ public class SpendingEditorFragment extends BaseFragment {
             case R.id.menu_delete:
                 if (originalSpending != null && originalSpending.isPersisted()) {
                     spendingInteractor.delete(originalSpending.getId())
-                            .subscribe(() -> deleteButton.setVisible(false), this::onError);
+                            .subscribe(() -> deleteBtn.setVisible(false), this::onError);
                 }
                 break;
         }
@@ -285,7 +296,7 @@ public class SpendingEditorFragment extends BaseFragment {
             spendingInteractor.createOrUpdate(newSpending)
                     .subscribe(createOrUpdateStatus -> {
                         SpendingEditorFragment.this.originalSpending = newSpending;
-                        deleteButton.setVisible(true);
+                        deleteBtn.setVisible(true);
                         loadSpendingOccurrences(newSpending);
                     }, throwable -> {
                         onError(throwable);
@@ -307,124 +318,106 @@ public class SpendingEditorFragment extends BaseFragment {
 
     private void onSpendingLoaded(Spending spending, boolean showKeyboardWhenDone) {
         this.originalSpending = spending;
-        firstOccurrenceEndPickerDialog = null;
-        firstOccurrenceStartPickerDialog = null;
+        dateToPickerDialog = null;
+        dateFromPickerDialog = null;
         applySpendingToScreen(spending);
 
         if (showKeyboardWhenDone && isAdded()) {
-            ViewUtils.showKeyboard(nameView);
+            ViewUtils.showKeyboard(nameInput);
         }
 
-        if (deleteButton != null) {
-            deleteButton.setVisible(true);
+        if (deleteBtn != null) {
+            deleteBtn.setVisible(true);
         }
     }
 
     private void applySpendingToScreen(final Spending spending) {
-        nameView.setText(spending.getName());
+        nameInput.setText(spending.getName());
         if (spending.getAverage() != null) {
-            averageView.setText(getString(R.string.detail_amount, spending.getAverage()));
+            averageInput.setText(getString(R.string.detail_amount, spending.getAverage()));
         } else {
-            averageView.setText(null);
+            averageInput.setText(null);
         }
         if (spending.getTarget() != null) {
-            targetView.setText(getString(R.string.detail_amount, spending.getTarget()));
+            targetInput.setText(getString(R.string.detail_amount, spending.getTarget()));
         } else {
-            targetView.setText(null);
+            targetInput.setText(null);
         }
-        enabledView.setChecked(spending.getEnabled());
+        enabledCB.setChecked(spending.getEnabled());
         if (spending.getType() != null) {
-            categoryView.setSelection(spending.getType().ordinal() + 1);
+            categoryPicker.setSelection(spending.getType().ordinal() + 1);
         }
 
-        Date firstOccurrenceStart = spending.getFirstOccurrenceStart() != null
-                ? spending.getFirstOccurrenceStart()
-                : DEFAULT_FIRST_OCCURRENCE_START;
-        applyFirstOccurrenceStartToScreen(firstOccurrenceStart);
+        Date firstOccurrenceStart = spending.getFromStartDate() != null
+                ? spending.getFromStartDate()
+                : DEFAULT_START_DATE;
+        applyFirstFromDateToScreen(firstOccurrenceStart);
 
-        Date firstOccurrenceEnd = spending.getFirstOccurrenceEnd() != null ? spending.getFirstOccurrenceEnd() : DEFAULT_FIRST_OCCURRENCE_END;
-        applyFirstOccurrenceEndToScreen(firstOccurrenceEnd);
+        Date firstOccurrenceEnd = spending.getFromEndDate() != null ? spending.getFromEndDate() : DEFAULT_END_DATE;
+        applyEndDateToScreen(firstOccurrenceEnd);
 
         if (spending.getOccurrenceCount() != null) {
-            occurrenceLimitView.setText(Integer.toString(spending.getOccurrenceCount()));
+            occurrenceInput.setText(Integer.toString(spending.getOccurrenceCount()));
         } else {
-            occurrenceLimitView.setText(null);
+            occurrenceInput.setText(null);
         }
 
-        if (spending.getPeriodMultiplier() != null) {
-            periodMultiplierView.setText(Integer.toString(spending.getPeriodMultiplier()));
+        if (spending.getCycleMultiplier() != null) {
+            cycleMultiplierInput.setText(Integer.toString(spending.getCycleMultiplier()));
         } else {
-            periodMultiplierView.setText(null);
+            cycleMultiplierInput.setText(null);
         }
 
-        if (spending.getPeriod() != null) {
-            periodView.setSelection(spending.getPeriod().ordinal() + 1);
+        if (spending.getCycle() != null) {
+            cyclePicker.setSelection(spending.getCycle().ordinal() + 1);
         }
-        notesView.setText(spending.getNotes());
+        notesInput.setText(spending.getNotes());
         loadSpendingOccurrences(spending);
-    }
-
-    private void clearScreen() {
-        nameView.setText(null);
-        averageView.setText(null);
-        enabledView.setChecked(true);
-        categoryView.setSelection(0);
-        applyFirstOccurrenceStartToScreen(DEFAULT_FIRST_OCCURRENCE_START);
-        applyFirstOccurrenceEndToScreen(DEFAULT_FIRST_OCCURRENCE_END);
-        occurrenceLimitView.setText(null);
-        periodMultiplierView.setText(null);
-        periodView.setSelection(0);
-        notesView.setText(null);
-        spendingEventsView.setText(null);
-
-        originalSpending = null;
-        firstOccurrenceEndPickerDialog = null;
-        firstOccurrenceStartPickerDialog = null;
     }
 
     private void loadSpendingOccurrences(final Spending spending) {
         BalanceReading balanceReading = userPreferences.getBalanceReading();
-        BalanceCalculator.BalanceResult result = BalanceCalculator.get().getEstimatedBalance(spending,
+        BalanceCalculator.BalanceResult result = BalanceCalculator.getEstimatedBalance(spending,
                 balanceReading != null ? balanceReading.when : null,
                 userPreferences.getEstimateDate());
         String spentStr = ArrayUtils.join("\n", result.spendingEvents, (index, item) -> getString(R.string.spending_occurrence, index + 1, DateUtils.FORMAT_MONTH_DAY.format(item)));
         spentStr = "Spent: " + result.bestCase + "/" + (result.worstCase) + "\n" + spentStr;
-        spendingEventsView.setText(spentStr);
+        spendingEventsLayout.setText(spentStr);
     }
 
-    private void applyFirstOccurrenceStartToScreen(Date firstOccurrenceStart) {
-        firstOccurrenceStartView.setText(DateUtils.FORMAT_MONTH_DAY.format(firstOccurrenceStart));
+    private void applyFirstFromDateToScreen(Date firstOccurrenceStart) {
+        dateFromBtn.setText(DateUtils.FORMAT_MONTH_DAY.format(firstOccurrenceStart));
     }
 
-    private void applyFirstOccurrenceEndToScreen(Date firstOccurrenceEnd) {
-        firstOccurrenceEndView.setText(DateUtils.FORMAT_MONTH_DAY.format(firstOccurrenceEnd));
+    private void applyEndDateToScreen(Date firstOccurrenceEnd) {
+        dateToBtn.setText(DateUtils.FORMAT_MONTH_DAY.format(firstOccurrenceEnd));
     }
 
-    private DatePickerDialog getFirstOccurrenceStartPickerDialog() {
+    private DatePickerDialog getDateFromPickerDialog() {
         Calendar c = Calendar.getInstance();
-        if (originalSpending != null && originalSpending.getFirstOccurrenceStart() != null) {
-            c.setTime(this.originalSpending.getFirstOccurrenceStart());
+        if (originalSpending != null && originalSpending.getFromStartDate() != null) {
+            c.setTime(this.originalSpending.getFromStartDate());
         }
-        if (firstOccurrenceStartPickerDialog == null) {
-            firstOccurrenceStartPickerDialog = new DatePickerDialog(getActivity(), dateSetListener,
+        if (dateFromPickerDialog == null) {
+            dateFromPickerDialog = new DatePickerDialog(getActivity(), dateSetListener,
                     c.get(Calendar.YEAR), c.get(Calendar.MONTH),
                     c.get(Calendar.DAY_OF_MONTH));
-            firstOccurrenceStartPickerDialog.getDatePicker().setTag(R.id.first_occurence_start);
+            dateFromPickerDialog.getDatePicker().setTag(R.id.date_from);
         }
-        return firstOccurrenceStartPickerDialog;
+        return dateFromPickerDialog;
     }
 
-    private DatePickerDialog getFirstOccurrenceEndPickerDialog() {
+    private DatePickerDialog getDateToPickerDialog() {
         Calendar c = Calendar.getInstance();
-        if (originalSpending != null && originalSpending.getFirstOccurrenceEnd() != null) {
-            c.setTime(this.originalSpending.getFirstOccurrenceEnd());
+        if (originalSpending != null && originalSpending.getFromEndDate() != null) {
+            c.setTime(this.originalSpending.getFromEndDate());
         }
-        if (firstOccurrenceEndPickerDialog == null) {
-            firstOccurrenceEndPickerDialog = new DatePickerDialog(getActivity(), dateSetListener,
+        if (dateToPickerDialog == null) {
+            dateToPickerDialog = new DatePickerDialog(getActivity(), dateSetListener,
                     c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH));
-            firstOccurrenceEndPickerDialog.getDatePicker().setTag(R.id.first_occurence_end);
+            dateToPickerDialog.getDatePicker().setTag(R.id.date_to);
         }
-        return firstOccurrenceEndPickerDialog;
+        return dateToPickerDialog;
     }
 
     /**
@@ -477,23 +470,23 @@ public class SpendingEditorFragment extends BaseFragment {
      * @return true if user input is valid
      */
     private ValidationError validateUserInput() {
-        if (TextUtils.isEmpty(nameView.getText())) {
-            return new ValidationError(ValidationError.TYPE_INPUT_FIELD, nameView, "Please specify a name");
+        if (TextUtils.isEmpty(nameInput.getText())) {
+            return new ValidationError(ValidationError.TYPE_INPUT_FIELD, nameInput, "Please specify a name");
         }
-        if (TextUtils.isEmpty(averageView.getText())) {
-            return new ValidationError(ValidationError.TYPE_INPUT_FIELD, averageView, "Please specify an average");
+        if (TextUtils.isEmpty(averageInput.getText())) {
+            return new ValidationError(ValidationError.TYPE_INPUT_FIELD, averageInput, "Please specify an average");
         }
-        if (!(categoryView.getSelectedItem() instanceof Spending.Category)) {
+        if (!(categoryPicker.getSelectedItem() instanceof Spending.Category)) {
             return new ValidationError(ValidationError.TYPE_NON_INPUT_FIELD, null, "Please select a category");
         }
-        if (!(periodView.getSelectedItem() instanceof Spending.Period)) {
-            return new ValidationError(ValidationError.TYPE_NON_INPUT_FIELD, null, "Please select a period");
+        if (!(cyclePicker.getSelectedItem() instanceof Spending.Cycle)) {
+            return new ValidationError(ValidationError.TYPE_NON_INPUT_FIELD, null, "Please select a cycle");
         }
-        if (TextUtils.isEmpty(periodMultiplierView.getText())) {
-            return new ValidationError(ValidationError.TYPE_INPUT_FIELD, periodMultiplierView, "Please fill in");
+        if (TextUtils.isEmpty(cycleMultiplierInput.getText())) {
+            return new ValidationError(ValidationError.TYPE_INPUT_FIELD, cycleMultiplierInput, "Please fill in");
         }
-        Date firstOccurrenceStart = getFirstOccurrenceStartFromScreen();
-        Date firstOccurrenceEnd = getFirstOccurrenceEndFromScreen();
+        Date firstOccurrenceStart = getStartDateFromScreen();
+        Date firstOccurrenceEnd = getEndDateFromScreen();
         if (firstOccurrenceStart.after(firstOccurrenceEnd)) {
             return new ValidationError(ValidationError.TYPE_NON_INPUT_FIELD, null, "Start date must not be higher then end date");
         }
@@ -502,11 +495,11 @@ public class SpendingEditorFragment extends BaseFragment {
         calendar.setTime(firstOccurrenceStart);
         DateUtils.clearLowerBits(calendar);
 
-        ((Spending.Period) periodView.getSelectedItem()).apply(calendar, getPeriodMultiplierFromScreen());
+        ((Spending.Cycle) cyclePicker.getSelectedItem()).apply(calendar, getCycleMultiplierFromScreen());
         calendar.add(Calendar.DAY_OF_MONTH, -1);
 
         if (firstOccurrenceEnd.after(calendar.getTime())) {
-            return new ValidationError(ValidationError.TYPE_NON_INPUT_FIELD, firstOccurrenceEndView,
+            return new ValidationError(ValidationError.TYPE_NON_INPUT_FIELD, dateToBtn,
                     "End date cannot be higher than " + DateUtils.FORMAT_MONTH_DAY.format(calendar.getTime()));
         }
         return null;
@@ -515,40 +508,40 @@ public class SpendingEditorFragment extends BaseFragment {
     private Spending getSpendingFromScreen() {
         Spending spending = new Spending();
         // title
-        if (!TextUtils.isEmpty(nameView.getText())) {
-            spending.setName(nameView.getText().toString());
+        if (!TextUtils.isEmpty(nameInput.getText())) {
+            spending.setName(nameInput.getText().toString());
         }
         // average
-        if (!TextUtils.isEmpty(averageView.getText())) {
-            spending.setAverage(Double.valueOf(averageView.getText().toString()));
+        if (!TextUtils.isEmpty(averageInput.getText())) {
+            spending.setAverage(Double.valueOf(averageInput.getText().toString()));
         }
         // enabled
-        spending.setEnabled(enabledView.isChecked());
+        spending.setEnabled(enabledCB.isChecked());
         // type
-        if (categoryView.getSelectedItem() instanceof Spending.Category) {
-            spending.setType((Spending.Category) categoryView.getSelectedItem());
+        if (categoryPicker.getSelectedItem() instanceof Spending.Category) {
+            spending.setType((Spending.Category) categoryPicker.getSelectedItem());
         }
-        // firstOccurrenceStart
-        spending.setFirstOccurrenceStart(getFirstOccurrenceStartFromScreen());
-        // firstOccurrenceEnd
-        spending.setFirstOccurrenceEnd(getFirstOccurrenceEndFromScreen());
+        // fromStartDate
+        spending.setFromStartDate(getStartDateFromScreen());
+        // fromEndDate
+        spending.setFromEndDate(getEndDateFromScreen());
         // repetition
-        if (!TextUtils.isEmpty(occurrenceLimitView.getText())) {
-            spending.setOccurrenceCount(Integer.valueOf(occurrenceLimitView.getText().toString()));
+        if (!TextUtils.isEmpty(occurrenceInput.getText())) {
+            spending.setOccurrenceCount(Integer.valueOf(occurrenceInput.getText().toString()));
         }
-        // periodMultiplier
-        spending.setPeriodMultiplier(getPeriodMultiplierFromScreen());
-        // period
-        if (periodView.getSelectedItem() instanceof Spending.Period) {
-            spending.setPeriod((Spending.Period) periodView.getSelectedItem());
+        // cycleMultiplier
+        spending.setCycleMultiplier(getCycleMultiplierFromScreen());
+        // cycle
+        if (cyclePicker.getSelectedItem() instanceof Spending.Cycle) {
+            spending.setCycle((Spending.Cycle) cyclePicker.getSelectedItem());
         }
         // notes
-        if (!TextUtils.isEmpty(notesView.getText())) {
-            spending.setNotes(notesView.getText().toString());
+        if (!TextUtils.isEmpty(notesInput.getText())) {
+            spending.setNotes(notesInput.getText().toString());
         }
         // target
-        if (!TextUtils.isEmpty(targetView.getText())) {
-            spending.setTarget(Double.valueOf(targetView.getText().toString()));
+        if (!TextUtils.isEmpty(targetInput.getText())) {
+            spending.setTarget(Double.valueOf(targetInput.getText().toString()));
         }
         if (originalSpending != null) {
             // this will make an already saved item ot be updated instead of a new
@@ -560,47 +553,47 @@ public class SpendingEditorFragment extends BaseFragment {
         return spending;
     }
 
-    private Date getFirstOccurrenceStartFromScreen() {
+    private Date getStartDateFromScreen() {
         Date firstOccurrenceDateStart;
 
-        if (firstOccurrenceStartPickerDialog != null) {
+        if (dateFromPickerDialog != null) {
             // user picked a date
-            firstOccurrenceDateStart = DateUtils.getDayFromDatePicker(firstOccurrenceStartPickerDialog.getDatePicker());
-        } else if (originalSpending != null && originalSpending.getFirstOccurrenceStart() != null) {
+            firstOccurrenceDateStart = DateUtils.getDayFromDatePicker(dateFromPickerDialog.getDatePicker());
+        } else if (originalSpending != null && originalSpending.getFromStartDate() != null) {
             // user did not pick a date, but this is EDIT, not CREATE
-            firstOccurrenceDateStart = originalSpending.getFirstOccurrenceStart();
+            firstOccurrenceDateStart = originalSpending.getFromStartDate();
         } else {
             // user did not pick a date, and we are in CREATE mode
-            firstOccurrenceDateStart = DEFAULT_FIRST_OCCURRENCE_START;
+            firstOccurrenceDateStart = DEFAULT_START_DATE;
         }
         return firstOccurrenceDateStart;
     }
 
-    private Date getFirstOccurrenceEndFromScreen() {
+    private Date getEndDateFromScreen() {
         Date firstOccurrenceDateEnd;
-        if (firstOccurrenceEndPickerDialog != null) {
+        if (dateToPickerDialog != null) {
             // user picked a date
-            firstOccurrenceDateEnd = DateUtils.getDayFromDatePicker(firstOccurrenceEndPickerDialog.getDatePicker());
-        } else if (originalSpending != null && originalSpending.getFirstOccurrenceEnd() != null) {
+            firstOccurrenceDateEnd = DateUtils.getDayFromDatePicker(dateToPickerDialog.getDatePicker());
+        } else if (originalSpending != null && originalSpending.getFromEndDate() != null) {
             // user did not pick a date, but this is EDIT, not CREATE
-            firstOccurrenceDateEnd = originalSpending.getFirstOccurrenceEnd();
+            firstOccurrenceDateEnd = originalSpending.getFromEndDate();
         } else {
             // user did not pick a date, and we are in CREATE mode
-            firstOccurrenceDateEnd = DEFAULT_FIRST_OCCURRENCE_END;
+            firstOccurrenceDateEnd = DEFAULT_END_DATE;
         }
         return firstOccurrenceDateEnd;
     }
 
-    private Integer getPeriodMultiplierFromScreen() {
-        Integer periodMultiplier = null;
-        if (!TextUtils.isEmpty(periodMultiplierView.getText())) {
+    private Integer getCycleMultiplierFromScreen() {
+        Integer cycleMultiplier = null;
+        if (!TextUtils.isEmpty(cycleMultiplierInput.getText())) {
             // user entered value
-            periodMultiplier = Integer.valueOf(periodMultiplierView.getText().toString());
-        } else if (originalSpending != null && originalSpending.getPeriodMultiplier() != null) {
+            cycleMultiplier = Integer.valueOf(cycleMultiplierInput.getText().toString());
+        } else if (originalSpending != null && originalSpending.getCycleMultiplier() != null) {
             // user did not enter a value, but this is EDIT, not CREATE
-            periodMultiplier = originalSpending.getPeriodMultiplier();
+            cycleMultiplier = originalSpending.getCycleMultiplier();
         }
-        return periodMultiplier;
+        return cycleMultiplier;
     }
 
     /**
@@ -610,8 +603,8 @@ public class SpendingEditorFragment extends BaseFragment {
     private boolean shouldSave() {
         Spending newSpending = getSpendingFromScreen();
         boolean isNew = originalSpending == null
-                && !new Spending().compareForEditing(newSpending, !(firstOccurrenceStartDateChanged || firstOccurrenceEndDateChanged));
-        boolean changed = originalSpending != null && !originalSpending.compareForEditing(newSpending, false);
+                && !new Spending().compareForEditing(newSpending, !(startDateChanged || endDateChanged), !cycleMultiplierChanged);
+        boolean changed = originalSpending != null && !originalSpending.compareForEditing(newSpending, false, false);
         return isNew || changed;
     }
 }

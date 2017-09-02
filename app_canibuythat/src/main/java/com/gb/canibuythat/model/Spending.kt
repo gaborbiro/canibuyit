@@ -35,41 +35,41 @@ class Spending {
     var average: Double? = null
 
     /**
-     * Date before witch the transaction certainly won't happen. The repetition period
+     * Date before witch the transaction certainly won't happen. The repetition cycle
      * is added to this date.
      */
-    @DatabaseField(columnName = Contract.Spending.FIRST_OCCURRENCE_START, canBeNull = false)
-    var firstOccurrenceStart: Date? = null
+    @DatabaseField(columnName = Contract.Spending.FROM_START_DATE, canBeNull = false)
+    var fromStartDate: Date? = null
 
     /**
-     * Date by witch the transaction most certainly did happen. The repetition period is
+     * Date by witch the transaction most certainly did happen. The repetition cycle is
      * added to this date.
      */
-    @DatabaseField(columnName = Contract.Spending.FIRST_OCCURRENCE_END, canBeNull = false)
-    var firstOccurrenceEnd: Date? = null
+    @DatabaseField(columnName = Contract.Spending.FROM_END_DATE, canBeNull = false)
+    var fromEndDate: Date? = null
 
     /**
      * How many times this modifier will be spent/cashed in. If 0, the field
-     * #periodMultiplier and #period are ignored
+     * #cycleMultiplier and #cycle are ignored
      */
     @DatabaseField(columnName = Contract.Spending.OCCURRENCE_COUNT)
     var occurrenceCount: Int? = null
 
     /**
-     * For periods like every 2 days or once every trimester...
+     * For cycles like every 2 days or 2 weeks...
      */
-    @DatabaseField(columnName = Contract.Spending.PERIOD_MULTIPLIER)
-    var periodMultiplier: Int? = null
+    @DatabaseField(columnName = Contract.Spending.CYCLE_MULTIPLIER)
+    var cycleMultiplier: Int? = null
 
     /**
      * Does this modifier repeat every day/week/month/year. The first affected time-span
-     * (specified by firstOccurrenceStart and firstOccurrenceEnd) must not be larger
-     * the this period.<br></br>
+     * (specified by {@link Spending#fromStartDate} and {@link Spending#fromEndDate}) must not be larger
+     * the this cycle.<br></br>
      * Ex: The first week of every month, cold months of the year, every weekend, every
      * semester
      */
-    @DatabaseField(columnName = Contract.Spending.PERIOD_TYPE, canBeNull = false)
-    var period: Period? = null
+    @DatabaseField(columnName = Contract.Spending.CYCLE, canBeNull = false)
+    var cycle: Cycle? = null
 
     @DatabaseField(columnName = Contract.Spending.ENABLED, canBeNull = true)
     var enabled = true
@@ -94,11 +94,11 @@ class Spending {
         if (notes != other.notes) return false
         if (type != other.type) return false
         if (average != other.average) return false
-        if (firstOccurrenceStart != other.firstOccurrenceStart) return false
-        if (firstOccurrenceEnd != other.firstOccurrenceEnd) return false
+        if (fromStartDate != other.fromStartDate) return false
+        if (fromEndDate != other.fromEndDate) return false
         if (occurrenceCount != other.occurrenceCount) return false
-        if (periodMultiplier != other.periodMultiplier) return false
-        if (period != other.period) return false
+        if (cycleMultiplier != other.cycleMultiplier) return false
+        if (cycle != other.cycle) return false
         if (enabled != other.enabled) return false
         if (!sourceData.equals(other.sourceData)) return false
         if (spent != other.spent) return false
@@ -107,7 +107,7 @@ class Spending {
         return true
     }
 
-    fun compareForEditing(other: Any?, ignoreDates: Boolean): Boolean {
+    fun compareForEditing(other: Any?, ignoreDates: Boolean, ignoreCycleMultiplier: Boolean): Boolean {
         if (this === other) return true
         if (other?.javaClass != javaClass) return false
 
@@ -120,12 +120,14 @@ class Spending {
         if (type != other.type) return false
         if (average != other.average) return false
         if (!ignoreDates) {
-            if (firstOccurrenceStart != other.firstOccurrenceStart) return false
-            if (firstOccurrenceEnd != other.firstOccurrenceEnd) return false
+            if (fromStartDate != other.fromStartDate) return false
+            if (fromEndDate != other.fromEndDate) return false
         }
         if (occurrenceCount != other.occurrenceCount) return false
-        if (periodMultiplier != other.periodMultiplier) return false
-        if (period != other.period) return false
+        if (!ignoreCycleMultiplier) {
+            if (cycleMultiplier != other.cycleMultiplier) return false
+        }
+        if (cycle != other.cycle) return false
         if (enabled != other.enabled) return false
         if (!sourceData.equals(other.sourceData)) return false
         if (spent != other.spent) return false
@@ -139,11 +141,11 @@ class Spending {
         result = 31 * result + (notes?.hashCode() ?: 0)
         result = 31 * result + (type?.hashCode() ?: 0)
         result = 31 * result + (average?.hashCode() ?: 0)
-        result = 31 * result + (firstOccurrenceStart?.hashCode() ?: 0)
-        result = 31 * result + (firstOccurrenceEnd?.hashCode() ?: 0)
+        result = 31 * result + (fromStartDate?.hashCode() ?: 0)
+        result = 31 * result + (fromEndDate?.hashCode() ?: 0)
         result = 31 * result + (occurrenceCount ?: 0)
-        result = 31 * result + (periodMultiplier ?: 0)
-        result = 31 * result + (period?.hashCode() ?: 0)
+        result = 31 * result + (cycleMultiplier ?: 0)
+        result = 31 * result + (cycle?.hashCode() ?: 0)
         result = 31 * result + enabled.hashCode()
         result = 31 * result + (sourceData.hashCode())
         result = 31 * result + (spent?.hashCode() ?: 0)
@@ -152,7 +154,7 @@ class Spending {
     }
 
     override fun toString(): String {
-        return "Spending(id=$id, name=$name, notes=$notes, type=$type, average=$average, firstOccurrenceStart=$firstOccurrenceStart, firstOccurrenceEnd=$firstOccurrenceEnd, occurrenceCount=$occurrenceCount, periodMultiplier=$periodMultiplier, period=$period, enabled=$enabled, sourceData=$sourceData, spent=$spent, target=$target)"
+        return "Spending(id=$id, name=$name, notes=$notes, type=$type, average=$average, fromStartDate=$fromStartDate, fromEndDate=$fromEndDate, occurrenceCount=$occurrenceCount, cycleMultiplier=$cycleMultiplier, cycle=$cycle, enabled=$enabled, sourceData=$sourceData, spent=$spent, target=$target)"
     }
 
 
@@ -171,7 +173,7 @@ class Spending {
         }
     }
 
-    enum class Period(val strRes: Int) {
+    enum class Cycle(val strRes: Int) {
         DAYS(R.string.daily),
         WEEKS(R.string.weekly),
         MONTHS(R.string.monthly),
