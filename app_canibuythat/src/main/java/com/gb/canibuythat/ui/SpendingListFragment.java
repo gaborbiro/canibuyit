@@ -69,6 +69,8 @@ public class SpendingListFragment extends BaseFragment implements SpendingListSc
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         list.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL));
+        adapter = new SpendingAdapter(this);
+        list.setAdapter(adapter);
     }
 
     @Override
@@ -90,14 +92,12 @@ public class SpendingListFragment extends BaseFragment implements SpendingListSc
         if (!(getActivity() instanceof FragmentCallback)) {
             throw new IllegalStateException("Activity must implement fragment's callback.");
         }
-
         callback = (FragmentCallback) getActivity();
     }
 
     @Override
     public void setData(List<Spending> spendings) {
-        adapter = new SpendingAdapter(spendings, this);
-        list.setAdapter(adapter);
+        adapter.setData(spendings);
     }
 
     @Override
