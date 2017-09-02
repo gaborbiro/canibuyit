@@ -129,53 +129,10 @@
                 android:layout_width="wrap_content"/>
         </LinearLayout>
 
-        <LinearLayout
-            android:gravity="center_vertical"
-            android:layout_height="wrap_content"
+        <com.gb.canibuythat.ui.DateRangePicker
+            android:id="@+id/from_date_picker"
             android:layout_width="match_parent"
-            android:orientation="horizontal">
-
-            <TextView
-                android:layout_height="wrap_content"
-                android:layout_marginRight="8dp"
-                android:layout_width="wrap_content"
-                android:text="From between"/>
-
-            <Button
-                android:id="@+id/date_from"
-                android:layout_height="wrap_content"
-                android:layout_width="wrap_content"/>
-
-            <TextView
-                android:layout_height="wrap_content"
-                android:layout_margin="8dp"
-                android:layout_width="wrap_content"
-                android:text="and"/>
-
-            <Button
-                android:id="@+id/date_to"
-                android:layout_height="wrap_content"
-                android:layout_width="wrap_content"/>
-        </LinearLayout>
-
-        <LinearLayout
-            android:gravity="center_vertical"
-            android:layout_height="wrap_content"
-            android:layout_width="match_parent"
-            android:paddingLeft="32dp"
-            android:visibility="gone"
-            tools:visibility="visible">
-
-            <CheckBox
-                android:id="@+id/last_day_of_month"
-                android:layout_height="wrap_content"
-                android:layout_width="wrap_content"/>
-
-            <TextView
-                android:layout_height="wrap_content"
-                android:layout_width="wrap_content"
-                android:text="Last day of month"/>
-        </LinearLayout>
+            android:layout_height="wrap_content"/>
 
         <LinearLayout
             android:gravity="bottom"

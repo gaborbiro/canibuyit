@@ -1,6 +1,5 @@
 package com.gb.canibuythat.ui;
 
-import android.app.DatePickerDialog;
 import android.database.sqlite.SQLiteConstraintException;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -11,15 +10,11 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.gb.canibuythat.R;
 import com.gb.canibuythat.UserPreferences;
@@ -32,6 +27,7 @@ import com.gb.canibuythat.util.ArrayUtils;
 import com.gb.canibuythat.util.DateUtils;
 import com.gb.canibuythat.util.DialogUtils;
 import com.gb.canibuythat.util.TextChangeListener;
+import com.gb.canibuythat.util.ValidationError;
 import com.gb.canibuythat.util.ViewUtils;
 
 import java.util.Calendar;
@@ -50,16 +46,6 @@ public class SpendingEditorFragment extends BaseFragment {
 
     public static final String EXTRA_SPENDING_ID = "spending_id";
 
-    private static final Date DEFAULT_END_DATE;
-    private static final Date DEFAULT_START_DATE;
-
-    static {
-        Calendar c = Calendar.getInstance();
-        DateUtils.clearLowerBits(c);
-        DEFAULT_END_DATE = c.getTime();
-        DEFAULT_START_DATE = c.getTime();
-    }
-
     @Inject UserPreferences userPreferences;
     @Inject SpendingInteractor spendingInteractor;
 
@@ -68,21 +54,15 @@ public class SpendingEditorFragment extends BaseFragment {
     @BindView(R.id.target) EditText targetInput;
     @BindView(R.id.enabled) CheckBox enabledCB;
     @BindView(R.id.category) Spinner categoryPicker;
-    @BindView(R.id.date_from) Button startDateBtn;
-    @BindView(R.id.date_to) Button endDateBtn;
     @BindView(R.id.occurrence_count) EditText occurrenceInput;
     @BindView(R.id.cycle_multiplier) EditText cycleMultiplierInput;
     @BindView(R.id.cycle_picker) Spinner cyclePicker;
+    @BindView(R.id.from_date_picker) DateRangePicker fromDatePicker;
     @BindView(R.id.notes) EditText notesInput;
     @BindView(R.id.spending_events) TextView spendingEventsLayout;
 
     private Spending originalSpending;
-    private boolean startDateChanged;
-    private boolean endDateChanged;
     private boolean cycleMultiplierChanged;
-
-    private DatePickerDialog startDatePickerDialog;
-    private DatePickerDialog endDatePickerDialog;
     private MenuItem deleteBtn;
     private ViewGroup rootView;
     private View.OnTouchListener keyboardDismisser = new View.OnTouchListener() {
@@ -93,61 +73,6 @@ public class SpendingEditorFragment extends BaseFragment {
                 ViewUtils.hideKeyboard(rootView.getFocusedChild());
             }
             return false;
-        }
-    };
-    private DatePickerDialog.OnDateSetListener dateSetListener = new DatePickerDialog.OnDateSetListener() {
-
-        @Override
-        public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-            Calendar newDate = Calendar.getInstance();
-            newDate.set(Calendar.YEAR, year);
-            newDate.set(Calendar.MONTH, monthOfYear);
-            newDate.set(Calendar.DAY_OF_MONTH, dayOfMonth);
-            DateUtils.clearLowerBits(newDate);
-
-            switch ((int) view.getTag()) {
-                case R.id.date_from:
-                    startDateBtn.setText(DateUtils.FORMAT_MONTH_DAY.format(newDate.getTime()));
-                    Date endDate = getEndDateFromScreen();
-
-                    if (endDate.getTime() < newDate.getTime().getTime()) {
-                        endDatePickerDialog = new DatePickerDialog(getActivity(),
-                                dateSetListener, newDate.get(Calendar.YEAR),
-                                newDate.get(Calendar.MONTH),
-                                newDate.get(Calendar.DAY_OF_MONTH));
-                        applyEndDateToScreen(newDate.getTime());
-                    }
-                    startDateChanged = !newDate.getTime().equals(DEFAULT_START_DATE);
-                    break;
-                case R.id.date_to:
-                    endDateBtn.setText(DateUtils.FORMAT_MONTH_DAY.format(newDate.getTime()));
-                    Date startDate = getStartDateFromScreen();
-
-                    if (startDate.getTime() > newDate.getTime().getTime()) {
-                        startDatePickerDialog = new DatePickerDialog(getActivity(),
-                                dateSetListener, newDate.get(Calendar.YEAR),
-                                newDate.get(Calendar.MONTH),
-                                newDate.get(Calendar.DAY_OF_MONTH));
-                        applyFirstFromDateToScreen(newDate.getTime());
-                    }
-                    endDateChanged = !newDate.getTime().equals(DEFAULT_END_DATE);
-                    break;
-            }
-        }
-    };
-    private View.OnClickListener datePickerOnClickListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            switch (v.getId()) {
-                case R.id.date_from:
-                    getStartDatePickerDialog().show();
-                    startDateBtn.setError(null);
-                    break;
-                case R.id.date_to:
-                    getEndDatePickerDialog().show();
-                    endDateBtn.setError(null);
-                    break;
-            }
         }
     };
 
@@ -172,23 +97,6 @@ public class SpendingEditorFragment extends BaseFragment {
 
         cyclePicker.setAdapter(new PlusOneAdapter(Spending.Cycle.values()));
         cyclePicker.setOnTouchListener(keyboardDismisser);
-        cyclePicker.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                endDateBtn.setError(null);
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-                // nothing to do
-            }
-        });
-
-        startDateBtn.setOnClickListener(datePickerOnClickListener);
-        startDateBtn.setOnTouchListener(keyboardDismisser);
-        endDateBtn.setOnClickListener(datePickerOnClickListener);
-        endDateBtn.setOnTouchListener(keyboardDismisser);
 
         if (originalSpending == null && getArguments() != null && getArguments().containsKey(EXTRA_SPENDING_ID)) {
             showSpending(getArguments().getInt(EXTRA_SPENDING_ID), true);
@@ -200,6 +108,13 @@ public class SpendingEditorFragment extends BaseFragment {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 cycleMultiplierChanged = true;
+            }
+        });
+        fromDatePicker.setTouchInterceptor(new DateRangePicker.TouchInterceptor() {
+            @Override
+            public boolean onInterceptTouchEvent(MotionEvent ev) {
+                keyboardDismisser.onTouch(fromDatePicker, MotionEvent.obtain(0, 0, MotionEvent.ACTION_DOWN, 0f, 0f, 0));
+                return false;
             }
         });
     }
@@ -241,9 +156,6 @@ public class SpendingEditorFragment extends BaseFragment {
         if (spendingId != null) {
             spendingInteractor.read(spendingId)
                     .subscribe(spending -> onSpendingLoaded(spending, showKeyboardWhenDone), this::onError);
-        } else {
-            applyFirstFromDateToScreen(DEFAULT_START_DATE);
-            applyEndDateToScreen(DEFAULT_END_DATE);
         }
     }
 
@@ -311,15 +223,13 @@ public class SpendingEditorFragment extends BaseFragment {
                     });
             return true;
         } else {
-            error.showError();
+            error.showError(getActivity());
             return false;
         }
     }
 
     private void onSpendingLoaded(Spending spending, boolean showKeyboardWhenDone) {
         this.originalSpending = spending;
-        endDatePickerDialog = null;
-        startDatePickerDialog = null;
         applySpendingToScreen(spending);
 
         if (showKeyboardWhenDone && isAdded()) {
@@ -347,14 +257,8 @@ public class SpendingEditorFragment extends BaseFragment {
         if (spending.getType() != null) {
             categoryPicker.setSelection(spending.getType().ordinal() + 1);
         }
-
-        Date firstOccurrenceStart = spending.getFromStartDate() != null
-                ? spending.getFromStartDate()
-                : DEFAULT_START_DATE;
-        applyFirstFromDateToScreen(firstOccurrenceStart);
-
-        Date firstOccurrenceEnd = spending.getFromEndDate() != null ? spending.getFromEndDate() : DEFAULT_END_DATE;
-        applyEndDateToScreen(firstOccurrenceEnd);
+        fromDatePicker.setStartDate(spending.getFromStartDate());
+        fromDatePicker.setEndDate(spending.getFromEndDate());
 
         if (spending.getOccurrenceCount() != null) {
             occurrenceInput.setText(Integer.toString(spending.getOccurrenceCount()));
@@ -385,85 +289,6 @@ public class SpendingEditorFragment extends BaseFragment {
         spendingEventsLayout.setText(spentStr);
     }
 
-    private void applyFirstFromDateToScreen(Date startDate) {
-        startDateBtn.setText(DateUtils.FORMAT_MONTH_DAY.format(startDate));
-    }
-
-    private void applyEndDateToScreen(Date endDate) {
-        endDateBtn.setText(DateUtils.FORMAT_MONTH_DAY.format(endDate));
-    }
-
-    private DatePickerDialog getStartDatePickerDialog() {
-        Calendar c = Calendar.getInstance();
-        if (originalSpending != null && originalSpending.getFromStartDate() != null) {
-            c.setTime(this.originalSpending.getFromStartDate());
-        }
-        if (startDatePickerDialog == null) {
-            startDatePickerDialog = new DatePickerDialog(getActivity(), dateSetListener,
-                    c.get(Calendar.YEAR), c.get(Calendar.MONTH),
-                    c.get(Calendar.DAY_OF_MONTH));
-        }
-        startDatePickerDialog.getDatePicker().setTag(R.id.date_from);
-        return startDatePickerDialog;
-    }
-
-    private DatePickerDialog getEndDatePickerDialog() {
-        Calendar c = Calendar.getInstance();
-        if (originalSpending != null && originalSpending.getFromEndDate() != null) {
-            c.setTime(this.originalSpending.getFromEndDate());
-        }
-        if (endDatePickerDialog == null) {
-            endDatePickerDialog = new DatePickerDialog(getActivity(), dateSetListener,
-                    c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH));
-        }
-        endDatePickerDialog.getDatePicker().setTag(R.id.date_to);
-        return endDatePickerDialog;
-    }
-
-    /**
-     * There are two kinds of validation errors: the ones that can be shown in an input
-     * field (with {@link TextView#setError(CharSequence)} and the ones tha are shown
-     * as a Toast or Dialog instead (DatePicker, etc...).
-     */
-    private class ValidationError {
-        static final int TYPE_INPUT_FIELD = 1;
-        static final int TYPE_NON_INPUT_FIELD = 2;
-
-        final int type;
-        final View target;
-        final String errorMessage;
-
-        ValidationError(int type, View target, String errorMessage) {
-            if (type == TYPE_INPUT_FIELD) {
-                if (target == null) {
-                    throw new IllegalArgumentException("Please specify a target view for the input field error " + "message");
-                }
-                if (!(target instanceof TextView)) {
-                    throw new IllegalArgumentException("Wrong view type in ValidationError. Cannot show error " + "message.");
-
-                }
-            } else if (type != TYPE_NON_INPUT_FIELD) {
-                throw new IllegalArgumentException("\"type\" must be one of {TYPE_INPUT_FIELD, " + "TYPE_NON_INPUT_FIELD}");
-            }
-            this.type = type;
-            this.target = target;
-            this.errorMessage = errorMessage;
-        }
-
-        void showError() throws IllegalArgumentException {
-            if (type == TYPE_INPUT_FIELD) {
-                TextView textView = (TextView) target;
-                textView.setError(errorMessage);
-                textView.requestFocus();
-            } else if (type == TYPE_NON_INPUT_FIELD) {
-                Toast.makeText(getActivity(), errorMessage, Toast.LENGTH_SHORT).show();
-                if (target != null) {
-                    target.requestFocus();
-                }
-            }
-        }
-    }
-
     /**
      * Verify whether user input is valid and show appropriate error messages
      *
@@ -485,8 +310,8 @@ public class SpendingEditorFragment extends BaseFragment {
         if (TextUtils.isEmpty(cycleMultiplierInput.getText())) {
             return new ValidationError(ValidationError.TYPE_INPUT_FIELD, cycleMultiplierInput, "Please fill in");
         }
-        Date firstOccurrenceStart = getStartDateFromScreen();
-        Date firstOccurrenceEnd = getEndDateFromScreen();
+        Date firstOccurrenceStart = fromDatePicker.getStartDate();
+        Date firstOccurrenceEnd = fromDatePicker.getEndDate();
         if (firstOccurrenceStart.after(firstOccurrenceEnd)) {
             return new ValidationError(ValidationError.TYPE_NON_INPUT_FIELD, null, "Start date must not be higher then end date");
         }
@@ -499,7 +324,7 @@ public class SpendingEditorFragment extends BaseFragment {
         calendar.add(Calendar.DAY_OF_MONTH, -1);
 
         if (firstOccurrenceEnd.after(calendar.getTime())) {
-            return new ValidationError(ValidationError.TYPE_NON_INPUT_FIELD, endDateBtn,
+            return new ValidationError(ValidationError.TYPE_NON_INPUT_FIELD, null,
                     "End date cannot be higher than " + DateUtils.FORMAT_MONTH_DAY.format(calendar.getTime()));
         }
         return null;
@@ -522,9 +347,9 @@ public class SpendingEditorFragment extends BaseFragment {
             spending.setType((Spending.Category) categoryPicker.getSelectedItem());
         }
         // fromStartDate
-        spending.setFromStartDate(getStartDateFromScreen());
+        spending.setFromStartDate(fromDatePicker.getStartDate());
         // fromEndDate
-        spending.setFromEndDate(getEndDateFromScreen());
+        spending.setFromEndDate(fromDatePicker.getEndDate());
         // repetition
         if (!TextUtils.isEmpty(occurrenceInput.getText())) {
             spending.setOccurrenceCount(Integer.valueOf(occurrenceInput.getText().toString()));
@@ -553,37 +378,6 @@ public class SpendingEditorFragment extends BaseFragment {
         return spending;
     }
 
-    private Date getStartDateFromScreen() {
-        Date firstOccurrenceDateStart;
-
-        if (startDatePickerDialog != null) {
-            // user picked a date
-            firstOccurrenceDateStart = DateUtils.getDayFromDatePicker(startDatePickerDialog.getDatePicker());
-        } else if (originalSpending != null && originalSpending.getFromStartDate() != null) {
-            // user did not pick a date, but this is EDIT, not CREATE
-            firstOccurrenceDateStart = originalSpending.getFromStartDate();
-        } else {
-            // user did not pick a date, and we are in CREATE mode
-            firstOccurrenceDateStart = DEFAULT_START_DATE;
-        }
-        return firstOccurrenceDateStart;
-    }
-
-    private Date getEndDateFromScreen() {
-        Date firstOccurrenceDateEnd;
-        if (endDatePickerDialog != null) {
-            // user picked a date
-            firstOccurrenceDateEnd = DateUtils.getDayFromDatePicker(endDatePickerDialog.getDatePicker());
-        } else if (originalSpending != null && originalSpending.getFromEndDate() != null) {
-            // user did not pick a date, but this is EDIT, not CREATE
-            firstOccurrenceDateEnd = originalSpending.getFromEndDate();
-        } else {
-            // user did not pick a date, and we are in CREATE mode
-            firstOccurrenceDateEnd = DEFAULT_END_DATE;
-        }
-        return firstOccurrenceDateEnd;
-    }
-
     private Integer getCycleMultiplierFromScreen() {
         Integer cycleMultiplier = null;
         if (!TextUtils.isEmpty(cycleMultiplierInput.getText())) {
@@ -603,7 +397,7 @@ public class SpendingEditorFragment extends BaseFragment {
     private boolean shouldSave() {
         Spending newSpending = getSpendingFromScreen();
         boolean isNew = originalSpending == null
-                && !new Spending().compareForEditing(newSpending, !(startDateChanged || endDateChanged), !cycleMultiplierChanged);
+                && !new Spending().compareForEditing(newSpending, !(fromDatePicker.isStartDateChanged() || fromDatePicker.isEndDateChanged()), !cycleMultiplierChanged);
         boolean changed = originalSpending != null && !originalSpending.compareForEditing(newSpending, false, false);
         return isNew || changed;
     }

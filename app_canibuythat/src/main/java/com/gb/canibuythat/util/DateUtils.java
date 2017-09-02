@@ -12,7 +12,6 @@ public class DateUtils {
 
     public static final SimpleDateFormat FORMAT_MONTH_DAY = new SimpleDateFormat("MMM.dd");
 
-
     public static Date getDayFromDatePicker(DatePicker datePicker) {
         return DateUtils.getDay(datePicker.getYear(), datePicker.getMonth(), datePicker.getDayOfMonth());
     }
@@ -73,6 +72,23 @@ public class DateUtils {
     }
 
     public static DatePickerDialog getDatePickerDialog(Context context, DatePickerDialog.OnDateSetListener listener, Calendar date) {
-        return new DatePickerDialog(context, listener, date.get(Calendar.YEAR), date.get(Calendar.MONTH), date.get(Calendar.DAY_OF_MONTH));
+        return new DatePickerDialog(context, listener, decompose(date)[0], decompose(date)[1], decompose(date)[2]);
+    }
+
+    public static int[] decompose(Calendar c) {
+        return new int[]{c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DATE)};
+    }
+
+    public static int[] decompose(Date date) {
+        Calendar c = Calendar.getInstance();
+        c.setTime(date);
+        return new int[]{c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DATE)};
+    }
+
+    public static Calendar compose(int year, int month, int dayOfMonth) {
+        Calendar c = Calendar.getInstance();
+        c.set(year, month, dayOfMonth);
+        DateUtils.clearLowerBits(c);
+        return c;
     }
 }
