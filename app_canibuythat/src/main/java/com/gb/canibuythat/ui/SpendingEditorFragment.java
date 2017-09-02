@@ -50,7 +50,7 @@ public class SpendingEditorFragment extends BaseFragment {
     @Inject SpendingInteractor spendingInteractor;
 
     @BindView(R.id.name) EditText nameInput;
-    @BindView(R.id.amount) EditText averageInput;
+    @BindView(R.id.value) EditText valueInput;
     @BindView(R.id.target) EditText targetInput;
     @BindView(R.id.enabled) CheckBox enabledCB;
     @BindView(R.id.category) Spinner categoryPicker;
@@ -243,10 +243,10 @@ public class SpendingEditorFragment extends BaseFragment {
 
     private void applySpendingToScreen(final Spending spending) {
         nameInput.setText(spending.getName());
-        if (spending.getAverage() != null) {
-            averageInput.setText(getString(R.string.detail_amount, spending.getAverage()));
+        if (spending.getValue() != null) {
+            valueInput.setText(getString(R.string.detail_amount, spending.getValue()));
         } else {
-            averageInput.setText(null);
+            valueInput.setText(null);
         }
         if (spending.getTarget() != null) {
             targetInput.setText(getString(R.string.detail_amount, spending.getTarget()));
@@ -298,8 +298,8 @@ public class SpendingEditorFragment extends BaseFragment {
         if (TextUtils.isEmpty(nameInput.getText())) {
             return new ValidationError(ValidationError.TYPE_INPUT_FIELD, nameInput, "Please specify a name");
         }
-        if (TextUtils.isEmpty(averageInput.getText())) {
-            return new ValidationError(ValidationError.TYPE_INPUT_FIELD, averageInput, "Please specify an average");
+        if (TextUtils.isEmpty(valueInput.getText())) {
+            return new ValidationError(ValidationError.TYPE_INPUT_FIELD, valueInput, "Please specify a value");
         }
         if (!(categoryPicker.getSelectedItem() instanceof Spending.Category)) {
             return new ValidationError(ValidationError.TYPE_NON_INPUT_FIELD, null, "Please select a category");
@@ -336,9 +336,9 @@ public class SpendingEditorFragment extends BaseFragment {
         if (!TextUtils.isEmpty(nameInput.getText())) {
             spending.setName(nameInput.getText().toString());
         }
-        // average
-        if (!TextUtils.isEmpty(averageInput.getText())) {
-            spending.setAverage(Double.valueOf(averageInput.getText().toString()));
+        // value
+        if (!TextUtils.isEmpty(valueInput.getText())) {
+            spending.setValue(Double.valueOf(valueInput.getText().toString()));
         }
         // enabled
         spending.setEnabled(enabledCB.isChecked());

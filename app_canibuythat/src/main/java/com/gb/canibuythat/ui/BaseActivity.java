@@ -70,6 +70,7 @@ public abstract class BaseActivity extends AppCompatActivity implements Progress
     public void hideProgress() {
         if (progressDialog != null && progressDialog.isAdded() && !progressDialog.isRemoving()) {
             progressDialog.dismissAllowingStateLoss();
+            progressDialog = null;
         }
     }
 

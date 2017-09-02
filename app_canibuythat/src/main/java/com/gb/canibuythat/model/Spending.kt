@@ -31,8 +31,8 @@ class Spending {
     @DatabaseField(columnName = Contract.Spending.TYPE, canBeNull = false)
     var type: Category? = null
 
-    @DatabaseField(columnName = Contract.Spending.SPENDING, canBeNull = false)
-    var average: Double? = null
+    @DatabaseField(columnName = Contract.Spending.VALUE, canBeNull = false)
+    var value: Double? = null
 
     /**
      * Date before witch the transaction certainly won't happen. The repetition cycle
@@ -93,7 +93,7 @@ class Spending {
         if (name != other.name) return false
         if (notes != other.notes) return false
         if (type != other.type) return false
-        if (average != other.average) return false
+        if (value != other.value) return false
         if (fromStartDate != other.fromStartDate) return false
         if (fromEndDate != other.fromEndDate) return false
         if (occurrenceCount != other.occurrenceCount) return false
@@ -118,7 +118,7 @@ class Spending {
         if (name != other.name) return false
         if (notes != other.notes) return false
         if (type != other.type) return false
-        if (average != other.average) return false
+        if (value != other.value) return false
         if (!ignoreDates) {
             if (fromStartDate != other.fromStartDate) return false
             if (fromEndDate != other.fromEndDate) return false
@@ -140,7 +140,7 @@ class Spending {
         result = 31 * result + (name?.hashCode() ?: 0)
         result = 31 * result + (notes?.hashCode() ?: 0)
         result = 31 * result + (type?.hashCode() ?: 0)
-        result = 31 * result + (average?.hashCode() ?: 0)
+        result = 31 * result + (value?.hashCode() ?: 0)
         result = 31 * result + (fromStartDate?.hashCode() ?: 0)
         result = 31 * result + (fromEndDate?.hashCode() ?: 0)
         result = 31 * result + (occurrenceCount ?: 0)
@@ -154,7 +154,7 @@ class Spending {
     }
 
     override fun toString(): String {
-        return "Spending(id=$id, name=$name, notes=$notes, type=$type, average=$average, fromStartDate=$fromStartDate, fromEndDate=$fromEndDate, occurrenceCount=$occurrenceCount, cycleMultiplier=$cycleMultiplier, cycle=$cycle, enabled=$enabled, sourceData=$sourceData, spent=$spent, target=$target)"
+        return "Spending(id=$id, name=$name, notes=$notes, type=$type, value=$value, fromStartDate=$fromStartDate, fromEndDate=$fromEndDate, occurrenceCount=$occurrenceCount, cycleMultiplier=$cycleMultiplier, cycle=$cycle, enabled=$enabled, sourceData=$sourceData, spent=$spent, target=$target)"
     }
 
 

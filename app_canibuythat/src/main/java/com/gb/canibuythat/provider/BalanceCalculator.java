@@ -43,11 +43,11 @@ public class BalanceCalculator {
                 int r = DateUtils.compare(date, occurrenceStart, occurrenceEnd);
                 if (r >= -1) { //after or on start date
                     if (spending.getEnabled()) {
-                        worstCase += spending.getAverage();
+                        worstCase += spending.getValue();
                     }
                     if (r > 1) { // after end date
                         if (spending.getEnabled()) {
-                            bestCase += spending.getAverage();
+                            bestCase += spending.getValue();
                         }
                         spendingEvents.add(occurrenceEnd.getTime());
                     }

@@ -63,8 +63,8 @@ constructor(private val spendingDbHelper: SpendingDbHelper, private val userPref
                             it.cycle = savedSpendings[index].cycle
                             it.cycleMultiplier = savedSpendings[index].cycleMultiplier
 
-                            if (savedSpendings[index].average != 0.0) {
-                                it.average = savedSpendings[index].average
+                            if (savedSpendings[index].value != 0.0) {
+                                it.value = savedSpendings[index].value
                             }
                             spendingDao.update(it)
                         } else {

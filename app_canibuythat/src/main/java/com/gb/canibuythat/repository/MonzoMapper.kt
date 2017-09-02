@@ -55,7 +55,7 @@ class MonzoMapper @Inject constructor() {
         spending.cycle = cycle
 
         val timeMap: Map<Int, List<Transaction>> = transactions.groupBy { cycle.get(it.created.toLocalDate()) }
-        spending.average = transactions.sumBy { it.amount }.div(timeMap.size).div(100.0)
+        spending.value = transactions.sumBy { it.amount }.div(timeMap.size).div(100.0)
         spending.type = mapSpendingType(category)
         spending.enabled = spending.type!!.defaultEnabled
         spending.name = WordUtils.capitalizeFully(category.replace("\\_".toRegex(), " "))
