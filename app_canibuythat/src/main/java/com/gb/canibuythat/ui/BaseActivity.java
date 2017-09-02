@@ -7,6 +7,7 @@ import android.support.v7.app.AppCompatActivity;
 import com.gb.canibuythat.di.Injector;
 import com.gb.canibuythat.exception.ErrorHandler;
 import com.gb.canibuythat.exception.ContextSource;
+import com.gb.canibuythat.screen.ProgressScreen;
 import com.gb.canibuythat.screen.Screen;
 
 import javax.inject.Inject;
@@ -14,7 +15,7 @@ import javax.inject.Inject;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
 
-public abstract class BaseActivity extends AppCompatActivity implements Screen, ContextSource {
+public abstract class BaseActivity extends AppCompatActivity implements ProgressScreen, ContextSource {
 
     @Inject ErrorHandler errorHandler;
 

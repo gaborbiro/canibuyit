@@ -9,20 +9,18 @@ import android.support.v4.app.FragmentManager;
 import android.view.View;
 
 import com.gb.canibuythat.di.Injector;
-import com.gb.canibuythat.exception.ErrorHandler;
 import com.gb.canibuythat.exception.ContextSource;
-import com.gb.canibuythat.screen.Screen;
+import com.gb.canibuythat.exception.ErrorHandler;
 
 import javax.inject.Inject;
 
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
 
-public abstract class BaseFragment extends Fragment implements Screen, ContextSource {
+public abstract class BaseFragment extends Fragment implements ContextSource {
 
     @Inject ErrorHandler errorHandler;
 
-    private ProgressDialog progressDialog;
     private Unbinder unbinder;
 
     @Override
@@ -67,22 +65,6 @@ public abstract class BaseFragment extends Fragment implements Screen, ContextSo
     @Override
     public Context getBaseContext() {
         return getActivity();
-    }
-
-    @Override
-    public void showProgress() {
-        if (progressDialog != null && progressDialog.isAdded()) {
-            progressDialog.dismissAllowingStateLoss();
-        }
-        progressDialog = ProgressDialog.newInstance("Please wait");
-        progressDialog.show(getSupportFragmentManager(), "progress");
-    }
-
-    @Override
-    public void hideProgress() {
-        if (progressDialog != null && progressDialog.isAdded()) {
-            progressDialog.dismissAllowingStateLoss();
-        }
     }
 
     protected abstract void inject();

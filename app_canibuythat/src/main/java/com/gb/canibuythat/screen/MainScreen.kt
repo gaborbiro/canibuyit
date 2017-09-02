@@ -3,7 +3,7 @@ package com.gb.canibuythat.screen
 import com.gb.canibuythat.model.Balance
 import com.gb.canibuythat.model.Spending
 
-interface MainScreen : Screen {
+interface MainScreen : ProgressScreen {
     fun showChartScreen()
 
     fun showLoginActivity()
