@@ -99,38 +99,38 @@ public class SpendingEditorFragment extends BaseFragment {
 
         @Override
         public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-            Calendar c = Calendar.getInstance();
-            c.set(Calendar.YEAR, year);
-            c.set(Calendar.MONTH, monthOfYear);
-            c.set(Calendar.DAY_OF_MONTH, dayOfMonth);
-            DateUtils.clearLowerBits(c);
+            Calendar newDate = Calendar.getInstance();
+            newDate.set(Calendar.YEAR, year);
+            newDate.set(Calendar.MONTH, monthOfYear);
+            newDate.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+            DateUtils.clearLowerBits(newDate);
 
             switch ((int) view.getTag()) {
                 case R.id.date_from:
-                    startDateBtn.setText(DateUtils.FORMAT_MONTH_DAY.format(c.getTime()));
+                    startDateBtn.setText(DateUtils.FORMAT_MONTH_DAY.format(newDate.getTime()));
                     Date endDate = getEndDateFromScreen();
 
-                    if (endDate.getTime() < c.getTime().getTime()) {
+                    if (endDate.getTime() < newDate.getTime().getTime()) {
                         endDatePickerDialog = new DatePickerDialog(getActivity(),
-                                dateSetListener, c.get(Calendar.YEAR),
-                                c.get(Calendar.MONTH),
-                                c.get(Calendar.DAY_OF_MONTH));
-                        applyEndDateToScreen(c.getTime());
+                                dateSetListener, newDate.get(Calendar.YEAR),
+                                newDate.get(Calendar.MONTH),
+                                newDate.get(Calendar.DAY_OF_MONTH));
+                        applyEndDateToScreen(newDate.getTime());
                     }
-                    startDateChanged = !c.getTime().equals(DEFAULT_START_DATE);
+                    startDateChanged = !newDate.getTime().equals(DEFAULT_START_DATE);
                     break;
                 case R.id.date_to:
-                    endDateBtn.setText(DateUtils.FORMAT_MONTH_DAY.format(c.getTime()));
+                    endDateBtn.setText(DateUtils.FORMAT_MONTH_DAY.format(newDate.getTime()));
                     Date startDate = getStartDateFromScreen();
 
-                    if (startDate.getTime() > c.getTime().getTime()) {
+                    if (startDate.getTime() > newDate.getTime().getTime()) {
                         startDatePickerDialog = new DatePickerDialog(getActivity(),
-                                dateSetListener, c.get(Calendar.YEAR),
-                                c.get(Calendar.MONTH),
-                                c.get(Calendar.DAY_OF_MONTH));
-                        applyFirstFromDateToScreen(c.getTime());
+                                dateSetListener, newDate.get(Calendar.YEAR),
+                                newDate.get(Calendar.MONTH),
+                                newDate.get(Calendar.DAY_OF_MONTH));
+                        applyFirstFromDateToScreen(newDate.getTime());
                     }
-                    endDateChanged = !c.getTime().equals(DEFAULT_END_DATE);
+                    endDateChanged = !newDate.getTime().equals(DEFAULT_END_DATE);
                     break;
             }
         }
@@ -402,8 +402,8 @@ public class SpendingEditorFragment extends BaseFragment {
             startDatePickerDialog = new DatePickerDialog(getActivity(), dateSetListener,
                     c.get(Calendar.YEAR), c.get(Calendar.MONTH),
                     c.get(Calendar.DAY_OF_MONTH));
-            startDatePickerDialog.getDatePicker().setTag(R.id.date_from);
         }
+        startDatePickerDialog.getDatePicker().setTag(R.id.date_from);
         return startDatePickerDialog;
     }
 
@@ -415,8 +415,8 @@ public class SpendingEditorFragment extends BaseFragment {
         if (endDatePickerDialog == null) {
             endDatePickerDialog = new DatePickerDialog(getActivity(), dateSetListener,
                     c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH));
-            endDatePickerDialog.getDatePicker().setTag(R.id.date_to);
         }
+        endDatePickerDialog.getDatePicker().setTag(R.id.date_to);
         return endDatePickerDialog;
     }
 
