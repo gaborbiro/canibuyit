@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ImageView;
@@ -23,6 +24,7 @@ import com.gb.canibuythat.ui.model.BalanceReading;
 import com.gb.canibuythat.util.DateUtils;
 import com.gb.canibuythat.util.PermissionVerifier;
 import com.gb.canibuythat.util.ViewUtils;
+import com.google.firebase.iid.FirebaseInstanceId;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -118,6 +120,10 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
                 break;
             case R.id.menu_import:
                 presenter.onImportDatabase();
+                break;
+            case R.id.menu_fcm:
+                String token = FirebaseInstanceId.getInstance().getToken();
+                Log.d("MonzoDispatch", token);
                 break;
             case R.id.menu_monzo:
                 presenter.fetchMonzoData();
