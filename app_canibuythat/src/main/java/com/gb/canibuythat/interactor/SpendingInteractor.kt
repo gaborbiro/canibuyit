@@ -14,19 +14,38 @@ import com.j256.ormlite.dao.Dao
 import io.reactivex.Completable
 import io.reactivex.Maybe
 import io.reactivex.Single
+import io.reactivex.subjects.PublishSubject
+import io.reactivex.subjects.Subject
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class SpendingInteractor @Inject
 constructor(private val spendingsRepository: SpendingsRepository, private val appContext: Context, private val schedulerProvider: SchedulerProvider) {
 
-    val all: Maybe<List<Spending>>
-        get() = spendingsRepository.all
+    val subject: Subject<List<Spending>> = PublishSubject.create<List<Spending>>()
+
+    fun loadSpendings() {
+        spendingsRepository.all
                 .onErrorResumeNext { throwable: Throwable -> Maybe.error<List<Spending>>(DomainException("Error loading from database. See logs.", throwable)) }
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())
+                .subscribe({
+                    subject.onNext(it)
+                }, subject::onError)
+    }
+
+    fun clearSpendings() {
+        spendingsRepository.deleteAll()
+                .subscribeOn(schedulerProvider.io())
+                .observeOn(schedulerProvider.mainThread())
+                .subscribe({
+                    subject.onNext(listOf())
+                }, subject::onError)
+    }
 
     fun createOrUpdate(spending: Spending): Single<Dao.CreateOrUpdateStatus> {
         return spendingsRepository.createOrUpdate(spending)
@@ -36,12 +55,13 @@ constructor(private val spendingsRepository: SpendingsRepository, private val ap
                 .observeOn(schedulerProvider.mainThread())
     }
 
-    fun createOrUpdateMonzoCategories(spendings: List<Spending>): Completable {
-        return spendingsRepository.createOrUpdateMonzoCategories(spendings)
+    fun createOrUpdateMonzoCategories(spendings: List<Spending>) {
+        spendingsRepository.createOrUpdateMonzoCategories(spendings)
                 .onErrorResumeNext { throwable -> Completable.error(DomainException("Error updating monzo cache. See logs.", throwable)) }
                 .doOnComplete { appContext.contentResolver.notifyChange(SpendingProvider.SPENDINGS_URI, null) }
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())
+                .subscribe(this::loadSpendings, subject::onError)
     }
 
     fun delete(id: Int): Completable {
@@ -96,6 +116,5 @@ constructor(private val spendingsRepository: SpendingsRepository, private val ap
         } catch (t: Throwable) {
             return Completable.error(DomainException("Error exporting database", t))
         }
-
     }
 }

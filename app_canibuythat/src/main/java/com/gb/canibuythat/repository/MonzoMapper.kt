@@ -2,9 +2,9 @@ package com.gb.canibuythat.repository
 
 import com.gb.canibuythat.api.model.*
 import com.gb.canibuythat.model.Account
+import com.gb.canibuythat.model.Login
 import com.gb.canibuythat.model.Spending
 import com.gb.canibuythat.model.Spending.Cycle
-import com.gb.canibuythat.model.Login
 import com.gb.canibuythat.model.Transaction
 import org.apache.commons.lang3.text.WordUtils
 import org.threeten.bp.LocalDate
@@ -73,7 +73,7 @@ class MonzoMapper @Inject constructor() {
     fun Cycle.get(date: LocalDate): Int {
         return when (this) {
             Cycle.DAYS -> date.toEpochDay().toInt()
-            Cycle.WEEKS -> date[ChronoField.ALIGNED_WEEK_OF_YEAR]
+            Cycle.WEEKS -> date.minusDays(1)[ChronoField.ALIGNED_WEEK_OF_YEAR]
             Cycle.MONTHS -> date.monthValue
             Cycle.YEARS -> date.year
         }

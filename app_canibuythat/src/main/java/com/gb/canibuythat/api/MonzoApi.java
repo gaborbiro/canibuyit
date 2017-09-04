@@ -29,9 +29,6 @@ public interface MonzoApi {
                              @Part("client_id") RequestBody clientId,
                              @Part("client_secret") RequestBody clientSecret);
 
-    @GET("/accounts")
-    Single<ApiAccountCollection> accounts();
-
     @GET("/transactions")
     Single<ApiTransactionCollection> transactions(@Query("account_id") String accountId);
 }

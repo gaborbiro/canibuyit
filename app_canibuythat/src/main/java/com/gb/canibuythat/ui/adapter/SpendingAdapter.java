@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import com.gb.canibuythat.R;
 import com.gb.canibuythat.model.Spending;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class SpendingAdapter extends RecyclerView.Adapter<SpendingViewHolder> {
@@ -22,10 +23,15 @@ public class SpendingAdapter extends RecyclerView.Adapter<SpendingViewHolder> {
     }
 
     public void setData(List<Spending> spendings) {
-        this.spendings = spendings;
-        callback.setNewSpendings(spendings);
-        DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(callback);
-        diffResult.dispatchUpdatesTo(this);
+        if (this.spendings == null || this.spendings.size() == 0) {
+            this.spendings = spendings;
+            notifyDataSetChanged();
+        } else {
+            this.spendings = spendings;
+            callback.setNewSpendings(spendings);
+            DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(callback);
+            diffResult.dispatchUpdatesTo(this);
+        }
     }
 
     @Override
@@ -52,7 +58,7 @@ public class SpendingAdapter extends RecyclerView.Adapter<SpendingViewHolder> {
 
     private class SpendingListDiffCallback extends DiffUtil.Callback {
 
-        private List<Spending> oldSpendings;
+        private List<Spending> oldSpendings = new ArrayList<>();
         private List<Spending> newSpendings;
 
         void setNewSpendings(List<Spending> newSpendings) {

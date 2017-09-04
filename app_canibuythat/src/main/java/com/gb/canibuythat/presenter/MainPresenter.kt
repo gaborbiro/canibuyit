@@ -5,9 +5,8 @@ import android.os.Environment
 import android.text.TextUtils
 import com.gb.canibuythat.CredentialsProvider
 import com.gb.canibuythat.MonzoConstants
-import com.gb.canibuythat.interactor.SpendingInteractor
 import com.gb.canibuythat.interactor.MonzoInteractor
-import com.gb.canibuythat.model.Spending
+import com.gb.canibuythat.interactor.SpendingInteractor
 import com.gb.canibuythat.screen.MainScreen
 import javax.inject.Inject
 
@@ -50,31 +49,20 @@ constructor(private val monzoInteractor: MonzoInteractor,
     }
 
     fun chartButtonClicked() {
-        screen.showChartScreen()
+        screen::showChartScreen
     }
 
     fun fetchMonzoData() {
         if (TextUtils.isEmpty(credentialsProvider.accessToken)) {
-            screen.showLoginActivity()
+            screen::showLoginActivity
         } else {
-            monzoInteractor.getSpendings(MonzoConstants.ACCOUNT_ID)
-                    .doOnSubscribe { screen.showProgress() }
-                    .doAfterTerminate { screen.hideProgress() }
-                    .subscribe(this::onSpendingsLoaded, this::onError)
+            monzoInteractor.loadTransactions(MonzoConstants.ACCOUNT_ID)
         }
     }
 
-    fun onSpendingsLoaded(spendings: List<Spending>) {
-        spendingInteractor.createOrUpdateMonzoCategories(spendings)
-                .subscribe({
-                    spendingInteractor.all.subscribe({
-                        screen.setData(it)
-                    }, {
-                        this.onError(it)
-                    })
-                }, this::onError)
+    fun deleteAllSpendings() {
+        spendingInteractor::clearSpendings
     }
-
 
     fun exportDatabase() {
         spendingInteractor.exportDatabase().subscribe(this::onImportDatabase, this::onError)
@@ -90,7 +78,7 @@ constructor(private val monzoInteractor: MonzoInteractor,
     }
 
     fun updateBalance() {
-        screen.showBalanceUpdateDialog()
+        screen::showBalanceUpdateDialog
     }
 
     fun showEditorScreenForSpending(id: Int) {

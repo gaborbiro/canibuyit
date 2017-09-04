@@ -1,6 +1,8 @@
 package com.gb.canibuythat.exception;
 
+import android.content.Context;
 import android.support.v4.app.FragmentManager;
+import android.widget.Toast;
 
 import com.gb.canibuythat.di.Injector;
 import com.gb.canibuythat.ui.LoginActivity;
@@ -15,8 +17,11 @@ public class ErrorHandler {
 
     private static final String TAG = "CanIBuyThat";
 
+    private Context appContext;
+
     @Inject
-    public ErrorHandler() {
+    public ErrorHandler(Context appContext) {
+        this.appContext = appContext;
     }
 
     public void onError(Throwable exception) {
@@ -43,6 +48,26 @@ public class ErrorHandler {
             if (fragmentManager != null && dialog != null) {
                 dialog.show(fragmentManager, null);
             }
+        }
+        Logger.INSTANCE.e(TAG, exception);
+    }
+
+    public void onErrorSoft(Throwable exception) {
+        if (exception instanceof DomainException) {
+            DomainException domainException = (DomainException) exception;
+            String message = null;
+            switch (domainException.getKind()) {
+                case HTTP:
+                    message = "Server error " + domainException.getCode() + ": " + domainException.getMessage();
+                    break;
+                case NETWORK:
+                    message = "Network error: " + domainException.getMessage();
+                    break;
+                case GENERIC:
+                    message = "Error: " + domainException.getMessage();
+                    break;
+            }
+            Toast.makeText(appContext, message, Toast.LENGTH_SHORT).show();
         }
         Logger.INSTANCE.e(TAG, exception);
     }

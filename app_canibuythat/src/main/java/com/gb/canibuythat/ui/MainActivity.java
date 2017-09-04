@@ -17,7 +17,6 @@ import com.gb.canibuythat.R;
 import com.gb.canibuythat.UserPreferences;
 import com.gb.canibuythat.di.Injector;
 import com.gb.canibuythat.model.Balance;
-import com.gb.canibuythat.model.Spending;
 import com.gb.canibuythat.presenter.MainPresenter;
 import com.gb.canibuythat.screen.MainScreen;
 import com.gb.canibuythat.ui.model.BalanceReading;
@@ -30,7 +29,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Calendar;
 import java.util.Date;
-import java.util.List;
 
 import javax.inject.Inject;
 
@@ -128,6 +126,9 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
             case R.id.menu_monzo:
                 presenter.fetchMonzoData();
                 break;
+            case R.id.menu_delete_spendings:
+                presenter.deleteAllSpendings();
+                break;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -213,11 +214,6 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
                 startActivity(SpendingEditorActivity.getIntentForCreate(MainActivity.this));
             }
         }
-    }
-
-    @Override
-    public void setData(List<Spending> spendings) {
-        ((SpendingListFragment) getSupportFragmentManager().findFragmentById(R.id.spending_list_fragment)).setData(spendings);
     }
 
     @Override

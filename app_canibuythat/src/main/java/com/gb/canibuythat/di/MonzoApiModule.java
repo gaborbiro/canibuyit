@@ -6,6 +6,7 @@ import com.gb.canibuythat.CredentialsProvider;
 import com.gb.canibuythat.MonzoConstants;
 import com.gb.canibuythat.api.AuthInterceptor;
 import com.gb.canibuythat.api.MonzoApi;
+import com.gb.canibuythat.api.MonzoDispatchApi;
 import com.google.gson.Gson;
 
 import java.util.concurrent.TimeUnit;
@@ -47,6 +48,27 @@ public class MonzoApiModule {
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .build()
                 .create(MonzoApi.class);
+    }
+
+    @Provides
+    @Singleton
+    MonzoDispatchApi provideMonzoDispatchApi() {
+        OkHttpClient.Builder okHttpClientBuilder = new OkHttpClient.Builder()
+                .readTimeout(AppConstants.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .connectTimeout(AppConstants.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+        if (BuildConfig.DEBUG) {
+            HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
+            interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+            okHttpClientBuilder.addInterceptor(interceptor);
+        }
+
+        return new Retrofit.Builder()
+                .client(okHttpClientBuilder.build())
+                .baseUrl(MonzoConstants.MONZO_DISPATCH_API_BASE)
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                .build()
+                .create(MonzoDispatchApi.class);
     }
 
     @Provides

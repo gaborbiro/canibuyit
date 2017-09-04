@@ -7,15 +7,17 @@ import com.gb.canibuythat.UserPreferences
 import com.gb.canibuythat.model.Balance
 import com.gb.canibuythat.model.Spending
 import com.gb.canibuythat.provider.BalanceCalculator
-import com.gb.canibuythat.provider.SpendingDbHelper
 import com.gb.canibuythat.provider.Contract
+import com.gb.canibuythat.provider.SpendingDbHelper
 import com.j256.ormlite.dao.Dao
 import io.reactivex.Completable
 import io.reactivex.Maybe
 import io.reactivex.Single
 import java.sql.SQLException
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class SpendingsRepository @Inject
 constructor(private val spendingDbHelper: SpendingDbHelper, private val userPreferences: UserPreferences) {
     private val spendingDao: Dao<Spending, Int> = spendingDbHelper.getDao<Dao<Spending, Int>, Spending>(Spending::class.java)
@@ -86,6 +88,20 @@ constructor(private val spendingDbHelper: SpendingDbHelper, private val userPref
                     emitter.onComplete()
                 } else {
                     emitter.onError(Exception("Delete error: spending $id was not found in the database"))
+                }
+            } catch (e: SQLException) {
+                emitter.onError(e)
+            }
+        }
+    }
+
+    fun deleteAll(): Completable {
+        return Completable.create { emitter ->
+            try {
+                if (spendingDao.delete(spendingDao.deleteBuilder().prepare()) > 0) {
+                    emitter.onComplete()
+                } else {
+                    emitter.onError(Exception("Delete error: couldn't clear table"))
                 }
             } catch (e: SQLException) {
                 emitter.onError(e)

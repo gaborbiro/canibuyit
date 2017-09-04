@@ -1,13 +1,11 @@
 package com.gb.canibuythat.di;
 
-import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.support.v4.app.FragmentManager;
 
 import com.gb.canibuythat.exception.ContextSource;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 

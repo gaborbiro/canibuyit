@@ -76,7 +76,7 @@ public class SpendingListFragment extends BaseFragment implements SpendingListSc
     @Override
     public void onResume() {
         super.onResume();
-        presenter.fetch();
+        presenter.fetchSpendings();
     }
 
     @Override

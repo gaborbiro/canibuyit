@@ -26,4 +26,7 @@
         android:title="Refresh Monzo data"
         android:icon="@drawable/monzo"
         android:id="@+id/menu_monzo" />
+    <item
+        android:title="Delete spendings"
+        android:id="@+id/menu_delete_spendings" />
 </menu>

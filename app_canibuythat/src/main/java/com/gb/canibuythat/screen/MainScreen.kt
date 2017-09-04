@@ -16,7 +16,5 @@ interface MainScreen : ProgressScreen {
 
     fun showEditorScreen(spendingId: Int?)
 
-    fun setData(spendings: List<Spending>)
-
     fun showToast(message: String)
 }

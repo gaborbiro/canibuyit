@@ -11,7 +11,6 @@ public abstract class BasePresenter<S extends Screen> {
 
     private S screen;
 
-
     void onError(Throwable throwable) {
         errorHandler.onError(throwable);
     }
