@@ -3,7 +3,6 @@ package com.gb.canibuythat.repository
 import com.gb.canibuythat.MonzoConstants
 import com.gb.canibuythat.api.BaseFormDataApi
 import com.gb.canibuythat.api.MonzoApi
-import com.gb.canibuythat.model.Account
 import com.gb.canibuythat.model.Login
 import com.gb.canibuythat.model.Spending
 import io.reactivex.Single

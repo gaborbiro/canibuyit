@@ -1,24 +1,21 @@
 package com.gb.canibuythat.interactor
 
 import android.content.Context
-import android.os.Environment
 import com.gb.canibuythat.exception.DomainException
+import com.gb.canibuythat.interactor.model.LceSpendings
 import com.gb.canibuythat.model.Balance
 import com.gb.canibuythat.model.Spending
-import com.gb.canibuythat.provider.SpendingDbHelper
 import com.gb.canibuythat.provider.SpendingProvider
 import com.gb.canibuythat.repository.SpendingsRepository
 import com.gb.canibuythat.rx.SchedulerProvider
-import com.gb.canibuythat.util.FileUtils
 import com.j256.ormlite.dao.Dao
 import io.reactivex.Completable
 import io.reactivex.Maybe
 import io.reactivex.Single
+import io.reactivex.disposables.Disposable
+import io.reactivex.functions.Consumer
 import io.reactivex.subjects.PublishSubject
 import io.reactivex.subjects.Subject
-import java.io.File
-import java.text.SimpleDateFormat
-import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -26,25 +23,50 @@ import javax.inject.Singleton
 class SpendingInteractor @Inject
 constructor(private val spendingsRepository: SpendingsRepository, private val appContext: Context, private val schedulerProvider: SchedulerProvider) {
 
-    val subject: Subject<List<Spending>> = PublishSubject.create<List<Spending>>()
+    val spendingsSubject: Subject<LceSpendings> = PublishSubject.create<LceSpendings>()
+
+    /**
+     * Don't forget to dispose when presenter is discarded
+     */
+    fun registerForSpendings(onNext: Consumer<List<Spending>>, onError: Consumer<Throwable>, onLoading: Consumer<Boolean>): Disposable {
+        return spendingsSubject.subscribe({
+            if (it.hasError()) {
+                onError.accept(it.error!!)
+            } else if (it.isLoading) {
+                onLoading.accept(true)
+            } else {
+                onNext.accept(it.data!!)
+            }
+        })
+    }
 
     fun loadSpendings() {
         spendingsRepository.all
                 .onErrorResumeNext { throwable: Throwable -> Maybe.error<List<Spending>>(DomainException("Error loading from database. See logs.", throwable)) }
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())
+                .doOnSubscribe {
+                    spendingsSubject.onNext(LceSpendings(true))
+                }
                 .subscribe({
-                    subject.onNext(it)
-                }, subject::onError)
+                    spendingsSubject.onNext(LceSpendings(it))
+                }, { throwable ->
+                    spendingsSubject.onNext(LceSpendings(throwable))
+                })
     }
 
     fun clearSpendings() {
         spendingsRepository.deleteAll()
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())
+                .doOnSubscribe {
+                    spendingsSubject.onNext(LceSpendings(true))
+                }
                 .subscribe({
-                    subject.onNext(listOf())
-                }, subject::onError)
+                    loadSpendings()
+                }, { throwable ->
+                    spendingsSubject.onNext(LceSpendings(throwable))
+                })
     }
 
     fun createOrUpdate(spending: Spending): Single<Dao.CreateOrUpdateStatus> {
@@ -61,7 +83,7 @@ constructor(private val spendingsRepository: SpendingsRepository, private val ap
                 .doOnComplete { appContext.contentResolver.notifyChange(SpendingProvider.SPENDINGS_URI, null) }
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())
-                .subscribe(this::loadSpendings, subject::onError)
+                .subscribe(this::loadSpendings, { spendingsSubject.onNext(LceSpendings(it)) })
     }
 
     fun delete(id: Int): Completable {
@@ -83,38 +105,5 @@ constructor(private val spendingsRepository: SpendingsRepository, private val ap
         return spendingsRepository.calculateBalance()
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())
-    }
-
-    fun importDatabase(file: String): Completable {
-        return spendingsRepository.importDatabaseFromFile(file)
-                .doOnComplete { appContext.contentResolver.notifyChange(SpendingProvider.SPENDINGS_URI, null) }
-                .onErrorResumeNext { throwable -> Completable.error(DomainException("Error importing database. See logs.", throwable)) }
-                .subscribeOn(schedulerProvider.io())
-                .observeOn(schedulerProvider.mainThread())
-    }
-
-    fun exportDatabase(): Completable {
-        try {
-            val pack = appContext.packageName
-
-            val sd = Environment.getExternalStorageDirectory()
-            val targetFolder = File(sd.toString() + "/CanIBuyThat")
-
-            if (!targetFolder.exists()) {
-                targetFolder.mkdirs()
-            }
-            val sdf = SimpleDateFormat("yyyyMMdd'T'HHmmssZ")
-            val targetFilename = "spendings-" + sdf.format(Date()) + ".sqlite"
-            val to = File(targetFolder, targetFilename)
-
-            val data = Environment.getDataDirectory()
-            val currentDBPath = "/data/" + pack + "/databases/" + SpendingDbHelper.DATABASE_NAME
-            val from = File(data, currentDBPath)
-
-            FileUtils.copyFiles(from, to)
-            return Completable.complete()
-        } catch (t: Throwable) {
-            return Completable.error(DomainException("Error exporting database", t))
-        }
     }
 }
