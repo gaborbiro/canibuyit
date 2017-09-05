@@ -11,6 +11,7 @@ import com.gb.canibuythat.R;
 import com.gb.canibuythat.UserPreferences;
 import com.gb.canibuythat.di.Injector;
 import com.gb.canibuythat.model.Spending;
+import com.gb.canibuythat.presenter.BasePresenter;
 import com.gb.canibuythat.provider.BalanceCalculator;
 import com.gb.canibuythat.provider.SpendingDbHelper;
 import com.gb.canibuythat.ui.model.BalanceReading;
@@ -84,9 +85,11 @@ public class ChartActivity extends BaseActivity implements OnChartValueSelectedL
         new CalculateProjectionsTask().execute();
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    protected void inject() {
+    protected BasePresenter inject() {
         Injector.INSTANCE.getGraph().inject(this);
+        return null;
     }
 
     @Override

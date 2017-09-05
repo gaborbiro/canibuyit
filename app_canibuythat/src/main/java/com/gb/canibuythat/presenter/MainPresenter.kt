@@ -5,21 +5,43 @@ import android.os.Environment
 import android.text.TextUtils
 import com.gb.canibuythat.CredentialsProvider
 import com.gb.canibuythat.MonzoConstants
+import com.gb.canibuythat.interactor.BackupingInteractor
 import com.gb.canibuythat.interactor.MonzoInteractor
 import com.gb.canibuythat.interactor.SpendingInteractor
 import com.gb.canibuythat.screen.MainScreen
 import javax.inject.Inject
 
 class MainPresenter @Inject
-constructor(private val monzoInteractor: MonzoInteractor,
-            private val spendingInteractor: SpendingInteractor,
-            private val credentialsProvider: CredentialsProvider) : BasePresenter<MainScreen>() {
+constructor(val monzoInteractor: MonzoInteractor,
+            val spendingInteractor: SpendingInteractor,
+            val backupingInteractor: BackupingInteractor,
+            val credentialsProvider: CredentialsProvider) : BasePresenter<MainScreen>() {
+
+    init {
+        monzoInteractor.getSpendingsDataStream().subscribe({
+            if (it.loading) screen.showProgress() else screen.hideProgress()
+        }, this::onError)
+        monzoInteractor.getLoginDataStream().subscribe({
+            if (it.loading) {
+                screen.showProgress()
+            } else {
+                if (it.hasError()) {
+                    this.onError(it.error!!)
+                } else {
+                    screen.hideProgress()
+                    credentialsProvider.accessToken = it.content!!.accessToken
+                    credentialsProvider.refreshToken = it.content!!.refreshToken
+                    screen.showToast("You are now logged in")
+                }
+            }
+        }, this::onError)
+    }
 
     fun fetchBalance() {
-        spendingInteractor.calculateBalance()
+        disposeOnFinish(spendingInteractor.calculateBalance()
                 .doOnSubscribe { screen.showProgress() }
                 .doAfterTerminate { screen.hideProgress() }
-                .subscribe(screen::setBalanceInfo, this::onError)
+                .subscribe(screen::setBalanceInfo, this::onError))
     }
 
     fun handleDeepLink(intent: Intent) {
@@ -38,34 +60,27 @@ constructor(private val monzoInteractor: MonzoInteractor,
     }
 
     private fun login(authorizationCode: String) {
-        monzoInteractor.login(authorizationCode)
-                .doOnSubscribe { screen.showProgress() }
-                .doAfterTerminate { screen.hideProgress() }
-                .subscribe({ login ->
-                    credentialsProvider.accessToken = login.accessToken
-                    credentialsProvider.refreshToken = login.refreshToken
-                    screen.showToast("You are now logged in")
-                }, this::onError)
+        disposeOnFinish(monzoInteractor.login(authorizationCode))
     }
 
     fun chartButtonClicked() {
-        screen::showChartScreen
+        screen.showChartScreen()
     }
 
     fun fetchMonzoData() {
         if (TextUtils.isEmpty(credentialsProvider.accessToken)) {
             screen::showLoginActivity
         } else {
-            monzoInteractor.loadTransactions(MonzoConstants.ACCOUNT_ID)
+            disposeOnFinish(monzoInteractor.loadSpendings(MonzoConstants.ACCOUNT_ID))
         }
     }
 
     fun deleteAllSpendings() {
-        spendingInteractor::clearSpendings
+        spendingInteractor.clearSpendings()
     }
 
     fun exportDatabase() {
-        spendingInteractor.exportDatabase().subscribe(this::onImportDatabase, this::onError)
+        backupingInteractor.exportDatabase().subscribe(this::onImportDatabase, this::onError)
     }
 
     fun onImportDatabase() {
@@ -74,11 +89,11 @@ constructor(private val monzoInteractor: MonzoInteractor,
     }
 
     fun onDatabaseFileSelected(path: String) {
-        spendingInteractor.importDatabase(path).subscribe(this::fetchBalance, this::onError)
+        backupingInteractor.importDatabase(path).subscribe(this::fetchBalance, this::onError)
     }
 
     fun updateBalance() {
-        screen::showBalanceUpdateDialog
+        screen.showBalanceUpdateDialog()
     }
 
     fun showEditorScreenForSpending(id: Int) {

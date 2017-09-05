@@ -2,7 +2,6 @@ package com.gb.canibuythat.interactor
 
 import android.content.Context
 import com.gb.canibuythat.exception.DomainException
-import com.gb.canibuythat.interactor.model.LceSpendings
 import com.gb.canibuythat.model.Balance
 import com.gb.canibuythat.model.Spending
 import com.gb.canibuythat.provider.SpendingProvider
@@ -11,9 +10,9 @@ import com.gb.canibuythat.rx.SchedulerProvider
 import com.j256.ormlite.dao.Dao
 import io.reactivex.Completable
 import io.reactivex.Maybe
+import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.disposables.Disposable
-import io.reactivex.functions.Consumer
 import io.reactivex.subjects.PublishSubject
 import io.reactivex.subjects.Subject
 import javax.inject.Inject
@@ -23,35 +22,23 @@ import javax.inject.Singleton
 class SpendingInteractor @Inject
 constructor(private val spendingsRepository: SpendingsRepository, private val appContext: Context, private val schedulerProvider: SchedulerProvider) {
 
-    val spendingsSubject: Subject<LceSpendings> = PublishSubject.create<LceSpendings>()
+    private val spendingsSubject: Subject<Lce<List<Spending>>> = PublishSubject.create<Lce<List<Spending>>>()
 
-    /**
-     * Don't forget to dispose when presenter is discarded
-     */
-    fun registerForSpendings(onNext: Consumer<List<Spending>>, onError: Consumer<Throwable>, onLoading: Consumer<Boolean>): Disposable {
-        return spendingsSubject.subscribe({
-            if (it.hasError()) {
-                onError.accept(it.error!!)
-            } else if (it.isLoading) {
-                onLoading.accept(true)
-            } else {
-                onNext.accept(it.data!!)
-            }
-        })
+    fun getSpendingsDataStream(): Subject<Lce<List<Spending>>> {
+        return spendingsSubject
     }
 
-    fun loadSpendings() {
-        spendingsRepository.all
-                .onErrorResumeNext { throwable: Throwable -> Maybe.error<List<Spending>>(DomainException("Error loading from database. See logs.", throwable)) }
+    fun loadSpendings(): Disposable {
+        return spendingsRepository.all
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())
                 .doOnSubscribe {
-                    spendingsSubject.onNext(LceSpendings(true))
+                    spendingsSubject.onNext(Lce.loading())
                 }
                 .subscribe({
-                    spendingsSubject.onNext(LceSpendings(it))
+                    spendingsSubject.onNext(Lce.content(it))
                 }, { throwable ->
-                    spendingsSubject.onNext(LceSpendings(throwable))
+                    spendingsSubject.onNext(Lce.error(DomainException("Error loading from database. See logs.", throwable)))
                 })
     }
 
@@ -60,12 +47,12 @@ constructor(private val spendingsRepository: SpendingsRepository, private val ap
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())
                 .doOnSubscribe {
-                    spendingsSubject.onNext(LceSpendings(true))
+                    spendingsSubject.onNext(Lce.loading())
                 }
                 .subscribe({
                     loadSpendings()
                 }, { throwable ->
-                    spendingsSubject.onNext(LceSpendings(throwable))
+                    spendingsSubject.onNext(Lce.error(throwable))
                 })
     }
 
@@ -78,12 +65,15 @@ constructor(private val spendingsRepository: SpendingsRepository, private val ap
     }
 
     fun createOrUpdateMonzoCategories(spendings: List<Spending>) {
-        spendingsRepository.createOrUpdateMonzoCategories(spendings)
-                .onErrorResumeNext { throwable -> Completable.error(DomainException("Error updating monzo cache. See logs.", throwable)) }
+        spendingsRepository.createOrUpdateMonzoSpendings(spendings)
                 .doOnComplete { appContext.contentResolver.notifyChange(SpendingProvider.SPENDINGS_URI, null) }
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())
-                .subscribe(this::loadSpendings, { spendingsSubject.onNext(LceSpendings(it)) })
+                .subscribe({
+                    loadSpendings()
+                }, { throwable ->
+                    spendingsSubject.onNext(Lce.error(DomainException("Error updating monzo cache. See logs.", throwable)))
+                })
     }
 
     fun delete(id: Int): Completable {

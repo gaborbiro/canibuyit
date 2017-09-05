@@ -34,7 +34,7 @@ class MonzoDispatchMessagingService : FirebaseMessagingService() {
             Log.d(TAG, "Message Notification: " + notification.body + " " + notification.body)
             sendNotification(notification.title!!, notification.body!!)
         }
-        monzoInteractor.loadTransactions(MonzoConstants.ACCOUNT_ID)
+        monzoInteractor.loadSpendings(MonzoConstants.ACCOUNT_ID)
     }
 
     /**

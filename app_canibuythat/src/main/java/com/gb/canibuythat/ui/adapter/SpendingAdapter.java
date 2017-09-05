@@ -23,15 +23,15 @@ public class SpendingAdapter extends RecyclerView.Adapter<SpendingViewHolder> {
     }
 
     public void setData(List<Spending> spendings) {
-        if (this.spendings == null || this.spendings.size() == 0) {
+//        if (this.spendings == null || this.spendings.size() == 0) {
             this.spendings = spendings;
             notifyDataSetChanged();
-        } else {
-            this.spendings = spendings;
-            callback.setNewSpendings(spendings);
-            DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(callback);
-            diffResult.dispatchUpdatesTo(this);
-        }
+//        } else {
+//            this.spendings = spendings;
+//            callback.setNewSpendings(spendings);
+//            DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(callback);
+//            diffResult.dispatchUpdatesTo(this);
+//        }
     }
 
     @Override

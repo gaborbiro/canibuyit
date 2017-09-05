@@ -29,7 +29,7 @@ class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi, privat
                 .map(mapper::mapToLogin)
     }
 
-    fun getTransactions(accountId: String): Single<List<Spending>> {
+    fun getSpendings(accountId: String): Single<List<Spending>> {
         return monzoApi.transactions(accountId)
                 .map(mapper::mapToTransactions)
                 .map {

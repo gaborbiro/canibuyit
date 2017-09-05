@@ -1,13 +1,9 @@
 package com.gb.canibuythat.repository
 
-import android.database.Cursor
-import android.database.sqlite.SQLiteDatabase
-import android.database.sqlite.SQLiteException
 import com.gb.canibuythat.UserPreferences
 import com.gb.canibuythat.model.Balance
 import com.gb.canibuythat.model.Spending
 import com.gb.canibuythat.provider.BalanceCalculator
-import com.gb.canibuythat.provider.Contract
 import com.gb.canibuythat.provider.SpendingDbHelper
 import com.j256.ormlite.dao.Dao
 import io.reactivex.Completable
@@ -19,12 +15,12 @@ import javax.inject.Singleton
 
 @Singleton
 class SpendingsRepository @Inject
-constructor(private val spendingDbHelper: SpendingDbHelper, private val userPreferences: UserPreferences) {
+constructor(spendingDbHelper: SpendingDbHelper, private val userPreferences: UserPreferences) {
     private val spendingDao: Dao<Spending, Int> = spendingDbHelper.getDao<Dao<Spending, Int>, Spending>(Spending::class.java)
 
-    val all: Maybe<List<Spending>>
+    val all: Single<List<Spending>>
         get() {
-            return Maybe.create<List<Spending>> { emitter ->
+            return Single.create<List<Spending>> { emitter ->
                 try {
                     emitter.onSuccess(spendingDao.queryForAll())
                 } catch (e: SQLException) {
@@ -43,7 +39,17 @@ constructor(private val spendingDbHelper: SpendingDbHelper, private val userPref
         }
     }
 
-    fun createOrUpdateMonzoCategories(spendings: List<Spending>): Completable {
+    /**
+     * Every spending has a local category and a monzo category.
+     *
+     * For each spending:
+     *
+     *     - if it does not yet exist in the databse, create it
+     *     - if it does exist, update its name, value, cycle start and end date, enabled and spent
+     *
+     * @param spendings from Monzo
+     */
+    fun createOrUpdateMonzoSpendings(spendings: List<Spending>): Completable {
         return Completable.create { emitter ->
             val savedSpendings: List<Spending> = spendingDao.queryForAll()
                     .filter { it.sourceData[Spending.SOURCE_MONZO_CATEGORY] != null }
@@ -64,6 +70,8 @@ constructor(private val spendingDbHelper: SpendingDbHelper, private val userPref
                             it.target = savedSpendings[index].target
                             it.cycle = savedSpendings[index].cycle
                             it.cycleMultiplier = savedSpendings[index].cycleMultiplier
+                            it.type = savedSpendings[index].type
+                            it.occurrenceCount = savedSpendings[index].occurrenceCount
 
                             if (savedSpendings[index].value != 0.0) {
                                 it.value = savedSpendings[index].value

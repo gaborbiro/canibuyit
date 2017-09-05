@@ -2,7 +2,6 @@ package com.gb.canibuythat.util;
 
 import android.app.DatePickerDialog;
 import android.content.Context;
-import android.widget.DatePicker;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -25,11 +24,21 @@ public class DateUtils {
         return c.getTime();
     }
 
-    public static void clearLowerBits(Calendar c) {
+    public static Calendar clearLowerBits(Calendar c) {
         c.set(Calendar.HOUR_OF_DAY, 0);
         c.set(Calendar.MINUTE, 0);
         c.set(Calendar.SECOND, 0);
         c.set(Calendar.MILLISECOND, 0);
+        return c;
+    }
+
+    public static Calendar clearLowerBits() {
+        Calendar c = Calendar.getInstance();
+        c.set(Calendar.HOUR_OF_DAY, 0);
+        c.set(Calendar.MINUTE, 0);
+        c.set(Calendar.SECOND, 0);
+        c.set(Calendar.MILLISECOND, 0);
+        return c;
     }
 
     public static int compare(Calendar date, Calendar start, Calendar end) {

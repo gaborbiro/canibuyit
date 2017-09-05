@@ -12,6 +12,7 @@ import android.view.ViewGroup;
 import com.gb.canibuythat.R;
 import com.gb.canibuythat.di.Injector;
 import com.gb.canibuythat.model.Spending;
+import com.gb.canibuythat.presenter.BasePresenter;
 import com.gb.canibuythat.presenter.SpendingListPresenter;
 import com.gb.canibuythat.screen.SpendingListScreen;
 import com.gb.canibuythat.ui.adapter.SpendingAdapter;
@@ -60,9 +61,7 @@ public class SpendingListFragment extends BaseFragment implements SpendingListSc
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View root = inflater.inflate(R.layout.fragment_spending_list, container, false);
-        presenter.setScreen(this);
-        return root;
+        return inflater.inflate(R.layout.fragment_spending_list, container, false);
     }
 
     @Override
@@ -80,8 +79,9 @@ public class SpendingListFragment extends BaseFragment implements SpendingListSc
     }
 
     @Override
-    protected void inject() {
+    protected BasePresenter inject() {
         Injector.INSTANCE.getGraph().inject(this);
+        return presenter;
     }
 
     @Override

@@ -17,6 +17,7 @@ import com.gb.canibuythat.R;
 import com.gb.canibuythat.UserPreferences;
 import com.gb.canibuythat.di.Injector;
 import com.gb.canibuythat.model.Balance;
+import com.gb.canibuythat.presenter.BasePresenter;
 import com.gb.canibuythat.presenter.MainPresenter;
 import com.gb.canibuythat.screen.MainScreen;
 import com.gb.canibuythat.ui.model.BalanceReading;
@@ -82,8 +83,16 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
     }
 
     @Override
-    protected void inject() {
+    protected void onDestroy() {
+        super.onDestroy();
+        presenter.onPresenterDestroyed();
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    protected BasePresenter inject() {
         Injector.INSTANCE.getGraph().inject(this);
+        return presenter;
     }
 
     /**
@@ -155,7 +164,7 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
     }
 
     @Override
-    public void showFilePickerActivity(String directory) {
+    public void showFilePickerActivity(@NonNull String directory) {
         Intent i = new Intent(this, FileDialogActivity.class);
         i.putExtra(FileDialogActivity.EXTRA_START_PATH, directory);
         i.putExtra(FileDialogActivity.EXTRA_SELECTION_MODE, FileDialogActivity.SELECTION_MODE_OPEN);
@@ -217,7 +226,7 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
     }
 
     @Override
-    public void setBalanceInfo(Balance balance) {
+    public void setBalanceInfo(@NonNull Balance balance) {
         if (referenceView != null) {
             String text;
             if (balance.getBalanceReading() != null) {
@@ -237,11 +246,8 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
 
     private Runnable estimateDateUpdater = () -> {
         DatePickerDialog.OnDateSetListener listener = (view, year, monthOfYear, dayOfMonth) -> {
-            Calendar c = Calendar.getInstance();
-
-            if (c.get(Calendar.YEAR) == year
-                    && c.get(Calendar.MONTH) == monthOfYear
-                    && c.get(Calendar.DAY_OF_MONTH) == dayOfMonth) {
+            Calendar c = DateUtils.clearLowerBits();
+            if (c.equals(DateUtils.compose(year, monthOfYear, dayOfMonth))) {
                 userPreferences.setEstimateDate(null);
             } else {
                 c.set(year, monthOfYear, dayOfMonth);

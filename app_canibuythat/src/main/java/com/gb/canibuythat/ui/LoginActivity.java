@@ -16,6 +16,7 @@ import com.gb.canibuythat.CredentialsProvider;
 import com.gb.canibuythat.MonzoConstants;
 import com.gb.canibuythat.R;
 import com.gb.canibuythat.di.Injector;
+import com.gb.canibuythat.presenter.BasePresenter;
 import com.gb.canibuythat.util.Logger;
 
 import java.net.URLEncoder;
@@ -57,8 +58,9 @@ public class LoginActivity extends BaseActivity {
     }
 
     @Override
-    protected void inject() {
+    protected BasePresenter inject() {
         Injector.INSTANCE.getGraph().inject(this);
+        return null;
     }
 
     private class MyWebViewClient extends WebViewClient {

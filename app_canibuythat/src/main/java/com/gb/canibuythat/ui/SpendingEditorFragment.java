@@ -21,6 +21,7 @@ import com.gb.canibuythat.UserPreferences;
 import com.gb.canibuythat.di.Injector;
 import com.gb.canibuythat.interactor.SpendingInteractor;
 import com.gb.canibuythat.model.Spending;
+import com.gb.canibuythat.presenter.BasePresenter;
 import com.gb.canibuythat.provider.BalanceCalculator;
 import com.gb.canibuythat.ui.model.BalanceReading;
 import com.gb.canibuythat.util.ArrayUtils;
@@ -110,21 +111,20 @@ public class SpendingEditorFragment extends BaseFragment {
                 cycleMultiplierChanged = true;
             }
         });
-        fromDatePicker.setTouchInterceptor(new DateRangePicker.TouchInterceptor() {
-            @Override
-            public boolean onInterceptTouchEvent(MotionEvent ev) {
-                keyboardDismisser.onTouch(fromDatePicker, MotionEvent.obtain(0, 0, MotionEvent.ACTION_DOWN, 0f, 0f, 0));
-                return false;
-            }
+        fromDatePicker.setTouchInterceptor(ev -> {
+            keyboardDismisser.onTouch(fromDatePicker, MotionEvent.obtain(0, 0, MotionEvent.ACTION_DOWN, 0f, 0f, 0));
+            return false;
         });
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    protected void inject() {
+    protected BasePresenter inject() {
         Injector.INSTANCE.getGraph().inject(this);
+        return null;
     }
 
-    private class PlusOneAdapter extends ArrayAdapter {
+    private class PlusOneAdapter extends ArrayAdapter<Object> {
 
         PlusOneAdapter(Object[] items) {
             super(getActivity(), android.R.layout.simple_list_item_1, items);
@@ -185,16 +185,16 @@ public class SpendingEditorFragment extends BaseFragment {
         return false;
     }
 
-    public void saveAndRun(Runnable onSaveOrDiscard) {
+    public void saveAndRun(Runnable onFinish) {
         if (shouldSave()) {
             DialogUtils.getSaveOrDiscardDialog(getActivity(), new DialogUtils.Executable() {
                 @Override
                 public boolean run() {
                     return saveUserInputOrShowError();
                 }
-            }, onSaveOrDiscard).show();
+            }, onFinish).show();
         } else {
-            onSaveOrDiscard.run();
+            onFinish.run();
         }
     }
 
