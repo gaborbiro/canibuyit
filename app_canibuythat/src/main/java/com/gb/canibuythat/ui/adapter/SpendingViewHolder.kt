@@ -23,12 +23,13 @@ class SpendingViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
             nameView.text = spending.name
         }
         nameView.paint.isStrikeThruText = !spending.enabled
+        val cycle: Spending.Cycle = spending.cycle!!
         if (spending.spent != null) {
             var cycleStr = ""
             if (spending.occurrenceCount == null) {
-                val cycle = spending.cycle
-                if (cycle!!.strRes > 0) {
-                    cycleStr = context.resources.getQuantityString(R.plurals.cycle, spending.cycleMultiplier!!, spending.cycleMultiplier!!, context.getString(cycle.strRes))
+                if (cycle.strRes > 0) {
+                    cycleStr = context.resources.getQuantityString(R.plurals.period, spending.cycleMultiplier!!,
+                            spending.cycleMultiplier!!, context.resources.getQuantityText(cycle.strRes, spending.cycleMultiplier!!))
                 }
             } else {
                 cycleStr = context.resources.getQuantityString(R.plurals.times, spending.occurrenceCount!!, spending.occurrenceCount!!)
@@ -40,7 +41,13 @@ class SpendingViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
                 detailView.text = context.getString(R.string.spending_no_target, Math.abs(spending.spent!!), cycleStr)
             }
         } else {
-            detailView.text = "?"
+            if (spending.occurrenceCount == null) {
+                detailView.text = context.resources.getQuantityString(R.plurals.cycle, spending.cycleMultiplier!!,
+                        spending.value, spending.cycleMultiplier!!, context.resources.getQuantityText(cycle.strRes, spending.cycleMultiplier!!))
+            } else {
+                detailView.text = context.getString(R.string.spending_no_target, spending.value,
+                        context.resources.getQuantityString(R.plurals.times, spending.occurrenceCount!!, spending.occurrenceCount!!))
+            }
         }
         if (spending.sourceData.containsKey(Spending.SOURCE_MONZO_CATEGORY)) {
             iconView.setImageResource(R.drawable.monzo)

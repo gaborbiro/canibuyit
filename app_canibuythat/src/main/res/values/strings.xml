@@ -12,18 +12,35 @@
 
     <string name="spending">%1$.2f/%2$.0f %3$s</string>
     <string name="spending_no_target">%1$.2f %2$s</string>
-    <plurals name="cycle">
-        <item quantity="one">%2$s</item>
-        <item quantity="other">%1$d %2$s</item>
+    <plurals name="year">
+        <item quantity="one">year</item>
+        <item quantity="other">years</item>
+    </plurals>
+    <plurals name="month">
+        <item quantity="one">month</item>
+        <item quantity="other">months</item>
+    </plurals>
+    <plurals name="week">
+        <item quantity="one">week</item>
+        <item quantity="other">weeks</item>
+    </plurals>
+    <plurals name="day">
+        <item quantity="one">day</item>
+        <item quantity="other">days</item>
     </plurals>
     <plurals name="times">
         <item quantity="one">(once)</item>
         <item quantity="other">(%1$d times)</item>
     </plurals>
-    <string name="yearly">this year</string>
-    <string name="monthly">this month</string>
-    <string name="weekly">this week</string>
-    <string name="daily">today</string>
+    <plurals name="period">
+        <item quantity="one">last %2$s</item>
+        <item quantity="other">last %1$d %2$s</item>
+    </plurals>
+
+    <plurals name="cycle">
+        <item quantity="one">%1$.2f per %3$s</item>
+        <item quantity="other">%1$.2f per %2$d %3$s</item>
+    </plurals>
 
     <string name="reading">Reading: %1$.0f @%2$s</string>
     <string name="reading_none">Reading: None</string>

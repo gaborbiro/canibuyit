@@ -164,7 +164,7 @@ class Spending {
     enum class Category(val defaultEnabled: Boolean = true) {
         ACCOMMODATION, AUTOMOBILE, CHILD_SUPPORT, DONATIONS_GIVEN, ENTERTAINMENT, FOOD,
         GIFTS_GIVEN, GROCERIES, HOUSEHOLD, INSURANCE, MEDICARE, PERSONAL_CARE, PETS,
-        SELF_IMPROVEMENT, SPORTS_RECREATION, TAX, TRANSPORTATION, UTILITIES, VACATION(false),
+        SELF_IMPROVEMENT, SPORTS_RECREATION, TAX, TRANSPORTATION, UTILITIES,  VACATION(false),
         GIFTS_RECEIVED, INCOME, FINES,
         ONLINE_SERVICES, LUXURY, CASH, SAVINGS, EXPENSES(false), OTHER;
 
@@ -174,10 +174,10 @@ class Spending {
     }
 
     enum class Cycle(val strRes: Int) {
-        DAYS(R.string.daily),
-        WEEKS(R.string.weekly),
-        MONTHS(R.string.monthly),
-        YEARS(R.string.yearly);
+        DAYS(R.plurals.day),
+        WEEKS(R.plurals.week),
+        MONTHS(R.plurals.month),
+        YEARS(R.plurals.year);
 
         fun apply(c: Calendar, increment: Int) {
             when (this) {
