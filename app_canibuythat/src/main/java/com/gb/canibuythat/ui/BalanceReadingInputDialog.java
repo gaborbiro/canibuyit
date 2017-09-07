@@ -51,7 +51,7 @@ public class BalanceReadingInputDialog extends DialogFragment
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         LinearLayout body = (LinearLayout) LayoutInflater.from(getActivity()).inflate(R.layout.dialog_balance_reading, null);
         lastUpdateView = (TextView) body.findViewById(R.id.last_update);
-        valueView = (EditText) body.findViewById(R.id.value);
+        valueView = (EditText) body.findViewById(R.id.amount);
         whenButton = (DatePickerButton) body.findViewById(R.id.when);
         Date today = new Date();
         whenButton.setText(DateUtils.FORMAT_MONTH_DAY_YR.format(today));

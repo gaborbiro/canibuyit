@@ -14,7 +14,19 @@ import javax.inject.Singleton
 class BackupingRepository @Inject
 constructor(private val spendingDbHelper: SpendingDbHelper) {
 
-    fun importDatabaseFromFile(file: String): Completable {
+    fun importAllSpendings(file: String): Completable {
+        return importSpendings(file, null)
+    }
+
+    fun importMonzoSpendings(file: String): Completable {
+        return importSpendings(file, SpendingDbHelper.FILTER_MONZO)
+    }
+
+    fun importNonMonzoSpendings(file: String): Completable {
+        return importSpendings(file, SpendingDbHelper.FILTER_NON_MONZO)
+    }
+
+    fun importSpendings(file: String, filter: Map<String, Any?>?): Completable {
         val db: SQLiteDatabase
         val cursor: Cursor
         try {
@@ -28,7 +40,7 @@ constructor(private val spendingDbHelper: SpendingDbHelper) {
             return Completable.error(Exception("Error reading " + file, e))
         }
         try {
-            spendingDbHelper.replaceSpendingDatabase(cursor)
+            spendingDbHelper.insertSpendings(cursor, filter)
             return Completable.complete()
         } catch (e: SQLException) {
             return Completable.error(Exception("Error writing to table " + Contract.Spending.TABLE, e))

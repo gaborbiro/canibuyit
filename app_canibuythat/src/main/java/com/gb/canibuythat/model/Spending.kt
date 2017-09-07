@@ -16,7 +16,7 @@ import java.util.*
 class Spending {
 
     companion object {
-        val SOURCE_MONZO_CATEGORY: String = "monzo_category"
+        @JvmStatic val SOURCE_MONZO_CATEGORY: String = "monzo_category"
     }
 
     @DatabaseField(generatedId = true, columnName = Contract.Spending._ID)

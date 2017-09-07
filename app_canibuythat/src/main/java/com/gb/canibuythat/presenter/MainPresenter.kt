@@ -79,16 +79,20 @@ constructor(val monzoInteractor: MonzoInteractor,
     }
 
     fun exportDatabase() {
-        backupingInteractor.exportDatabase().subscribe(this::onImportDatabase, this::onError)
+        backupingInteractor.exportSpendings().subscribe({}, this::onError)
     }
 
-    fun onImportDatabase() {
+    fun onImportDatabase(importType: MainScreen.SpendingsImportType) {
         val directory = Environment.getExternalStorageDirectory().path + "/CanIBuyThat/"
-        screen.showFilePickerActivity(directory)
+        screen.showFilePickerActivity(directory, importType)
     }
 
-    fun onDatabaseFileSelected(path: String) {
-        backupingInteractor.importDatabase(path).subscribe(this::fetchBalance, this::onError)
+    fun onImportSpendings(path: String, importType: MainScreen.SpendingsImportType) {
+        when(importType) {
+            MainScreen.SpendingsImportType.ALL -> backupingInteractor.importAllSpendings(path).subscribe(this::fetchBalance, this::onError)
+            MainScreen.SpendingsImportType.MONZO -> backupingInteractor.importMonzoSpendings(path).subscribe(this::fetchBalance, this::onError)
+            MainScreen.SpendingsImportType.NON_MONZO -> backupingInteractor.importNonMonzoSpendings(path).subscribe(this::fetchBalance, this::onError)
+        }
     }
 
     fun updateBalance() {

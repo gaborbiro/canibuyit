@@ -16,8 +16,16 @@
         android:id="@+id/menu_export"
         app:showAsAction="never|withText" />
     <item
-        android:title="Import database"
-        android:id="@+id/menu_import"
+        android:title="Import spendings"
+        android:id="@+id/menu_import_all"
+        app:showAsAction="never|withText" />
+    <item
+        android:title="Import monzo spendings"
+        android:id="@+id/menu_import_monzo"
+        app:showAsAction="never|withText" />
+    <item
+        android:title="Import non-monzo spendings"
+        android:id="@+id/menu_import_non_monzo"
         app:showAsAction="never|withText" />
     <item
         android:title="Log FCM Token"

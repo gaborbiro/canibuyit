@@ -47,15 +47,23 @@ import butterknife.BindView;
  */
 public class MainActivity extends BaseActivity implements MainScreen, SpendingListFragment.FragmentCallback, BalanceReadingInputDialog.BalanceReadingInputListener {
 
-    private static final int REQUEST_CODE_CHOOSE_FILE = 1;
-    private static final int REQUEST_CODE_PERMISSIONS_FOR_DB_EXPORT = 2;
+    private static final int REQUEST_CODE_CHOOSE_FILE_MONZO = 1;
+    private static final int REQUEST_CODE_CHOOSE_FILE_NON_MONZO = 2;
+    private static final int REQUEST_CODE_CHOOSE_FILE_ALL = 3;
+    private static final int REQUEST_CODE_PERMISSIONS_FOR_DB_EXPORT = 4;
 
     @Inject UserPreferences userPreferences;
     @Inject MainPresenter presenter;
 
-    @Nullable @BindView(R.id.estimate_at_time) TextView estimateAtTimeView;
-    @Nullable @BindView(R.id.reference) TextView referenceView;
-    @Nullable @BindView(R.id.chart_button) ImageView chartButton;
+    @Nullable
+    @BindView(R.id.estimate_at_time)
+    TextView estimateAtTimeView;
+    @Nullable
+    @BindView(R.id.reference)
+    TextView referenceView;
+    @Nullable
+    @BindView(R.id.chart_button)
+    ImageView chartButton;
 
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet device.
@@ -125,8 +133,14 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
                     presenter.exportDatabase();
                 }
                 break;
-            case R.id.menu_import:
-                presenter.onImportDatabase();
+            case R.id.menu_import_all:
+                presenter.onImportDatabase(SpendingsImportType.ALL);
+                break;
+            case R.id.menu_import_monzo:
+                presenter.onImportDatabase(SpendingsImportType.MONZO);
+                break;
+            case R.id.menu_import_non_monzo:
+                presenter.onImportDatabase(SpendingsImportType.NON_MONZO);
                 break;
             case R.id.menu_fcm:
                 String token = FirebaseInstanceId.getInstance().getToken();
@@ -164,20 +178,42 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
     }
 
     @Override
-    public void showFilePickerActivity(@NonNull String directory) {
+    public void showFilePickerActivity(@NonNull String directory, @NonNull SpendingsImportType spendingsImportType) {
         Intent i = new Intent(this, FileDialogActivity.class);
         i.putExtra(FileDialogActivity.EXTRA_START_PATH, directory);
         i.putExtra(FileDialogActivity.EXTRA_SELECTION_MODE, FileDialogActivity.SELECTION_MODE_OPEN);
-        startActivityForResult(i, REQUEST_CODE_CHOOSE_FILE);
+        switch (spendingsImportType) {
+            case ALL:
+                startActivityForResult(i, REQUEST_CODE_CHOOSE_FILE_ALL);
+                break;
+            case MONZO:
+                startActivityForResult(i, REQUEST_CODE_CHOOSE_FILE_MONZO);
+                break;
+            case NON_MONZO:
+                startActivityForResult(i, REQUEST_CODE_CHOOSE_FILE_NON_MONZO);
+                break;
+        }
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
-            case REQUEST_CODE_CHOOSE_FILE:
+            case REQUEST_CODE_CHOOSE_FILE_ALL:
                 if (resultCode == RESULT_OK) {
                     String path = data.getStringExtra(FileDialogActivity.EXTRA_RESULT_PATH);
-                    presenter.onDatabaseFileSelected(path);
+                    presenter.onImportSpendings(path, SpendingsImportType.ALL);
+                }
+                break;
+            case REQUEST_CODE_CHOOSE_FILE_MONZO:
+                if (resultCode == RESULT_OK) {
+                    String path = data.getStringExtra(FileDialogActivity.EXTRA_RESULT_PATH);
+                    presenter.onImportSpendings(path, SpendingsImportType.MONZO);
+                }
+                break;
+            case REQUEST_CODE_CHOOSE_FILE_NON_MONZO:
+                if (resultCode == RESULT_OK) {
+                    String path = data.getStringExtra(FileDialogActivity.EXTRA_RESULT_PATH);
+                    presenter.onImportSpendings(path, SpendingsImportType.NON_MONZO);
                 }
                 break;
         }

@@ -60,10 +60,10 @@
             <TextView
                 android:layout_height="wrap_content"
                 android:layout_width="wrap_content"
-                android:text="Value:"/>
+                android:text="Average:"/>
 
             <EditText
-                android:id="@+id/value"
+                android:id="@+id/average"
                 android:imeOptions="actionNext"
                 android:inputType="numberDecimal|numberSigned"
                 android:layout_height="wrap_content"

@@ -17,15 +17,27 @@ import javax.inject.Inject
 class BackupingInteractor @Inject
 constructor(private val backupingRepository: BackupingRepository, private val appContext: Context, private val schedulerProvider: SchedulerProvider) {
 
-    fun importDatabase(file: String): Completable {
-        return backupingRepository.importDatabaseFromFile(file)
+    fun importAllSpendings(file: String): Completable {
+        return prepareImportCompletable(backupingRepository.importAllSpendings(file))
+    }
+
+    fun importMonzoSpendings(file: String): Completable {
+        return prepareImportCompletable(backupingRepository.importMonzoSpendings(file))
+    }
+
+    fun importNonMonzoSpendings(file: String): Completable {
+        return prepareImportCompletable(backupingRepository.importNonMonzoSpendings(file))
+    }
+
+    fun prepareImportCompletable(completable: Completable): Completable {
+        return completable
                 .doOnComplete { appContext.contentResolver.notifyChange(SpendingProvider.SPENDINGS_URI, null) }
                 .onErrorResumeNext { throwable -> Completable.error(DomainException("Error importing database. See logs.", throwable)) }
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())
     }
 
-    fun exportDatabase(): Completable {
+    fun exportSpendings(): Completable {
         try {
             val pack = appContext.packageName
 

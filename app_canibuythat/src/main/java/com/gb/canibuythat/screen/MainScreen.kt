@@ -4,13 +4,20 @@ import com.gb.canibuythat.model.Balance
 import com.gb.canibuythat.model.Spending
 
 interface MainScreen : ProgressScreen {
+
+    enum class SpendingsImportType {
+        MONZO,
+        NON_MONZO,
+        ALL
+    }
+
     fun showChartScreen()
 
     fun showLoginActivity()
 
     fun setBalanceInfo(balance: Balance)
 
-    fun showFilePickerActivity(directory: String)
+    fun showFilePickerActivity(directory: String, spendingsImportType: SpendingsImportType)
 
     fun showBalanceUpdateDialog()
 

@@ -51,7 +51,7 @@ public class SpendingEditorFragment extends BaseFragment {
     @Inject SpendingInteractor spendingInteractor;
 
     @BindView(R.id.name) EditText nameInput;
-    @BindView(R.id.value) EditText valueInput;
+    @BindView(R.id.average) EditText averageInput;
     @BindView(R.id.target) EditText targetInput;
     @BindView(R.id.enabled) CheckBox enabledCB;
     @BindView(R.id.category) Spinner categoryPicker;
@@ -244,9 +244,9 @@ public class SpendingEditorFragment extends BaseFragment {
     private void applySpendingToScreen(final Spending spending) {
         nameInput.setText(spending.getName());
         if (spending.getValue() != null) {
-            valueInput.setText(getString(R.string.detail_amount, spending.getValue()));
+            averageInput.setText(getString(R.string.detail_amount, spending.getValue()));
         } else {
-            valueInput.setText(null);
+            averageInput.setText(null);
         }
         if (spending.getTarget() != null) {
             targetInput.setText(getString(R.string.detail_amount, spending.getTarget()));
@@ -284,9 +284,13 @@ public class SpendingEditorFragment extends BaseFragment {
         BalanceCalculator.BalanceResult result = BalanceCalculator.getEstimatedBalance(spending,
                 balanceReading != null ? balanceReading.when : null,
                 userPreferences.getEstimateDate());
-        String spentStr = ArrayUtils.join("\n", result.spendingEvents, (index, item) -> getString(R.string.spending_occurrence, index + 1, DateUtils.FORMAT_MONTH_DAY_YR.format(item)));
-        spentStr = "Spent: " + result.bestCase + "/" + (result.worstCase) + "\n" + spentStr;
-        spendingEventsLayout.setText(spentStr);
+        if (spending.getSourceData().containsKey(Spending.getSOURCE_MONZO_CATEGORY())) {
+            String spentStr = ArrayUtils.join("\n", result.spendingEvents, (index, item) -> getString(R.string.spending_occurrence, index + 1, DateUtils.FORMAT_MONTH_DAY_YR.format(item)));
+            spentStr = "Spent: " + result.bestCase + "/" + (result.worstCase) + "\n" + spentStr;
+            spendingEventsLayout.setText(spentStr);
+        } else {
+            spendingEventsLayout.setText(null);
+        }
     }
 
     /**
@@ -298,8 +302,8 @@ public class SpendingEditorFragment extends BaseFragment {
         if (TextUtils.isEmpty(nameInput.getText())) {
             return new ValidationError(ValidationError.TYPE_INPUT_FIELD, nameInput, "Please specify a name");
         }
-        if (TextUtils.isEmpty(valueInput.getText())) {
-            return new ValidationError(ValidationError.TYPE_INPUT_FIELD, valueInput, "Please specify a value");
+        if (TextUtils.isEmpty(averageInput.getText())) {
+            return new ValidationError(ValidationError.TYPE_INPUT_FIELD, averageInput, "Please specify a value");
         }
         if (!(categoryPicker.getSelectedItem() instanceof Spending.Category)) {
             return new ValidationError(ValidationError.TYPE_NON_INPUT_FIELD, null, "Please select a category");
@@ -337,8 +341,8 @@ public class SpendingEditorFragment extends BaseFragment {
             spending.setName(nameInput.getText().toString());
         }
         // value
-        if (!TextUtils.isEmpty(valueInput.getText())) {
-            spending.setValue(Double.valueOf(valueInput.getText().toString()));
+        if (!TextUtils.isEmpty(averageInput.getText())) {
+            spending.setValue(Double.valueOf(averageInput.getText().toString()));
         }
         // enabled
         spending.setEnabled(enabledCB.isChecked());
