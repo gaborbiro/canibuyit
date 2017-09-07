@@ -14,6 +14,7 @@ import com.gb.canibuythat.interactor.MonzoInteractor
 import com.gb.canibuythat.ui.MainActivity
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import com.google.gson.Gson
 import javax.inject.Inject
 
 class MonzoDispatchMessagingService : FirebaseMessagingService() {
@@ -29,10 +30,14 @@ class MonzoDispatchMessagingService : FirebaseMessagingService() {
         if (remoteMessage.data.size > 0) {
             Log.d(TAG, "Message data payload: " + remoteMessage.data)
         }
-        if (remoteMessage.notification != null) {
-            val notification = remoteMessage.notification
-            Log.d(TAG, "Message Notification: " + notification.body + " " + notification.body)
-            sendNotification(notification.title!!, notification.body!!)
+        if (remoteMessage.data != null) {
+            val data: Map<String, String> = remoteMessage.data
+
+            if (data.containsKey("notification")) {
+                val notification = Gson().fromJson(data["notification"], Notification::class.java)
+                Log.d(TAG, "Message Notification: " + notification.title + " " + notification.body)
+                sendNotification(notification.title, notification.body)
+            }
         }
         monzoInteractor.loadSpendings(MonzoConstants.ACCOUNT_ID)
     }
@@ -51,7 +56,7 @@ class MonzoDispatchMessagingService : FirebaseMessagingService() {
         val defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
         val notificationBuilder = NotificationCompat.Builder(this)
                 .setSmallIcon(R.drawable.piggybank)
-                .setContentTitle(title)
+                .setContentTitle("Notification")
                 .setContentText(messageBody)
                 .setAutoCancel(true)
                 .setSound(defaultSoundUri)
@@ -62,7 +67,8 @@ class MonzoDispatchMessagingService : FirebaseMessagingService() {
     }
 
     companion object {
-
         private val TAG = "MonzoDispatch"
     }
+
+    data class Notification(val title: String, val body: String)
 }
