@@ -2,7 +2,6 @@ package com.gb.canibuythat.presenter
 
 import android.content.Intent
 import android.os.Environment
-import android.text.TextUtils
 import com.gb.canibuythat.CredentialsProvider
 import com.gb.canibuythat.MonzoConstants
 import com.gb.canibuythat.interactor.BackupingInteractor
@@ -68,8 +67,8 @@ constructor(val monzoInteractor: MonzoInteractor,
     }
 
     fun fetchMonzoData() {
-        if (TextUtils.isEmpty(credentialsProvider.accessToken)) {
-            screen::showLoginActivity
+        if (!credentialsProvider.isSession()) {
+            screen.showLoginActivity()
         } else {
             disposeOnFinish(monzoInteractor.loadSpendings(MonzoConstants.ACCOUNT_ID))
         }

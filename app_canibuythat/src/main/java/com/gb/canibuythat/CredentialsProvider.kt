@@ -16,6 +16,10 @@ class CredentialsProvider @Inject constructor(private val prefsUtil: PrefsUtil) 
         get() = prefsUtil.get(PREF_REFRESH_TOKEN, null as String?)
         set(refreshToken) = prefsUtil.put(PREF_REFRESH_TOKEN, refreshToken)
 
+    fun isSession(): Boolean {
+        return !accessToken.isNullOrEmpty()
+    }
+
     companion object {
         private val PREF_ACCESS_TOKEN = "com.gb.canibuythat.CredentialsProvider.PREF_ACCESS_TOKEN"
         private val PREF_REFRESH_TOKEN = "com.gb.canibuythat.CredentialsProvider.PREF_REFRESH_TOKEN"
