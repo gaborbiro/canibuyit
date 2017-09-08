@@ -275,8 +275,9 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
         if (estimateAtTimeView != null) {
             final Date estimateDate = userPreferences.getEstimateDate();
             String estimateDateStr = estimateDate != null ? DateUtils.FORMAT_MONTH_DAY_YR.format(estimateDate) : getString(R.string.today);
-            String estimateAtTime = getString(R.string.estimate_at_date, balance.getBestCaseBalance(), balance.getWorstCaseBalance(), estimateDateStr);
-            ViewUtils.setTextWithLink(estimateAtTimeView, estimateAtTime, estimateDateStr, estimateDateUpdater);
+            String bestWorstStr = getString(R.string.best_worst, balance.getBestCaseBalance(), balance.getWorstCaseBalance());
+            String estimateAtTime = getString(R.string.estimate_at_date, bestWorstStr, estimateDateStr);
+            ViewUtils.setTextWithLinks(estimateAtTimeView, estimateAtTime, new String[]{bestWorstStr, estimateDateStr}, new Runnable[]{bestWorstClickListener, estimateDateUpdater});
         }
     }
 
@@ -302,6 +303,10 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
 
         DatePickerDialog datePickerDialog = DateUtils.getDatePickerDialog(MainActivity.this, listener, userPreferences.getEstimateDate());
         datePickerDialog.show();
+    };
+
+    private Runnable bestWorstClickListener = () -> {
+        presenter.calculateCategoryBalance();
     };
 
     @Override

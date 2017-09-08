@@ -96,4 +96,8 @@ constructor(private val spendingsRepository: SpendingsRepository, private val ap
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())
     }
+
+    fun calculateCategoryBalance() {
+        return spendingsRepository.calculateCategoryBalance()
+    }
 }

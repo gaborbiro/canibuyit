@@ -27,10 +27,25 @@ public class ViewUtils {
         });
     }
 
-    public static void setTextWithLink(TextView textView, String text, String linkPart, final Runnable runOnClick) {
+
+    public static void setTextWithLink(TextView textView, String text, String linkPart, Runnable runOnClick) {
+        setTextWithLinks(textView, text, new String[]{linkPart}, new Runnable[]{runOnClick});
+    }
+
+    public static void setTextWithLinks(TextView textView, String text, String[] linkParts, Runnable[] runOnClicks) {
         textView.setText(text);
         Spannable spannable = new SpannableString(textView.getText());
-        int startIndex = textView.getText().toString().indexOf(linkPart);
+
+        for (int i = 0; i < linkParts.length; i++) {
+            applyLink(textView.getText().toString(), spannable, linkParts[i], runOnClicks[i]);
+        }
+
+        textView.setText(spannable, TextView.BufferType.SPANNABLE);
+        textView.setMovementMethod(LinkMovementMethod.getInstance());
+    }
+
+    private static void applyLink(String text, Spannable spannable, String linkPart, Runnable runOnClick) {
+        int startIndex = text.indexOf(linkPart);
         if (startIndex < 0) {
             throw new IllegalArgumentException("linkPart must be included in text");
         }
@@ -44,7 +59,5 @@ public class ViewUtils {
                 }
             }
         }, startIndex, startIndex + linkPart.length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
-        textView.setText(spannable, TextView.BufferType.SPANNABLE);
-        textView.setMovementMethod(LinkMovementMethod.getInstance());
     }
 }

@@ -4,8 +4,12 @@ import com.gb.canibuythat.UserPreferences
 import com.gb.canibuythat.model.Balance
 import com.gb.canibuythat.model.Spending
 import com.gb.canibuythat.provider.BalanceCalculator
+import com.gb.canibuythat.provider.Contract
 import com.gb.canibuythat.provider.SpendingDbHelper
 import com.j256.ormlite.dao.Dao
+import com.j256.ormlite.dao.GenericRawResults
+import com.j256.ormlite.stmt.QueryBuilder
+import com.j256.ormlite.stmt.RawResultsImpl
 import io.reactivex.Completable
 import io.reactivex.Maybe
 import io.reactivex.Single
@@ -154,5 +158,12 @@ constructor(spendingDbHelper: SpendingDbHelper, private val userPreferences: Use
             worstCase += balanceReading.balance
         }
         return Single.just(Balance(balanceReading, bestCase, worstCase))
+    }
+
+    fun calculateCategoryBalance() {
+        val qb: QueryBuilder<Spending, Int> = spendingDao.queryBuilder()
+        qb.selectRaw(Contract.Spending.TYPE + ", SUM(" + Contract.Spending.VALUE + ") as avg")
+        qb.groupBy(Contract.Spending.TYPE)
+        val result = spendingDao.queryRaw(qb.prepareStatementString())
     }
 }

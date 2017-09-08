@@ -43,6 +43,10 @@ constructor(val monzoInteractor: MonzoInteractor,
                 .subscribe(screen::setBalanceInfo, this::onError))
     }
 
+    fun calculateCategoryBalance() {
+        spendingInteractor.calculateCategoryBalance()
+    }
+
     fun handleDeepLink(intent: Intent) {
         val data = intent.data
         if (data.authority == MonzoConstants.MONZO_AUTH_AUTHORITY) {
