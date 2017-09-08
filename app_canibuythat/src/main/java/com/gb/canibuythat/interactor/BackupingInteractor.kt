@@ -29,7 +29,7 @@ constructor(private val backupingRepository: BackupingRepository, private val ap
         return prepareImportCompletable(backupingRepository.importNonMonzoSpendings(file))
     }
 
-    fun prepareImportCompletable(completable: Completable): Completable {
+    private fun prepareImportCompletable(completable: Completable): Completable {
         return completable
                 .doOnComplete { appContext.contentResolver.notifyChange(SpendingProvider.SPENDINGS_URI, null) }
                 .onErrorResumeNext { throwable -> Completable.error(DomainException("Error importing database. See logs.", throwable)) }

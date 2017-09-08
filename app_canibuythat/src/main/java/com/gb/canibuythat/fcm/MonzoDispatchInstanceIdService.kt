@@ -35,7 +35,7 @@ class MonzoDispatchInstanceIdService : FirebaseInstanceIdService() {
     private fun sendRegistrationToServer(token: String) {
         monzoDispatchInteractor.register("CanIBuyThat", token)
                 .subscribe({
-                    Toast.makeText(appContext, "Successfully register for FCM", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(appContext, "Successfully register for Monzo push notifications", Toast.LENGTH_SHORT).show()
                 }, {
                     errorHandler.onErrorSoft(it)
                 })

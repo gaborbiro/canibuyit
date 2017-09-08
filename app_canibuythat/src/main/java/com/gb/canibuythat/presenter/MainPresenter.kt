@@ -83,7 +83,7 @@ constructor(val monzoInteractor: MonzoInteractor,
     }
 
     fun exportDatabase() {
-        backupingInteractor.exportSpendings().subscribe({}, this::onError)
+        backupingInteractor.exportSpendings().subscribe({screen.showToast("Database exported")}, this::onError)
     }
 
     fun onImportDatabase(importType: MainScreen.SpendingsImportType) {
