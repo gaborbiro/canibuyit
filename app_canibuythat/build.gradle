@@ -4,6 +4,15 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
 android {
+    signingConfigs {
+        releaseConfig {
+            storeFile file(STORE_FILE)
+            keyAlias KEY_ALIAS
+            storePassword STORE_PASSWORD
+            keyPassword KEY_PASSWORD
+        }
+    }
+
     compileSdkVersion 25
     buildToolsVersion "25.0.2"
 
@@ -17,9 +26,11 @@ android {
     }
     buildTypes {
         debug {
+            signingConfig signingConfigs.releaseConfig
             minifyEnabled false
         }
         release {
+            signingConfig signingConfigs.releaseConfig
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
