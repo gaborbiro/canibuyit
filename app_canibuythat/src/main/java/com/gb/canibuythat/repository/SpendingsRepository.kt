@@ -76,6 +76,7 @@ constructor(spendingDbHelper: SpendingDbHelper, private val userPreferences: Use
                             it.cycleMultiplier = savedSpendings[index].cycleMultiplier
                             it.type = savedSpendings[index].type
                             it.occurrenceCount = savedSpendings[index].occurrenceCount
+                            it.enabled = savedSpendings[index].enabled
 
                             if (savedSpendings[index].value != 0.0) {
                                 it.value = savedSpendings[index].value
@@ -144,10 +145,10 @@ constructor(spendingDbHelper: SpendingDbHelper, private val userPreferences: Use
         // blocking thread
         val balanceReading = userPreferences.balanceReading
 
-        for (spending in spendingDao) {
+        for (spending: Spending in spendingDao) {
             if (spending.enabled) {
                 val startDate = balanceReading?.`when`
-                val result = BalanceCalculator.getEstimatedBalance(spending, startDate, userPreferences.estimateDate)
+                val result: BalanceCalculator.BalanceResult = BalanceCalculator.getEstimatedBalance(spending, startDate, userPreferences.estimateDate)
                 bestCase += result.bestCase
                 worstCase += result.worstCase
             }

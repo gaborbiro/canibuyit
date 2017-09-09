@@ -84,10 +84,14 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
         if (chartButton != null) {
             chartButton.setOnClickListener(v -> presenter.chartButtonClicked());
         }
-        if (getIntent().getData() != null) {
-            presenter.handleDeepLink(getIntent());
-        }
+        presenter.handleDeepLink(getIntent());
         presenter.fetchBalance();
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        presenter.handleDeepLink(intent);
     }
 
     @Override
@@ -250,7 +254,7 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
                 getSupportFragmentManager().beginTransaction().replace(R.id.spending_editor_container, detailFragment).commit();
             } else {
                 // if a detail fragment is already visible
-                spendingEditorFragment.saveAndRun(() -> spendingEditorFragment.showSpending(spendingId, false));
+                spendingEditorFragment.saveAndRun(() -> spendingEditorFragment.showSpending(spendingId));
             }
         } else {
             if (spendingId != null) {

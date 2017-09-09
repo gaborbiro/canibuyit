@@ -49,7 +49,7 @@ constructor(val monzoInteractor: MonzoInteractor,
 
     fun handleDeepLink(intent: Intent) {
         val data = intent.data
-        if (data.authority == MonzoConstants.MONZO_AUTH_AUTHORITY) {
+        if (data != null && data.authority == MonzoConstants.MONZO_AUTH_AUTHORITY) {
             val pathSegments = data.pathSegments
 
             if (pathSegments[0] == MonzoConstants.MONZO_AUTH_PATH_BASE) {

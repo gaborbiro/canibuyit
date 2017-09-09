@@ -130,6 +130,7 @@ constructor(appContext: Context) : OrmLiteSqliteOpenHelper(appContext, DATABASE_
                     Cursor.FIELD_TYPE_BLOB -> values.put(columns[i], cursor.getBlob(i))
                 }
             }
+            values.remove(Contract.Spending._ID)
             return values
         }
 

@@ -33,7 +33,7 @@
         <item quantity="other">(%1$d times)</item>
     </plurals>
     <plurals name="period">
-        <item quantity="one">last %2$s</item>
+        <item quantity="one">this %2$s</item>
         <item quantity="other">last %1$d %2$s</item>
     </plurals>
 

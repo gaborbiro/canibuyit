@@ -12,7 +12,7 @@ class Contract {
 
             const val TABLE = "spending"
 
-            const val _ID = "_id"
+            const val _ID = BaseColumns._ID
             const val NAME = "name"
             const val NOTES = "notes"
             const val VALUE = "value"
@@ -27,7 +27,7 @@ class Contract {
             const val SPENT = "spent"
             const val TARGET = "target"
 
-            val COLUMNS = arrayOf(BaseColumns._ID, NAME, NOTES, VALUE, TYPE, FROM_START_DATE, FROM_END_DATE, OCCURRENCE_COUNT, CYCLE_MULTIPLIER, CYCLE, ENABLED, SOURCE_DATA, SPENT, TARGET)
+            val COLUMNS = arrayOf(_ID, NAME, NOTES, VALUE, TYPE, FROM_START_DATE, FROM_END_DATE, OCCURRENCE_COUNT, CYCLE_MULTIPLIER, CYCLE, ENABLED, SOURCE_DATA, SPENT, TARGET)
         }
     }
 }

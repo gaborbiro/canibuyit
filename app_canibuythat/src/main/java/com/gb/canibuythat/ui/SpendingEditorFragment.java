@@ -100,9 +100,9 @@ public class SpendingEditorFragment extends BaseFragment {
         cyclePicker.setOnTouchListener(keyboardDismisser);
 
         if (originalSpending == null && getArguments() != null && getArguments().containsKey(EXTRA_SPENDING_ID)) {
-            showSpending(getArguments().getInt(EXTRA_SPENDING_ID), true);
+            showSpending(getArguments().getInt(EXTRA_SPENDING_ID));
         } else {
-            showSpending(null, true);
+            showSpending(null);
         }
 
         cycleMultiplierInput.addTextChangedListener(new TextChangeListener() {
@@ -147,15 +147,12 @@ public class SpendingEditorFragment extends BaseFragment {
     }
 
     /**
-     * @param spendingId           can be null, in which case the content is cleared
-     * @param showKeyboardWhenDone after data has been loaded from the database and
-     *                             displayed, focus on the name
-     *                             EditText and show the keyboard
+     * @param spendingId can be null, in which case the content is cleared
      */
-    public void showSpending(Integer spendingId, final boolean showKeyboardWhenDone) {
+    public void showSpending(Integer spendingId) {
         if (spendingId != null) {
             spendingInteractor.read(spendingId)
-                    .subscribe(spending -> onSpendingLoaded(spending, showKeyboardWhenDone), this::onError);
+                    .subscribe(spending -> onSpendingLoaded(spending), this::onError);
         }
     }
 
@@ -228,13 +225,9 @@ public class SpendingEditorFragment extends BaseFragment {
         }
     }
 
-    private void onSpendingLoaded(Spending spending, boolean showKeyboardWhenDone) {
+    private void onSpendingLoaded(Spending spending) {
         this.originalSpending = spending;
         applySpendingToScreen(spending);
-
-        if (showKeyboardWhenDone && isAdded()) {
-            ViewUtils.showKeyboard(nameInput);
-        }
 
         if (deleteBtn != null) {
             deleteBtn.setVisible(true);
