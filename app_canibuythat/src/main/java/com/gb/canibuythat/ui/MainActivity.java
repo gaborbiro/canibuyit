@@ -269,8 +269,9 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
     public void setBalanceInfo(@NonNull Balance balance) {
         if (referenceView != null) {
             String text;
-            if (balance.getBalanceReading() != null) {
-                text = getString(R.string.reading, balance.getBalanceReading().balance, DateUtils.FORMAT_MONTH_DAY_YR.format(balance.getBalanceReading().when));
+            BalanceReading balanceReading = userPreferences.getBalanceReading();
+            if (balanceReading != null) {
+                text = getString(R.string.reading, balanceReading.balance, DateUtils.FORMAT_MONTH_DAY_YR.format(balanceReading.when));
             } else {
                 text = getString(R.string.reading_none);
             }
@@ -279,7 +280,7 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
         if (estimateAtTimeView != null) {
             final Date estimateDate = userPreferences.getEstimateDate();
             String estimateDateStr = estimateDate != null ? DateUtils.FORMAT_MONTH_DAY_YR.format(estimateDate) : getString(R.string.today);
-            String bestWorstStr = getString(R.string.best_worst, balance.getBestCaseBalance(), balance.getWorstCaseBalance());
+            String bestWorstStr = getString(R.string.best_worst, balance.getBestCase(), balance.getWorstCase());
             String estimateAtTime = getString(R.string.estimate_at_date, bestWorstStr, estimateDateStr);
             ViewUtils.setTextWithLinks(estimateAtTimeView, estimateAtTime, new String[]{bestWorstStr, estimateDateStr}, new Runnable[]{bestWorstClickListener, estimateDateUpdater});
         }
@@ -326,5 +327,10 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
     @Override
     public void showToast(@NotNull String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void showCategoryBalance(@NotNull String category, @NotNull String text) {
+        PromptDialog.newInstance("Category balance", text).show(getSupportFragmentManager(), null);
     }
 }

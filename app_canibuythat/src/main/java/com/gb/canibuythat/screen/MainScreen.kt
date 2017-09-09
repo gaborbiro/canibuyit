@@ -24,4 +24,6 @@ interface MainScreen : ProgressScreen {
     fun showEditorScreen(spendingId: Int?)
 
     fun showToast(message: String)
+
+    fun showCategoryBalance(category: String, text: String)
 }

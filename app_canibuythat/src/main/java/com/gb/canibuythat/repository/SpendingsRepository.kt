@@ -7,9 +7,6 @@ import com.gb.canibuythat.provider.BalanceCalculator
 import com.gb.canibuythat.provider.Contract
 import com.gb.canibuythat.provider.SpendingDbHelper
 import com.j256.ormlite.dao.Dao
-import com.j256.ormlite.dao.GenericRawResults
-import com.j256.ormlite.stmt.QueryBuilder
-import com.j256.ormlite.stmt.RawResultsImpl
 import io.reactivex.Completable
 import io.reactivex.Maybe
 import io.reactivex.Single
@@ -138,33 +135,40 @@ constructor(spendingDbHelper: SpendingDbHelper, private val userPreferences: Use
         }
     }
 
-    fun calculateBalance(): Single<Balance> {
-        var bestCase = 0f
-        var worstCase = 0f
+    fun getBalance(): Single<Balance> {
+        return Single.just(calculateBalance(null))
+    }
+
+    fun getCategoryBalance(): String {
+        val buffer = StringBuffer()
+        Spending.Category.values().forEach {
+            val (best, worst) = calculateBalance(it.name)
+            buffer.append("${it.name}: ${best}/${worst}\n")
+        }
+        return buffer.toString()
+    }
+
+    private fun calculateBalance(category: String?): Balance {
+        val balance = Balance()
 
         // blocking thread
         val balanceReading = userPreferences.balanceReading
 
-        for (spending: Spending in spendingDao) {
-            if (spending.enabled) {
-                val startDate = balanceReading?.`when`
-                val result: BalanceCalculator.BalanceResult = BalanceCalculator.getEstimatedBalance(spending, startDate, userPreferences.estimateDate)
-                bestCase += result.bestCase
-                worstCase += result.worstCase
-            }
+        val query: MutableMap<String, Any> = mutableMapOf(Contract.Spending.ENABLED to true)
+        category?.let { query.put(Contract.Spending.TYPE, category) }
+
+        for (spending: Spending in spendingDao.queryForFieldValues(query)) {
+            val startDate = balanceReading?.`when`
+            val result: BalanceCalculator.BalanceResult = BalanceCalculator.getEstimatedBalance(
+                    spending, startDate, userPreferences.estimateDate)
+            balance.bestCase += result.bestCase
+            balance.worstCase += result.worstCase
         }
 
-        if (balanceReading != null) {
-            bestCase += balanceReading.balance
-            worstCase += balanceReading.balance
+        balanceReading?.let {
+            balance.bestCase += balanceReading.balance
+            balance.worstCase += balanceReading.balance
         }
-        return Single.just(Balance(balanceReading, bestCase, worstCase))
-    }
-
-    fun calculateCategoryBalance() {
-        val qb: QueryBuilder<Spending, Int> = spendingDao.queryBuilder()
-        qb.selectRaw(Contract.Spending.TYPE + ", SUM(" + Contract.Spending.VALUE + ") as avg")
-        qb.groupBy(Contract.Spending.TYPE)
-        val result = spendingDao.queryRaw(qb.prepareStatementString())
+        return balance
     }
 }

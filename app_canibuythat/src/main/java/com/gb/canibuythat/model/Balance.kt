@@ -1,5 +1,4 @@
 package com.gb.canibuythat.model
 
-import com.gb.canibuythat.ui.model.BalanceReading
-
-class Balance(val balanceReading: BalanceReading? = null, val bestCaseBalance: Float = 0.toFloat(), val worstCaseBalance: Float = 0.toFloat())
+data class Balance(var bestCase: Float = 0.toFloat(),
+                   var worstCase: Float = 0.toFloat())

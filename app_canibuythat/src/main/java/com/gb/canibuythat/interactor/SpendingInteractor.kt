@@ -10,7 +10,6 @@ import com.gb.canibuythat.rx.SchedulerProvider
 import com.j256.ormlite.dao.Dao
 import io.reactivex.Completable
 import io.reactivex.Maybe
-import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.disposables.Disposable
 import io.reactivex.subjects.PublishSubject
@@ -92,12 +91,12 @@ constructor(private val spendingsRepository: SpendingsRepository, private val ap
     }
 
     fun calculateBalance(): Single<Balance> {
-        return spendingsRepository.calculateBalance()
+        return spendingsRepository.getBalance()
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())
     }
 
-    fun calculateCategoryBalance() {
-        return spendingsRepository.calculateCategoryBalance()
+    fun calculateCategoryBalance(): String {
+        return spendingsRepository.getCategoryBalance()
     }
 }
