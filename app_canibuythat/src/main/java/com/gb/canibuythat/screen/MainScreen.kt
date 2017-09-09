@@ -25,5 +25,5 @@ interface MainScreen : ProgressScreen {
 
     fun showToast(message: String)
 
-    fun showCategoryBalance(category: String, text: String)
+    fun showCategoryBalance(text: String)
 }

@@ -41,6 +41,11 @@ public class DateUtils {
         return c;
     }
 
+    /**
+     * ... {@code start} ... {@code end} ...<br>
+     * <pre>|   |   |  |  |<br>-2 -1   0  1  2
+     * </pre>
+     */
     public static int compare(Calendar date, Calendar start, Calendar end) {
         if (start.after(end)) {
             throw new IllegalArgumentException("Start date must come before end date");

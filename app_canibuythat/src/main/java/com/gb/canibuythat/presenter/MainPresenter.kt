@@ -44,7 +44,7 @@ constructor(val monzoInteractor: MonzoInteractor,
     }
 
     fun calculateCategoryBalance() {
-        spendingInteractor.calculateCategoryBalance()
+        screen.showCategoryBalance(spendingInteractor.calculateCategoryBalance())
     }
 
     fun handleDeepLink(intent: Intent) {

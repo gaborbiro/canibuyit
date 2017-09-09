@@ -45,8 +45,9 @@ public class PromptDialog extends BaseDialogFragment {
     }
 
     @Override
-    public void setPositiveButton(int buttonTextId, View.OnClickListener listener) {
+    public PromptDialog setPositiveButton(int buttonTextId, View.OnClickListener listener) {
         btnStringResId = buttonTextId;
         onClickListener = listener;
+        return this;
     }
 }

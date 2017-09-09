@@ -39,31 +39,36 @@ public abstract class BaseDialogFragment extends DialogFragment {
         unbinder.unbind();
     }
 
-    public void setTitle(@StringRes int title) {
+    public BaseDialogFragment setTitle(@StringRes int title) {
         setTitle(getString(title));
+        return this;
     }
 
-    public void setTitle(String title) {
+    public BaseDialogFragment setTitle(String title) {
         this.title.setText(title);
         this.title.setVisibility(View.VISIBLE);
+        return this;
     }
 
-    public void setMessage(@StringRes int message) {
+    public BaseDialogFragment setMessage(@StringRes int message) {
         setMessage(getString(message));
+        return this;
     }
 
-    public void setMessage(String body) {
+    public BaseDialogFragment setMessage(String body) {
         this.message.setText(body);
         this.message.setVisibility(View.VISIBLE);
+        return this;
     }
 
-    public void setPositiveButton(int buttonTextId, View.OnClickListener listener) {
+    public BaseDialogFragment setPositiveButton(int buttonTextId, View.OnClickListener listener) {
         if (listener != null) {
             positiveBtn.setOnClickListener(listener);
         }
         positiveBtn.setText(getString(buttonTextId));
         positiveBtn.setVisibility(View.VISIBLE);
         activityIndicator.setVisibility(View.GONE);
+        return this;
     }
 
     @Override

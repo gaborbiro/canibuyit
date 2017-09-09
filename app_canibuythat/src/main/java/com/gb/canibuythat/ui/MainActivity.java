@@ -280,9 +280,9 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
         if (estimateAtTimeView != null) {
             final Date estimateDate = userPreferences.getEstimateDate();
             String estimateDateStr = estimateDate != null ? DateUtils.FORMAT_MONTH_DAY_YR.format(estimateDate) : getString(R.string.today);
-            String bestWorstStr = getString(R.string.best_worst, balance.getBestCase(), balance.getWorstCase());
-            String estimateAtTime = getString(R.string.estimate_at_date, bestWorstStr, estimateDateStr);
-            ViewUtils.setTextWithLinks(estimateAtTimeView, estimateAtTime, new String[]{bestWorstStr, estimateDateStr}, new Runnable[]{bestWorstClickListener, estimateDateUpdater});
+            String defoMaybeStr = getString(R.string.definitely_maybe, balance.getDefinitely(), balance.getMaybeEvenThisMuch());
+            String estimateAtTime = getString(R.string.estimate_at_date, defoMaybeStr, estimateDateStr);
+            ViewUtils.setTextWithLinks(estimateAtTimeView, estimateAtTime, new String[]{defoMaybeStr, estimateDateStr}, new Runnable[]{bestWorstClickListener, estimateDateUpdater});
         }
     }
 
@@ -330,7 +330,7 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
     }
 
     @Override
-    public void showCategoryBalance(@NotNull String category, @NotNull String text) {
-        PromptDialog.newInstance("Category balance", text).show(getSupportFragmentManager(), null);
+    public void showCategoryBalance(@NotNull String text) {
+        PromptDialog.newInstance("Category balance", text).setPositiveButton(android.R.string.ok, null).show(getSupportFragmentManager(), null);
     }
 }

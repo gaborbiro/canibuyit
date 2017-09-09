@@ -15,9 +15,10 @@ import java.util.*
 import javax.inject.Inject
 
 class BackupingInteractor @Inject
-constructor(private val backupingRepository: BackupingRepository, private val appContext: Context, private val schedulerProvider: SchedulerProvider) {
+constructor(private val backupingRepository: BackupingRepository, private val appContext: Context, private val schedulerProvider: SchedulerProvider, private val spendingInteractor: SpendingInteractor) {
 
     fun importAllSpendings(file: String): Completable {
+        spendingInteractor.clearSpendings()
         return prepareImportCompletable(backupingRepository.importAllSpendings(file))
     }
 

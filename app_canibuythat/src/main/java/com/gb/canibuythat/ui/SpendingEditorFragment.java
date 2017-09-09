@@ -274,12 +274,12 @@ public class SpendingEditorFragment extends BaseFragment {
 
     private void loadSpendingOccurrences(final Spending spending) {
         BalanceReading balanceReading = userPreferences.getBalanceReading();
-        BalanceCalculator.BalanceResult result = BalanceCalculator.getEstimatedBalance(spending,
+        BalanceCalculator.BalanceResult result = BalanceCalculator.INSTANCE.getEstimatedBalance(spending,
                 balanceReading != null ? balanceReading.when : null,
                 userPreferences.getEstimateDate());
         if (spending.getSourceData().containsKey(Spending.getSOURCE_MONZO_CATEGORY())) {
-            String spentStr = ArrayUtils.join("\n", result.spendingEvents, (index, item) -> getString(R.string.spending_occurrence, index + 1, DateUtils.FORMAT_MONTH_DAY_YR.format(item)));
-            spentStr = "Spent: " + result.bestCase + "/" + (result.worstCase) + "\n" + spentStr;
+            String spentStr = ArrayUtils.join("\n", result.getSpendingEvents(), (index, item) -> getString(R.string.spending_occurrence, index + 1, DateUtils.FORMAT_MONTH_DAY_YR.format(item)));
+            spentStr = "Spent: " + result.getDefinitely() + "/" + (result.getMaybeEvenThisMuch()) + "\n" + spentStr;
             spendingEventsLayout.setText(spentStr);
         } else {
             spendingEventsLayout.setText(null);

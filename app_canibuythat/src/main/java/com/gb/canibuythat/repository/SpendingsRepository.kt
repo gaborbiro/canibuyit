@@ -141,14 +141,20 @@ constructor(spendingDbHelper: SpendingDbHelper, private val userPreferences: Use
 
     fun getCategoryBalance(): String {
         val buffer = StringBuffer()
+//        val startDate = userPreferences.balanceReading.`when`
+//        val endDate = userPreferences.estimateDate
+
         Spending.Category.values().forEach {
-            val (best, worst) = calculateBalance(it.name)
-            buffer.append("${it.name}: ${best}/${worst}\n")
+            val (definitely, maybeEvenThisMuch) = calculateBalance(it)
+
+            if (definitely != 0f || maybeEvenThisMuch != 0f) {
+                buffer.append("${it.name}:\n${definitely}/${maybeEvenThisMuch}\n")
+            }
         }
         return buffer.toString()
     }
 
-    private fun calculateBalance(category: String?): Balance {
+    private fun calculateBalance(category: Spending.Category?): Balance {
         val balance = Balance()
 
         // blocking thread
@@ -159,15 +165,15 @@ constructor(spendingDbHelper: SpendingDbHelper, private val userPreferences: Use
 
         for (spending: Spending in spendingDao.queryForFieldValues(query)) {
             val startDate = balanceReading?.`when`
-            val result: BalanceCalculator.BalanceResult = BalanceCalculator.getEstimatedBalance(
+            val (definitely, maybeEvenThisMuch, spendingEvents) = BalanceCalculator.getEstimatedBalance(
                     spending, startDate, userPreferences.estimateDate)
-            balance.bestCase += result.bestCase
-            balance.worstCase += result.worstCase
+            balance.definitely += definitely
+            balance.maybeEvenThisMuch += maybeEvenThisMuch
         }
 
         balanceReading?.let {
-            balance.bestCase += balanceReading.balance
-            balance.worstCase += balanceReading.balance
+            balance.definitely += balanceReading.balance
+            balance.maybeEvenThisMuch += balanceReading.balance
         }
         return balance
     }
