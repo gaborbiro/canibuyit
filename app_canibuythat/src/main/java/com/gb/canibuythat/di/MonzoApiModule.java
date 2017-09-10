@@ -52,7 +52,7 @@ public class MonzoApiModule {
 
     @Provides
     @Singleton
-    MonzoDispatchApi provideMonzoDispatchApi() {
+    MonzoDispatchApi provideMonzoDispatchApi(GsonConverterFactory gsonConverterFactory) {
         OkHttpClient.Builder okHttpClientBuilder = new OkHttpClient.Builder()
                 .readTimeout(AppConstants.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .connectTimeout(AppConstants.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
@@ -66,6 +66,7 @@ public class MonzoApiModule {
         return new Retrofit.Builder()
                 .client(okHttpClientBuilder.build())
                 .baseUrl(MonzoConstants.MONZO_DISPATCH_API_BASE)
+                .addConverterFactory(gsonConverterFactory)
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .build()
                 .create(MonzoDispatchApi.class);

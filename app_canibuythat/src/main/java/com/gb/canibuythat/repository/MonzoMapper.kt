@@ -1,11 +1,8 @@
 package com.gb.canibuythat.repository
 
 import com.gb.canibuythat.api.model.*
-import com.gb.canibuythat.model.Account
-import com.gb.canibuythat.model.Login
-import com.gb.canibuythat.model.Spending
+import com.gb.canibuythat.model.*
 import com.gb.canibuythat.model.Spending.Cycle
-import com.gb.canibuythat.model.Transaction
 import org.apache.commons.lang3.text.WordUtils
 import org.threeten.bp.LocalDate
 import org.threeten.bp.ZoneId
@@ -20,16 +17,6 @@ class MonzoMapper @Inject constructor() {
 
     fun mapToLogin(apiLogin: ApiLogin): Login {
         return Login(apiLogin.access_token, apiLogin.refresh_token)
-    }
-
-    fun mapToAccounts(apiAccountCollection: ApiAccountCollection): List<Account> {
-        return apiAccountCollection.accounts.map { mapToAccount(it) }
-    }
-
-    fun mapToAccount(apiAccount: ApiAccount): Account {
-        return Account(apiAccount.id,
-                apiAccount.created,
-                apiAccount.description)
     }
 
     fun mapToTransactions(apiTransactionCollection: ApiTransactionCollection): List<Transaction> {
@@ -68,6 +55,14 @@ class MonzoMapper @Inject constructor() {
         spending.spent = 0.0
         timeMap[cycle.get(LocalDate.now(ZoneId.systemDefault()))]?.let { spending.spent = it.sumBy { it.amount }.div(100.0) }
         return spending
+    }
+
+    fun mapToWebhooks(apiWebhooks: ApiWebhooks): Webhooks {
+        return Webhooks(apiWebhooks.webhooks.map { mapToWebhook(it) })
+    }
+
+    fun mapToWebhook(apiWebhook: ApiWebhook): Webhook {
+        return Webhook(apiWebhook.id, apiWebhook.url)
     }
 
     fun Cycle.get(date: LocalDate): Int {

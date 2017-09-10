@@ -148,6 +148,7 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
             case R.id.menu_fcm:
                 String token = FirebaseInstanceId.getInstance().getToken();
                 Log.d("MonzoDispatch", token);
+                presenter.sendFCMTokenToServer(token);
                 break;
             case R.id.menu_monzo:
                 presenter.fetchMonzoData();
@@ -325,8 +326,8 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
     }
 
     @Override
-    public void setProjectName(@NotNull String name) {
-        if (name != null) {
+    public void setProjectName(String name) {
+        if (name == null) {
             setTitle(getString(R.string.app_name));
         } else {
             setTitle(getString(R.string.app_name_project, name));

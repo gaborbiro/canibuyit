@@ -5,6 +5,8 @@ import com.gb.canibuythat.api.BaseFormDataApi
 import com.gb.canibuythat.api.MonzoApi
 import com.gb.canibuythat.model.Login
 import com.gb.canibuythat.model.Spending
+import com.gb.canibuythat.model.Webhooks
+import io.reactivex.Completable
 import io.reactivex.Single
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -38,5 +40,17 @@ class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi, privat
                         mapper.mapToSpending(category, transactionsForCategory)
                     }
                 }
+    }
+
+    fun registerWebhook(accountId: String, url: String): Completable {
+        return monzoApi.registerWebhook(accountId, url)
+    }
+
+    fun getWebhooks(accountId: String): Single<Webhooks> {
+        return monzoApi.getWebhooks(accountId).map(mapper::mapToWebhooks)
+    }
+
+    fun deleteWebhook(webhookId: String): Completable {
+        return monzoApi.deleteWebhook(webhookId)
     }
 }

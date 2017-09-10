@@ -1,21 +1,15 @@
 package com.gb.canibuythat.repository
 
 import com.gb.canibuythat.api.MonzoDispatchApi
-import io.reactivex.Completable
+import com.gb.canibuythat.model.DispatchRegistration
+import io.reactivex.Single
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class MonzoDispatchRepository @Inject constructor(private val monzoDispatchApi: MonzoDispatchApi) {
+class MonzoDispatchRepository @Inject constructor(private val monzoDispatchApi: MonzoDispatchApi, private val dispatchMapper: MonzoDispatchMapper) {
 
-    fun register(name: String, token: String): Completable {
-        return Completable.create {
-            try {
-                monzoDispatchApi.register(name, token)
-                it.onComplete()
-            } catch (t: Throwable) {
-                it.onError(t)
-            }
-        }
+    fun register(token: String): Single<DispatchRegistration> {
+        return monzoDispatchApi.register(token).map { dispatchMapper.mapToDidpatchRegistration(it) }
     }
 }

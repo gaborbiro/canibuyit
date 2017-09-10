@@ -5,8 +5,11 @@ import com.gb.canibuythat.exception.DomainException
 import com.gb.canibuythat.exception.MonzoException
 import com.gb.canibuythat.model.Login
 import com.gb.canibuythat.model.Spending
+import com.gb.canibuythat.model.Webhook
+import com.gb.canibuythat.model.Webhooks
 import com.gb.canibuythat.repository.MonzoRepository
 import com.gb.canibuythat.rx.SchedulerProvider
+import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.disposables.Disposable
@@ -70,5 +73,26 @@ constructor(private val schedulerProvider: SchedulerProvider,
                         spendingInteractor.getSpendingsDataStream().onNext(Lce.error(e))
                     }
                 })
+    }
+
+    fun registerWebhook(accountId: String, url: String): Completable {
+        return monzoRepository.registerWebhook(accountId, url)
+                .onErrorResumeNext { Completable.error(DomainException("Error registering for Monzo push notification", it)) }
+                .subscribeOn(schedulerProvider.io())
+                .observeOn(schedulerProvider.mainThread())
+    }
+
+    fun getWebhooks(accountId: String): Single<Webhooks> {
+        return monzoRepository.getWebhooks(accountId)
+                .onErrorResumeNext { Single.error(DomainException("Error fetching webhooks", it)) }
+                .subscribeOn(schedulerProvider.io())
+                .observeOn(schedulerProvider.mainThread())
+    }
+
+    fun deleteWebhook(webhook: Webhook): Completable {
+        return monzoRepository.deleteWebhook(webhook.id)
+                .onErrorResumeNext { Completable.error(DomainException("Error deleting webhook", it)) }
+                .subscribeOn(schedulerProvider.io())
+                .observeOn(schedulerProvider.mainThread())
     }
 }
