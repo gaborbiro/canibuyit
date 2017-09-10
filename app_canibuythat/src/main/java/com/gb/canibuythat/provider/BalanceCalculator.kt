@@ -50,8 +50,8 @@ object BalanceCalculator {
                     `break` = true
                 }
             }
-            spending.cycle.apply(occurrenceStart, spending.cycleMultiplier!!)
-            spending.cycle.apply(occurrenceEnd, spending.cycleMultiplier!!)
+            spending.cycle!!.apply(occurrenceStart, spending.cycleMultiplier!!)
+            spending.cycle!!.apply(occurrenceEnd, spending.cycleMultiplier!!)
             if (spending.occurrenceCount != null && ++count >= spending.occurrenceCount!!) {
                 `break` = true
             }

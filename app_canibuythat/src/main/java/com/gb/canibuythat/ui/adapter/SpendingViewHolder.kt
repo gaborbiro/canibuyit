@@ -17,7 +17,7 @@ class SpendingViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
     fun bind(spending: Spending) {
         val context = nameView.context
-        if (spending.value!! > 0) {
+        if (spending.value > 0) {
             nameView.text = context.getString(R.string.income, spending.name)
         } else {
             nameView.text = spending.name

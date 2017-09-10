@@ -29,7 +29,7 @@ class Spending {
     var notes: String? = null
 
     @DatabaseField(columnName = Contract.Spending.TYPE, canBeNull = false)
-    lateinit var type: Category
+    var type: Category? = null
 
     @DatabaseField(columnName = Contract.Spending.VALUE, canBeNull = false)
     var value: Double = 0.0
@@ -69,7 +69,7 @@ class Spending {
      * semester
      */
     @DatabaseField(columnName = Contract.Spending.CYCLE, canBeNull = false)
-    lateinit var cycle: Cycle
+    var cycle: Cycle? = null
 
     @DatabaseField(columnName = Contract.Spending.ENABLED, canBeNull = true)
     var enabled = true
@@ -139,13 +139,13 @@ class Spending {
         var result = id ?: 0
         result = 31 * result + (name?.hashCode() ?: 0)
         result = 31 * result + (notes?.hashCode() ?: 0)
-        result = 31 * result + (type.hashCode() ?: 0)
-        result = 31 * result + (value.hashCode() ?: 0)
-        result = 31 * result + (fromStartDate.hashCode() ?: 0)
-        result = 31 * result + (fromEndDate.hashCode() ?: 0)
+        result = 31 * result + (type?.hashCode() ?: 0)
+        result = 31 * result + (value.hashCode())
+        result = 31 * result + (fromStartDate.hashCode())
+        result = 31 * result + (fromEndDate.hashCode())
         result = 31 * result + (occurrenceCount ?: 0)
         result = 31 * result + (cycleMultiplier ?: 0)
-        result = 31 * result + (cycle.hashCode() ?: 0)
+        result = 31 * result + (cycle?.hashCode() ?: 0)
         result = 31 * result + enabled.hashCode()
         result = 31 * result + (sourceData.hashCode())
         result = 31 * result + (spent?.hashCode() ?: 0)
