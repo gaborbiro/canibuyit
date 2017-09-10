@@ -4,7 +4,7 @@ import android.content.SharedPreferences
 import com.gb.canibuythat.ui.model.BalanceReading
 import com.gb.canibuythat.util.PrefsUtil
 import io.reactivex.Observable
-import io.reactivex.subjects.BehaviorSubject
+import io.reactivex.subjects.PublishSubject
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -13,8 +13,8 @@ import javax.inject.Singleton
 class UserPreferences @Inject
 constructor(private val prefsUtil: PrefsUtil) : SharedPreferences.OnSharedPreferenceChangeListener {
 
-    private val estimateDateSubject: BehaviorSubject<Date> = BehaviorSubject.create()
-    private val balanceReadingSubject: BehaviorSubject<BalanceReading?> = BehaviorSubject.create()
+    private val estimateDateSubject: PublishSubject<Date> = PublishSubject.create()
+    private val balanceReadingSubject: PublishSubject<BalanceReading?> = PublishSubject.create()
 
     init {
         prefsUtil.registerOnSharedPreferenceChangeListener(PREF_ESTIMATE_DATE, this)

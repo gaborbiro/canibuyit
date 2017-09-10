@@ -25,8 +25,8 @@ public class ErrorHandler {
     }
 
     public void onError(Throwable exception) {
+        PromptDialog dialog = null;
         if (exception instanceof DomainException) {
-            PromptDialog dialog = null;
             DomainException domainException = (DomainException) exception;
             switch (domainException.getKind()) {
                 case HTTP:
@@ -42,12 +42,13 @@ public class ErrorHandler {
                     dialog = PromptDialog.newInstance("Error", domainException.getMessage());
                     break;
             }
+        } else {
+            dialog = PromptDialog.newInstance("Error", exception.getMessage() + "\n\nCheck log for details");
+        }
+        FragmentManager fragmentManager = Injector.INSTANCE.getFragmentManager();
 
-            FragmentManager fragmentManager = Injector.INSTANCE.getFragmentManager();
-
-            if (fragmentManager != null && dialog != null) {
-                dialog.show(fragmentManager, null);
-            }
+        if (fragmentManager != null && dialog != null) {
+            dialog.show(fragmentManager, null);
         }
         Logger.INSTANCE.e(TAG, exception);
     }

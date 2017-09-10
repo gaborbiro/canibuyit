@@ -8,6 +8,7 @@ import com.gb.canibuythat.UserPreferences
 import com.gb.canibuythat.interactor.BackupingInteractor
 import com.gb.canibuythat.interactor.MonzoInteractor
 import com.gb.canibuythat.interactor.SpendingInteractor
+import com.gb.canibuythat.model.Balance
 import com.gb.canibuythat.screen.MainScreen
 import javax.inject.Inject
 
@@ -41,14 +42,19 @@ constructor(val monzoInteractor: MonzoInteractor,
 
     override fun onScreenSet() {
         disposeOnFinish(userPreferences.getBalanceReadingDataStream().subscribe({ fetchBalance() }))
-        disposeOnFinish(userPreferences.getEstimateDateDataStream().subscribe({ fetchBalance() }))
+        disposeOnFinish(userPreferences.getEstimateDateDataStream().subscribe({
+            fetchBalance()
+        }))
     }
 
     private fun fetchBalance() {
         disposeOnFinish(spendingInteractor.getBalance()
                 .doOnSubscribe { getScreen().showProgress() }
                 .doAfterTerminate { getScreen().hideProgress() }
-                .subscribe(getScreen()::setBalanceInfo, this::onError))
+                .subscribe(getScreen()::setBalanceInfo, {
+                    getScreen().setBalanceInfo(Balance())
+                    this.onError(it)
+                }))
     }
 
     fun fetchCategoryBalance() {

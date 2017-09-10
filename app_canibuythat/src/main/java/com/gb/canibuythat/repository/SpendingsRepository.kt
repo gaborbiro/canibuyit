@@ -1,6 +1,7 @@
 package com.gb.canibuythat.repository
 
 import com.gb.canibuythat.UserPreferences
+import com.gb.canibuythat.exception.DomainException
 import com.gb.canibuythat.model.Balance
 import com.gb.canibuythat.model.Spending
 import com.gb.canibuythat.provider.BalanceCalculator
@@ -137,15 +138,19 @@ constructor(spendingDbHelper: SpendingDbHelper, private val userPreferences: Use
     }
 
     fun getBalance(): Single<Balance> {
-        val balance = calculateBalanceForCategory(null, startDate = userPreferences.balanceReading?.`when`, endDate = userPreferences.estimateDate)
-        balance?.let {
-            userPreferences.balanceReading?.let {
-                balance.definitely = balance.definitely?.plus(it.balance)
-                balance.maybeEvenThisMuch = balance.maybeEvenThisMuch?.plus(it.balance)
+        try {
+            val balance = calculateBalanceForCategory(null, startDate = userPreferences.balanceReading?.`when`, endDate = userPreferences.estimateDate)
+            balance?.let {
+                userPreferences.balanceReading?.let {
+                    balance.definitely = balance.definitely?.plus(it.balance)
+                    balance.maybeEvenThisMuch = balance.maybeEvenThisMuch?.plus(it.balance)
+                }
+                return Single.just(balance)
             }
-            return Single.just(balance)
+            return Single.just(Balance())
+        } catch (e: IllegalArgumentException) {
+            return Single.error(DomainException("Date of balance reading must not come after date of target estimate", e))
         }
-        return Single.just(Balance())
     }
 
     fun getCategoryBalance(): String {
@@ -154,10 +159,13 @@ constructor(spendingDbHelper: SpendingDbHelper, private val userPreferences: Use
         val endDate = userPreferences.estimateDate
 
         Spending.Category.values().forEach { category ->
-            val balance = calculateBalanceForCategory(category, startDate, endDate)
-
-            if (balance != null) {
-                buffer.append("${category.name}:\n${balance.definitely}/${balance.maybeEvenThisMuch}\n")
+            try {
+                val balance = calculateBalanceForCategory(category, startDate, endDate)
+                if (balance != null) {
+                    buffer.append("${category.name}:\n${balance.definitely}/${balance.maybeEvenThisMuch}\n")
+                }
+            } catch (e: IllegalArgumentException) {
+                throw DomainException("Date of balance reading must not come after date of target estimate", e)
             }
         }
         return buffer.toString()

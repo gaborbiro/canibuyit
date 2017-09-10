@@ -14,8 +14,10 @@ abstract class BasePresenter<S : Screen> {
     private var screen: S? = null
 
     fun setScreen(screen: S) {
-        this.screen = screen
-        onScreenSet()
+        if (this.screen != screen) {
+            this.screen = screen
+            onScreenSet()
+        }
     }
 
     fun getScreen(): S {

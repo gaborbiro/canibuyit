@@ -77,7 +77,6 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        presenter.setScreen(this);
 
         if (findViewById(R.id.spending_editor_container) != null) {
             twoPane = true;
@@ -284,11 +283,11 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
             Calendar c = DateUtils.compose(year, month, dayOfMonth);
             BalanceReading balanceReading = userPreferences.getBalanceReading();
 
-            if (balanceReading == null || balanceReading.when.before(c.getTime())) {
-                userPreferences.setEstimateDate(c.getTime());
-            } else {
+            if (balanceReading != null && balanceReading.when.after(c.getTime())) {
                 Toast.makeText(MainActivity.this,
                         "Please set a date after the last balance " + "reading! (" + balanceReading.when + ")", Toast.LENGTH_SHORT).show();
+            } else {
+                userPreferences.setEstimateDate(c.getTime());
             }
         };
 
