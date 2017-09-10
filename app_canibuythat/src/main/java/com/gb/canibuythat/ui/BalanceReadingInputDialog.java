@@ -121,7 +121,7 @@ public class BalanceReadingInputDialog extends DialogFragment
         }
 
         Date estimateDate = userPreferences.getEstimateDate();
-        if (!selectedDate.before(estimateDate)) {
+        if (selectedDate.after(estimateDate)) {
             Toast.makeText(getActivity(), "Please select a date before the target date!", Toast.LENGTH_SHORT).show();
             return false;
         }

@@ -53,7 +53,7 @@ constructor(val monzoInteractor: MonzoInteractor,
                 .doAfterTerminate { getScreen().hideProgress() }
                 .subscribe(getScreen()::setBalanceInfo, {
                     getScreen().setBalanceInfo(Balance())
-                    this.onError(it)
+                    this.onError(com.gb.canibuythat.exception.DomainException("Cannot calculate balance. See logs", it))
                 }))
     }
 

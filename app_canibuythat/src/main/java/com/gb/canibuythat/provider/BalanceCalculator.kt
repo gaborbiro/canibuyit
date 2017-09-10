@@ -19,7 +19,7 @@ object BalanceCalculator {
      * * the maximum possible value
      */
     fun getEstimatedBalance(spending: Spending, startDate: Date?, endDate: Date?): BalanceResult {
-        if (startDate != null && endDate != null && !endDate.after(startDate)) {
+        if (startDate != null && endDate != null && endDate.before(startDate)) {
             throw IllegalArgumentException("Start date must come before end date!")
         }
 
