@@ -9,7 +9,6 @@ import android.provider.BaseColumns
 class Contract {
     class Spending {
         companion object {
-
             const val TABLE = "spending"
 
             const val _ID = BaseColumns._ID
@@ -28,6 +27,14 @@ class Contract {
             const val TARGET = "target"
 
             val COLUMNS = arrayOf(_ID, NAME, NOTES, VALUE, TYPE, FROM_START_DATE, FROM_END_DATE, OCCURRENCE_COUNT, CYCLE_MULTIPLIER, CYCLE, ENABLED, SOURCE_DATA, SPENT, TARGET)
+        }
+    }
+
+    class Project {
+        companion object {
+            const val TABLE = "project"
+            const val _ID = BaseColumns._ID
+            const val NAME = "name"
         }
     }
 }

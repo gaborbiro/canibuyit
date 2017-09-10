@@ -26,7 +26,6 @@ constructor(appContext: Context) : OrmLiteSqliteOpenHelper(appContext, DATABASE_
         } catch (e: SQLException) {
             e.printStackTrace()
         }
-
     }
 
     override fun onUpgrade(database: SQLiteDatabase, connectionSource: ConnectionSource, oldVersion: Int, newVersion: Int) {}

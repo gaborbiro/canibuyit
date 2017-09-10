@@ -4,7 +4,6 @@ import android.content.Context
 import android.os.Environment
 import com.gb.canibuythat.exception.DomainException
 import com.gb.canibuythat.provider.SpendingDbHelper
-import com.gb.canibuythat.provider.SpendingProvider
 import com.gb.canibuythat.repository.BackupingRepository
 import com.gb.canibuythat.rx.SchedulerProvider
 import com.gb.canibuythat.util.FileUtils
@@ -32,7 +31,6 @@ constructor(private val backupingRepository: BackupingRepository, private val ap
 
     private fun prepareImportCompletable(completable: Completable): Completable {
         return completable
-                .doOnComplete { appContext.contentResolver.notifyChange(SpendingProvider.SPENDINGS_URI, null) }
                 .onErrorResumeNext { throwable -> Completable.error(DomainException("Error importing database. See logs.", throwable)) }
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())

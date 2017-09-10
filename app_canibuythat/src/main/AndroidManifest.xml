@@ -41,11 +41,6 @@
                 android:value=".ui.MainActivity"/>
         </activity>
 
-        <provider
-            android:authorities="com.gb.canibuythat.authority.spending"
-            android:exported="false"
-            android:name=".provider.SpendingProvider"/>
-
         <activity
             android:label="@string/title_activity_chart"
             android:name=".ui.ChartActivity"

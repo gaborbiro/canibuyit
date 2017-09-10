@@ -4,7 +4,6 @@ import android.content.Context
 import com.gb.canibuythat.exception.DomainException
 import com.gb.canibuythat.model.Balance
 import com.gb.canibuythat.model.Spending
-import com.gb.canibuythat.provider.SpendingProvider
 import com.gb.canibuythat.repository.SpendingsRepository
 import com.gb.canibuythat.rx.SchedulerProvider
 import com.j256.ormlite.dao.Dao
@@ -60,7 +59,6 @@ constructor(private val spendingsRepository: SpendingsRepository,
 
     fun createOrUpdateMonzoCategories(spendings: List<Spending>) {
         spendingsRepository.createOrUpdateMonzoSpendings(spendings)
-                .doOnComplete { appContext.contentResolver.notifyChange(SpendingProvider.SPENDINGS_URI, null) }
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())
                 .subscribe({
@@ -75,7 +73,6 @@ constructor(private val spendingsRepository: SpendingsRepository,
     fun createOrUpdate(spending: Spending): Single<Dao.CreateOrUpdateStatus> {
         return spendingsRepository.createOrUpdate(spending)
                 .onErrorResumeNext { throwable -> Single.error<Dao.CreateOrUpdateStatus>(DomainException("Error updating spending in database. See logs.", throwable)) }
-                .doOnSuccess { appContext.contentResolver.notifyChange(SpendingProvider.SPENDINGS_URI, null) }
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())
     }
@@ -83,7 +80,6 @@ constructor(private val spendingsRepository: SpendingsRepository,
     fun delete(id: Int): Completable {
         return spendingsRepository.delete(id)
                 .onErrorResumeNext { Completable.error(DomainException("Error deleting spending $id in database. See logs.")) }
-                .doOnComplete { appContext.contentResolver.notifyChange(SpendingProvider.SPENDINGS_URI, null) }
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())
     }
