@@ -1,12 +1,12 @@
 package com.gb.canibuythat.repository
 
 import com.gb.canibuythat.UserPreferences
+import com.gb.canibuythat.db.Contract
+import com.gb.canibuythat.db.SpendingDBHelper
 import com.gb.canibuythat.exception.DomainException
 import com.gb.canibuythat.model.Balance
+import com.gb.canibuythat.model.Project
 import com.gb.canibuythat.model.Spending
-import com.gb.canibuythat.provider.BalanceCalculator
-import com.gb.canibuythat.provider.Contract
-import com.gb.canibuythat.provider.SpendingDbHelper
 import com.j256.ormlite.dao.Dao
 import io.reactivex.Completable
 import io.reactivex.Maybe
@@ -18,8 +18,9 @@ import javax.inject.Singleton
 
 @Singleton
 class SpendingsRepository @Inject
-constructor(spendingDbHelper: SpendingDbHelper, private val userPreferences: UserPreferences) {
-    private val spendingDao: Dao<Spending, Int> = spendingDbHelper.getDao<Dao<Spending, Int>, Spending>(Spending::class.java)
+constructor(spendingDBHelper: SpendingDBHelper, private val userPreferences: UserPreferences) {
+    private val spendingDao: Dao<Spending, Int> = spendingDBHelper.getDao<Dao<Spending, Int>, Spending>(Spending::class.java)
+    private val projectDao: Dao<Project, Int> = spendingDBHelper.getDao<Dao<Project, Int>, Project>(Project::class.java)
 
     val all: Single<List<Spending>>
         get() {
@@ -169,6 +170,14 @@ constructor(spendingDbHelper: SpendingDbHelper, private val userPreferences: Use
             }
         }
         return buffer.toString()
+    }
+
+    fun getProjectName(): String? {
+        return projectDao.queryForId(1).name
+    }
+
+    fun setProjectName(name: String) {
+        projectDao.create(Project(1, name))
     }
 
     /**

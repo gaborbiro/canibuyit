@@ -1,4 +1,4 @@
-package com.gb.canibuythat.provider
+package com.gb.canibuythat.repository
 
 import com.gb.canibuythat.model.Spending
 import com.gb.canibuythat.util.DateUtils

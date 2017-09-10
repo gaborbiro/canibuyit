@@ -1,6 +1,5 @@
 package com.gb.canibuythat.interactor
 
-import android.content.Context
 import com.gb.canibuythat.exception.DomainException
 import com.gb.canibuythat.model.Balance
 import com.gb.canibuythat.model.Spending
@@ -18,7 +17,6 @@ import javax.inject.Singleton
 @Singleton
 class SpendingInteractor @Inject
 constructor(private val spendingsRepository: SpendingsRepository,
-            private val appContext: Context,
             private val schedulerProvider: SchedulerProvider) {
 
     private val spendingsSubject: Subject<Lce<List<Spending>>> = PublishSubject.create<Lce<List<Spending>>>()
@@ -99,5 +97,21 @@ constructor(private val spendingsRepository: SpendingsRepository,
 
     fun getCategoryBalance(): String {
         return spendingsRepository.getCategoryBalance()
+    }
+
+    fun getProjectName(): Single<Lce<String>> {
+        return Single.create<Lce<String>> { emitter ->
+            spendingsRepository.getProjectName()?.let {
+                emitter.onSuccess(Lce.content(it))
+            } ?: emitter.onSuccess(Lce.nothing())
+        }
+                .subscribeOn(schedulerProvider.io())
+                .observeOn(schedulerProvider.mainThread())
+    }
+
+    fun setProjectName(name: String) {
+        Single.create<Any> { spendingsRepository.setProjectName(name) }
+                .subscribeOn(schedulerProvider.io())
+                .subscribe()
     }
 }

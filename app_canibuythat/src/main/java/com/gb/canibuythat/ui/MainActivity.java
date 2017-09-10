@@ -155,6 +155,9 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
             case R.id.menu_delete_spendings:
                 presenter.deleteAllSpendings();
                 break;
+            case R.id.menu_set_project_name:
+                presenter.deleteAllSpendings();
+                break;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -318,6 +321,15 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
             Toast.makeText(MainActivity.this, "Add some spendings", Toast.LENGTH_SHORT).show();
         } else {
             PromptDialog.newInstance("Category balance", text).setPositiveButton(android.R.string.ok, null).show(getSupportFragmentManager(), null);
+        }
+    }
+
+    @Override
+    public void setProjectName(@NotNull String name) {
+        if (name != null) {
+            setTitle(getString(R.string.app_name));
+        } else {
+            setTitle(getString(R.string.app_name_project, name));
         }
     }
 }

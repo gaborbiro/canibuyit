@@ -2,6 +2,7 @@
 <resources>
 
     <string name="app_name">Can I Buy That</string>
+    <string name="app_name_project">CanIBuyThat (%1$s)</string>
     <string name="title_spending_modifier_detail">Edit</string>
     <string name="name">Name</string>
     <string name="amount">Amount</string>

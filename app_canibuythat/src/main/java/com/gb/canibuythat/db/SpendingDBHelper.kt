@@ -1,4 +1,4 @@
-package com.gb.canibuythat.provider
+package com.gb.canibuythat.db
 
 
 import android.content.ContentValues
@@ -6,6 +6,7 @@ import android.content.Context
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteException
+import com.gb.canibuythat.model.Project
 import com.gb.canibuythat.model.Spending
 import com.j256.ormlite.android.apptools.OrmLiteSqliteOpenHelper
 import com.j256.ormlite.support.ConnectionSource
@@ -17,12 +18,13 @@ import java.sql.SQLException
 import java.util.regex.Pattern
 import javax.inject.Inject
 
-class SpendingDbHelper @Inject
+class SpendingDBHelper @Inject
 constructor(appContext: Context) : OrmLiteSqliteOpenHelper(appContext, DATABASE_NAME, null, DATABASE_VERSION) {
 
     override fun onCreate(database: SQLiteDatabase, connectionSource: ConnectionSource) {
         try {
             TableUtils.createTable(connectionSource, Spending::class.java)
+            TableUtils.createTable(connectionSource, Project::class.java)
         } catch (e: SQLException) {
             e.printStackTrace()
         }
@@ -133,13 +135,13 @@ constructor(appContext: Context) : OrmLiteSqliteOpenHelper(appContext, DATABASE_
             return values
         }
 
-        val FILTER_MONZO = object: HashMap<String, Any?>() {
+        val FILTER_MONZO = object : HashMap<String, Any?>() {
             init {
                 put(Contract.Spending.SOURCE_DATA + "/" + Spending.SOURCE_MONZO_CATEGORY, Any())
             }
         }
 
-        val FILTER_NON_MONZO = object: HashMap<String, Any?>() {
+        val FILTER_NON_MONZO = object : HashMap<String, Any?>() {
             init {
                 put(Contract.Spending.SOURCE_DATA + "/" + Spending.SOURCE_MONZO_CATEGORY, null)
             }

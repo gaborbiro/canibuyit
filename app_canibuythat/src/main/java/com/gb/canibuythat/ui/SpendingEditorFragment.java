@@ -22,7 +22,7 @@ import com.gb.canibuythat.di.Injector;
 import com.gb.canibuythat.interactor.SpendingInteractor;
 import com.gb.canibuythat.model.Spending;
 import com.gb.canibuythat.presenter.BasePresenter;
-import com.gb.canibuythat.provider.BalanceCalculator;
+import com.gb.canibuythat.repository.BalanceCalculator;
 import com.gb.canibuythat.ui.model.BalanceReading;
 import com.gb.canibuythat.util.ArrayUtils;
 import com.gb.canibuythat.util.DateUtils;

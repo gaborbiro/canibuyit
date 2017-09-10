@@ -1,4 +1,4 @@
-package com.gb.canibuythat.provider
+package com.gb.canibuythat.db
 
 import android.provider.BaseColumns
 
@@ -33,8 +33,11 @@ class Contract {
     class Project {
         companion object {
             const val TABLE = "project"
+
             const val _ID = BaseColumns._ID
             const val NAME = "name"
+
+            val COLUMNS = arrayOf(_ID, NAME)
         }
     }
 }

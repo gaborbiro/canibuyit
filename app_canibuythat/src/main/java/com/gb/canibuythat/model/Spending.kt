@@ -1,7 +1,7 @@
 package com.gb.canibuythat.model
 
 import com.gb.canibuythat.R
-import com.gb.canibuythat.provider.Contract
+import com.gb.canibuythat.db.Contract
 import com.j256.ormlite.field.DataType
 import com.j256.ormlite.field.DatabaseField
 import com.j256.ormlite.table.DatabaseTable

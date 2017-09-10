@@ -37,4 +37,7 @@
     <item
         android:title="Delete spendings"
         android:id="@+id/menu_delete_spendings" />
+    <item
+        android:title="Set project name"
+        android:id="@+id/menu_set_project_name" />
 </menu>

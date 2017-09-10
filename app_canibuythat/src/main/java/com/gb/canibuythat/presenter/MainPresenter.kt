@@ -10,6 +10,7 @@ import com.gb.canibuythat.interactor.MonzoInteractor
 import com.gb.canibuythat.interactor.SpendingInteractor
 import com.gb.canibuythat.model.Balance
 import com.gb.canibuythat.screen.MainScreen
+import io.reactivex.functions.Consumer
 import javax.inject.Inject
 
 class MainPresenter @Inject
@@ -55,6 +56,9 @@ constructor(val monzoInteractor: MonzoInteractor,
                     getScreen().setBalanceInfo(Balance())
                     this.onError(com.gb.canibuythat.exception.DomainException("Cannot calculate balance. See logs", it))
                 }))
+        spendingInteractor.getProjectName().subscribe(Consumer {
+            getScreen().setProjectName(it.content)
+        })
     }
 
     fun fetchCategoryBalance() {

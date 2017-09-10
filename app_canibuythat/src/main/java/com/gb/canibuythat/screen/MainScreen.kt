@@ -26,4 +26,6 @@ interface MainScreen : ProgressScreen {
     fun showToast(message: String)
 
     fun showCategoryBalance(text: String)
+
+    fun setProjectName(name: String?)
 }

@@ -12,8 +12,8 @@ import com.gb.canibuythat.UserPreferences;
 import com.gb.canibuythat.di.Injector;
 import com.gb.canibuythat.model.Spending;
 import com.gb.canibuythat.presenter.BasePresenter;
-import com.gb.canibuythat.provider.BalanceCalculator;
-import com.gb.canibuythat.provider.SpendingDbHelper;
+import com.gb.canibuythat.repository.BalanceCalculator;
+import com.gb.canibuythat.db.SpendingDBHelper;
 import com.gb.canibuythat.ui.model.BalanceReading;
 import com.gb.canibuythat.util.DateUtils;
 import com.github.mikephil.charting.charts.BarChart;
@@ -43,7 +43,7 @@ import javax.inject.Inject;
 
 public class ChartActivity extends BaseActivity implements OnChartValueSelectedListener {
 
-    @Inject SpendingDbHelper spendingDbHelper;
+    @Inject SpendingDBHelper spendingDBHelper;
     @Inject UserPreferences userPreferences;
 
     private static SimpleDateFormat MONTH_ONLY = new SimpleDateFormat("MMM.dd");
@@ -137,7 +137,7 @@ public class ChartActivity extends BaseActivity implements OnChartValueSelectedL
                 } else {
                     startDate = null;
                 }
-                Dao<Spending, Integer> spendingDao = spendingDbHelper.getDao(com.gb.canibuythat.model.Spending.class);
+                Dao<Spending, Integer> spendingDao = spendingDBHelper.getDao(com.gb.canibuythat.model.Spending.class);
                 List<ProjectionItem> result = new ArrayList<>();
 
                 do {

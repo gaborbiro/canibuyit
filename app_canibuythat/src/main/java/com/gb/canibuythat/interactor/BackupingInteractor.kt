@@ -3,7 +3,7 @@ package com.gb.canibuythat.interactor
 import android.content.Context
 import android.os.Environment
 import com.gb.canibuythat.exception.DomainException
-import com.gb.canibuythat.provider.SpendingDbHelper
+import com.gb.canibuythat.db.SpendingDBHelper
 import com.gb.canibuythat.repository.BackupingRepository
 import com.gb.canibuythat.rx.SchedulerProvider
 import com.gb.canibuythat.util.FileUtils
@@ -51,7 +51,7 @@ constructor(private val backupingRepository: BackupingRepository, private val ap
             val to = File(targetFolder, targetFilename)
 
             val data = Environment.getDataDirectory()
-            val currentDBPath = "/data/" + pack + "/databases/" + SpendingDbHelper.DATABASE_NAME
+            val currentDBPath = "/data/" + pack + "/databases/" + SpendingDBHelper.DATABASE_NAME
             val from = File(data, currentDBPath)
 
             FileUtils.copyFiles(from, to)

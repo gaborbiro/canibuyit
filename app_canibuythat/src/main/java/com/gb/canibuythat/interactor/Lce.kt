@@ -6,6 +6,8 @@ open class Lce<T> {
     var content: T? = null
     var error: Throwable? = null
 
+    private constructor()
+
     private constructor(loading: Boolean) {
         this.loading = loading
     }
@@ -29,6 +31,10 @@ open class Lce<T> {
 
         fun <T> content(content: T): Lce<T> {
             return Lce(content)
+        }
+
+        fun <T> nothing(): Lce<T> {
+            return Lce()
         }
 
         fun <T> error(error: Throwable): Lce<T> {
