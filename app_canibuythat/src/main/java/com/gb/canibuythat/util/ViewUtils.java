@@ -19,6 +19,13 @@ public class ViewUtils {
         });
     }
 
+    public static void showKeyboard(final View view) {
+        view.post(() -> {
+            InputMethodManager imm = (InputMethodManager) view.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT);
+            view.requestFocus();
+        });
+    }
 
     public static void setTextWithLink(TextView textView, String text, String linkPart, Runnable runOnClick) {
         setTextWithLinks(textView, text, new String[]{linkPart}, new Runnable[]{runOnClick});

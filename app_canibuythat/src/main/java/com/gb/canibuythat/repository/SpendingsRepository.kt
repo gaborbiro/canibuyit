@@ -11,6 +11,7 @@ import io.reactivex.Completable
 import io.reactivex.Maybe
 import io.reactivex.Single
 import java.sql.SQLException
+import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -136,45 +137,49 @@ constructor(spendingDbHelper: SpendingDbHelper, private val userPreferences: Use
     }
 
     fun getBalance(): Single<Balance> {
-        return Single.just(calculateBalance(null))
+        val balance = calculateBalanceForCategory(null, userPreferences.balanceReading?.`when`, userPreferences.estimateDate)
+        balance?.let { return Single.just(balance) }
+        return Single.just(Balance())
     }
 
     fun getCategoryBalance(): String {
         val buffer = StringBuffer()
-//        val startDate = userPreferences.balanceReading.`when`
-//        val endDate = userPreferences.estimateDate
+        val from = userPreferences.balanceReading?.`when`
+        val to = userPreferences.estimateDate
 
-        Spending.Category.values().forEach {
-            val (definitely, maybeEvenThisMuch) = calculateBalance(it)
+        Spending.Category.values().forEach { category ->
+            val balance = calculateBalanceForCategory(category, from, to)
 
-            if (definitely != 0f || maybeEvenThisMuch != 0f) {
-                buffer.append("${it.name}:\n${definitely}/${maybeEvenThisMuch}\n")
+            if (balance != null) {
+                buffer.append("${category.name}:\n${balance.definitely}/${balance.maybeEvenThisMuch}\n")
             }
         }
         return buffer.toString()
     }
 
-    private fun calculateBalance(category: Spending.Category?): Balance {
-        val balance = Balance()
-
-        // blocking thread
-        val balanceReading = userPreferences.balanceReading
+    /**
+     * @param category for which the balance should be calculated. If null, all categories will be included.
+     * @param startDate from which the calculation should start. If null, the individual spending start-dates will be used.
+     * @param endDate up until which the calculations should go. If null, `today` is used.
+     */
+    private fun calculateBalanceForCategory(category: Spending.Category?, startDate: Date?, endDate: Date): Balance? {
+        var balance: Balance? = null
 
         val query: MutableMap<String, Any> = mutableMapOf(Contract.Spending.ENABLED to true)
         category?.let { query.put(Contract.Spending.TYPE, category) }
+        // blocking thread
+
 
         for (spending: Spending in spendingDao.queryForFieldValues(query)) {
-            val startDate = balanceReading?.`when`
-            val (definitely, maybeEvenThisMuch, spendingEvents) = BalanceCalculator.getEstimatedBalance(
-                    spending, startDate, userPreferences.estimateDate)
-            balance.definitely += definitely
-            balance.maybeEvenThisMuch += maybeEvenThisMuch
+            if (balance == null) {
+                balance = Balance(0f, 0f)
+            }
+            val (definitely, maybeEvenThisMuch, _) = BalanceCalculator.getEstimatedBalance(
+                    spending, startDate, endDate)
+            balance.definitely = balance.definitely?.plus(definitely)
+            balance.maybeEvenThisMuch = balance.maybeEvenThisMuch?.plus(maybeEvenThisMuch)
         }
 
-        balanceReading?.let {
-            balance.definitely += balanceReading.balance
-            balance.maybeEvenThisMuch += balanceReading.balance
-        }
         return balance
     }
 }

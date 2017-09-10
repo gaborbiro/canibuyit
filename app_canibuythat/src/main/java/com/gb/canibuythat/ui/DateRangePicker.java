@@ -20,9 +20,6 @@ import java.util.Date;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-import static com.gb.canibuythat.util.DateUtils.compose;
-import static com.gb.canibuythat.util.DateUtils.decompose;
-
 public class DateRangePicker extends LinearLayout {
 
     public interface TouchInterceptor {
@@ -41,25 +38,25 @@ public class DateRangePicker extends LinearLayout {
     private DatePickerDialog.OnDateSetListener dateSetListener = new DatePickerDialog.OnDateSetListener() {
         @Override
         public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-            Calendar newDate = compose(year, month, dayOfMonth);
+            Calendar newDate = DateUtils.compose(year, month, dayOfMonth);
 
             switch ((int) view.getTag()) {
                 case R.id.start_date:
                     startDate = newDate.getTime();
-                    startDateBtn.setText(DateUtils.FORMAT_MONTH_DAY_YR.format(newDate.getTime()));
+                    startDateBtn.setText(DateUtils.getFORMAT_MONTH_DAY_YR().format(newDate.getTime()));
                     if (endDate.getTime() < newDate.getTime().getTime()) {
                         endDatePickerDialog = new DatePickerDialog(getContext(),
-                                dateSetListener, decompose(newDate)[0], decompose(newDate)[1], decompose(newDate)[2]);
+                                dateSetListener, DateUtils.decompose(newDate)[0], DateUtils.decompose(newDate)[1], DateUtils.decompose(newDate)[2]);
                         setEndDate(newDate.getTime());
                     }
                     startDateChanged = true;
                     break;
                 case R.id.end_date:
                     endDate = newDate.getTime();
-                    endDateBtn.setText(DateUtils.FORMAT_MONTH_DAY_YR.format(newDate.getTime()));
+                    endDateBtn.setText(DateUtils.getFORMAT_MONTH_DAY_YR().format(newDate.getTime()));
                     if (startDate.getTime() > newDate.getTime().getTime()) {
                         startDatePickerDialog = new DatePickerDialog(getContext(),
-                                dateSetListener, decompose(newDate)[0], decompose(newDate)[1], decompose(newDate)[2]);
+                                dateSetListener, DateUtils.decompose(newDate)[0], DateUtils.decompose(newDate)[1], DateUtils.decompose(newDate)[2]);
                         setStartDate(newDate.getTime());
                     }
                     endDateChanged = true;
@@ -149,14 +146,14 @@ public class DateRangePicker extends LinearLayout {
     }
 
     private void updateButtons() {
-        startDateBtn.setText(DateUtils.FORMAT_MONTH_DAY_YR.format(this.startDate));
-        endDateBtn.setText(DateUtils.FORMAT_MONTH_DAY_YR.format(this.endDate));
+        startDateBtn.setText(DateUtils.getFORMAT_MONTH_DAY_YR().format(this.startDate));
+        endDateBtn.setText(DateUtils.getFORMAT_MONTH_DAY_YR().format(this.endDate));
     }
 
     private DatePickerDialog getStartDatePickerDialog() {
         if (startDatePickerDialog == null) {
             startDatePickerDialog = new DatePickerDialog(getContext(), dateSetListener,
-                    decompose(startDate)[0], decompose(startDate)[1], decompose(startDate)[2]);
+                    DateUtils.decompose(startDate)[0], DateUtils.decompose(startDate)[1], DateUtils.decompose(startDate)[2]);
         }
         startDatePickerDialog.getDatePicker().setTag(R.id.start_date);
         return startDatePickerDialog;
@@ -165,7 +162,7 @@ public class DateRangePicker extends LinearLayout {
     private DatePickerDialog getEndDatePickerDialog() {
         if (endDatePickerDialog == null) {
             endDatePickerDialog = new DatePickerDialog(getContext(), dateSetListener,
-                    decompose(endDate)[0], decompose(endDate)[1], decompose(endDate)[2]);
+                    DateUtils.decompose(endDate)[0], DateUtils.decompose(endDate)[1], DateUtils.decompose(endDate)[2]);
         }
         endDatePickerDialog.getDatePicker().setTag(R.id.end_date);
         return endDatePickerDialog;

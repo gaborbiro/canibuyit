@@ -96,7 +96,7 @@ public class ChartActivity extends BaseActivity implements OnChartValueSelectedL
     public void onValueSelected(Entry e, int dataSetIndex, Highlight h) {
         ProjectionItem projectionItem = (ProjectionItem) e.getData();
         final Date estimateDate = userPreferences.getEstimateDate();
-        String readingDateStr = estimateDate != null ? DateUtils.FORMAT_MONTH_DAY_YR.format(estimateDate) : getString(R.string.today);
+        String readingDateStr = estimateDate != null ? DateUtils.getFORMAT_MONTH_DAY_YR().format(estimateDate) : getString(R.string.today);
         Toast.makeText(this, getString(R.string.estimate_at_date, projectionItem.bestCase,
                 projectionItem.worstCase, readingDateStr), Toast.LENGTH_SHORT).show();
     }

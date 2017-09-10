@@ -19,46 +19,46 @@ class Spending {
         @JvmStatic val SOURCE_MONZO_CATEGORY: String = "monzo_category"
     }
 
-    @DatabaseField(generatedId = true, columnName = Contract.Spending._ID)
+    @DatabaseField(generatedId = true, columnName = Contract.Spending._ID, canBeNull = true)
     var id: Int? = null
 
     @DatabaseField(index = true, columnName = Contract.Spending.NAME, unique = true, canBeNull = false)
-    var name: String? = null
+    lateinit var name: String
 
-    @DatabaseField(columnName = Contract.Spending.NOTES)
+    @DatabaseField(columnName = Contract.Spending.NOTES, canBeNull = true)
     var notes: String? = null
 
     @DatabaseField(columnName = Contract.Spending.TYPE, canBeNull = false)
-    var type: Category? = null
+    lateinit var type: Category
 
     @DatabaseField(columnName = Contract.Spending.VALUE, canBeNull = false)
-    var value: Double? = null
+    var value: Double = 0.0
 
     /**
      * Date before witch the transaction certainly won't happen. The repetition cycle
      * is added to this date.
      */
     @DatabaseField(columnName = Contract.Spending.FROM_START_DATE, canBeNull = false)
-    var fromStartDate: Date? = null
+    lateinit var fromStartDate: Date
 
     /**
      * Date by witch the transaction most certainly did happen. The repetition cycle is
      * added to this date.
      */
     @DatabaseField(columnName = Contract.Spending.FROM_END_DATE, canBeNull = false)
-    var fromEndDate: Date? = null
+    lateinit var fromEndDate: Date
 
     /**
      * How many times this modifier will be spent/cashed in. If 0, the field
      * #cycleMultiplier and #cycle are ignored
      */
-    @DatabaseField(columnName = Contract.Spending.OCCURRENCE_COUNT)
+    @DatabaseField(columnName = Contract.Spending.OCCURRENCE_COUNT, canBeNull = true)
     var occurrenceCount: Int? = null
 
     /**
      * For cycles like every 2 days or 2 weeks...
      */
-    @DatabaseField(columnName = Contract.Spending.CYCLE_MULTIPLIER)
+    @DatabaseField(columnName = Contract.Spending.CYCLE_MULTIPLIER, canBeNull = true)
     var cycleMultiplier: Int? = null
 
     /**
@@ -69,12 +69,12 @@ class Spending {
      * semester
      */
     @DatabaseField(columnName = Contract.Spending.CYCLE, canBeNull = false)
-    var cycle: Cycle? = null
+    lateinit var cycle: Cycle
 
     @DatabaseField(columnName = Contract.Spending.ENABLED, canBeNull = true)
     var enabled = true
 
-    @DatabaseField(columnName = Contract.Spending.SOURCE_DATA, canBeNull = false, dataType = DataType.SERIALIZABLE)
+    @DatabaseField(columnName = Contract.Spending.SOURCE_DATA, dataType = DataType.SERIALIZABLE, canBeNull = false)
     val sourceData: SerializableMap<String, String> = SerializableMap()
 
     @DatabaseField(columnName = Contract.Spending.SPENT, canBeNull = true)

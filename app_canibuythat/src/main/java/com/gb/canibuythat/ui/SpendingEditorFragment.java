@@ -236,38 +236,27 @@ public class SpendingEditorFragment extends BaseFragment {
 
     private void applySpendingToScreen(final Spending spending) {
         nameInput.setText(spending.getName());
-        if (spending.getValue() != null) {
-            averageInput.setText(getString(R.string.detail_amount, spending.getValue()));
-        } else {
-            averageInput.setText(null);
-        }
+        averageInput.setText(getString(R.string.detail_amount, spending.getValue()));
         if (spending.getTarget() != null) {
             targetInput.setText(getString(R.string.detail_amount, spending.getTarget()));
         } else {
             targetInput.setText(null);
         }
         enabledCB.setChecked(spending.getEnabled());
-        if (spending.getType() != null) {
-            categoryPicker.setSelection(spending.getType().ordinal() + 1);
-        }
+        categoryPicker.setSelection(spending.getType().ordinal() + 1);
         fromDatePicker.setStartDate(spending.getFromStartDate());
         fromDatePicker.setEndDate(spending.getFromEndDate());
-
         if (spending.getOccurrenceCount() != null) {
             occurrenceInput.setText(Integer.toString(spending.getOccurrenceCount()));
         } else {
             occurrenceInput.setText(null);
         }
-
         if (spending.getCycleMultiplier() != null) {
             cycleMultiplierInput.setText(Integer.toString(spending.getCycleMultiplier()));
         } else {
             cycleMultiplierInput.setText(null);
         }
-
-        if (spending.getCycle() != null) {
-            cyclePicker.setSelection(spending.getCycle().ordinal() + 1);
-        }
+        cyclePicker.setSelection(spending.getCycle().ordinal() + 1);
         notesInput.setText(spending.getNotes());
         loadSpendingOccurrences(spending);
     }
@@ -278,7 +267,7 @@ public class SpendingEditorFragment extends BaseFragment {
                 balanceReading != null ? balanceReading.when : null,
                 userPreferences.getEstimateDate());
         if (spending.getSourceData().containsKey(Spending.getSOURCE_MONZO_CATEGORY())) {
-            String spentStr = ArrayUtils.join("\n", result.getSpendingEvents(), (index, item) -> getString(R.string.spending_occurrence, index + 1, DateUtils.FORMAT_MONTH_DAY_YR.format(item)));
+            String spentStr = ArrayUtils.join("\n", result.getSpendingEvents(), (index, item) -> getString(R.string.spending_occurrence, index + 1, DateUtils.getFORMAT_MONTH_DAY_YR().format(item)));
             spentStr = "Spent: " + result.getDefinitely() + "/" + (result.getMaybeEvenThisMuch()) + "\n" + spentStr;
             spendingEventsLayout.setText(spentStr);
         } else {
@@ -322,7 +311,7 @@ public class SpendingEditorFragment extends BaseFragment {
 
         if (firstOccurrenceEnd.after(calendar.getTime())) {
             return new ValidationError(ValidationError.TYPE_NON_INPUT_FIELD, null,
-                    "End date cannot be higher than " + DateUtils.FORMAT_MONTH_DAY_YR.format(calendar.getTime()));
+                    "End date cannot be higher than " + DateUtils.getFORMAT_MONTH_DAY_YR().format(calendar.getTime()));
         }
         return null;
     }

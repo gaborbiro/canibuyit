@@ -2,6 +2,8 @@ package com.gb.canibuythat.provider
 
 import com.gb.canibuythat.model.Spending
 import com.gb.canibuythat.util.DateUtils
+import com.gb.canibuythat.util.clearLowerBits
+import com.gb.canibuythat.util.toCalendar
 import java.util.*
 
 object BalanceCalculator {
@@ -17,48 +19,42 @@ object BalanceCalculator {
      * * the maximum possible value
      */
     fun getEstimatedBalance(spending: Spending, startDate: Date?, endDate: Date?): BalanceResult {
-        var start = startDate
-        if (start != null && endDate != null && !endDate.after(start)) {
+        if (startDate != null && endDate != null && !endDate.after(startDate)) {
             throw IllegalArgumentException("Start date must come before end date!")
         }
-        var exit = false
+
+        var `break` = false
         var definitelySpentThisMuch = 0f
         var maybeSpentThisMuch = 0f
         val spendingEvents = ArrayList<Date>()
         var count = 0
-        val occurrenceStart = Calendar.getInstance()
-        occurrenceStart.time = spending.fromStartDate
-        val occurrenceEnd = Calendar.getInstance()
-        occurrenceEnd.time = spending.fromEndDate
-        val date = Calendar.getInstance()
-        if (endDate != null) {
-            date.time = endDate
-        }
-        DateUtils.clearLowerBits(date)
-        start = if (start != null) DateUtils.clearLowerBits(start) else null
+        val occurrenceStart = spending.fromStartDate.toCalendar()
+        val occurrenceEnd = spending.fromEndDate.toCalendar()
+        val indexCal: Calendar = if (endDate != null) endDate.toCalendar() else Calendar.getInstance()
+        indexCal.clearLowerBits()
         do {
-            if (start == null || occurrenceEnd.timeInMillis >= start.time) {
-                val r = DateUtils.compare(date, occurrenceStart, occurrenceEnd)
+            if (startDate == null || occurrenceEnd.timeInMillis >= startDate.clearLowerBits().time) {
+                val r = DateUtils.compare(indexCal, occurrenceStart, occurrenceEnd)
                 if (r >= -1) { // >= start date
                     if (spending.enabled) {
-                        maybeSpentThisMuch += spending.value!!.toFloat()
+                        maybeSpentThisMuch += spending.value.toFloat()
                     }
                     if (r > 1) { // > end date
                         if (spending.enabled) {
-                            definitelySpentThisMuch += spending.value!!.toFloat()
+                            definitelySpentThisMuch += spending.value.toFloat()
                         }
                         spendingEvents.add(occurrenceEnd.time)
                     }
                 } else {
-                    exit = true
+                    `break` = true
                 }
             }
-            spending.cycle!!.apply(occurrenceStart, spending.cycleMultiplier!!)
-            spending.cycle!!.apply(occurrenceEnd, spending.cycleMultiplier!!)
+            spending.cycle.apply(occurrenceStart, spending.cycleMultiplier!!)
+            spending.cycle.apply(occurrenceEnd, spending.cycleMultiplier!!)
             if (spending.occurrenceCount != null && ++count >= spending.occurrenceCount!!) {
-                exit = true
+                `break` = true
             }
-        } while (!exit)
+        } while (!`break`)
         return BalanceResult(definitelySpentThisMuch, maybeSpentThisMuch, spendingEvents.toTypedArray())
     }
 

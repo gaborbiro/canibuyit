@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -177,7 +178,6 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
     @Override
     public void onBalanceReadingSet(BalanceReading balanceReading) {
         userPreferences.setBalanceReading(balanceReading);
-        userPreferences.setEstimateDate(null);
         presenter.fetchBalance();
     }
 
@@ -271,7 +271,7 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
             String text;
             BalanceReading balanceReading = userPreferences.getBalanceReading();
             if (balanceReading != null) {
-                text = getString(R.string.reading, balanceReading.balance, DateUtils.FORMAT_MONTH_DAY_YR.format(balanceReading.when));
+                text = getString(R.string.reading, balanceReading.balance, DateUtils.getFORMAT_MONTH_DAY_YR().format(balanceReading.when));
             } else {
                 text = getString(R.string.reading_none);
             }
@@ -279,29 +279,27 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
         }
         if (estimateAtTimeView != null) {
             final Date estimateDate = userPreferences.getEstimateDate();
-            String estimateDateStr = estimateDate != null ? DateUtils.FORMAT_MONTH_DAY_YR.format(estimateDate) : getString(R.string.today);
-            String defoMaybeStr = getString(R.string.definitely_maybe, balance.getDefinitely(), balance.getMaybeEvenThisMuch());
+            String estimateDateStr = DateUtils.isToday(estimateDate) ? getString(R.string.today) : DateUtils.getFORMAT_MONTH_DAY_YR().format(estimateDate);
+
+            String defoMaybeStr = "?";
+            if (balance.getDefinitely() != null || balance.getMaybeEvenThisMuch() != null) {
+                defoMaybeStr = getString(R.string.definitely_maybe, balance.getDefinitely(), balance.getMaybeEvenThisMuch());
+            }
             String estimateAtTime = getString(R.string.estimate_at_date, defoMaybeStr, estimateDateStr);
-            ViewUtils.setTextWithLinks(estimateAtTimeView, estimateAtTime, new String[]{defoMaybeStr, estimateDateStr}, new Runnable[]{bestWorstClickListener, estimateDateUpdater});
+            ViewUtils.setTextWithLinks(estimateAtTimeView, estimateAtTime, new String[]{defoMaybeStr, estimateDateStr}, new Runnable[]{defoMaybeClickListener, estimateDateUpdater});
         }
     }
 
     private Runnable estimateDateUpdater = () -> {
-        DatePickerDialog.OnDateSetListener listener = (view, year, monthOfYear, dayOfMonth) -> {
-            Calendar c = DateUtils.clearLowerBits();
-            if (c.equals(DateUtils.compose(year, monthOfYear, dayOfMonth))) {
-                userPreferences.setEstimateDate(null);
-            } else {
-                c.set(year, monthOfYear, dayOfMonth);
-                BalanceReading balanceReading = userPreferences.getBalanceReading();
+        DatePickerDialog.OnDateSetListener listener = (view, year, month, dayOfMonth) -> {
+            Calendar c = DateUtils.compose(year, month, dayOfMonth);
+            BalanceReading balanceReading = userPreferences.getBalanceReading();
 
-                if (balanceReading == null || balanceReading.when.before(c.getTime())) {
-                    DateUtils.clearLowerBits(c);
-                    userPreferences.setEstimateDate(c.getTime());
-                } else {
-                    Toast.makeText(MainActivity.this,
-                            "Please set a date after the last balance " + "reading! (" + balanceReading.when + ")", Toast.LENGTH_SHORT).show();
-                }
+            if (balanceReading == null || balanceReading.when.before(c.getTime())) {
+                userPreferences.setEstimateDate(c.getTime());
+            } else {
+                Toast.makeText(MainActivity.this,
+                        "Please set a date after the last balance " + "reading! (" + balanceReading.when + ")", Toast.LENGTH_SHORT).show();
             }
             presenter.fetchBalance();
         };
@@ -310,7 +308,7 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
         datePickerDialog.show();
     };
 
-    private Runnable bestWorstClickListener = () -> {
+    private Runnable defoMaybeClickListener = () -> {
         presenter.calculateCategoryBalance();
     };
 
@@ -331,6 +329,10 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
 
     @Override
     public void showCategoryBalance(@NotNull String text) {
-        PromptDialog.newInstance("Category balance", text).setPositiveButton(android.R.string.ok, null).show(getSupportFragmentManager(), null);
+        if (TextUtils.isEmpty(text)) {
+            Toast.makeText(MainActivity.this, "Add some spendings", Toast.LENGTH_SHORT).show();
+        } else {
+            PromptDialog.newInstance("Category balance", text).setPositiveButton(android.R.string.ok, null).show(getSupportFragmentManager(), null);
+        }
     }
 }

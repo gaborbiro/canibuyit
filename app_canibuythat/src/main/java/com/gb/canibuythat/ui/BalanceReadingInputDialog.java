@@ -21,10 +21,15 @@ import com.gb.canibuythat.UserPreferences;
 import com.gb.canibuythat.di.Injector;
 import com.gb.canibuythat.ui.model.BalanceReading;
 import com.gb.canibuythat.util.DateUtils;
+import com.gb.canibuythat.util.ViewUtils;
 
 import java.util.Date;
 
 import javax.inject.Inject;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.Unbinder;
 
 public class BalanceReadingInputDialog extends DialogFragment
         implements View.OnClickListener {
@@ -33,9 +38,12 @@ public class BalanceReadingInputDialog extends DialogFragment
 
     private BalanceReadingInputListener listener;
     private BalanceReading lastUpdate;
-    private TextView lastUpdateView;
-    private EditText valueView;
-    private DatePickerButton whenButton;
+
+    @BindView(R.id.last_update) TextView lastUpdateView;
+    @BindView(R.id.amount) EditText valueView;
+    @BindView(R.id.when_btn) DatePickerButton whenButton;
+
+    private Unbinder unbinder;
 
     public BalanceReadingInputDialog() {
     }
@@ -44,18 +52,17 @@ public class BalanceReadingInputDialog extends DialogFragment
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Injector.INSTANCE.getGraph().inject(this);
+        lastUpdate = userPreferences.getBalanceReading();
     }
 
     @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         LinearLayout body = (LinearLayout) LayoutInflater.from(getActivity()).inflate(R.layout.dialog_balance_reading, null);
-        lastUpdateView = (TextView) body.findViewById(R.id.last_update);
-        valueView = (EditText) body.findViewById(R.id.amount);
-        whenButton = (DatePickerButton) body.findViewById(R.id.when);
-        Date today = new Date();
-        whenButton.setText(DateUtils.FORMAT_MONTH_DAY_YR.format(today));
-        whenButton.setDate(today);
+        unbinder = ButterKnife.bind(this, body);
+        valueView.setText(Float.toString(lastUpdate.balance));
+        whenButton.setText(DateUtils.getFORMAT_MONTH_DAY_YR().format(lastUpdate.when));
+        whenButton.setDate(lastUpdate.when);
         refreshLastUpdate();
 
         return new AlertDialog.Builder(getActivity()).setTitle("Set starting balance")
@@ -66,10 +73,9 @@ public class BalanceReadingInputDialog extends DialogFragment
     }
 
     @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        lastUpdate = userPreferences.getBalanceReading();
-        refreshLastUpdate();
+    public void onDestroyView() {
+        super.onDestroyView();
+        unbinder.unbind();
     }
 
     @Override
@@ -81,6 +87,7 @@ public class BalanceReadingInputDialog extends DialogFragment
             Button b = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
             b.setOnClickListener(this);
         }
+        ViewUtils.showKeyboard(valueView);
     }
 
     @Override
@@ -99,7 +106,7 @@ public class BalanceReadingInputDialog extends DialogFragment
         if (isAdded()) {
             if (lastUpdate != null) {
                 lastUpdateView.setText(getString(R.string.balance_update_reading, lastUpdate.balance,
-                        DateUtils.FORMAT_MONTH_DAY_YR.format(lastUpdate.when)));
+                        DateUtils.getFORMAT_MONTH_DAY_YR().format(lastUpdate.when)));
             } else {
                 lastUpdateView.setText("None");
             }
