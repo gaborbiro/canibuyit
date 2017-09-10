@@ -1,14 +1,25 @@
 package com.gb.canibuythat
 
+import android.content.SharedPreferences
 import com.gb.canibuythat.ui.model.BalanceReading
 import com.gb.canibuythat.util.PrefsUtil
+import io.reactivex.Observable
+import io.reactivex.subjects.BehaviorSubject
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class UserPreferences @Inject
-constructor(private val prefsUtil: PrefsUtil) {
+constructor(private val prefsUtil: PrefsUtil) : SharedPreferences.OnSharedPreferenceChangeListener {
+
+    private val estimateDateSubject: BehaviorSubject<Date> = BehaviorSubject.create()
+    private val balanceReadingSubject: BehaviorSubject<BalanceReading?> = BehaviorSubject.create()
+
+    init {
+        prefsUtil.registerOnSharedPreferenceChangeListener(PREF_ESTIMATE_DATE, this)
+        prefsUtil.registerOnSharedPreferenceChangeListener(PREF_READING, this)
+    }
 
     var estimateDate: Date
         get() {
@@ -29,6 +40,21 @@ constructor(private val prefsUtil: PrefsUtil) {
         } else {
             prefsUtil.remove(PREF_READING)
         }
+
+    fun getEstimateDateDataStream(): Observable<Date> {
+        return estimateDateSubject
+    }
+
+    fun getBalanceReadingDataStream(): Observable<BalanceReading?> {
+        return balanceReadingSubject
+    }
+
+    override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
+        when (key) {
+            PREF_ESTIMATE_DATE -> estimateDateSubject.onNext(estimateDate)
+            PREF_READING -> balanceReadingSubject.onNext(balanceReading ?: BalanceReading(null, 0f))
+        }
+    }
 
     companion object {
         private const val PREF_ESTIMATE_DATE = "PREF_ESTIMATE_DATE"

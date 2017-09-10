@@ -46,7 +46,7 @@ import butterknife.BindView;
  * This activity also implements the required {@link SpendingListFragment.FragmentCallback}
  * interface to listen for item selections.
  */
-public class MainActivity extends BaseActivity implements MainScreen, SpendingListFragment.FragmentCallback, BalanceReadingInputDialog.BalanceReadingInputListener {
+public class MainActivity extends BaseActivity implements MainScreen, SpendingListFragment.FragmentCallback {
 
     private static final int REQUEST_CODE_CHOOSE_FILE_MONZO = 1;
     private static final int REQUEST_CODE_CHOOSE_FILE_NON_MONZO = 2;
@@ -86,7 +86,6 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
             chartButton.setOnClickListener(v -> presenter.chartButtonClicked());
         }
         presenter.handleDeepLink(getIntent());
-        presenter.fetchBalance();
     }
 
     @Override
@@ -169,16 +168,6 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
         } else {
             MainActivity.super.onBackPressed();
         }
-    }
-
-    /**
-     * Callback from the {@link BalanceReadingInputDialog} notifying that the user has
-     * added a new balance reading
-     */
-    @Override
-    public void onBalanceReadingSet(BalanceReading balanceReading) {
-        userPreferences.setBalanceReading(balanceReading);
-        presenter.fetchBalance();
     }
 
     @Override
@@ -301,16 +290,13 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
                 Toast.makeText(MainActivity.this,
                         "Please set a date after the last balance " + "reading! (" + balanceReading.when + ")", Toast.LENGTH_SHORT).show();
             }
-            presenter.fetchBalance();
         };
 
         DatePickerDialog datePickerDialog = DateUtils.getDatePickerDialog(MainActivity.this, listener, userPreferences.getEstimateDate());
         datePickerDialog.show();
     };
 
-    private Runnable defoMaybeClickListener = () -> {
-        presenter.calculateCategoryBalance();
-    };
+    private Runnable defoMaybeClickListener = () -> presenter.fetchCategoryBalance();
 
     @Override
     public void showLoginActivity() {

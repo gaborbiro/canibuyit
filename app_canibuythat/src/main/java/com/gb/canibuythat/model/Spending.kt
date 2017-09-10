@@ -23,7 +23,7 @@ class Spending {
     var id: Int? = null
 
     @DatabaseField(index = true, columnName = Contract.Spending.NAME, unique = true, canBeNull = false)
-    lateinit var name: String
+    var name: String? = null
 
     @DatabaseField(columnName = Contract.Spending.NOTES, canBeNull = true)
     var notes: String? = null
@@ -100,7 +100,7 @@ class Spending {
         if (cycleMultiplier != other.cycleMultiplier) return false
         if (cycle != other.cycle) return false
         if (enabled != other.enabled) return false
-        if (!sourceData.equals(other.sourceData)) return false
+        if (sourceData != other.sourceData) return false
         if (spent != other.spent) return false
         if (target != other.target) return false
 
@@ -129,7 +129,7 @@ class Spending {
         }
         if (cycle != other.cycle) return false
         if (enabled != other.enabled) return false
-        if (!sourceData.equals(other.sourceData)) return false
+        if (sourceData != other.sourceData) return false
         if (spent != other.spent) return false
         if (target != other.target) return false
         return true
@@ -139,13 +139,13 @@ class Spending {
         var result = id ?: 0
         result = 31 * result + (name?.hashCode() ?: 0)
         result = 31 * result + (notes?.hashCode() ?: 0)
-        result = 31 * result + (type?.hashCode() ?: 0)
-        result = 31 * result + (value?.hashCode() ?: 0)
-        result = 31 * result + (fromStartDate?.hashCode() ?: 0)
-        result = 31 * result + (fromEndDate?.hashCode() ?: 0)
+        result = 31 * result + (type.hashCode() ?: 0)
+        result = 31 * result + (value.hashCode() ?: 0)
+        result = 31 * result + (fromStartDate.hashCode() ?: 0)
+        result = 31 * result + (fromEndDate.hashCode() ?: 0)
         result = 31 * result + (occurrenceCount ?: 0)
         result = 31 * result + (cycleMultiplier ?: 0)
-        result = 31 * result + (cycle?.hashCode() ?: 0)
+        result = 31 * result + (cycle.hashCode() ?: 0)
         result = 31 * result + enabled.hashCode()
         result = 31 * result + (sourceData.hashCode())
         result = 31 * result + (spent?.hashCode() ?: 0)

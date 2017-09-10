@@ -50,6 +50,7 @@ final class SecurePreferences implements SharedPreferences.OnSharedPreferenceCha
     private final Cipher writer;
     private final Cipher reader;
     private final Cipher keyWriter;
+    private final Cipher keyReader;
     private final SharedPreferences preferences;
 
     private Map<String, SharedPreferences.OnSharedPreferenceChangeListener> listeners;
@@ -78,6 +79,7 @@ final class SecurePreferences implements SharedPreferences.OnSharedPreferenceCha
             this.writer = Cipher.getInstance(TRANSFORMATION);
             this.reader = Cipher.getInstance(TRANSFORMATION);
             this.keyWriter = Cipher.getInstance(KEY_TRANSFORMATION);
+            this.keyReader = Cipher.getInstance(KEY_TRANSFORMATION);
 
             initCiphers(secureKey);
 
@@ -105,6 +107,7 @@ final class SecurePreferences implements SharedPreferences.OnSharedPreferenceCha
         writer.init(Cipher.ENCRYPT_MODE, secretKey, ivSpec);
         reader.init(Cipher.DECRYPT_MODE, secretKey, ivSpec);
         keyWriter.init(Cipher.ENCRYPT_MODE, secretKey);
+        keyReader.init(Cipher.DECRYPT_MODE, secretKey);
     }
 
     private IvParameterSpec getIv() {
@@ -147,9 +150,17 @@ final class SecurePreferences implements SharedPreferences.OnSharedPreferenceCha
         return Base64.encodeToString(secureValue, Base64.NO_WRAP);
     }
 
-    private String decrypt(String securedEncodedValue) {
+    private String decryptValue(String securedEncodedValue) {
+        return decrypt(securedEncodedValue, reader);
+    }
+
+    private String decryptKey(String securedEncodedKey) {
+        return decrypt(securedEncodedKey, keyReader);
+    }
+
+    private String decrypt(String securedEncodedValue, Cipher cipher) {
         byte[] securedValue = Base64.decode(securedEncodedValue, Base64.NO_WRAP);
-        byte[] value = convert(reader, securedValue);
+        byte[] value = convert(cipher, securedValue);
         try {
             return new String(value, CHARSET);
         } catch (UnsupportedEncodingException e) {
@@ -177,7 +188,7 @@ final class SecurePreferences implements SharedPreferences.OnSharedPreferenceCha
     public String getString(String key) throws SecurePreferencesException {
         if (preferences.contains(toKey(key))) {
             String securedEncodedValue = preferences.getString(toKey(key), "");
-            return decrypt(securedEncodedValue);
+            return decryptValue(securedEncodedValue);
         }
         return null;
     }
@@ -192,7 +203,7 @@ final class SecurePreferences implements SharedPreferences.OnSharedPreferenceCha
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         if (listeners.containsKey(key)) {
-            listeners.get(key).onSharedPreferenceChanged(sharedPreferences, key);
+            listeners.get(key).onSharedPreferenceChanged(sharedPreferences, decryptKey(key));
         }
     }
 

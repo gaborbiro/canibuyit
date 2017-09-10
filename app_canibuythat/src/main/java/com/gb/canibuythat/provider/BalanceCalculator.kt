@@ -30,11 +30,12 @@ object BalanceCalculator {
         var count = 0
         val occurrenceStart = spending.fromStartDate.toCalendar()
         val occurrenceEnd = spending.fromEndDate.toCalendar()
-        val indexCal: Calendar = if (endDate != null) endDate.toCalendar() else Calendar.getInstance()
-        indexCal.clearLowerBits()
+        val start = startDate?.clearLowerBits() ?: null
+        val end: Calendar = endDate?.toCalendar() ?: Calendar.getInstance()
+        end.clearLowerBits()
         do {
-            if (startDate == null || occurrenceEnd.timeInMillis >= startDate.clearLowerBits().time) {
-                val r = DateUtils.compare(indexCal, occurrenceStart, occurrenceEnd)
+            if (start == null || occurrenceEnd.timeInMillis >= start.time) {
+                val r = DateUtils.compare(end, occurrenceStart, occurrenceEnd)
                 if (r >= -1) { // >= start date
                     if (spending.enabled) {
                         maybeSpentThisMuch += spending.value.toFloat()

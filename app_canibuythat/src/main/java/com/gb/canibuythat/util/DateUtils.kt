@@ -51,6 +51,10 @@ class DateUtils {
             c.clearLowerBits()
         }
 
+        @JvmStatic fun clearLowerBits(date: Date): Date {
+            return date.clearLowerBits()
+        }
+
         /**
          * ... `start` ... `end` ...<br></br>
          * <pre>|   |   |  |  |<br></br>-2 -1   0  1  2
@@ -74,7 +78,7 @@ class DateUtils {
         }
 
         @JvmStatic fun getDatePickerDialog(context: Context, listener: DatePickerDialog.OnDateSetListener, date: Date?): DatePickerDialog {
-            return getDatePickerDialog(context, listener, if (date != null) date.toCalendar() else Calendar.getInstance())
+            return getDatePickerDialog(context, listener, date?.toCalendar() ?: Calendar.getInstance())
         }
 
         @JvmStatic fun getDatePickerDialog(context: Context, listener: DatePickerDialog.OnDateSetListener, date: Calendar): DatePickerDialog {

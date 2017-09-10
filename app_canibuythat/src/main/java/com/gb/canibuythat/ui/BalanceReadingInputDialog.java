@@ -1,6 +1,5 @@
 package com.gb.canibuythat.ui;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.os.Bundle;
@@ -36,7 +35,6 @@ public class BalanceReadingInputDialog extends DialogFragment
 
     @Inject UserPreferences userPreferences;
 
-    private BalanceReadingInputListener listener;
     private BalanceReading lastUpdate;
 
     @BindView(R.id.last_update) TextView lastUpdateView;
@@ -60,10 +58,18 @@ public class BalanceReadingInputDialog extends DialogFragment
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         LinearLayout body = (LinearLayout) LayoutInflater.from(getActivity()).inflate(R.layout.dialog_balance_reading, null);
         unbinder = ButterKnife.bind(this, body);
-        valueView.setText(Float.toString(lastUpdate.balance));
-        whenButton.setText(DateUtils.getFORMAT_MONTH_DAY_YR().format(lastUpdate.when));
-        whenButton.setDate(lastUpdate.when);
-        refreshLastUpdate();
+
+        Date today = new Date();
+        whenButton.setText(DateUtils.getFORMAT_MONTH_DAY_YR().format(today));
+        whenButton.setDate(today);
+
+        if (lastUpdate != null) {
+            valueView.setText(Float.toString(lastUpdate.balance));
+            lastUpdateView.setText(getString(R.string.balance_update_reading, lastUpdate.balance,
+                    DateUtils.getFORMAT_MONTH_DAY_YR().format(lastUpdate.when)));
+        } else {
+            lastUpdateView.setText("None");
+        }
 
         return new AlertDialog.Builder(getActivity()).setTitle("Set starting balance")
                 .setPositiveButton(getText(android.R.string.ok), null)
@@ -91,37 +97,12 @@ public class BalanceReadingInputDialog extends DialogFragment
     }
 
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        listener = (BalanceReadingInputListener) activity;
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        listener = null;
-    }
-
-    private void refreshLastUpdate() {
-        if (isAdded()) {
-            if (lastUpdate != null) {
-                lastUpdateView.setText(getString(R.string.balance_update_reading, lastUpdate.balance,
-                        DateUtils.getFORMAT_MONTH_DAY_YR().format(lastUpdate.when)));
-            } else {
-                lastUpdateView.setText("None");
-            }
-        }
-    }
-
-    @Override
     public void onClick(View view) {
         if (validate()) {
-            if (listener != null) {
-                Date selectedDate = whenButton.getSelectedDate();
-                BalanceReading balanceUpdateEvent = new BalanceReading(selectedDate,
-                        Float.valueOf(valueView.getText().toString()));
-                listener.onBalanceReadingSet(balanceUpdateEvent);
-            }
+            Date selectedDate = whenButton.getSelectedDate();
+            BalanceReading balanceReading = new BalanceReading(DateUtils.clearLowerBits(selectedDate),
+                    Float.valueOf(valueView.getText().toString()));
+            userPreferences.setBalanceReading(balanceReading);
             dismiss();
         }
     }
@@ -138,10 +119,12 @@ public class BalanceReadingInputDialog extends DialogFragment
             Toast.makeText(getActivity(), "Please select a non-future date!", Toast.LENGTH_SHORT).show();
             return false;
         }
-        return true;
-    }
 
-    interface BalanceReadingInputListener {
-        void onBalanceReadingSet(BalanceReading event);
+        Date estimateDate = userPreferences.getEstimateDate();
+        if (!selectedDate.before(estimateDate)) {
+            Toast.makeText(getActivity(), "Please select a date before the target date!", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        return true;
     }
 }

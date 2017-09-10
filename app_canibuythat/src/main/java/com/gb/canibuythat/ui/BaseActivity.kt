@@ -24,7 +24,7 @@ abstract class BaseActivity : AppCompatActivity(), ProgressScreen, ContextSource
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         presenter = inject()
-        presenter?.let { presenter!!.screen = this }
+        presenter?.setScreen(this)
     }
 
     override fun onResume() {

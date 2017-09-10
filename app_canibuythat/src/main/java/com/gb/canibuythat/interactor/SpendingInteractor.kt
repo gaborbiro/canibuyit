@@ -11,7 +11,6 @@ import com.j256.ormlite.dao.Dao
 import io.reactivex.Completable
 import io.reactivex.Maybe
 import io.reactivex.Single
-import io.reactivex.disposables.Disposable
 import io.reactivex.subjects.PublishSubject
 import io.reactivex.subjects.Subject
 import javax.inject.Inject
@@ -19,7 +18,9 @@ import javax.inject.Singleton
 
 @Singleton
 class SpendingInteractor @Inject
-constructor(private val spendingsRepository: SpendingsRepository, private val appContext: Context, private val schedulerProvider: SchedulerProvider) {
+constructor(private val spendingsRepository: SpendingsRepository,
+            private val appContext: Context,
+            private val schedulerProvider: SchedulerProvider) {
 
     private val spendingsSubject: Subject<Lce<List<Spending>>> = PublishSubject.create<Lce<List<Spending>>>()
 
@@ -27,8 +28,10 @@ constructor(private val spendingsRepository: SpendingsRepository, private val ap
         return spendingsSubject
     }
 
-    fun loadSpendings(): Disposable {
-        return spendingsRepository.all
+    // REACTIVE METHODS
+
+    fun loadSpendings() {
+        spendingsRepository.all
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())
                 .doOnSubscribe {
@@ -55,14 +58,6 @@ constructor(private val spendingsRepository: SpendingsRepository, private val ap
                 })
     }
 
-    fun createOrUpdate(spending: Spending): Single<Dao.CreateOrUpdateStatus> {
-        return spendingsRepository.createOrUpdate(spending)
-                .onErrorResumeNext { throwable -> Single.error<Dao.CreateOrUpdateStatus>(DomainException("Error updating spending in database. See logs.", throwable)) }
-                .doOnSuccess { appContext.contentResolver.notifyChange(SpendingProvider.SPENDINGS_URI, null) }
-                .subscribeOn(schedulerProvider.io())
-                .observeOn(schedulerProvider.mainThread())
-    }
-
     fun createOrUpdateMonzoCategories(spendings: List<Spending>) {
         spendingsRepository.createOrUpdateMonzoSpendings(spendings)
                 .doOnComplete { appContext.contentResolver.notifyChange(SpendingProvider.SPENDINGS_URI, null) }
@@ -73,6 +68,16 @@ constructor(private val spendingsRepository: SpendingsRepository, private val ap
                 }, { throwable ->
                     spendingsSubject.onNext(Lce.error(DomainException("Error updating monzo cache. See logs.", throwable)))
                 })
+    }
+
+    // NON-REACTIVE METHODS
+
+    fun createOrUpdate(spending: Spending): Single<Dao.CreateOrUpdateStatus> {
+        return spendingsRepository.createOrUpdate(spending)
+                .onErrorResumeNext { throwable -> Single.error<Dao.CreateOrUpdateStatus>(DomainException("Error updating spending in database. See logs.", throwable)) }
+                .doOnSuccess { appContext.contentResolver.notifyChange(SpendingProvider.SPENDINGS_URI, null) }
+                .subscribeOn(schedulerProvider.io())
+                .observeOn(schedulerProvider.mainThread())
     }
 
     fun delete(id: Int): Completable {
@@ -90,13 +95,13 @@ constructor(private val spendingsRepository: SpendingsRepository, private val ap
                 .observeOn(schedulerProvider.mainThread())
     }
 
-    fun calculateBalance(): Single<Balance> {
+    fun getBalance(): Single<Balance> {
         return spendingsRepository.getBalance()
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())
     }
 
-    fun calculateCategoryBalance(): String {
+    fun getCategoryBalance(): String {
         return spendingsRepository.getCategoryBalance()
     }
 }

@@ -137,18 +137,24 @@ constructor(spendingDbHelper: SpendingDbHelper, private val userPreferences: Use
     }
 
     fun getBalance(): Single<Balance> {
-        val balance = calculateBalanceForCategory(null, userPreferences.balanceReading?.`when`, userPreferences.estimateDate)
-        balance?.let { return Single.just(balance) }
+        val balance = calculateBalanceForCategory(null, startDate = userPreferences.balanceReading?.`when`, endDate = userPreferences.estimateDate)
+        balance?.let {
+            userPreferences.balanceReading?.let {
+                balance.definitely = balance.definitely?.plus(it.balance)
+                balance.maybeEvenThisMuch = balance.maybeEvenThisMuch?.plus(it.balance)
+            }
+            return Single.just(balance)
+        }
         return Single.just(Balance())
     }
 
     fun getCategoryBalance(): String {
         val buffer = StringBuffer()
-        val from = userPreferences.balanceReading?.`when`
-        val to = userPreferences.estimateDate
+        val startDate = userPreferences.balanceReading?.`when`
+        val endDate = userPreferences.estimateDate
 
         Spending.Category.values().forEach { category ->
-            val balance = calculateBalanceForCategory(category, from, to)
+            val balance = calculateBalanceForCategory(category, startDate, endDate)
 
             if (balance != null) {
                 buffer.append("${category.name}:\n${balance.definitely}/${balance.maybeEvenThisMuch}\n")

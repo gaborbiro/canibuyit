@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Environment
 import com.gb.canibuythat.CredentialsProvider
 import com.gb.canibuythat.MonzoConstants
+import com.gb.canibuythat.UserPreferences
 import com.gb.canibuythat.interactor.BackupingInteractor
 import com.gb.canibuythat.interactor.MonzoInteractor
 import com.gb.canibuythat.interactor.SpendingInteractor
@@ -14,37 +15,44 @@ class MainPresenter @Inject
 constructor(val monzoInteractor: MonzoInteractor,
             val spendingInteractor: SpendingInteractor,
             val backupingInteractor: BackupingInteractor,
-            val credentialsProvider: CredentialsProvider) : BasePresenter<MainScreen>() {
+            val credentialsProvider: CredentialsProvider,
+            val userPreferences: UserPreferences) : BasePresenter<MainScreen>() {
 
     init {
-        monzoInteractor.getSpendingsDataStream().subscribe({
-            if (it.loading) screen.showProgress() else screen.hideProgress()
-        }, this::onError)
-        monzoInteractor.getLoginDataStream().subscribe({
+        disposeOnFinish(monzoInteractor.getSpendingsDataStream().subscribe({
+            if (it.loading) getScreen().showProgress() else getScreen().hideProgress()
+            if (!it.loading) fetchBalance()
+        }, this::onError))
+        disposeOnFinish(monzoInteractor.getLoginDataStream().subscribe({
             if (it.loading) {
-                screen.showProgress()
+                getScreen().showProgress()
             } else {
                 if (it.hasError()) {
                     this.onError(it.error!!)
                 } else {
-                    screen.hideProgress()
+                    getScreen().hideProgress()
                     credentialsProvider.accessToken = it.content!!.accessToken
                     credentialsProvider.refreshToken = it.content!!.refreshToken
-                    screen.showToast("You are now logged in")
+                    getScreen().showToast("You are now logged in")
                 }
             }
-        }, this::onError)
+        }, this::onError))
     }
 
-    fun fetchBalance() {
-        disposeOnFinish(spendingInteractor.calculateBalance()
-                .doOnSubscribe { screen.showProgress() }
-                .doAfterTerminate { screen.hideProgress() }
-                .subscribe(screen::setBalanceInfo, this::onError))
+    override fun onScreenSet() {
+        disposeOnFinish(userPreferences.getBalanceReadingDataStream().subscribe({ fetchBalance() }))
+        disposeOnFinish(userPreferences.getEstimateDateDataStream().subscribe({ fetchBalance() }))
     }
 
-    fun calculateCategoryBalance() {
-        screen.showCategoryBalance(spendingInteractor.calculateCategoryBalance())
+    private fun fetchBalance() {
+        disposeOnFinish(spendingInteractor.getBalance()
+                .doOnSubscribe { getScreen().showProgress() }
+                .doAfterTerminate { getScreen().hideProgress() }
+                .subscribe(getScreen()::setBalanceInfo, this::onError))
+    }
+
+    fun fetchCategoryBalance() {
+        getScreen().showCategoryBalance(spendingInteractor.getCategoryBalance())
     }
 
     fun handleDeepLink(intent: Intent) {
@@ -67,12 +75,12 @@ constructor(val monzoInteractor: MonzoInteractor,
     }
 
     fun chartButtonClicked() {
-        screen.showChartScreen()
+        getScreen().showChartScreen()
     }
 
     fun fetchMonzoData() {
         if (!credentialsProvider.isSession()) {
-            screen.showLoginActivity()
+            getScreen().showLoginActivity()
         } else {
             disposeOnFinish(monzoInteractor.loadSpendings(MonzoConstants.ACCOUNT_ID))
         }
@@ -83,16 +91,16 @@ constructor(val monzoInteractor: MonzoInteractor,
     }
 
     fun exportDatabase() {
-        backupingInteractor.exportSpendings().subscribe({screen.showToast("Database exported")}, this::onError)
+        backupingInteractor.exportSpendings().subscribe({ getScreen().showToast("Database exported") }, this::onError)
     }
 
     fun onImportDatabase(importType: MainScreen.SpendingsImportType) {
         val directory = Environment.getExternalStorageDirectory().path + "/CanIBuyThat/"
-        screen.showFilePickerActivity(directory, importType)
+        getScreen().showFilePickerActivity(directory, importType)
     }
 
     fun onImportSpendings(path: String, importType: MainScreen.SpendingsImportType) {
-        when(importType) {
+        when (importType) {
             MainScreen.SpendingsImportType.ALL -> backupingInteractor.importAllSpendings(path).subscribe(this::fetchBalance, this::onError)
             MainScreen.SpendingsImportType.MONZO -> backupingInteractor.importMonzoSpendings(path).subscribe(this::fetchBalance, this::onError)
             MainScreen.SpendingsImportType.NON_MONZO -> backupingInteractor.importNonMonzoSpendings(path).subscribe(this::fetchBalance, this::onError)
@@ -100,14 +108,14 @@ constructor(val monzoInteractor: MonzoInteractor,
     }
 
     fun updateBalance() {
-        screen.showBalanceUpdateDialog()
+        getScreen().showBalanceUpdateDialog()
     }
 
     fun showEditorScreenForSpending(id: Int) {
-        screen.showEditorScreen(id)
+        getScreen().showEditorScreen(id)
     }
 
     fun showEditorScreen() {
-        screen.showEditorScreen(null)
+        getScreen().showEditorScreen(null)
     }
 }

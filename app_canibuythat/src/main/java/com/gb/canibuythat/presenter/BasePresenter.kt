@@ -2,18 +2,25 @@ package com.gb.canibuythat.presenter
 
 import com.gb.canibuythat.exception.ErrorHandler
 import com.gb.canibuythat.screen.Screen
-
-import javax.inject.Inject
-
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
+import javax.inject.Inject
 
 abstract class BasePresenter<S : Screen> {
 
     lateinit @Inject var errorHandler: ErrorHandler
 
     private val currentDisposables: CompositeDisposable = CompositeDisposable()
-    lateinit var screen: S
+    private var screen: S? = null
+
+    fun setScreen(screen: S) {
+        this.screen = screen
+        onScreenSet()
+    }
+
+    fun getScreen(): S {
+        return screen!!
+    }
 
     internal fun onError(throwable: Throwable) {
         errorHandler.onError(throwable)
@@ -25,5 +32,9 @@ abstract class BasePresenter<S : Screen> {
 
     fun onPresenterDestroyed() {
         currentDisposables.dispose()
+    }
+
+    open fun onScreenSet() {
+        // override in child class if needed
     }
 }
