@@ -264,7 +264,7 @@ public class SpendingEditorFragment extends BaseFragment {
     private void loadSpendingOccurrences(final Spending spending) {
         BalanceReading balanceReading = userPreferences.getBalanceReading();
         BalanceCalculator.BalanceResult result = BalanceCalculator.INSTANCE.getEstimatedBalance(spending,
-                balanceReading != null ? balanceReading.when : null,
+                balanceReading != null ? balanceReading.getWhen() : null,
                 userPreferences.getEstimateDate());
         String spentStr = ArrayUtils.join("\n", result.getSpendingEvents(), (index, item) -> getString(R.string.spending_occurrence, index + 1, DateUtils.getFORMAT_MONTH_DAY_YR().format(item)));
         spentStr = "Spent: " + result.getDefinitely() + "/" + (result.getMaybeEvenThisMuch()) + "\n" + spentStr;

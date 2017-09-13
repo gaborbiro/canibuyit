@@ -131,9 +131,9 @@ public class ChartActivity extends BaseActivity implements OnChartValueSelectedL
                 Date startDate;
 
                 if (balanceReading != null) {
-                    currTarget.setTime(balanceReading.when);
+                    currTarget.setTime(balanceReading.getWhen());
                     currTarget.add(Calendar.DAY_OF_MONTH, 1);
-                    startDate = balanceReading.when;
+                    startDate = balanceReading.getWhen();
                 } else {
                     startDate = null;
                 }
@@ -153,8 +153,8 @@ public class ChartActivity extends BaseActivity implements OnChartValueSelectedL
                     }
 
                     if (balanceReading != null) {
-                        bestCase += balanceReading.balance;
-                        worstCase += balanceReading.balance;
+                        bestCase += balanceReading.getBalance();
+                        worstCase += balanceReading.getBalance();
                     }
                     result.add(new ProjectionItem(currTarget.getTime(), bestCase, worstCase));
                     currTarget.add(Calendar.WEEK_OF_YEAR, 1);

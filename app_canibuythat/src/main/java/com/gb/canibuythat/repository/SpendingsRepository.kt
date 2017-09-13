@@ -173,7 +173,7 @@ constructor(spendingDBHelper: SpendingDBHelper, private val userPreferences: Use
     }
 
     fun getProjectName(): String? {
-        return projectDao.queryForId(1)?.name ?: null
+        return projectDao.queryForId(1)?.name
     }
 
     fun setProjectName(name: String) {

@@ -90,14 +90,14 @@ constructor(appContext: Context) : OrmLiteSqliteOpenHelper(appContext, DATABASE_
 
     @Throws(IOException::class, ClassNotFoundException::class)
     private fun getContentValue(contentValues: Any, key: String): Any? {
-        var contentValues = contentValues
-        if (contentValues is ContentValues) {
-            return getContentValue(contentValues, key)
-        } else if (contentValues is Map<*, *>) {
-            return contentValues[key]
-        } else if (contentValues is ByteArray) {
-            contentValues = ObjectInputStream(ByteArrayInputStream(contentValues)).readObject()
-            return getContentValue(contentValues, key)
+        var cv = contentValues
+        if (cv is ContentValues) {
+            return getContentValue(cv, key)
+        } else if (cv is Map<*, *>) {
+            return cv[key]
+        } else if (cv is ByteArray) {
+            cv = ObjectInputStream(ByteArrayInputStream(cv)).readObject()
+            return getContentValue(cv, key)
         } else {
             return null
         }

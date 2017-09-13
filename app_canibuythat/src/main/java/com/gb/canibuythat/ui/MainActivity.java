@@ -263,7 +263,7 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
             String text;
             BalanceReading balanceReading = userPreferences.getBalanceReading();
             if (balanceReading != null) {
-                text = getString(R.string.reading, balanceReading.balance, DateUtils.getFORMAT_MONTH_DAY_YR().format(balanceReading.when));
+                text = getString(R.string.reading, balanceReading.getBalance(), DateUtils.getFORMAT_MONTH_DAY_YR().format(balanceReading.getWhen()));
             } else {
                 text = getString(R.string.reading_none);
             }
@@ -287,9 +287,9 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
             Calendar c = DateUtils.compose(year, month, dayOfMonth);
             BalanceReading balanceReading = userPreferences.getBalanceReading();
 
-            if (balanceReading != null && balanceReading.when.after(c.getTime())) {
+            if (balanceReading != null && balanceReading.getWhen().after(c.getTime())) {
                 Toast.makeText(MainActivity.this,
-                        "Please set a date after the last balance " + "reading! (" + balanceReading.when + ")", Toast.LENGTH_SHORT).show();
+                        "Please set a date after the last balance " + "reading! (" + balanceReading.getWhen() + ")", Toast.LENGTH_SHORT).show();
             } else {
                 userPreferences.setEstimateDate(c.getTime());
             }
