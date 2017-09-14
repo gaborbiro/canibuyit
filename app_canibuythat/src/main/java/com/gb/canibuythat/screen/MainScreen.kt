@@ -17,7 +17,7 @@ interface MainScreen : ProgressScreen {
 
     fun setBalanceInfo(balance: Balance)
 
-    fun showFilePickerActivity(directory: String, spendingsImportType: SpendingsImportType)
+    fun showPickerForImport(directory: String, spendingsImportType: SpendingsImportType)
 
     fun showBalanceUpdateDialog()
 
@@ -28,4 +28,6 @@ interface MainScreen : ProgressScreen {
     fun showCategoryBalance(text: String)
 
     fun setProjectName(name: String?)
+
+    fun showPickerForExport(suggestedPath: String)
 }

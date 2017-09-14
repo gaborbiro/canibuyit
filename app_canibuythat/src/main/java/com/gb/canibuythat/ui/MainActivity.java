@@ -52,6 +52,7 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
     private static final int REQUEST_CODE_CHOOSE_FILE_NON_MONZO = 2;
     private static final int REQUEST_CODE_CHOOSE_FILE_ALL = 3;
     private static final int REQUEST_CODE_PERMISSIONS_FOR_DB_EXPORT = 4;
+    private static final int REQUEST_CODE_CHOOSE_FILE_EXPORT = 5;
 
     @Inject UserPreferences userPreferences;
     @Inject MainPresenter presenter;
@@ -174,7 +175,15 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
     }
 
     @Override
-    public void showFilePickerActivity(@NonNull String directory, @NonNull SpendingsImportType spendingsImportType) {
+    public void showPickerForExport(@NotNull String suggestedExportPath) {
+        Intent i = new Intent(this, FileDialogActivity.class);
+        i.putExtra(FileDialogActivity.EXTRA_START_PATH, suggestedExportPath);
+        i.putExtra(FileDialogActivity.EXTRA_SELECTION_MODE, FileDialogActivity.SELECTION_MODE_CREATE);
+        startActivityForResult(i, REQUEST_CODE_CHOOSE_FILE_EXPORT);
+    }
+
+    @Override
+    public void showPickerForImport(@NonNull String directory, @NonNull SpendingsImportType spendingsImportType) {
         Intent i = new Intent(this, FileDialogActivity.class);
         i.putExtra(FileDialogActivity.EXTRA_START_PATH, directory);
         i.putExtra(FileDialogActivity.EXTRA_SELECTION_MODE, FileDialogActivity.SELECTION_MODE_OPEN);
@@ -210,6 +219,12 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
                 if (resultCode == RESULT_OK) {
                     String path = data.getStringExtra(FileDialogActivity.EXTRA_RESULT_PATH);
                     presenter.onImportSpendings(path, SpendingsImportType.NON_MONZO);
+                }
+                break;
+            case REQUEST_CODE_CHOOSE_FILE_EXPORT:
+                if (resultCode == RESULT_OK) {
+                    String path = data.getStringExtra(FileDialogActivity.EXTRA_RESULT_PATH);
+                    presenter.onExportSpendings(path);
                 }
                 break;
         }

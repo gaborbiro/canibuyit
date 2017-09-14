@@ -2,6 +2,7 @@ package com.gb.canibuythat.interactor
 
 import android.content.Context
 import android.os.Environment
+import com.gb.canibuythat.AppConstants
 import com.gb.canibuythat.exception.DomainException
 import com.gb.canibuythat.db.SpendingDBHelper
 import com.gb.canibuythat.repository.BackupingRepository
@@ -29,6 +30,10 @@ constructor(private val backupingRepository: BackupingRepository, private val ap
         return prepareImportCompletable(backupingRepository.importNonMonzoSpendings(file))
     }
 
+    fun showPickerForExport() {
+
+    }
+
     private fun prepareImportCompletable(completable: Completable): Completable {
         return completable
                 .onErrorResumeNext { throwable -> Completable.error(DomainException("Error importing database. See logs.", throwable)) }
@@ -36,18 +41,15 @@ constructor(private val backupingRepository: BackupingRepository, private val ap
                 .observeOn(schedulerProvider.mainThread())
     }
 
-    fun exportSpendings(): Completable {
+    fun exportSpendings(targetFilename: String): Completable {
         try {
             val pack = appContext.packageName
 
-            val sd = Environment.getExternalStorageDirectory()
-            val targetFolder = File(sd.toString() + "/CanIBuyThat")
+            val targetFolder = File(AppConstants.BACKUP_FOLDER)
 
             if (!targetFolder.exists()) {
                 targetFolder.mkdirs()
             }
-            val sdf = SimpleDateFormat("yyyyMMdd'T'HHmmssZ")
-            val targetFilename = "spendings-" + sdf.format(Date()) + ".sqlite"
             val to = File(targetFolder, targetFilename)
 
             val data = Environment.getDataDirectory()

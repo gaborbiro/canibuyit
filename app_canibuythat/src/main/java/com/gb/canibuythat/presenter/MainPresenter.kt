@@ -1,8 +1,7 @@
 package com.gb.canibuythat.presenter
 
 import android.content.Intent
-import android.os.Environment
-import android.util.Log
+import com.gb.canibuythat.AppConstants
 import com.gb.canibuythat.CredentialsProvider
 import com.gb.canibuythat.MonzoConstants
 import com.gb.canibuythat.UserPreferences
@@ -13,6 +12,8 @@ import com.gb.canibuythat.interactor.SpendingInteractor
 import com.gb.canibuythat.model.Balance
 import com.gb.canibuythat.screen.MainScreen
 import io.reactivex.functions.Consumer
+import java.text.SimpleDateFormat
+import java.util.*
 import javax.inject.Inject
 
 class MainPresenter @Inject
@@ -104,12 +105,21 @@ constructor(val monzoInteractor: MonzoInteractor,
     }
 
     fun exportDatabase() {
-        backupingInteractor.exportSpendings().subscribe({ getScreen().showToast("Database exported") }, this::onError)
+        getScreen().showPickerForExport(getSuggestedExportPath())
+    }
+
+    fun onExportSpendings(path: String) {
+        backupingInteractor.exportSpendings(path).subscribe({ getScreen().showToast("Database exported") }, this::onError)
+    }
+
+    private fun getSuggestedExportPath(): String {
+        val sdf = SimpleDateFormat("yyyyMMdd'T'HHmmssZ")
+        return AppConstants.BACKUP_FOLDER
     }
 
     fun onImportDatabase(importType: MainScreen.SpendingsImportType) {
-        val directory = Environment.getExternalStorageDirectory().path + "/CanIBuyThat/"
-        getScreen().showFilePickerActivity(directory, importType)
+        val directory = AppConstants.BACKUP_FOLDER + "/";
+        getScreen().showPickerForImport(directory, importType)
     }
 
     fun onImportSpendings(path: String, importType: MainScreen.SpendingsImportType) {
