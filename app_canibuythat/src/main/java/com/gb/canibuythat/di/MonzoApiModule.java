@@ -6,6 +6,7 @@ import com.gb.canibuythat.CredentialsProvider;
 import com.gb.canibuythat.MonzoConstants;
 import com.gb.canibuythat.api.AuthInterceptor;
 import com.gb.canibuythat.api.MonzoApi;
+import com.gb.canibuythat.api.MonzoAuthApi;
 import com.gb.canibuythat.api.MonzoDispatchApi;
 import com.google.gson.Gson;
 
@@ -23,6 +24,31 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 @Module
 public class MonzoApiModule {
+
+    @Provides
+    @Singleton
+    MonzoAuthApi provideMonzoAuthApi(
+            CredentialsProvider credentialsProvider,
+            GsonConverterFactory gsonConverterFactory) {
+
+        OkHttpClient.Builder okHttpClientBuilder = new OkHttpClient.Builder()
+                .readTimeout(AppConstants.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .connectTimeout(AppConstants.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+        if (BuildConfig.DEBUG) {
+            HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
+            interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+            okHttpClientBuilder.addInterceptor(interceptor);
+        }
+
+        return new Retrofit.Builder()
+                .client(okHttpClientBuilder.build())
+                .baseUrl(MonzoConstants.MONZO_API_BASE)
+                .addConverterFactory(gsonConverterFactory)
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                .build()
+                .create(MonzoAuthApi.class);
+    }
 
     @Provides
     @Singleton

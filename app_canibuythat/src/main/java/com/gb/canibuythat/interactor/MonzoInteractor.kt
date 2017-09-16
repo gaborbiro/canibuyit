@@ -45,6 +45,19 @@ constructor(private val schedulerProvider: SchedulerProvider,
                 })
     }
 
+    fun refresh(): Disposable {
+        return refreshSession(credentialsProvider.refreshToken!!)
+                .observeOn(schedulerProvider.mainThread())
+                .doOnSubscribe {
+                    loginSubject.onNext(Lce.loading())
+                }
+                .subscribe({
+                    loginSubject.onNext(Lce.content(it))
+                }, { throwable ->
+                    loginSubject.onNext(Lce.error(MonzoException(throwable)))
+                })
+    }
+
     private fun refreshSession(refreshToken: String): Single<Login> {
         return monzoRepository.refreshSession(refreshToken)
                 .subscribeOn(schedulerProvider.io())
