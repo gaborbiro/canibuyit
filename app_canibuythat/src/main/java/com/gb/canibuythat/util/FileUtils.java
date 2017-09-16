@@ -17,7 +17,7 @@ import java.nio.channels.FileChannel;
 
 public class FileUtils {
 
-    public static void copyFiles(File from, File to) {
+    public static void copyFiles(File from, File to) throws IOException {
         FileChannel src = null;
         FileChannel dst = null;
         try {
@@ -25,7 +25,7 @@ public class FileUtils {
             dst = new FileOutputStream(to).getChannel();
             dst.transferFrom(src, 0, src.size());
         } catch (IOException e) {
-            e.printStackTrace();
+            throw e;
         } finally {
             try {
                 src.close();

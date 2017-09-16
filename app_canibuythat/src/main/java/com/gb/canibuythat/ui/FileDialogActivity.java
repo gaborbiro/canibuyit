@@ -24,6 +24,7 @@ import com.gb.canibuythat.R;
 import com.gb.canibuythat.util.DirReadException;
 import com.gb.canibuythat.util.DirUtils;
 import com.gb.canibuythat.util.PermissionVerifier;
+import com.gb.canibuythat.util.ViewUtils;
 
 import java.io.File;
 import java.util.HashMap;
@@ -267,7 +268,7 @@ public class FileDialogActivity extends ListActivity {
     private void setSelectVisible(View v) {
         creationButtonsContainer.setVisibility(View.GONE);
         selectionButtonsContainer.setVisibility(View.VISIBLE);
-        inputManager.hideSoftInputFromWindow(v.getWindowToken(), 0);
+        ViewUtils.hideKeyboard(v);
         selectButton.setEnabled(false);
     }
 

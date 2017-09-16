@@ -2,16 +2,13 @@ package com.gb.canibuythat.interactor
 
 import android.content.Context
 import android.os.Environment
-import com.gb.canibuythat.AppConstants
-import com.gb.canibuythat.exception.DomainException
 import com.gb.canibuythat.db.SpendingDBHelper
+import com.gb.canibuythat.exception.DomainException
 import com.gb.canibuythat.repository.BackupingRepository
 import com.gb.canibuythat.rx.SchedulerProvider
 import com.gb.canibuythat.util.FileUtils
 import io.reactivex.Completable
 import java.io.File
-import java.text.SimpleDateFormat
-import java.util.*
 import javax.inject.Inject
 
 class BackupingInteractor @Inject
@@ -45,12 +42,11 @@ constructor(private val backupingRepository: BackupingRepository, private val ap
         try {
             val pack = appContext.packageName
 
-            val targetFolder = File(AppConstants.BACKUP_FOLDER)
+            var to = File(targetFilename)
 
-            if (!targetFolder.exists()) {
-                targetFolder.mkdirs()
+            if (!to.extension.equals("sqlite")) {
+                to = File(targetFilename + ".sqlite")
             }
-            val to = File(targetFolder, targetFilename)
 
             val data = Environment.getDataDirectory()
             val currentDBPath = "/data/" + pack + "/databases/" + SpendingDBHelper.DATABASE_NAME
