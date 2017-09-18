@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -25,6 +26,7 @@ public abstract class BaseDialogFragment extends DialogFragment {
     @BindView(R.id.progress_bar) ProgressBar activityIndicator;
     @BindView(R.id.title) TextView title;
     @BindView(R.id.message) TextView message;
+    @BindView(R.id.input) EditText input;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {

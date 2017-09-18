@@ -11,6 +11,7 @@
             style="@style/DialogTitle"
             android:id="@+id/title"
             android:visibility="gone"
+            tools:visibility="visible"
             tools:text="Title Text"/>
 
         <RelativeLayout
@@ -40,6 +41,14 @@
                     tools:text="Message Text will be displayed"
                     tools:visibility="visible"/>
             </ScrollView>
+
+            <EditText
+                android:id="@+id/input"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:selectAllOnFocus="true"
+                tools:visibility="visible"/>
         </RelativeLayout>
     </LinearLayout>
 

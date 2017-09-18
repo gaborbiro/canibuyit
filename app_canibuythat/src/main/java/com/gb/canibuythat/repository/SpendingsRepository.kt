@@ -172,13 +172,11 @@ constructor(spendingDBHelper: SpendingDBHelper, private val userPreferences: Use
         return buffer.toString()
     }
 
-    fun getProjectName(): String? {
-        return projectDao.queryForId(1)?.name
-    }
-
-    fun setProjectName(name: String) {
-        projectDao.create(Project(1, name))
-    }
+    var projectName: String?
+        get() = projectDao.queryForId(1)?.name
+        set(value) {
+            projectDao.createOrUpdate(Project(1, value))
+        }
 
     /**
      * @param category for which the balance should be calculated. If null, all categories will be included.

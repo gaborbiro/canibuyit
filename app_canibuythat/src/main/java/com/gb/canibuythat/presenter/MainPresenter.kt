@@ -61,7 +61,7 @@ constructor(val monzoInteractor: MonzoInteractor,
                     this.onError(com.gb.canibuythat.exception.DomainException("Cannot calculate balance. See logs", it))
                 }))
         spendingInteractor.getProjectName().subscribe(Consumer {
-            getScreen().setProjectName(it.content)
+            getScreen().setTitle(it.content)
         })
     }
 
@@ -105,16 +105,22 @@ constructor(val monzoInteractor: MonzoInteractor,
     }
 
     fun exportDatabase() {
-        getScreen().showPickerForExport(getSuggestedExportPath())
+        spendingInteractor.getProjectName().subscribe(Consumer {
+            getScreen().showPickerForExport(getSuggestedExportPath(it.content))
+        })
     }
 
     fun onExportSpendings(path: String) {
         backupingInteractor.exportSpendings(path).subscribe({ getScreen().showToast("Database exported") }, this::onError)
     }
 
-    private fun getSuggestedExportPath(): String {
-        val sdf = SimpleDateFormat("yyyyMMdd'T'HHmmssZ")
-        return AppConstants.BACKUP_FOLDER
+    private fun getSuggestedExportPath(projectName: String?): String {
+        val format = SimpleDateFormat("yyyyMMdd'T'HHmmss")
+        if (projectName.isNullOrEmpty()) {
+            return AppConstants.BACKUP_FOLDER + "/spendings-" + format.format(Date()) + ".sqlite"
+        } else {
+            return AppConstants.BACKUP_FOLDER + "/spendings-" + format.format(Date()) + "-" + projectName + ".sqlite"
+        }
     }
 
     fun onImportDatabase(importType: MainScreen.SpendingsImportType) {
@@ -158,5 +164,18 @@ constructor(val monzoInteractor: MonzoInteractor,
                 }, {
                     errorHandler.onErrorSoft(it)
                 })
+    }
+
+    fun onSetProjectName() {
+        spendingInteractor.getProjectName().subscribe({
+            getScreen().setProjectName(it.content)
+        }, errorHandler::onErrorSoft)
+    }
+
+    fun setProjectName(projectName: String) {
+        spendingInteractor.setProjectName(projectName).subscribe({
+            getScreen().showToast("Project name saved")
+            getScreen().setTitle(projectName)
+        }, errorHandler::onErrorSoft)
     }
 }

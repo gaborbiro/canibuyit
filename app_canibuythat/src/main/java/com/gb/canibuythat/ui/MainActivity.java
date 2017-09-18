@@ -158,7 +158,7 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
                 presenter.deleteAllSpendings();
                 break;
             case R.id.menu_set_project_name:
-                presenter.deleteAllSpendings();
+                presenter.onSetProjectName();
                 break;
         }
         return super.onOptionsItemSelected(item);
@@ -341,11 +341,19 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
     }
 
     @Override
-    public void setProjectName(String name) {
-        if (name == null) {
-            setTitle(getString(R.string.app_name));
+    public void setTitle(String projectName) {
+        if (projectName == null) {
+            super.setTitle(getString(R.string.app_name));
         } else {
-            setTitle(getString(R.string.app_name_project, name));
+            super.setTitle(getString(R.string.app_name_project, projectName));
         }
+    }
+
+    @Override
+    public void setProjectName(String currentName) {
+        InputDialog inputDialog = InputDialog.newInstance("Project name", currentName);
+        inputDialog.setPositiveButton(R.string.save, v -> {
+            presenter.setProjectName(inputDialog.getInput());
+        }).show(getSupportFragmentManager(), null);
     }
 }

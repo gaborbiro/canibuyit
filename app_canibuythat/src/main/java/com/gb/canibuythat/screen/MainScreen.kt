@@ -1,7 +1,6 @@
 package com.gb.canibuythat.screen
 
 import com.gb.canibuythat.model.Balance
-import com.gb.canibuythat.model.Spending
 
 interface MainScreen : ProgressScreen {
 
@@ -27,7 +26,9 @@ interface MainScreen : ProgressScreen {
 
     fun showCategoryBalance(text: String)
 
-    fun setProjectName(name: String?)
+    fun setTitle(projectName: String?)
 
     fun showPickerForExport(suggestedPath: String)
+
+    fun setProjectName(currentName: String?)
 }

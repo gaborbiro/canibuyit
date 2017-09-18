@@ -130,30 +130,42 @@ public class FileDialogActivity extends ListActivity {
         setData(startPath);
     }
 
-    private void setData(String dirPath) {
-        boolean useAutoSelection = dirPath.length() < currentPath.length();
+    private void setData(String path) {
+        boolean useAutoSelection = path.length() < currentPath.length();
         List<DirUtils.FileInfo> files = null;
         try {
-            files = DirUtils.getDirInfo(dirPath, formatFilters);
+            files = DirUtils.getDirInfo(path, formatFilters);
         } catch (DirReadException e) {
-            e.printStackTrace();
-            Toast.makeText(FileDialogActivity.this, "Unable to read folder " + dirPath, Toast.LENGTH_SHORT).show();
+            // maybe it's a file
+            String parent = new File(path).getParent();
+
             try {
-                dirPath = ROOT;
-                files = DirUtils.getDirInfo(dirPath, formatFilters);
-            } catch (DirReadException e1) {
-                e1.printStackTrace();
+                files = DirUtils.getDirInfo(parent, formatFilters);
+                setCreateVisible(null);
+                fileNameView.setText(new File(path).getName());
+                fileNameView.requestFocus();
+                path = parent;
+            } catch (DirReadException e2) {
+                e.printStackTrace();
+                Toast.makeText(FileDialogActivity.this, "Unable to read folder " + path, Toast.LENGTH_SHORT).show();
+
+                try {
+                    path = ROOT;
+                    files = DirUtils.getDirInfo(path, formatFilters);
+                } catch (DirReadException e1) {
+                    e1.printStackTrace();
+                }
             }
         }
         parentPath = null;
         if (files != null) {
-            if (!dirPath.equals(ROOT)) {
+            if (!path.equals(ROOT)) {
                 files.add(0, new DirUtils.FileInfo(ROOT, true));
                 files.add(1, new DirUtils.FileInfo(PARENT, true));
-                parentPath = new File(dirPath).getParent();
+                parentPath = new File(path).getParent();
             }
 
-            currentPath = dirPath;
+            currentPath = path;
             adapter = new FileListAdapter(this, files);
             setListAdapter(adapter);
 
@@ -261,14 +273,18 @@ public class FileDialogActivity extends ListActivity {
     private void setCreateVisible(View v) {
         creationButtonsContainer.setVisibility(View.VISIBLE);
         selectionButtonsContainer.setVisibility(View.GONE);
-        inputManager.hideSoftInputFromWindow(v.getWindowToken(), 0);
+        if (v != null) {
+            ViewUtils.hideKeyboard(v);
+        }
         selectButton.setEnabled(false);
     }
 
     private void setSelectVisible(View v) {
         creationButtonsContainer.setVisibility(View.GONE);
         selectionButtonsContainer.setVisibility(View.VISIBLE);
-        ViewUtils.hideKeyboard(v);
+        if (v != null) {
+            ViewUtils.hideKeyboard(v);
+        }
         selectButton.setEnabled(false);
     }
 

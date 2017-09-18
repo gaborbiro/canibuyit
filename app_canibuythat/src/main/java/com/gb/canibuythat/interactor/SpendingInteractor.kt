@@ -1,5 +1,6 @@
 package com.gb.canibuythat.interactor
 
+import android.database.SQLException
 import com.gb.canibuythat.exception.DomainException
 import com.gb.canibuythat.model.Balance
 import com.gb.canibuythat.model.Spending
@@ -101,7 +102,7 @@ constructor(private val spendingsRepository: SpendingsRepository,
 
     fun getProjectName(): Single<Lce<String>> {
         return Single.create<Lce<String>> { emitter ->
-            spendingsRepository.getProjectName()?.let {
+            spendingsRepository.projectName?.let {
                 emitter.onSuccess(Lce.content(it))
             } ?: emitter.onSuccess(Lce.nothing())
         }
@@ -109,9 +110,17 @@ constructor(private val spendingsRepository: SpendingsRepository,
                 .observeOn(schedulerProvider.mainThread())
     }
 
-    fun setProjectName(name: String) {
-        Single.create<Any> { spendingsRepository.setProjectName(name) }
+    fun setProjectName(name: String): Completable {
+        return Completable.create { emitter ->
+            try {
+                spendingsRepository.projectName = name
+                emitter.onComplete()
+            } catch (e: SQLException) {
+                emitter.onError(e)
+            }
+        }
+                .onErrorResumeNext { throwable: Throwable -> Completable.error(DomainException("Error saving project name. See logs.", throwable)) }
                 .subscribeOn(schedulerProvider.io())
-                .subscribe()
+                .observeOn(schedulerProvider.mainThread())
     }
 }
