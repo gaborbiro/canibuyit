@@ -19,19 +19,20 @@ class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi,
 
     fun login(authorizationCode: String): Single<Login> {
         return monzoAuthApi.login(text("authorization_code"),
-                text(authorizationCode),
-                text(MonzoConstants.MONZO_URI_AUTH_CALLBACK),
-                text(MonzoConstants.CLIENT_ID),
-                text(MonzoConstants.CLIENT_SECRET))
+                code = text(authorizationCode),
+                redirectUri = text(MonzoConstants.MONZO_URI_AUTH_CALLBACK),
+                clientId = text(MonzoConstants.CLIENT_ID),
+                clientSecret = text(MonzoConstants.CLIENT_SECRET))
                 .map(mapper::mapToLogin)
     }
 
     fun refreshSession(refreshToken: String): Single<Login> {
-        return monzoAuthApi.refresh(text("refresh_token"),
-                text(refreshToken),
-                text(MonzoConstants.CLIENT_ID),
-                text(MonzoConstants.CLIENT_SECRET))
-                .map(mapper::mapToLogin)
+        return monzoAuthApi.refresh(
+                grantType = "refresh_token",
+                refreshToken = refreshToken,
+                clientId = MonzoConstants.CLIENT_ID,
+                clientSecret = MonzoConstants.CLIENT_SECRET
+        ).map(mapper::mapToLogin)
     }
 
     fun getSpendings(accountId: String): Single<List<Spending>> {

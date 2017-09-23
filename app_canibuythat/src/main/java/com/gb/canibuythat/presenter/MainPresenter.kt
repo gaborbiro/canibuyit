@@ -27,7 +27,7 @@ constructor(val monzoInteractor: MonzoInteractor,
     init {
         disposeOnFinish(monzoInteractor.getSpendingsDataStream().subscribe({
             if (it.loading) getScreen().showProgress() else getScreen().hideProgress()
-            if (!it.loading) fetchBalance()
+            if (!it.loading && !it.hasError()) fetchBalance()
         }, this::onError))
         disposeOnFinish(monzoInteractor.getLoginDataStream().subscribe({
             if (it.loading) {

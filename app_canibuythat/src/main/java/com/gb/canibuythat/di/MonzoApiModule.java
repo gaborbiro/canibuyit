@@ -27,10 +27,7 @@ public class MonzoApiModule {
 
     @Provides
     @Singleton
-    MonzoAuthApi provideMonzoAuthApi(
-            CredentialsProvider credentialsProvider,
-            GsonConverterFactory gsonConverterFactory) {
-
+    MonzoAuthApi provideMonzoAuthApi(GsonConverterFactory gsonConverterFactory) {
         OkHttpClient.Builder okHttpClientBuilder = new OkHttpClient.Builder()
                 .readTimeout(AppConstants.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .connectTimeout(AppConstants.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS);

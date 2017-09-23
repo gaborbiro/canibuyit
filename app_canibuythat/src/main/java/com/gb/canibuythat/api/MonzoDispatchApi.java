@@ -3,8 +3,6 @@ package com.gb.canibuythat.api;
 import com.gb.canibuythat.api.model.ApiDispatchRegistration;
 
 import io.reactivex.Single;
-import okhttp3.ResponseBody;
-import retrofit2.Call;
 import retrofit2.http.POST;
 import retrofit2.http.Query;
 
