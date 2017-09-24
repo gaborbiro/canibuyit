@@ -16,7 +16,8 @@ import javax.inject.Singleton
 class MonzoMapper @Inject constructor() {
 
     fun mapToLogin(apiLogin: ApiLogin): Login {
-        return Login(apiLogin.access_token, apiLogin.refresh_token)
+        val expiresAt = apiLogin.expires_in * 1000 + System.currentTimeMillis()
+        return Login(apiLogin.access_token, apiLogin.refresh_token, expiresAt)
     }
 
     fun mapToTransactions(apiTransactionCollection: ApiTransactionCollection): List<Transaction> {

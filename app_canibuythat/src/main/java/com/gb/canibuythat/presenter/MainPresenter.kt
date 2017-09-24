@@ -11,8 +11,8 @@ import com.gb.canibuythat.interactor.MonzoInteractor
 import com.gb.canibuythat.interactor.SpendingInteractor
 import com.gb.canibuythat.model.Balance
 import com.gb.canibuythat.screen.MainScreen
+import com.gb.canibuythat.util.DateUtils
 import io.reactivex.functions.Consumer
-import java.text.SimpleDateFormat
 import java.util.*
 import javax.inject.Inject
 
@@ -38,6 +38,7 @@ constructor(val monzoInteractor: MonzoInteractor,
                 } else {
                     getScreen().hideProgress()
                     credentialsProvider.accessToken = it.content!!.accessToken
+                    credentialsProvider.accessTokenExpiry = it.content!!.expiresAt
                     credentialsProvider.refreshToken = it.content!!.refreshToken
                     getScreen().showToast("You are now logged in")
                 }
@@ -96,6 +97,7 @@ constructor(val monzoInteractor: MonzoInteractor,
         if (!credentialsProvider.isSession()) {
             getScreen().showLoginActivity()
         } else {
+            getScreen().showToast("Session expires at: " + credentialsProvider.accessTokenExpiry?.let { DateUtils.FORMAT_ISO.format(it) } ?: "")
             disposeOnFinish(monzoInteractor.loadSpendings(MonzoConstants.ACCOUNT_ID))
         }
     }
@@ -115,11 +117,10 @@ constructor(val monzoInteractor: MonzoInteractor,
     }
 
     private fun getSuggestedExportPath(projectName: String?): String {
-        val format = SimpleDateFormat("yyyyMMdd'T'HHmmss")
         if (projectName.isNullOrEmpty()) {
-            return AppConstants.BACKUP_FOLDER + "/spendings-" + format.format(Date()) + ".sqlite"
+            return AppConstants.BACKUP_FOLDER + "/spendings-" + DateUtils.FORMAT_ISO.format(Date()) + ".sqlite"
         } else {
-            return AppConstants.BACKUP_FOLDER + "/spendings-" + format.format(Date()) + "-" + projectName + ".sqlite"
+            return AppConstants.BACKUP_FOLDER + "/spendings-" + DateUtils.FORMAT_ISO.format(Date()) + "-" + projectName + ".sqlite"
         }
     }
 

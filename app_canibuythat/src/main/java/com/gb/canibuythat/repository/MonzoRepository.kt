@@ -18,11 +18,11 @@ class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi,
                                           private val mapper: MonzoMapper) : BaseFormDataApi() {
 
     fun login(authorizationCode: String): Single<Login> {
-        return monzoAuthApi.login(text("authorization_code"),
-                code = text(authorizationCode),
-                redirectUri = text(MonzoConstants.MONZO_URI_AUTH_CALLBACK),
-                clientId = text(MonzoConstants.CLIENT_ID),
-                clientSecret = text(MonzoConstants.CLIENT_SECRET))
+        return monzoAuthApi.login("authorization_code",
+                code = authorizationCode,
+                redirectUri = MonzoConstants.MONZO_URI_AUTH_CALLBACK,
+                clientId = MonzoConstants.CLIENT_ID,
+                clientSecret = MonzoConstants.CLIENT_SECRET)
                 .map(mapper::mapToLogin)
     }
 

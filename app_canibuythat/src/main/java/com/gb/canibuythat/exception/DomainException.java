@@ -29,7 +29,7 @@ public class DomainException extends Throwable {
             this.kind = Kind.HTTP;
             this.code = ((HttpException) cause).code();
 
-            if (code == 401) {
+            if (code == 400) {
                 action = Action.LOGIN;
             }
 
