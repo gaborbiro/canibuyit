@@ -2,7 +2,7 @@ package com.gb.canibuythat.screen
 
 import com.gb.canibuythat.model.Balance
 
-interface MainScreen : ProgressScreen {
+interface MainScreen : MonzoDispatchScreen {
 
     enum class SpendingsImportType {
         MONZO,
@@ -21,8 +21,6 @@ interface MainScreen : ProgressScreen {
     fun showBalanceUpdateDialog()
 
     fun showEditorScreen(spendingId: Int?)
-
-    fun showToast(message: String)
 
     fun showCategoryBalance(text: String)
 

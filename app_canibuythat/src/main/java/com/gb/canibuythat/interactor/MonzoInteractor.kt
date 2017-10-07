@@ -47,15 +47,15 @@ constructor(private val schedulerProvider: SchedulerProvider,
         return spendingInteractor.getSpendingsDataStream()
     }
 
-    fun loadSpendings(accountId: String): Disposable {
-        return monzoRepository.getSpendings(accountId)
+    fun loadSpendings(accountIds: List<String>): Disposable {
+        return monzoRepository.getSpendings(accountIds)
                 .subscribeOn(schedulerProvider.io())
                 .doOnSubscribe {
                     spendingInteractor.getSpendingsDataStream().onNext(Lce.loading())
                 }
                 .subscribe(spendingInteractor::createOrUpdateMonzoCategories, { throwable ->
                     onError(throwable, {
-                        loadSpendings(accountId)
+                        loadSpendings(accountIds)
                     }, {
                         spendingInteractor.getSpendingsDataStream().onNext(Lce.error(it))
                     })

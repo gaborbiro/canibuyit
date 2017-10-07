@@ -20,8 +20,8 @@ class MonzoMapper @Inject constructor() {
         return Login(apiLogin.access_token, apiLogin.refresh_token, expiresAt)
     }
 
-    fun mapToTransactions(apiTransactionCollection: ApiTransactionCollection): List<Transaction> {
-        return apiTransactionCollection.transactions.map { mapToTransaction(it) }
+    fun mapToTransactions(apiTransactions: ApiTransactions): List<Transaction> {
+        return apiTransactions.transactions.map { mapToTransaction(it) }
     }
 
     fun mapToTransaction(apiTransaction: ApiTransaction): Transaction {

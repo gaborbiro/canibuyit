@@ -4,10 +4,13 @@ import com.gb.canibuythat.MonzoConstants
 import com.gb.canibuythat.api.BaseFormDataApi
 import com.gb.canibuythat.api.MonzoApi
 import com.gb.canibuythat.api.MonzoAuthApi
+import com.gb.canibuythat.api.model.ApiTransaction
+import com.gb.canibuythat.api.model.ApiTransactions
 import com.gb.canibuythat.model.Login
 import com.gb.canibuythat.model.Spending
 import com.gb.canibuythat.model.Webhooks
 import io.reactivex.Completable
+import io.reactivex.Observable
 import io.reactivex.Single
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -26,21 +29,18 @@ class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi,
                 .map(mapper::mapToLogin)
     }
 
-    fun refreshSession(refreshToken: String): Single<Login> {
-        return monzoAuthApi.refresh(
-                grantType = "refresh_token",
-                refreshToken = refreshToken,
-                clientId = MonzoConstants.CLIENT_ID,
-                clientSecret = MonzoConstants.CLIENT_SECRET
-        ).map(mapper::mapToLogin)
-    }
-
-    fun getSpendings(accountId: String): Single<List<Spending>> {
-        return monzoApi.transactions(accountId)
-                .map(mapper::mapToTransactions)
+    fun getSpendings(accountIds: List<String>): Single<List<Spending>> {
+        return Observable.create<ApiTransactions> { emitter ->
+            accountIds.forEach { emitter.onNext(monzoApi.transactions(it).blockingGet()) }
+            emitter.onComplete()
+        }.collectInto(mutableListOf<ApiTransaction>()) { collector, apiTransactions ->
+            collector.addAll(apiTransactions.transactions)
+        }
                 .map {
-                    it.groupBy { it.category }.map {
-                        val (category, transactionsForCategory) = it
+                    mapper.mapToTransactions(ApiTransactions(it.toTypedArray()))
+                }
+                .map { transactions ->
+                    transactions.groupBy { transaction -> transaction.category }.map { (category, transactionsForCategory) ->
                         mapper.mapToSpending(category, transactionsForCategory)
                     }
                 }

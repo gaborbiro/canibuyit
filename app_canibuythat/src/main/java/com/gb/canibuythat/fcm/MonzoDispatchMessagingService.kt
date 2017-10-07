@@ -27,19 +27,15 @@ class MonzoDispatchMessagingService : FirebaseMessagingService() {
 
     override fun onMessageReceived(remoteMessage: RemoteMessage?) {
         Log.d(TAG, "From: " + remoteMessage!!.from)
-        if (remoteMessage.data.size > 0) {
-            Log.d(TAG, "Message data payload: " + remoteMessage.data)
-        }
-        if (remoteMessage.data != null) {
-            val data: Map<String, String> = remoteMessage.data
-
-            if (data.containsKey("notification")) {
-                val notification = Gson().fromJson(data["notification"], Notification::class.java)
-                Log.d(TAG, "Message Notification: " + notification.title + " " + notification.body)
+        remoteMessage.notification?.let { Log.d(TAG, "Message notification payload: " + it.body) }
+        remoteMessage.data?.let {
+            Log.d(TAG, "Message data payload: " + it)
+            if (it.containsKey("notification")) {
+                val notification = Gson().fromJson(it["notification"], Notification::class.java)
                 sendNotification(notification.title, notification.body)
             }
         }
-        monzoInteractor.loadSpendings(MonzoConstants.ACCOUNT_ID)
+        monzoInteractor.loadSpendings(listOf(MonzoConstants.ACCOUNT_ID_PREPAID, MonzoConstants.ACCOUNT_ID_RETAIL))
     }
 
     /**

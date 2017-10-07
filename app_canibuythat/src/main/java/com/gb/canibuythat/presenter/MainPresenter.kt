@@ -6,7 +6,6 @@ import com.gb.canibuythat.CredentialsProvider
 import com.gb.canibuythat.MonzoConstants
 import com.gb.canibuythat.UserPreferences
 import com.gb.canibuythat.interactor.BackupingInteractor
-import com.gb.canibuythat.interactor.MonzoDispatchInteractor
 import com.gb.canibuythat.interactor.MonzoInteractor
 import com.gb.canibuythat.interactor.SpendingInteractor
 import com.gb.canibuythat.model.Balance
@@ -20,7 +19,6 @@ class MainPresenter @Inject
 constructor(val monzoInteractor: MonzoInteractor,
             val spendingInteractor: SpendingInteractor,
             val backupingInteractor: BackupingInteractor,
-            val monzoDispatchInteractor: MonzoDispatchInteractor,
             val credentialsProvider: CredentialsProvider,
             val userPreferences: UserPreferences) : BasePresenter<MainScreen>() {
 
@@ -97,8 +95,8 @@ constructor(val monzoInteractor: MonzoInteractor,
         if (!credentialsProvider.isSession()) {
             getScreen().showLoginActivity()
         } else {
-            getScreen().showToast("Session expires at: " + credentialsProvider.accessTokenExpiry?.let { DateUtils.FORMAT_ISO.format(it) } ?: "")
-            disposeOnFinish(monzoInteractor.loadSpendings(MonzoConstants.ACCOUNT_ID))
+            getScreen().showToast("Session expires at: " + DateUtils.FORMAT_DATE_TIME.format(credentialsProvider.accessTokenExpiry))
+            disposeOnFinish(monzoInteractor.loadSpendings(listOf(MonzoConstants.ACCOUNT_ID_PREPAID, MonzoConstants.ACCOUNT_ID_RETAIL)))
         }
     }
 
@@ -147,24 +145,6 @@ constructor(val monzoInteractor: MonzoInteractor,
 
     fun showEditorScreen() {
         getScreen().showEditorScreen(null)
-    }
-
-    fun sendFCMTokenToServer(token: String) {
-        monzoDispatchInteractor.register(token)
-                .subscribe({ dispatchRegistration ->
-                    monzoInteractor.getWebhooks(MonzoConstants.ACCOUNT_ID).subscribe({
-                        it.webhooks.forEach { monzoInteractor.deleteWebhook(it).subscribe() }
-                        monzoInteractor.registerWebhook(MonzoConstants.ACCOUNT_ID, MonzoConstants.MONZO_DISPATCH_API_WEBHOOK + "/" + dispatchRegistration.hash).subscribe({
-                            getScreen().showToast("Successfully registered for Monzo push notifications " + MonzoConstants.MONZO_DISPATCH_API_WEBHOOK + "/" + dispatchRegistration.hash)
-                        }, {
-                            errorHandler.onErrorSoft(it)
-                        })
-                    }, {
-                        errorHandler.onErrorSoft(it)
-                    })
-                }, {
-                    errorHandler.onErrorSoft(it)
-                })
     }
 
     fun onSetProjectName() {

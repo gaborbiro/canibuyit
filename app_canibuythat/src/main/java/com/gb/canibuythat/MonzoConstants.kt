@@ -5,7 +5,8 @@ class MonzoConstants {
         const val CLIENT_ID = "oauthclient_00009NwZL762SfIFWuVJE9"
         const val CLIENT_SECRET = "2WIqPL+7cdaH1Dgl6Gi776GUPPWlHPs2kLjvC7cB0389MCJvVOqZrystvq4nbeLf25p9Cxkks3WpYZXPQflI"
 
-        const val ACCOUNT_ID = "acc_00009GgHgzFZ5EffRUGtxR"
+        const val ACCOUNT_ID_PREPAID = "acc_00009GgHgzFZ5EffRUGtxR"
+        const val ACCOUNT_ID_RETAIL = "acc_00009OlZSKsjVzXiCZVXwv"
 
         // Auth
 

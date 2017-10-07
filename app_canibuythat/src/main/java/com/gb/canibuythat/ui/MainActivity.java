@@ -20,6 +20,7 @@ import com.gb.canibuythat.di.Injector;
 import com.gb.canibuythat.model.Balance;
 import com.gb.canibuythat.presenter.BasePresenter;
 import com.gb.canibuythat.presenter.MainPresenter;
+import com.gb.canibuythat.presenter.MonzoDispatchPresenter;
 import com.gb.canibuythat.screen.MainScreen;
 import com.gb.canibuythat.ui.model.BalanceReading;
 import com.gb.canibuythat.util.DateUtils;
@@ -55,7 +56,8 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
     private static final int REQUEST_CODE_CHOOSE_FILE_EXPORT = 5;
 
     @Inject UserPreferences userPreferences;
-    @Inject MainPresenter presenter;
+    @Inject MainPresenter mainPresenter;
+    @Inject MonzoDispatchPresenter monzoDispatchPresenter;
 
     @Nullable
     @BindView(R.id.estimate_at_time)
@@ -77,34 +79,35 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        monzoDispatchPresenter.setScreen(this);
         setContentView(R.layout.activity_main);
 
         if (findViewById(R.id.spending_editor_container) != null) {
             twoPane = true;
         }
         if (chartButton != null) {
-            chartButton.setOnClickListener(v -> presenter.chartButtonClicked());
+            chartButton.setOnClickListener(v -> mainPresenter.chartButtonClicked());
         }
-        presenter.handleDeepLink(getIntent());
+        mainPresenter.handleDeepLink(getIntent());
     }
 
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-        presenter.handleDeepLink(intent);
+        mainPresenter.handleDeepLink(intent);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        presenter.onPresenterDestroyed();
+        mainPresenter.onPresenterDestroyed();
     }
 
     @SuppressWarnings("unchecked")
     @Override
     protected BasePresenter inject() {
         Injector.INSTANCE.getGraph().inject(this);
-        return presenter;
+        return mainPresenter;
     }
 
     /**
@@ -113,7 +116,7 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
      */
     @Override
     public void onSpendingSelected(int id) {
-        presenter.showEditorScreenForSpending(id);
+        mainPresenter.showEditorScreenForSpending(id);
     }
 
     @Override
@@ -126,39 +129,39 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_add:
-                presenter.showEditorScreen();
+                mainPresenter.showEditorScreen();
                 break;
             case R.id.menu_update_balance:
-                presenter.updateBalance();
+                mainPresenter.updateBalance();
                 break;
             case R.id.menu_export:
                 permissionVerifier = new PermissionVerifier(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE});
                 if (permissionVerifier.verifyPermissions(true, REQUEST_CODE_PERMISSIONS_FOR_DB_EXPORT)) {
-                    presenter.exportDatabase();
+                    mainPresenter.exportDatabase();
                 }
                 break;
             case R.id.menu_import_all:
-                presenter.onImportDatabase(SpendingsImportType.ALL);
+                mainPresenter.onImportDatabase(SpendingsImportType.ALL);
                 break;
             case R.id.menu_import_monzo:
-                presenter.onImportDatabase(SpendingsImportType.MONZO);
+                mainPresenter.onImportDatabase(SpendingsImportType.MONZO);
                 break;
             case R.id.menu_import_non_monzo:
-                presenter.onImportDatabase(SpendingsImportType.NON_MONZO);
+                mainPresenter.onImportDatabase(SpendingsImportType.NON_MONZO);
                 break;
             case R.id.menu_fcm:
                 String token = FirebaseInstanceId.getInstance().getToken();
                 Log.d("MonzoDispatch", token);
-                presenter.sendFCMTokenToServer(token);
+                monzoDispatchPresenter.sendFCMTokenToServer(token);
                 break;
             case R.id.menu_monzo:
-                presenter.fetchMonzoData();
+                mainPresenter.fetchMonzoData();
                 break;
             case R.id.menu_delete_spendings:
-                presenter.deleteAllSpendings();
+                mainPresenter.deleteAllSpendings();
                 break;
             case R.id.menu_set_project_name:
-                presenter.onSetProjectName();
+                mainPresenter.onSetProjectName();
                 break;
         }
         return super.onOptionsItemSelected(item);
@@ -206,25 +209,25 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
             case REQUEST_CODE_CHOOSE_FILE_ALL:
                 if (resultCode == RESULT_OK) {
                     String path = data.getStringExtra(FileDialogActivity.EXTRA_RESULT_PATH);
-                    presenter.onImportSpendings(path, SpendingsImportType.ALL);
+                    mainPresenter.onImportSpendings(path, SpendingsImportType.ALL);
                 }
                 break;
             case REQUEST_CODE_CHOOSE_FILE_MONZO:
                 if (resultCode == RESULT_OK) {
                     String path = data.getStringExtra(FileDialogActivity.EXTRA_RESULT_PATH);
-                    presenter.onImportSpendings(path, SpendingsImportType.MONZO);
+                    mainPresenter.onImportSpendings(path, SpendingsImportType.MONZO);
                 }
                 break;
             case REQUEST_CODE_CHOOSE_FILE_NON_MONZO:
                 if (resultCode == RESULT_OK) {
                     String path = data.getStringExtra(FileDialogActivity.EXTRA_RESULT_PATH);
-                    presenter.onImportSpendings(path, SpendingsImportType.NON_MONZO);
+                    mainPresenter.onImportSpendings(path, SpendingsImportType.NON_MONZO);
                 }
                 break;
             case REQUEST_CODE_CHOOSE_FILE_EXPORT:
                 if (resultCode == RESULT_OK) {
                     String path = data.getStringExtra(FileDialogActivity.EXTRA_RESULT_PATH);
-                    presenter.onExportSpendings(path);
+                    mainPresenter.onExportSpendings(path);
                 }
                 break;
         }
@@ -235,7 +238,7 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (requestCode == REQUEST_CODE_PERMISSIONS_FOR_DB_EXPORT) {
             if (permissionVerifier.onRequestPermissionsResult(requestCode, permissions, grantResults)) {
-                presenter.exportDatabase();
+                mainPresenter.exportDatabase();
             } else {
                 Toast.makeText(this, "Missing permissions!", Toast.LENGTH_SHORT).show();
             }
@@ -314,7 +317,7 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
         datePickerDialog.show();
     };
 
-    private Runnable defoMaybeClickListener = () -> presenter.fetchCategoryBalance();
+    private Runnable defoMaybeClickListener = () -> mainPresenter.fetchCategoryBalance();
 
     @Override
     public void showLoginActivity() {
@@ -353,7 +356,7 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
     public void setProjectName(String currentName) {
         InputDialog inputDialog = InputDialog.newInstance("Project name", currentName);
         inputDialog.setPositiveButton(R.string.save, v -> {
-            presenter.setProjectName(inputDialog.getInput());
+            mainPresenter.setProjectName(inputDialog.getInput());
         }).show(getSupportFragmentManager(), null);
     }
 }
