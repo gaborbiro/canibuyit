@@ -12,24 +12,31 @@
 
         <LinearLayout
             android:layout_height="wrap_content"
-            android:layout_width="match_parent">
+            android:layout_width="match_parent"
+            android:orientation="horizontal">
 
-            <CheckBox
+            <Switch
                 android:checked="true"
-                android:id="@+id/enabled"
+                android:id="@+id/enabled_switch"
                 android:layout_height="wrap_content"
                 android:layout_width="wrap_content"/>
 
             <EditText
                 android:hint="@string/name"
-                android:id="@+id/name"
+                android:id="@+id/name_input"
                 android:imeOptions="actionNext"
                 android:inputType="textCapSentences"
                 android:layout_height="wrap_content"
-                android:layout_width="match_parent"
+                android:layout_weight="1"
+                android:layout_width="0dp"
                 android:lines="1"
                 android:selectAllOnFocus="true">
             </EditText>
+
+            <CheckBox
+                android:id="@+id/name_override_cb"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"/>
         </LinearLayout>
 
         <LinearLayout
@@ -45,56 +52,79 @@
                 android:text="Category:"/>
 
             <Spinner
-                android:id="@+id/category"
+                android:id="@+id/category_picker"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_width="0dp"/>
+
+            <TextView
+                android:id="@+id/source_category_lbl"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_width="0dp"
+                tools:text="Source: eating_out"/>
+
+            <CheckBox
+                android:id="@+id/category_override_cb"
                 android:layout_height="wrap_content"
                 android:layout_width="wrap_content"/>
         </LinearLayout>
 
         <LinearLayout
             android:layout_height="match_parent"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:orientation="horizontal">
 
             <TextView
                 android:layout_height="wrap_content"
                 android:layout_width="wrap_content"
-                android:text="Average:"/>
+                android:text="Amount/Average:"/>
 
             <EditText
-                android:id="@+id/average"
+                android:id="@+id/average_input"
                 android:imeOptions="actionNext"
                 android:inputType="numberDecimal|numberSigned"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="4dp"
-                android:layout_width="wrap_content"
+                android:layout_weight="1"
+                android:layout_width="0dp"
                 android:lines="1"
                 android:minWidth="64dp"
-                android:nextFocusDown="@+id/category"
+                android:nextFocusDown="@+id/category_picker"
                 android:selectAllOnFocus="true"/>
+
+            <CheckBox
+                android:id="@+id/average_override_cb"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_height="match_parent"
+            android:layout_width="match_parent"
+            android:orientation="horizontal">
 
             <TextView
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="8dp"
                 android:layout_marginRight="4dp"
                 android:layout_width="wrap_content"
-                android:text="Target:"/>
+                android:text="Limit:"/>
 
             <EditText
-                android:id="@+id/target"
+                android:id="@+id/target_input"
                 android:imeOptions="actionNext"
                 android:inputType="numberDecimal|numberSigned"
                 android:layout_height="wrap_content"
                 android:layout_width="wrap_content"
                 android:lines="1"
                 android:minWidth="64dp"
-                android:nextFocusDown="@+id/category"
+                android:nextFocusDown="@+id/category_picker"
                 android:selectAllOnFocus="true"/>
 
             <TextView
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="4dp"
                 android:layout_width="wrap_content"
-                android:text="(optional)"/>
+                android:text="(this refers to the cycle below, optional)"/>
         </LinearLayout>
 
         <LinearLayout
@@ -106,10 +136,10 @@
             <TextView
                 android:layout_height="wrap_content"
                 android:layout_width="wrap_content"
-                android:text="Repeat every"/>
+                android:text="Repetition:"/>
 
             <EditText
-                android:id="@+id/cycle_multiplier"
+                android:id="@+id/cycle_multiplier_input"
                 android:imeOptions="actionNext"
                 android:inputType="number"
                 android:layout_height="wrap_content"
@@ -124,26 +154,43 @@
             <Spinner
                 android:id="@+id/cycle_picker"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_width="0dp"/>
+
+            <CheckBox
+                android:id="@+id/cycle_override_cb"
+                android:layout_height="wrap_content"
                 android:layout_width="wrap_content"/>
         </LinearLayout>
 
-        <com.gb.canibuythat.ui.DateRangePicker
-            android:id="@+id/from_date_picker"
+        <LinearLayout
+            android:layout_height="wrap_content"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:orientation="horizontal">
+
+            <com.gb.canibuythat.ui.DateRangePicker
+                android:id="@+id/from_date_picker"
+                android:layout_height="wrap_content"
+                android:layout_width="0dp"
+                android:layout_weight="1"/>
+
+            <CheckBox
+                android:id="@+id/when_override_cb"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"/>
+        </LinearLayout>
 
         <LinearLayout
-            android:gravity="bottom"
             android:layout_height="wrap_content"
             android:layout_width="match_parent">
 
             <TextView
                 android:layout_height="wrap_content"
                 android:layout_width="wrap_content"
-                android:text="for a total of"/>
+                android:text="Limit to"/>
 
             <EditText
-                android:id="@+id/occurrence_count"
+                android:id="@+id/occurrence_count_input"
                 android:imeOptions="actionNext"
                 android:inputType="number"
                 android:layout_height="wrap_content"
@@ -157,13 +204,13 @@
             <TextView
                 android:layout_height="wrap_content"
                 android:layout_width="wrap_content"
-                android:text="times (optional)"/>
+                android:text="transactions (optional)"/>
         </LinearLayout>
 
         <EditText
             android:gravity="bottom"
             android:hint="@string/notes"
-            android:id="@+id/notes"
+            android:id="@+id/notes_input"
             android:imeOptions="actionDone"
             android:inputType="textAutoComplete|textMultiLine"
             android:layout_height="wrap_content"
@@ -171,7 +218,7 @@
             android:selectAllOnFocus="true"/>
 
         <TextView
-            android:id="@+id/spending_events"
+            android:id="@+id/spending_events_text"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/padding"
             android:layout_width="match_parent"/>

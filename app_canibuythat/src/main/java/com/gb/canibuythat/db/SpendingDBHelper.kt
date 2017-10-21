@@ -6,7 +6,7 @@ import android.content.Context
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteException
-import com.gb.canibuythat.model.Project
+import com.gb.canibuythat.db.model.ApiProject
 import com.gb.canibuythat.model.Spending
 import com.j256.ormlite.android.apptools.OrmLiteSqliteOpenHelper
 import com.j256.ormlite.support.ConnectionSource
@@ -24,7 +24,7 @@ constructor(appContext: Context) : OrmLiteSqliteOpenHelper(appContext, DATABASE_
     override fun onCreate(database: SQLiteDatabase, connectionSource: ConnectionSource) {
         try {
             TableUtils.createTable(connectionSource, Spending::class.java)
-            TableUtils.createTable(connectionSource, Project::class.java)
+            TableUtils.createTable(connectionSource, ApiProject::class.java)
         } catch (e: SQLException) {
             e.printStackTrace()
         }

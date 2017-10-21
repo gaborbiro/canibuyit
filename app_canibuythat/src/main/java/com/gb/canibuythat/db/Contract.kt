@@ -36,8 +36,13 @@ class Contract {
 
             const val _ID = BaseColumns._ID
             const val NAME = "name"
+            const val NAME_OVERRIDE = "name_override"
+            const val CATEGORY_OVERRIDE = "category_override"
+            const val AVERAGE_OVERRIDE = "average_override"
+            const val CYCLE_OVERRIDE = "cycle_override"
+            const val WHEN_OVERRIDE = "when_override"
 
-            val COLUMNS = arrayOf(_ID, NAME)
+            val COLUMNS = arrayOf(_ID, NAME, NAME_OVERRIDE, CATEGORY_OVERRIDE, AVERAGE_OVERRIDE, CYCLE_OVERRIDE, WHEN_OVERRIDE)
         }
     }
 }

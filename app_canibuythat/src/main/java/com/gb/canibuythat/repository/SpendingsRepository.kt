@@ -1,11 +1,11 @@
 package com.gb.canibuythat.repository
 
+import android.text.TextUtils
 import com.gb.canibuythat.UserPreferences
 import com.gb.canibuythat.db.Contract
 import com.gb.canibuythat.db.SpendingDBHelper
 import com.gb.canibuythat.exception.DomainException
 import com.gb.canibuythat.model.Balance
-import com.gb.canibuythat.model.Project
 import com.gb.canibuythat.model.Spending
 import com.j256.ormlite.dao.Dao
 import io.reactivex.Completable
@@ -18,9 +18,9 @@ import javax.inject.Singleton
 
 @Singleton
 class SpendingsRepository @Inject
-constructor(spendingDBHelper: SpendingDBHelper, private val userPreferences: UserPreferences) {
+constructor(spendingDBHelper: SpendingDBHelper,
+            private val userPreferences: UserPreferences) {
     private val spendingDao: Dao<Spending, Int> = spendingDBHelper.getDao<Dao<Spending, Int>, Spending>(Spending::class.java)
-    private val projectDao: Dao<Project, Int> = spendingDBHelper.getDao<Dao<Project, Int>, Project>(Project::class.java)
 
     val all: Single<List<Spending>>
         get() {
@@ -70,7 +70,10 @@ constructor(spendingDBHelper: SpendingDBHelper, private val userPreferences: Use
 
                         if (index >= 0) {
                             it.id = savedSpendings[index].id
-                            it.notes = savedSpendings[index].notes
+
+                            if (TextUtils.isEmpty(it.notes)) {
+                                it.notes = savedSpendings[index].notes
+                            }
                             it.target = savedSpendings[index].target
                             it.cycle = savedSpendings[index].cycle
                             it.cycleMultiplier = savedSpendings[index].cycleMultiplier
@@ -171,12 +174,6 @@ constructor(spendingDBHelper: SpendingDBHelper, private val userPreferences: Use
         }
         return buffer.toString()
     }
-
-    var projectName: String?
-        get() = projectDao.queryForId(1)?.name
-        set(value) {
-            projectDao.createOrUpdate(Project(1, value))
-        }
 
     /**
      * @param category for which the balance should be calculated. If null, all categories will be included.

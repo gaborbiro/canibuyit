@@ -10,7 +10,7 @@ import com.gb.canibuythat.ui.ProgressRelativeLayout
 
 class SpendingViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
-    val nameView: TextView = itemView.findViewById(R.id.name) as TextView
+    val nameView: TextView = itemView.findViewById(R.id.name_input) as TextView
     val iconView: ImageView = itemView.findViewById(R.id.icon) as ImageView
     val detailView: TextView = itemView.findViewById(R.id.details) as TextView
     val progressView: ProgressRelativeLayout = itemView.findViewById(R.id.progress) as ProgressRelativeLayout

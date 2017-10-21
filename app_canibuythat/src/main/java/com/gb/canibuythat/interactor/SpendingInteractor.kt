@@ -1,6 +1,5 @@
 package com.gb.canibuythat.interactor
 
-import android.database.SQLException
 import com.gb.canibuythat.exception.DomainException
 import com.gb.canibuythat.model.Balance
 import com.gb.canibuythat.model.Spending
@@ -100,27 +99,27 @@ constructor(private val spendingsRepository: SpendingsRepository,
         return spendingsRepository.getCategoryBalance()
     }
 
-    fun getProjectName(): Single<Lce<String>> {
-        return Single.create<Lce<String>> { emitter ->
-            spendingsRepository.projectName?.let {
-                emitter.onSuccess(Lce.content(it))
-            } ?: emitter.onSuccess(Lce.nothing())
-        }
-                .subscribeOn(schedulerProvider.io())
-                .observeOn(schedulerProvider.mainThread())
-    }
-
-    fun setProjectName(name: String): Completable {
-        return Completable.create { emitter ->
-            try {
-                spendingsRepository.projectName = name
-                emitter.onComplete()
-            } catch (e: SQLException) {
-                emitter.onError(e)
-            }
-        }
-                .onErrorResumeNext { throwable: Throwable -> Completable.error(DomainException("Error saving project name. See logs.", throwable)) }
-                .subscribeOn(schedulerProvider.io())
-                .observeOn(schedulerProvider.mainThread())
-    }
+//    fun getProjectName(): Single<Lce<String>> {
+//        return Single.create<Lce<String>> { emitter ->
+//            projectRepository.projectName?.let {
+//                emitter.onSuccess(Lce.content(it))
+//            } ?: emitter.onSuccess(Lce.nothing())
+//        }
+//                .subscribeOn(schedulerProvider.io())
+//                .observeOn(schedulerProvider.mainThread())
+//    }
+//
+//    fun setProjectName(name: String): Completable {
+//        return Completable.create { emitter ->
+//            try {
+//                projectRepository.projectName = name
+//                emitter.onComplete()
+//            } catch (e: SQLException) {
+//                emitter.onError(e)
+//            }
+//        }
+//                .onErrorResumeNext { throwable: Throwable -> Completable.error(DomainException("Error saving project name. See logs.", throwable)) }
+//                .subscribeOn(schedulerProvider.io())
+//                .observeOn(schedulerProvider.mainThread())
+//    }
 }

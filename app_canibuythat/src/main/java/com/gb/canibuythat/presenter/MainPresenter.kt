@@ -7,6 +7,7 @@ import com.gb.canibuythat.MonzoConstants
 import com.gb.canibuythat.UserPreferences
 import com.gb.canibuythat.interactor.BackupingInteractor
 import com.gb.canibuythat.interactor.MonzoInteractor
+import com.gb.canibuythat.interactor.ProjectInteractor
 import com.gb.canibuythat.interactor.SpendingInteractor
 import com.gb.canibuythat.model.Balance
 import com.gb.canibuythat.screen.MainScreen
@@ -18,6 +19,7 @@ import javax.inject.Inject
 class MainPresenter @Inject
 constructor(val monzoInteractor: MonzoInteractor,
             val spendingInteractor: SpendingInteractor,
+            val projectInteractor: ProjectInteractor,
             val backupingInteractor: BackupingInteractor,
             val credentialsProvider: CredentialsProvider,
             val userPreferences: UserPreferences) : BasePresenter<MainScreen>() {
@@ -59,8 +61,8 @@ constructor(val monzoInteractor: MonzoInteractor,
                     getScreen().setBalanceInfo(Balance())
                     this.onError(com.gb.canibuythat.exception.DomainException("Cannot calculate balance. See logs", it))
                 }))
-        spendingInteractor.getProjectName().subscribe(Consumer {
-            getScreen().setTitle(it.content)
+        projectInteractor.getProject().subscribe(Consumer {
+            getScreen().setTitle(it.projectName)
         })
     }
 
@@ -105,8 +107,8 @@ constructor(val monzoInteractor: MonzoInteractor,
     }
 
     fun exportDatabase() {
-        spendingInteractor.getProjectName().subscribe(Consumer {
-            getScreen().showPickerForExport(getSuggestedExportPath(it.content))
+        projectInteractor.getProject().subscribe(Consumer {
+            getScreen().showPickerForExport(getSuggestedExportPath(it.projectName))
         })
     }
 
@@ -148,13 +150,14 @@ constructor(val monzoInteractor: MonzoInteractor,
     }
 
     fun onSetProjectName() {
-        spendingInteractor.getProjectName().subscribe({
-            getScreen().setProjectName(it.content)
+        projectInteractor.getProject().subscribe({
+            getScreen().setProjectName(it.projectName)
         }, errorHandler::onErrorSoft)
     }
 
     fun setProjectName(projectName: String) {
-        spendingInteractor.setProjectName(projectName).subscribe({
+        projectInteractor.getProject().subscribe({
+            it.projectName = projectName
             getScreen().showToast("Project name saved")
             getScreen().setTitle(projectName)
         }, errorHandler::onErrorSoft)
