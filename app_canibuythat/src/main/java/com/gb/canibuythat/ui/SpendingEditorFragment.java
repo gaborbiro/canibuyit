@@ -20,6 +20,8 @@ import android.widget.TextView;
 import com.gb.canibuythat.R;
 import com.gb.canibuythat.UserPreferences;
 import com.gb.canibuythat.di.Injector;
+import com.gb.canibuythat.interactor.Project;
+import com.gb.canibuythat.interactor.ProjectInteractor;
 import com.gb.canibuythat.interactor.SpendingInteractor;
 import com.gb.canibuythat.model.Spending;
 import com.gb.canibuythat.presenter.BasePresenter;
@@ -50,6 +52,7 @@ public class SpendingEditorFragment extends BaseFragment {
 
     @Inject UserPreferences userPreferences;
     @Inject SpendingInteractor spendingInteractor;
+    @Inject ProjectInteractor projectInteractor;
 
     @BindView(R.id.name_input) EditText nameInput;
     @BindView(R.id.average_input) EditText averageInput;
@@ -83,6 +86,7 @@ public class SpendingEditorFragment extends BaseFragment {
             return false;
         }
     };
+    private Project projectSettings;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -122,6 +126,21 @@ public class SpendingEditorFragment extends BaseFragment {
             keyboardDismisser.onTouch(fromDatePicker, MotionEvent.obtain(0, 0, MotionEvent.ACTION_DOWN, 0f, 0f, 0));
             return false;
         });
+        nameOverrideCB.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            projectSettings.setNameOverride(isChecked);
+        });
+        categoryOverrideCB.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            projectSettings.setCategoryOverride(isChecked);
+        });
+        averageOverrideCB.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            projectSettings.setAverageOverride(isChecked);
+        });
+        cycleOverrideCB.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            projectSettings.setCycleOverride(isChecked);
+        });
+        whenOverrideCB.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            projectSettings.setWhenOverride(isChecked);
+        });
     }
 
     @SuppressWarnings("unchecked")
@@ -160,6 +179,10 @@ public class SpendingEditorFragment extends BaseFragment {
         if (spendingId != null) {
             spendingInteractor.read(spendingId)
                     .subscribe(spending -> onSpendingLoaded(spending), this::onError);
+            projectInteractor.getProject().subscribe(project -> {
+                this.projectSettings = project;
+                applyProjectSettingsToScreen(project);
+            }, this::onError);
         }
     }
 
@@ -266,6 +289,14 @@ public class SpendingEditorFragment extends BaseFragment {
         cyclePicker.setSelection(spending.getCycle().ordinal() + 1);
         notesInput.setText(spending.getNotes());
         loadSpendingOccurrences(spending);
+    }
+
+    private void applyProjectSettingsToScreen(Project project) {
+        nameOverrideCB.setChecked(project.getNameOverride());
+        categoryOverrideCB.setChecked(project.getCategoryOverride());
+        averageOverrideCB.setChecked(project.getAverageOverride());
+        cycleOverrideCB.setChecked(project.getCycleOverride());
+        whenOverrideCB.setChecked(project.getWhenOverride());
     }
 
     private void loadSpendingOccurrences(final Spending spending) {
