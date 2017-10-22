@@ -3,13 +3,11 @@ package com.gb.canibuythat.interactor
 import com.gb.canibuythat.exception.DomainException
 import com.gb.canibuythat.exception.MonzoException
 import com.gb.canibuythat.model.Login
-import com.gb.canibuythat.model.Spending
 import com.gb.canibuythat.model.Webhook
 import com.gb.canibuythat.model.Webhooks
 import com.gb.canibuythat.repository.MonzoRepository
 import com.gb.canibuythat.rx.SchedulerProvider
 import io.reactivex.Completable
-import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.disposables.Disposable
 import io.reactivex.subjects.PublishSubject
@@ -43,22 +41,22 @@ constructor(private val schedulerProvider: SchedulerProvider,
                 })
     }
 
-    fun getSpendingsDataStream(): Observable<Lce<List<Spending>>> {
-        return spendingInteractor.getSpendingsDataStream()
-    }
-
     fun loadSpendings(accountIds: List<String>): Disposable {
         return monzoRepository.getSpendings(accountIds)
                 .subscribeOn(schedulerProvider.io())
                 .doOnSubscribe {
                     spendingInteractor.getSpendingsDataStream().onNext(Lce.loading())
                 }
+                .onErrorResumeNext { Single.error(MonzoException(it)) }
                 .subscribe(spendingInteractor::createOrUpdateMonzoCategories, { throwable ->
-                    onError(throwable, {
-                        loadSpendings(accountIds)
-                    }, {
-                        spendingInteractor.getSpendingsDataStream().onNext(Lce.error(it))
-                    })
+                    if (throwable is MonzoException) {
+                        if (throwable.action == DomainException.Action.LOGIN) {
+                            spendingInteractor.getSpendingsDataStream().onNext(Lce.error(throwable))
+                            loginSubject.onNext(Lce.error(throwable))
+                        } else {
+                            spendingInteractor.getSpendingsDataStream().onNext(Lce.error(throwable))
+                        }
+                    }
                 })
     }
 
@@ -81,18 +79,5 @@ constructor(private val schedulerProvider: SchedulerProvider,
                 .onErrorResumeNext { Completable.error(DomainException("Error deleting webhook", it)) }
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())
-    }
-
-    /**
-     * @param onRecover if the error is recoverable in a synchronous way, do this after successful recovery
-     */
-    private fun onError(throwable: Throwable, onRecover: () -> Unit, onFailToRecover: (MonzoException) -> Unit) {
-        val e: MonzoException = MonzoException(throwable)
-        if (e.action == DomainException.Action.LOGIN) {
-            onFailToRecover(e)
-            loginSubject.onNext(Lce.error(e))
-        } else {
-            onFailToRecover(e)
-        }
     }
 }

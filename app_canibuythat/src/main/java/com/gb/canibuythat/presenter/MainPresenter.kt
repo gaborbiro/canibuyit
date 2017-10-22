@@ -25,7 +25,7 @@ constructor(val monzoInteractor: MonzoInteractor,
             val userPreferences: UserPreferences) : BasePresenter<MainScreen>() {
 
     init {
-        disposeOnFinish(monzoInteractor.getSpendingsDataStream().subscribe({
+        disposeOnFinish(spendingInteractor.getSpendingsDataStream().subscribe({
             if (it.loading) getScreen().showProgress() else getScreen().hideProgress()
             if (!it.loading && !it.hasError()) fetchBalance()
         }, this::onError))
@@ -37,20 +37,20 @@ constructor(val monzoInteractor: MonzoInteractor,
                     this.onError(it.error!!)
                 } else {
                     getScreen().hideProgress()
-                    credentialsProvider.accessToken = it.content!!.accessToken
-                    credentialsProvider.accessTokenExpiry = it.content!!.expiresAt
-                    credentialsProvider.refreshToken = it.content!!.refreshToken
-                    getScreen().showToast("You are now logged in")
+                    it.content!!.let {
+                        credentialsProvider.accessToken = it.accessToken
+                        credentialsProvider.accessTokenExpiry = it.expiresAt
+                        credentialsProvider.refreshToken = it.refreshToken
+                        getScreen().showToast("You are now logged in")
+                    }
                 }
             }
         }, this::onError))
     }
 
     override fun onScreenSet() {
-        disposeOnFinish(userPreferences.getBalanceReadingDataStream().subscribe({ fetchBalance() }))
-        disposeOnFinish(userPreferences.getEstimateDateDataStream().subscribe({
-            fetchBalance()
-        }))
+        disposeOnFinish(userPreferences.getBalanceReadingDataStream().subscribe { fetchBalance() })
+        disposeOnFinish(userPreferences.getEstimateDateDataStream().subscribe { fetchBalance() })
     }
 
     private fun fetchBalance() {

@@ -98,28 +98,4 @@ constructor(private val spendingsRepository: SpendingsRepository,
     fun getCategoryBalance(): String {
         return spendingsRepository.getCategoryBalance()
     }
-
-//    fun getProjectName(): Single<Lce<String>> {
-//        return Single.create<Lce<String>> { emitter ->
-//            projectRepository.projectName?.let {
-//                emitter.onSuccess(Lce.content(it))
-//            } ?: emitter.onSuccess(Lce.nothing())
-//        }
-//                .subscribeOn(schedulerProvider.io())
-//                .observeOn(schedulerProvider.mainThread())
-//    }
-//
-//    fun setProjectName(name: String): Completable {
-//        return Completable.create { emitter ->
-//            try {
-//                projectRepository.projectName = name
-//                emitter.onComplete()
-//            } catch (e: SQLException) {
-//                emitter.onError(e)
-//            }
-//        }
-//                .onErrorResumeNext { throwable: Throwable -> Completable.error(DomainException("Error saving project name. See logs.", throwable)) }
-//                .subscribeOn(schedulerProvider.io())
-//                .observeOn(schedulerProvider.mainThread())
-//    }
 }

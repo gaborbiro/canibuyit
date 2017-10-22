@@ -97,12 +97,6 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
         mainPresenter.handleDeepLink(intent);
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        mainPresenter.onPresenterDestroyed();
-    }
-
     @SuppressWarnings("unchecked")
     @Override
     protected BasePresenter inject() {

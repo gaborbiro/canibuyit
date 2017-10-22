@@ -45,11 +45,7 @@ abstract class BaseActivity : AppCompatActivity(), ProgressScreen, ContextSource
     override fun onDestroy() {
         unbinder.unbind()
         super.onDestroy()
-        try {
-            presenter!!.onPresenterDestroyed()
-        } catch (t: Throwable) {
-            // ignore
-        }
+        presenter?.onPresenterDestroyed()
     }
 
     protected fun onError(throwable: Throwable) {

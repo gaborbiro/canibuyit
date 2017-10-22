@@ -75,6 +75,9 @@ constructor(spendingDBHelper: SpendingDBHelper,
                         if (index >= 0) {
                             it.id = savedSpendings[index].id
 
+                            if (projectSettings.nameOverride) {
+                                it.name = savedSpendings[index].name
+                            }
                             it.notes = savedSpendings[index].notes
                             it.target = savedSpendings[index].target
                             if (projectSettings.cycleOverride) {
@@ -86,7 +89,10 @@ constructor(spendingDBHelper: SpendingDBHelper,
                             }
                             it.occurrenceCount = savedSpendings[index].occurrenceCount
                             it.enabled = savedSpendings[index].enabled
-
+                            if (projectSettings.whenOverride) {
+                                it.fromStartDate = savedSpendings[index].fromStartDate
+                                it.fromEndDate = savedSpendings[index].fromEndDate
+                            }
                             if (projectSettings.averageOverride) {
                                 it.value = savedSpendings[index].value
                             }

@@ -51,11 +51,7 @@ abstract class BaseFragment : Fragment(), ContextSource, Screen {
 
     override fun onDestroy() {
         super.onDestroy()
-        try {
-            presenter!!.onPresenterDestroyed()
-        } catch (t: Throwable) {
-            // ignore
-        }
+        presenter?.onPresenterDestroyed()
     }
 
     protected fun onError(throwable: Throwable) {
