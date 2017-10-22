@@ -1,6 +1,5 @@
 package com.gb.canibuythat.repository
 
-import android.text.TextUtils
 import com.gb.canibuythat.UserPreferences
 import com.gb.canibuythat.db.Contract
 import com.gb.canibuythat.db.SpendingDBHelper
@@ -51,7 +50,7 @@ constructor(spendingDBHelper: SpendingDBHelper,
      * For each spending:
      *
      *     - if it does not yet exist in the databse, create it
-     *     - if it does exist, update its name, value, cycle start and end date, enabled and spent
+     *     - if it does exist, update its fields selectively
      *
      * @param spendings from Monzo
      */
@@ -68,7 +67,7 @@ constructor(spendingDBHelper: SpendingDBHelper,
                     val category: String? = it.sourceData[Spending.SOURCE_MONZO_CATEGORY]
 
                     if (category == null) {
-                        emitter.onError(Exception("Spending '" + it.name + "' has no category"))
+                        emitter.onError(Exception("Monzo spending '" + it.name + "' has no category"))
                     } else {
                         val index = savedSpendings.indexOfFirst { it.sourceData[Spending.SOURCE_MONZO_CATEGORY] == category }
 

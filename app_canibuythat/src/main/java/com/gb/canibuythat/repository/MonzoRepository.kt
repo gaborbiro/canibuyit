@@ -5,9 +5,9 @@ import com.gb.canibuythat.api.BaseFormDataApi
 import com.gb.canibuythat.api.MonzoApi
 import com.gb.canibuythat.api.MonzoAuthApi
 import com.gb.canibuythat.api.model.ApiTransaction
-import com.gb.canibuythat.api.model.ApiTransactions
 import com.gb.canibuythat.model.Login
 import com.gb.canibuythat.model.Spending
+import com.gb.canibuythat.model.Transaction
 import com.gb.canibuythat.model.Webhooks
 import io.reactivex.Completable
 import io.reactivex.Observable
@@ -30,20 +30,16 @@ class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi,
     }
 
     fun getSpendings(accountIds: List<String>): Single<List<Spending>> {
-        return Observable.create<ApiTransactions> { emitter ->
-            accountIds.forEach { emitter.onNext(monzoApi.transactions(it).blockingGet()) }
+        return Observable.create<ApiTransaction> { emitter ->
+            accountIds.forEach { monzoApi.transactions(it).blockingGet().transactions.forEach { emitter.onNext(it) } }
             emitter.onComplete()
-        }.collectInto(mutableListOf<ApiTransaction>()) { collector, apiTransactions ->
-            collector.addAll(apiTransactions.transactions)
+        }.map {
+            mapper.mapToTransaction(it)
+        }.toList().map { transactions ->
+            transactions.groupBy(Transaction::category).map { (category, transactionsForThatCategory) ->
+                mapper.mapToSpending(category, transactionsForThatCategory)
+            }
         }
-                .map {
-                    mapper.mapToTransactions(ApiTransactions(it.toTypedArray()))
-                }
-                .map { transactions ->
-                    transactions.groupBy { transaction -> transaction.category }.map { (category, transactionsForCategory) ->
-                        mapper.mapToSpending(category, transactionsForCategory)
-                    }
-                }
     }
 
     fun registerWebhook(accountId: String, url: String): Completable {
