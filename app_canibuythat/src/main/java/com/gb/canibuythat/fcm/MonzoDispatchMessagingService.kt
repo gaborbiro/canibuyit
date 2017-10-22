@@ -11,15 +11,20 @@ import com.gb.canibuythat.MonzoConstants
 import com.gb.canibuythat.R
 import com.gb.canibuythat.di.Injector
 import com.gb.canibuythat.interactor.MonzoInteractor
+import com.gb.canibuythat.interactor.SpendingInteractor
 import com.gb.canibuythat.ui.MainActivity
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.google.gson.Gson
+import io.reactivex.disposables.Disposable
 import javax.inject.Inject
 
 class MonzoDispatchMessagingService : FirebaseMessagingService() {
 
     @field:[Inject] lateinit var monzoInteractor: MonzoInteractor
+    @field:[Inject] lateinit var spendingInteractor: SpendingInteractor
+
+    private var disposable: Disposable? = null
 
     init {
         Injector.INSTANCE.graph.inject(this)
@@ -36,6 +41,15 @@ class MonzoDispatchMessagingService : FirebaseMessagingService() {
             }
         }
         monzoInteractor.loadSpendings(listOf(MonzoConstants.ACCOUNT_ID_PREPAID, MonzoConstants.ACCOUNT_ID_RETAIL))
+        disposable?.dispose()
+        disposable = spendingInteractor.getSpendingsDataStream().subscribe({
+            if (!it.loading && !it.hasError()) {
+                sendNotification("", "Refreshed spendings")
+                disposable?.dispose()
+            }
+        }, {
+            disposable?.dispose()
+        })
     }
 
     /**

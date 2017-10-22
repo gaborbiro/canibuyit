@@ -10,6 +10,6 @@ import javax.inject.Singleton
 class MonzoDispatchRepository @Inject constructor(private val monzoDispatchApi: MonzoDispatchApi, private val dispatchMapper: MonzoDispatchMapper) {
 
     fun register(token: String): Single<DispatchRegistration> {
-        return monzoDispatchApi.register(token).map { dispatchMapper.mapToDidpatchRegistration(it) }
+        return monzoDispatchApi.register(token).map { dispatchMapper.mapToDispatchRegistration(it) }
     }
 }

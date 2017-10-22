@@ -9,7 +9,7 @@ import javax.inject.Singleton
 @Singleton
 class MonzoDispatchMapper @Inject constructor() {
 
-    fun mapToDidpatchRegistration(apiDispatchRegistration: ApiDispatchRegistration): DispatchRegistration {
+    fun mapToDispatchRegistration(apiDispatchRegistration: ApiDispatchRegistration): DispatchRegistration {
         return DispatchRegistration(apiDispatchRegistration.hash)
     }
 }
