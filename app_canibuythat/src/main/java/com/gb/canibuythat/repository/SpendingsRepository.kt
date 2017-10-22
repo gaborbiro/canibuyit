@@ -2,7 +2,6 @@ package com.gb.canibuythat.repository
 
 import com.gb.canibuythat.UserPreferences
 import com.gb.canibuythat.db.Contract
-import com.gb.canibuythat.db.SpendingDBHelper
 import com.gb.canibuythat.exception.DomainException
 import com.gb.canibuythat.interactor.ProjectInteractor
 import com.gb.canibuythat.model.Balance
@@ -18,10 +17,9 @@ import javax.inject.Singleton
 
 @Singleton
 class SpendingsRepository @Inject
-constructor(spendingDBHelper: SpendingDBHelper,
+constructor(val spendingDao: Dao<Spending, Int>,
             private val projectInteractor: ProjectInteractor,
             private val userPreferences: UserPreferences) {
-    private val spendingDao: Dao<Spending, Int> = spendingDBHelper.getDao<Dao<Spending, Int>, Spending>(Spending::class.java)
 
     val all: Single<List<Spending>>
         get() {

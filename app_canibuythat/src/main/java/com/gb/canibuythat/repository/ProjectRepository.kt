@@ -1,13 +1,11 @@
 package com.gb.canibuythat.repository
 
-import com.gb.canibuythat.db.SpendingDBHelper
 import com.gb.canibuythat.db.model.ApiProject
 import com.j256.ormlite.dao.Dao
 import javax.inject.Inject
 
 class ProjectRepository @Inject
-constructor(spendingDBHelper: SpendingDBHelper) {
-    private val projectDao: Dao<ApiProject, Int> = spendingDBHelper.getDao<Dao<ApiProject, Int>, ApiProject>(ApiProject::class.java)
+constructor(val projectDao: Dao<ApiProject, Int>) {
 
     var project: ApiProject?
         get() = projectDao.queryForId(1)

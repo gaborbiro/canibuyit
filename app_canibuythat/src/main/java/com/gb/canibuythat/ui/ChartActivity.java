@@ -43,7 +43,7 @@ import javax.inject.Inject;
 
 public class ChartActivity extends BaseActivity implements OnChartValueSelectedListener {
 
-    @Inject SpendingDBHelper spendingDBHelper;
+    @Inject Dao<Spending, Integer> spendingDao;
     @Inject UserPreferences userPreferences;
 
     private static SimpleDateFormat MONTH_ONLY = new SimpleDateFormat("MMM.dd");
@@ -137,7 +137,6 @@ public class ChartActivity extends BaseActivity implements OnChartValueSelectedL
                 } else {
                     startDate = null;
                 }
-                Dao<Spending, Integer> spendingDao = spendingDBHelper.getDao(com.gb.canibuythat.model.Spending.class);
                 List<ProjectionItem> result = new ArrayList<>();
 
                 do {
