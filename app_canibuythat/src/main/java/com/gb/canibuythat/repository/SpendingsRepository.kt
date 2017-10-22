@@ -5,6 +5,7 @@ import com.gb.canibuythat.UserPreferences
 import com.gb.canibuythat.db.Contract
 import com.gb.canibuythat.db.SpendingDBHelper
 import com.gb.canibuythat.exception.DomainException
+import com.gb.canibuythat.interactor.ProjectInteractor
 import com.gb.canibuythat.model.Balance
 import com.gb.canibuythat.model.Spending
 import com.j256.ormlite.dao.Dao
@@ -19,6 +20,7 @@ import javax.inject.Singleton
 @Singleton
 class SpendingsRepository @Inject
 constructor(spendingDBHelper: SpendingDBHelper,
+            private val projectInteractor: ProjectInteractor,
             private val userPreferences: UserPreferences) {
     private val spendingDao: Dao<Spending, Int> = spendingDBHelper.getDao<Dao<Spending, Int>, Spending>(Spending::class.java)
 
@@ -55,6 +57,8 @@ constructor(spendingDBHelper: SpendingDBHelper,
      */
     fun createOrUpdateMonzoSpendings(spendings: List<Spending>): Completable {
         return Completable.create { emitter ->
+            val projectSettings = projectInteractor.getProject().blockingGet()
+
             val savedSpendings: List<Spending> = spendingDao.queryForAll()
                     .filter { it.sourceData[Spending.SOURCE_MONZO_CATEGORY] != null }
                     .sortedBy { it.sourceData[Spending.SOURCE_MONZO_CATEGORY] }
@@ -71,17 +75,19 @@ constructor(spendingDBHelper: SpendingDBHelper,
                         if (index >= 0) {
                             it.id = savedSpendings[index].id
 
-                            if (TextUtils.isEmpty(it.notes)) {
-                                it.notes = savedSpendings[index].notes
-                            }
+                            it.notes = savedSpendings[index].notes
                             it.target = savedSpendings[index].target
-                            it.cycle = savedSpendings[index].cycle
-                            it.cycleMultiplier = savedSpendings[index].cycleMultiplier
-                            it.type = savedSpendings[index].type
+                            if (projectSettings.cycleOverride) {
+                                it.cycle = savedSpendings[index].cycle
+                                it.cycleMultiplier = savedSpendings[index].cycleMultiplier
+                            }
+                            if (projectSettings.categoryOverride) {
+                                it.type = savedSpendings[index].type
+                            }
                             it.occurrenceCount = savedSpendings[index].occurrenceCount
                             it.enabled = savedSpendings[index].enabled
 
-                            if (savedSpendings[index].value != 0.0) {
+                            if (projectSettings.averageOverride) {
                                 it.value = savedSpendings[index].value
                             }
                             spendingDao.update(it)
