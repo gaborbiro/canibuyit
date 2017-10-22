@@ -2,11 +2,6 @@ package com.gb.canibuythat.api.model;
 
 import com.google.gson.annotations.SerializedName;
 
-import lombok.Builder;
-import lombok.Getter;
-
-@Builder
-@Getter
 public class MonzoErrorResponse {
     @SerializedName("code")
     private String code;
@@ -19,4 +14,20 @@ public class MonzoErrorResponse {
 
     @SerializedName("message")
     private String message;
+
+    public String getCode() {
+        return code;
+    }
+
+    public String getError() {
+        return error;
+    }
+
+    public String getErrorDescription() {
+        return errorDescription;
+    }
+
+    public String getMessage() {
+        return message;
+    }
 }

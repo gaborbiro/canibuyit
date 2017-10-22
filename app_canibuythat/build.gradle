@@ -1,7 +1,7 @@
 apply plugin: 'com.android.application'
-apply plugin: 'me.tatarka.retrolambda'
-apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
 apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-android'
 
 android {
     signingConfigs {
@@ -14,7 +14,7 @@ android {
     }
 
     compileSdkVersion 25
-    buildToolsVersion "25.0.2"
+    buildToolsVersion '26.0.2'
 
     defaultConfig {
         applicationId "com.gb.canibuythat"
@@ -49,7 +49,6 @@ final RETROFIT='2.3.0'
 final RETROFIT_RXJAVA2='2.3.0'
 final RXJAVA='2.1.0'
 final RXANDROID='2.0.1'
-final LOMBOK='1.16.14'
 final OK_HTTP='3.8.1'
 
 dependencies {
@@ -65,30 +64,13 @@ dependencies {
     // EventBus
     compile 'org.greenrobot:eventbus:3.0.0'
 
-    // unit testing
-    testCompile 'junit:junit:4.12'
-    testCompile 'org.mockito:mockito-core:1.10.19'
-
-    // Required for testing. Json is in android.jar and thus has no implementation in the test build
-    testCompile 'org.json:json:20160212'
-    testCompile 'org.powermock:powermock-api-mockito:1.4.12'
-    testCompile 'org.powermock:powermock-module-junit4:1.6.2'
-
-    // Required for testing. Json is in android.jar and thus has no implementation in the test build
-    testCompile 'org.json:json:20160212'
-
     // Dagger 2
     compile "com.google.dagger:dagger:${DAGGER}"
-    annotationProcessor "com.google.dagger:dagger-compiler:${DAGGER}"
-
-    // Dagger 2 + test
-    testAnnotationProcessor "com.google.dagger:dagger-compiler:${DAGGER}"
+    kapt "com.google.dagger:dagger-compiler:${DAGGER}"
 
     // ButterKnife
     compile "com.jakewharton:butterknife:${BUTTERKNIFE}"
-    annotationProcessor "com.jakewharton:butterknife-compiler:${BUTTERKNIFE}"
-
-    retrolambdaConfig "net.orfjackal.retrolambda:retrolambda:${RETRO_LAMBDA}"
+    kapt "com.jakewharton:butterknife-compiler:${BUTTERKNIFE}"
 
     // Retrofit
     compile "com.squareup.retrofit2:retrofit:${RETROFIT}"
@@ -100,10 +82,6 @@ dependencies {
     // RxJava2
     compile "io.reactivex.rxjava2:rxjava:${RXJAVA}"
     compile "io.reactivex.rxjava2:rxandroid:${RXANDROID}"
-
-    // Lombok
-    provided "org.projectlombok:lombok:${LOMBOK}"
-    annotationProcessor "org.projectlombok:lombok:${LOMBOK}"
 
     // threeten
     compile 'com.jakewharton.threetenabp:threetenabp:1.0.5'
