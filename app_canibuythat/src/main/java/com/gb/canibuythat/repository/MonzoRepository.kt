@@ -5,6 +5,7 @@ import com.gb.canibuythat.api.BaseFormDataApi
 import com.gb.canibuythat.api.MonzoApi
 import com.gb.canibuythat.api.MonzoAuthApi
 import com.gb.canibuythat.api.model.ApiTransaction
+import com.gb.canibuythat.interactor.ProjectInteractor
 import com.gb.canibuythat.model.Login
 import com.gb.canibuythat.model.Spending
 import com.gb.canibuythat.model.Transaction
@@ -18,6 +19,8 @@ import javax.inject.Singleton
 @Singleton
 class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi,
                                           private val monzoAuthApi: MonzoAuthApi,
+                                          private val projectInteractor: ProjectInteractor,
+                                          private val spendingsRepository: SpendingsRepository,
                                           private val mapper: MonzoMapper) : BaseFormDataApi() {
 
     fun login(authorizationCode: String): Single<Login> {
@@ -36,8 +39,10 @@ class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi,
         }.map {
             mapper.mapToTransaction(it)
         }.toList().map { transactions ->
+            val projectSettings = projectInteractor.getProject().blockingGet()
+            val savedSpending = spendingsRepository.all.blockingGet().groupBy { it.sourceData[Spending.SOURCE_MONZO_CATEGORY] }
             transactions.groupBy(Transaction::category).map { (category, transactionsForThatCategory) ->
-                mapper.mapToSpending(category, transactionsForThatCategory)
+                mapper.mapToSpending(category, transactionsForThatCategory, savedSpending[category]?.get(0), projectSettings)
             }
         }
     }

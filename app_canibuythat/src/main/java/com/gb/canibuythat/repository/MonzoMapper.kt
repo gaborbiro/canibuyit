@@ -1,6 +1,8 @@
 package com.gb.canibuythat.repository
 
 import com.gb.canibuythat.api.model.*
+import com.gb.canibuythat.interactor.Project
+import com.gb.canibuythat.interactor.ProjectInteractor
 import com.gb.canibuythat.model.*
 import com.gb.canibuythat.model.Spending.Cycle
 import org.apache.commons.lang3.text.WordUtils
@@ -13,7 +15,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class MonzoMapper @Inject constructor() {
+class MonzoMapper @Inject constructor(private val projectInteractor: ProjectInteractor) {
 
     fun mapToLogin(apiLogin: ApiLogin): Login {
         val expiresAt = apiLogin.expires_in * 1000 + System.currentTimeMillis()
@@ -37,24 +39,27 @@ class MonzoMapper @Inject constructor() {
                 apiTransaction.category)
     }
 
-    fun mapToSpending(category: String, transactions: List<Transaction>): Spending {
+    fun mapToSpending(category: String, transactions: List<Transaction>, savedSpending: Spending?, projectSettings: Project): Spending {
         val spending = Spending()
-        val cycle = getOptimalCycle(transactions)
-        spending.cycle = cycle
 
-        val timeMap: Map<Int, List<Transaction>> = transactions.groupBy { cycle.get(it.created.toLocalDate()) }
-        spending.value = transactions.sumBy { it.amount }.div(timeMap.size).div(100.0)
-        spending.type = mapSpendingType(category)
-        spending.enabled = spending.type!!.defaultEnabled
-        spending.name = WordUtils.capitalizeFully(category.replace("\\_".toRegex(), " "))
-        spending.occurrenceCount = null
-        spending.cycleMultiplier = 1
+        val cycle: Cycle = override(savedSpending?.cycle, flag = projectSettings.cycleOverride) ?: getOptimalCycle(transactions)
+
+        spending.cycle = cycle
+        val cycleMap: Map<Int, List<Transaction>> = transactions.groupBy { cycle.get(it.created.toLocalDate()) }
+        spending.value = override(savedSpending?.value, projectSettings.averageOverride) ?: transactions.sumBy { it.amount }.div(cycleMap.size).div(100.0)
+        spending.type = override(savedSpending?.type, projectSettings.categoryOverride) ?: mapSpendingType(category)
+        spending.name = override(savedSpending?.name, projectSettings.nameOverride) ?: WordUtils.capitalizeFully(category.replace("\\_".toRegex(), " "))
+        spending.cycleMultiplier = override(savedSpending?.cycleMultiplier, flag = projectSettings.cycleOverride) ?: 1
         val firstOccurrence: LocalDate = transactions.minBy { it.created }!!.created.toLocalDate()
-        spending.fromStartDate = fromLocalDate(firstOccurrence)
-        spending.fromEndDate = fromLocalDate(firstOccurrence.add(cycle, 1).minusDays(1))
+        spending.fromStartDate = override(savedSpending?.fromStartDate, projectSettings.whenOverride) ?: fromLocalDate(firstOccurrence)
+        spending.fromEndDate = override(savedSpending?.fromEndDate, projectSettings.whenOverride) ?: fromLocalDate(firstOccurrence.add(cycle, 1).minusDays(1))
         spending.sourceData.put(Spending.SOURCE_MONZO_CATEGORY, category)
-        spending.spent = 0.0
-        timeMap[cycle.get(LocalDate.now(ZoneId.systemDefault()))]?.let { spending.spent = it.sumBy { it.amount }.div(100.0) }
+        cycleMap[cycle.get(LocalDate.now(ZoneId.systemDefault()))]?.let { spending.spent = it.sumBy { it.amount }.div(100.0) } ?:let { spending.spent = 0.0 }
+
+        spending.occurrenceCount = override(savedSpending?.occurrenceCount)
+        spending.target = override(savedSpending?.target)
+        spending.notes = override(savedSpending?.notes)
+        spending.enabled = override(savedSpending?.enabled) ?: spending.type!!.defaultEnabled
         return spending
     }
 
@@ -84,37 +89,43 @@ class MonzoMapper @Inject constructor() {
         }
     }
 
-    fun mapSpendingType(monzoCategory: String): Spending.Category {
-        when (monzoCategory) {
-            "mondo" -> return Spending.Category.INCOME
-            "general" -> return Spending.Category.OTHER
-            "eating_out" -> return Spending.Category.FOOD
-            "expenses" -> return Spending.Category.EXPENSES
-            "transport" -> return Spending.Category.TRANSPORTATION
-            "cash" -> return Spending.Category.CASH
-            "bills" -> return Spending.Category.UTILITIES
-            "entertainment" -> return Spending.Category.ENTERTAINMENT
-            "shopping" -> return Spending.Category.LUXURY
-            "holidays" -> return Spending.Category.VACATION
-            "groceries" -> return Spending.Category.GROCERIES
-            else -> return Spending.Category.OTHER
+    private fun mapSpendingType(monzoCategory: String): Spending.Category {
+        return when (monzoCategory) {
+            "mondo" -> Spending.Category.INCOME
+            "general" -> Spending.Category.OTHER
+            "eating_out" -> Spending.Category.FOOD
+            "expenses" -> Spending.Category.EXPENSES
+            "transport" -> Spending.Category.TRANSPORTATION
+            "cash" -> Spending.Category.CASH
+            "bills" -> Spending.Category.UTILITIES
+            "entertainment" -> Spending.Category.ENTERTAINMENT
+            "shopping" -> Spending.Category.LUXURY
+            "holidays" -> Spending.Category.VACATION
+            "groceries" -> Spending.Category.GROCERIES
+            else -> Spending.Category.OTHER
         }
     }
 
-    fun getOptimalCycle(transactions: List<Transaction>): Spending.Cycle {
+    private fun getOptimalCycle(transactions: List<Transaction>): Spending.Cycle {
         var highestDistanceDays = 0L
         val sortedList = transactions.sortedBy { it.created }.map { it.created.toLocalDate() }
         var distance: Long = 0
 
-        for (i in sortedList.indices) {
+        sortedList.indices.forEach { i ->
             if (i > 0 && { distance = sortedList[i].toEpochDay() - sortedList[i - 1].toEpochDay(); distance }() > highestDistanceDays) {
                 highestDistanceDays = distance
             }
         }
-        return if (highestDistanceDays <= 7) Spending.Cycle.WEEKS else
-            if (highestDistanceDays <= 365) Spending.Cycle.MONTHS else
-                Spending.Cycle.YEARS
+        return when {
+            highestDistanceDays <= 7 -> Spending.Cycle.WEEKS
+            highestDistanceDays <= 365 -> Spending.Cycle.MONTHS
+            else -> Spending.Cycle.YEARS
+        }
     }
 
-    fun fromLocalDate(localDate: LocalDate): Date = Date(localDate.year - 1900, localDate.monthValue - 1, localDate.dayOfMonth)
+    private fun fromLocalDate(localDate: LocalDate): Date = Date(localDate.year - 1900, localDate.monthValue - 1, localDate.dayOfMonth)
+
+    private fun <T> override(data: T?, flag: Boolean? = true): T? {
+        return if (data != null && flag == true) data else null
+    }
 }

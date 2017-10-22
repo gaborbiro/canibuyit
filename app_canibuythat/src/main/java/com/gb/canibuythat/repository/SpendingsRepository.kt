@@ -18,7 +18,6 @@ import javax.inject.Singleton
 @Singleton
 class SpendingsRepository @Inject
 constructor(val spendingDao: Dao<Spending, Int>,
-            private val projectInteractor: ProjectInteractor,
             private val userPreferences: UserPreferences) {
 
     val all: Single<List<Spending>>
@@ -54,8 +53,6 @@ constructor(val spendingDao: Dao<Spending, Int>,
      */
     fun createOrUpdateMonzoSpendings(spendings: List<Spending>): Completable {
         return Completable.create { emitter ->
-            val projectSettings = projectInteractor.getProject().blockingGet()
-
             val savedSpendings: List<Spending> = spendingDao.queryForAll()
                     .filter { it.sourceData[Spending.SOURCE_MONZO_CATEGORY] != null }
                     .sortedBy { it.sourceData[Spending.SOURCE_MONZO_CATEGORY] }
@@ -71,28 +68,6 @@ constructor(val spendingDao: Dao<Spending, Int>,
 
                         if (index >= 0) {
                             it.id = savedSpendings[index].id
-
-                            if (projectSettings.nameOverride) {
-                                it.name = savedSpendings[index].name
-                            }
-                            it.notes = savedSpendings[index].notes
-                            it.target = savedSpendings[index].target
-                            if (projectSettings.cycleOverride) {
-                                it.cycle = savedSpendings[index].cycle
-                                it.cycleMultiplier = savedSpendings[index].cycleMultiplier
-                            }
-                            if (projectSettings.categoryOverride) {
-                                it.type = savedSpendings[index].type
-                            }
-                            it.occurrenceCount = savedSpendings[index].occurrenceCount
-                            it.enabled = savedSpendings[index].enabled
-                            if (projectSettings.whenOverride) {
-                                it.fromStartDate = savedSpendings[index].fromStartDate
-                                it.fromEndDate = savedSpendings[index].fromEndDate
-                            }
-                            if (projectSettings.averageOverride) {
-                                it.value = savedSpendings[index].value
-                            }
                             spendingDao.update(it)
                         } else {
                             spendingDao.create(it)
