@@ -30,6 +30,7 @@ class MonzoAuthenticator @Inject constructor(val monzoAuthApi: MonzoAuthApi,
         credentialsProvider.refreshToken = login.refreshToken
         credentialsProvider.accessTokenExpiry = login.expiresAt
         return response?.request()?.newBuilder()
+                ?.removeHeader(AUTHORIZATION)
                 ?.addHeader(AUTHORIZATION, HEADER_VALUE_PREFIX + credentialsProvider.accessToken)
                 ?.build()
     }

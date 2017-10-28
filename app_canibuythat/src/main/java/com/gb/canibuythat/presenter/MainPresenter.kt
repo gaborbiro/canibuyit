@@ -51,6 +51,7 @@ constructor(val monzoInteractor: MonzoInteractor,
     override fun onScreenSet() {
         disposeOnFinish(userPreferences.getBalanceReadingDataStream().subscribe { fetchBalance() })
         disposeOnFinish(userPreferences.getEstimateDateDataStream().subscribe { fetchBalance() })
+        getScreen().showToast("Session expiry: " + DateUtils.FORMAT_DATE_TIME.format(credentialsProvider.accessTokenExpiry))
     }
 
     private fun fetchBalance() {
@@ -94,10 +95,9 @@ constructor(val monzoInteractor: MonzoInteractor,
     }
 
     fun fetchMonzoData() {
-        if (!credentialsProvider.isSession()) {
+        if (!credentialsProvider.isRefresh()) {
             getScreen().showLoginActivity()
         } else {
-            getScreen().showToast("Session expires at: " + DateUtils.FORMAT_DATE_TIME.format(credentialsProvider.accessTokenExpiry))
             disposeOnFinish(monzoInteractor.loadSpendings(listOf(MonzoConstants.ACCOUNT_ID_PREPAID, MonzoConstants.ACCOUNT_ID_RETAIL)))
         }
     }

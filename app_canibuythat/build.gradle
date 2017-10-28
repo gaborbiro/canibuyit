@@ -41,10 +41,9 @@ android {
     }
 }
 
-final SUPPORT_LIBRARY = '25.3.1'
+final SUPPORT_LIBRARY = '25.4.0'
 final DAGGER = '2.10'
-final RETRO_LAMBDA='2.5.1'
-final BUTTERKNIFE='8.5.1'
+final BUTTERKNIFE='8.6.0'
 final RETROFIT='2.3.0'
 final RETROFIT_RXJAVA2='2.3.0'
 final RXJAVA='2.1.0'
@@ -87,13 +86,13 @@ dependencies {
     compile 'com.jakewharton.threetenabp:threetenabp:1.0.5'
 
     // apache commons-lang
-    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.0'
+    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'
 
     // kotlin
     compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
 
     // Firebase Cloud Messaging
-    compile 'com.google.firebase:firebase-messaging:11.2.0'
+    compile 'com.google.firebase:firebase-messaging:11.4.2'
 }
 
 apply plugin: 'com.google.gms.google-services'
