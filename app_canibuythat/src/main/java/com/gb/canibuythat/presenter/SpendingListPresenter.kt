@@ -9,12 +9,8 @@ constructor(private val spendingInteractor: SpendingInteractor) : BasePresenter<
 
     init {
         disposeOnFinish(spendingInteractor.getSpendingsDataStream().subscribe({
-            if (!it.loading) {
-                if (it.hasError()) {
-                    this.onError(it.error!!)
-                } else {
-                    getScreen().setData(it.content!!)
-                }
+            if (!it.loading && !it.hasError()) {
+                getScreen().setData(it.content!!)
             }
         }, this::onError))
     }
