@@ -10,6 +10,7 @@ import android.util.Log
 import com.gb.canibuythat.MonzoConstants
 import com.gb.canibuythat.R
 import com.gb.canibuythat.di.Injector
+import com.gb.canibuythat.fcm.model.FcmMonzoData
 import com.gb.canibuythat.interactor.MonzoInteractor
 import com.gb.canibuythat.interactor.SpendingInteractor
 import com.gb.canibuythat.ui.MainActivity
@@ -39,17 +40,33 @@ class MonzoDispatchMessagingService : FirebaseMessagingService() {
                 val notification = Gson().fromJson(it["notification"], Notification::class.java)
                 sendNotification(notification.title, notification.body)
             }
+            if (it.containsKey("monzo_data")) {
+                val category = Gson().fromJson(it["monzo_data"], FcmMonzoData::class.java)?.data?.merchant?.category
+
+                category?.let { showSpendingInNotification(it) }
+            }
         }
-        monzoInteractor.loadSpendings(listOf(MonzoConstants.ACCOUNT_ID_PREPAID, MonzoConstants.ACCOUNT_ID_RETAIL))
+    }
+
+    fun showSpendingInNotification(category: String) {
         disposable?.dispose()
         disposable = spendingInteractor.getSpendingsDataStream().subscribe({
             if (!it.loading && !it.hasError()) {
-                sendNotification("", "Refreshed spendings")
+                spendingInteractor.getByMonzoCategory(category).subscribe({ spending ->
+                    val spent = Math.abs(spending.spent ?: 0.0)
+                    spending.target?.let {
+                        val progress: Float = (spent / it).toFloat() * 100
+                        sendNotification(spending.name!!, ("Spent £%.0ft of £%.0f (%.0f%%)").format(spent, it, progress))
+                    } ?: let {
+                        sendNotification(spending.name!!, "£%.0f".format(spent))
+                    }
+                }, {})
                 disposable?.dispose()
             }
         }, {
             disposable?.dispose()
         })
+        monzoInteractor.loadSpendings(listOf(MonzoConstants.ACCOUNT_ID_PREPAID, MonzoConstants.ACCOUNT_ID_RETAIL))
     }
 
     /**
@@ -66,7 +83,7 @@ class MonzoDispatchMessagingService : FirebaseMessagingService() {
         val defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
         val notificationBuilder = NotificationCompat.Builder(this)
                 .setSmallIcon(R.drawable.piggybank)
-                .setContentTitle("Notification")
+                .setContentTitle(title)
                 .setContentText(messageBody)
                 .setAutoCancel(true)
                 .setSound(defaultSoundUri)

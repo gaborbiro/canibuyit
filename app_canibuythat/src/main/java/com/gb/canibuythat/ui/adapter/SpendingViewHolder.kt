@@ -23,7 +23,7 @@ class SpendingViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
             nameView.text = spending.name
         }
         nameView.paint.isStrikeThruText = !spending.enabled
-        val cycle: Spending.Cycle = spending.cycle!!
+        val cycle = spending.cycle!!
         if (spending.spent != null) {
             var cycleStr = ""
             if (spending.occurrenceCount == null) {

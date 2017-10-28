@@ -3,12 +3,12 @@ package com.gb.canibuythat.repository
 import com.gb.canibuythat.UserPreferences
 import com.gb.canibuythat.db.Contract
 import com.gb.canibuythat.exception.DomainException
-import com.gb.canibuythat.interactor.ProjectInteractor
 import com.gb.canibuythat.model.Balance
 import com.gb.canibuythat.model.Spending
 import com.j256.ormlite.dao.Dao
 import io.reactivex.Completable
 import io.reactivex.Maybe
+import io.reactivex.Observable
 import io.reactivex.Single
 import java.sql.SQLException
 import java.util.*
@@ -53,7 +53,7 @@ constructor(val spendingDao: Dao<Spending, Int>,
      */
     fun createOrUpdateMonzoSpendings(spendings: List<Spending>): Completable {
         return Completable.create { emitter ->
-            val savedSpendings: List<Spending> = spendingDao.queryForAll()
+            val savedMonzoSpendings: List<Spending> = spendingDao.queryForAll()
                     .filter { it.sourceData[Spending.SOURCE_MONZO_CATEGORY] != null }
                     .sortedBy { it.sourceData[Spending.SOURCE_MONZO_CATEGORY] }
 
@@ -64,10 +64,10 @@ constructor(val spendingDao: Dao<Spending, Int>,
                     if (category == null) {
                         emitter.onError(Exception("Monzo spending '" + it.name + "' has no category"))
                     } else {
-                        val index = savedSpendings.indexOfFirst { it.sourceData[Spending.SOURCE_MONZO_CATEGORY] == category }
+                        val index = savedMonzoSpendings.indexOfFirst { it.sourceData[Spending.SOURCE_MONZO_CATEGORY] == category }
 
                         if (index >= 0) {
-                            it.id = savedSpendings[index].id
+                            it.id = savedMonzoSpendings[index].id
                             spendingDao.update(it)
                         } else {
                             spendingDao.create(it)
@@ -109,7 +109,7 @@ constructor(val spendingDao: Dao<Spending, Int>,
         }
     }
 
-    fun read(id: Int): Maybe<Spending> {
+    fun get(id: Int): Maybe<Spending> {
         return Maybe.create<Spending> { emitter ->
             try {
                 val spending = spendingDao.queryForId(id)
@@ -119,6 +119,19 @@ constructor(val spendingDao: Dao<Spending, Int>,
                 } else {
                     emitter.onComplete()
                 }
+            } catch (e: SQLException) {
+                emitter.onError(e)
+            }
+        }
+    }
+
+    fun getByMonzoCategory(category: String): Observable<Spending> {
+        return Observable.create<Spending> { emitter ->
+            try {
+                val spendings: List<Spending> = spendingDao.queryForAll()
+                        .filter { it.sourceData[Spending.SOURCE_MONZO_CATEGORY]?.equals(category) ?: false }
+                spendings.forEach { emitter.onNext(it) }
+                emitter.onComplete()
             } catch (e: SQLException) {
                 emitter.onError(e)
             }

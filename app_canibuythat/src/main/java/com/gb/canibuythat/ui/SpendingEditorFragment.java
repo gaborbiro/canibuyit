@@ -177,7 +177,7 @@ public class SpendingEditorFragment extends BaseFragment {
      */
     public void showSpending(Integer spendingId) {
         if (spendingId != null) {
-            spendingInteractor.read(spendingId)
+            spendingInteractor.get(spendingId)
                     .subscribe(spending -> onSpendingLoaded(spending), this::onError);
             projectInteractor.getProject().subscribe(project -> {
                 this.projectSettings = project;

@@ -8,6 +8,7 @@ import com.gb.canibuythat.rx.SchedulerProvider
 import com.j256.ormlite.dao.Dao
 import io.reactivex.Completable
 import io.reactivex.Maybe
+import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.subjects.PublishSubject
 import io.reactivex.subjects.Subject
@@ -82,9 +83,16 @@ constructor(private val spendingsRepository: SpendingsRepository,
                 .observeOn(schedulerProvider.mainThread())
     }
 
-    fun read(id: Int): Maybe<Spending> {
-        return spendingsRepository.read(id)
+    fun get(id: Int): Maybe<Spending> {
+        return spendingsRepository.get(id)
                 .onErrorResumeNext { throwable: Throwable -> Maybe.error<Spending>(DomainException("Error reading spending $id from database. See logs.", throwable)) }
+                .subscribeOn(schedulerProvider.io())
+                .observeOn(schedulerProvider.mainThread())
+    }
+
+    fun getByMonzoCategory(category: String): Observable<Spending> {
+        return spendingsRepository.getByMonzoCategory(category)
+                .onErrorResumeNext { throwable: Throwable -> Observable.error<Spending>(DomainException("Error reading spending with category `$category` from database. See logs.", throwable)) }
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())
     }
