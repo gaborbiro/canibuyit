@@ -188,7 +188,12 @@ final class SecurePreferences implements SharedPreferences.OnSharedPreferenceCha
     public String getString(String key) throws SecurePreferencesException {
         if (preferences.contains(toKey(key))) {
             String securedEncodedValue = preferences.getString(toKey(key), "");
-            return decryptValue(securedEncodedValue);
+            try {
+                return decryptValue(securedEncodedValue);
+            } catch (SecurePreferencesException e) {
+                removeValue(key);
+                return null;
+            }
         }
         return null;
     }

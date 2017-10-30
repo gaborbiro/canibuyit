@@ -32,7 +32,6 @@ public class DomainException extends Throwable {
             if (code == 400) {
                 action = Action.LOGIN;
             }
-
             this.responseBody = ((HttpException) cause).response().errorBody();
         }
         if (cause instanceof IOException) {
