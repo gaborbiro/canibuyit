@@ -44,6 +44,7 @@ class DateUtils {
     companion object {
         @JvmStatic val FORMAT_MONTH_DAY_YR = SimpleDateFormat("MMM.dd yy")
         @JvmStatic val FORMAT_ISO = SimpleDateFormat("yyyyMMdd'T'HHmmss")
+        @JvmStatic val FORMAT_RFC3339 = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
         @JvmStatic val FORMAT_DATE_TIME = SimpleDateFormat("yyyy/MMM/dd HH:mm")
 
         /**

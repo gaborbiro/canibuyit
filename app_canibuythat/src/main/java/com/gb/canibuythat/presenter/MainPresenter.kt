@@ -1,10 +1,7 @@
 package com.gb.canibuythat.presenter
 
 import android.content.Intent
-import com.gb.canibuythat.AppConstants
-import com.gb.canibuythat.CredentialsProvider
-import com.gb.canibuythat.MonzoConstants
-import com.gb.canibuythat.UserPreferences
+import com.gb.canibuythat.*
 import com.gb.canibuythat.interactor.BackupingInteractor
 import com.gb.canibuythat.interactor.MonzoInteractor
 import com.gb.canibuythat.interactor.ProjectInteractor
@@ -98,7 +95,7 @@ constructor(val monzoInteractor: MonzoInteractor,
         if (!credentialsProvider.isRefresh()) {
             getScreen().showLoginActivity()
         } else {
-            disposeOnFinish(monzoInteractor.loadSpendings(listOf(MonzoConstants.ACCOUNT_ID_PREPAID, MonzoConstants.ACCOUNT_ID_RETAIL)))
+            disposeOnFinish(monzoInteractor.loadSpendings(listOf(MonzoConstants.ACCOUNT_ID_PREPAID, MonzoConstants.ACCOUNT_ID_RETAIL), SPENDINGS_MONTH_SPAN))
         }
     }
 
@@ -117,15 +114,15 @@ constructor(val monzoInteractor: MonzoInteractor,
     }
 
     private fun getSuggestedExportPath(projectName: String?): String {
-        if (projectName.isNullOrEmpty()) {
-            return AppConstants.BACKUP_FOLDER + "/spendings-" + DateUtils.FORMAT_ISO.format(Date()) + ".sqlite"
+        return if (projectName.isNullOrEmpty()) {
+            BACKUP_FOLDER + "/spendings-" + DateUtils.FORMAT_ISO.format(Date()) + ".sqlite"
         } else {
-            return AppConstants.BACKUP_FOLDER + "/spendings-" + DateUtils.FORMAT_ISO.format(Date()) + "-" + projectName + ".sqlite"
+            BACKUP_FOLDER + "/spendings-" + DateUtils.FORMAT_ISO.format(Date()) + "-" + projectName + ".sqlite"
         }
     }
 
     fun onImportDatabase(importType: MainScreen.SpendingsImportType) {
-        val directory = AppConstants.BACKUP_FOLDER + "/";
+        val directory = BACKUP_FOLDER + "/";
         getScreen().showPickerForImport(directory, importType)
     }
 

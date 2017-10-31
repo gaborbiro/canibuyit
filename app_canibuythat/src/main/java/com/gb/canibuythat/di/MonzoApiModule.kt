@@ -1,18 +1,13 @@
 package com.gb.canibuythat.di
 
-import com.gb.canibuythat.AppConstants
 import com.gb.canibuythat.BuildConfig
+import com.gb.canibuythat.DEFAULT_TIMEOUT_SECONDS
 import com.gb.canibuythat.MonzoConstants
 import com.gb.canibuythat.api.MonzoApi
 import com.gb.canibuythat.api.MonzoAuthApi
 import com.gb.canibuythat.api.MonzoAuthenticator
 import com.gb.canibuythat.api.MonzoDispatchApi
 import com.google.gson.Gson
-
-import java.util.concurrent.TimeUnit
-
-import javax.inject.Singleton
-
 import dagger.Module
 import dagger.Provides
 import okhttp3.OkHttpClient
@@ -20,6 +15,8 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.concurrent.TimeUnit
+import javax.inject.Singleton
 
 @Module
 class MonzoApiModule {
@@ -28,8 +25,8 @@ class MonzoApiModule {
     @Singleton
     internal fun provideMonzoAuthApi(gsonConverterFactory: GsonConverterFactory): MonzoAuthApi {
         val okHttpClientBuilder = OkHttpClient.Builder()
-                .readTimeout(AppConstants.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-                .connectTimeout(AppConstants.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .readTimeout(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .connectTimeout(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
 
         if (BuildConfig.DEBUG) {
             val interceptor = HttpLoggingInterceptor()
@@ -53,8 +50,8 @@ class MonzoApiModule {
             monzoAuthenticator: MonzoAuthenticator): MonzoApi {
 
         val okHttpClientBuilder = OkHttpClient.Builder()
-                .readTimeout(AppConstants.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-                .connectTimeout(AppConstants.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .readTimeout(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .connectTimeout(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .addInterceptor(monzoAuthenticator)
                 .authenticator(monzoAuthenticator)
 
@@ -77,8 +74,8 @@ class MonzoApiModule {
     @Singleton
     internal fun provideMonzoDispatchApi(gsonConverterFactory: GsonConverterFactory): MonzoDispatchApi {
         val okHttpClientBuilder = OkHttpClient.Builder()
-                .readTimeout(AppConstants.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-                .connectTimeout(AppConstants.DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .readTimeout(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .connectTimeout(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
 
         if (BuildConfig.DEBUG) {
             val interceptor = HttpLoggingInterceptor()

@@ -16,7 +16,7 @@ import retrofit2.http.Query
 interface MonzoApi {
 
     @GET("/transactions")
-    fun transactions(@Query("account_id") accountId: String): Single<ApiTransactions>
+    fun transactions(@Query("account_id") accountId: String, @Query("since") since: String? = null): Single<ApiTransactions>
 
     @FormUrlEncoded
     @POST("/webhooks")

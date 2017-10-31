@@ -9,6 +9,7 @@ import android.support.v4.app.NotificationCompat
 import android.util.Log
 import com.gb.canibuythat.MonzoConstants
 import com.gb.canibuythat.R
+import com.gb.canibuythat.SPENDINGS_MONTH_SPAN
 import com.gb.canibuythat.di.Injector
 import com.gb.canibuythat.fcm.model.FcmMonzoData
 import com.gb.canibuythat.interactor.MonzoInteractor
@@ -66,7 +67,7 @@ class MonzoDispatchMessagingService : FirebaseMessagingService() {
         }, {
             disposable?.dispose()
         })
-        monzoInteractor.loadSpendings(listOf(MonzoConstants.ACCOUNT_ID_PREPAID, MonzoConstants.ACCOUNT_ID_RETAIL))
+        monzoInteractor.loadSpendings(listOf(MonzoConstants.ACCOUNT_ID_PREPAID, MonzoConstants.ACCOUNT_ID_RETAIL), SPENDINGS_MONTH_SPAN)
     }
 
     /**
