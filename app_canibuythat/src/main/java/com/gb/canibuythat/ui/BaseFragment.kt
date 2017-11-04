@@ -66,5 +66,5 @@ abstract class BaseFragment : Fragment(), ContextSource, Screen {
         return activity
     }
 
-    @Nullable protected abstract fun inject(): BasePresenter<Screen>
+    @Nullable protected abstract fun inject(): BasePresenter<Screen>?
 }

@@ -40,6 +40,7 @@ class MonzoDispatchMessagingService : FirebaseMessagingService() {
             if (it.containsKey("notification")) {
                 val notification = Gson().fromJson(it["notification"], Notification::class.java)
                 sendNotification(notification.title, notification.body)
+                showSpendingInNotification(notification.body)
             }
             if (it.containsKey("monzo_data")) {
                 val category = Gson().fromJson(it["monzo_data"], FcmMonzoData::class.java)?.data?.merchant?.category
@@ -49,7 +50,7 @@ class MonzoDispatchMessagingService : FirebaseMessagingService() {
         }
     }
 
-    fun showSpendingInNotification(category: String) {
+    private fun showSpendingInNotification(category: String) {
         disposable?.dispose()
         disposable = spendingInteractor.getSpendingsDataStream().subscribe({
             if (!it.loading && !it.hasError()) {
