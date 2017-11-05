@@ -166,11 +166,11 @@ constructor(val spendingDao: Dao<Spending, Int>,
                         .filter { it.second?.let { it.definitely != 0f || it.maybeEvenThisMuch != 0f } ?: false }
                         .sortedBy { it.second!!.definitely }
                         .joinTo(buffer = buffer, separator = "\n", transform = {
-                            val name = it.first.name.toLowerCase().capitalize()
+                            val name = it.first.name.substring(0, Math.min(8, it.first.name.length)).toLowerCase().capitalize()
                             val definitely = it.second!!.definitely!!
                             val maybe = it.second!!.maybeEvenThisMuch
                             val percent = definitely.div(total).times(100)
-                            "%1\$s: %2\$.0f/%3\$.0f (%4\$.0f%%)".format(name, definitely, maybe, percent)
+                            "%1\$s: %2\$.1f/%3\$.1f (%4\$.1f%%)".format(name, definitely, maybe, percent)
                         })
             } catch (e: IllegalArgumentException) {
                 throw DomainException("Date of balance reading must not come after date of target estimate", e)

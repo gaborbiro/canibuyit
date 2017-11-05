@@ -30,24 +30,21 @@ class MonzoMapper @Inject constructor(private val projectInteractor: ProjectInte
         return Login(apiLogin.access_token, apiLogin.refresh_token, expiresAt)
     }
 
-    fun mapToTransactions(apiTransactions: ApiTransactions): List<Transaction> {
-        return apiTransactions.transactions.map { mapToTransaction(it) }
-    }
-
     fun mapToTransaction(apiTransaction: ApiTransaction): Transaction {
+        val noteCategory = if (!apiTransaction.notes.isEmpty()) Spending.Category.values().firstOrNull { apiTransaction.notes.startsWith(it.toString(), ignoreCase = true) } else null
+        val category = mapApiCategory(noteCategory?.toString() ?: apiTransaction.category)
         return Transaction(apiTransaction.amount,
                 ZonedDateTime.parse(apiTransaction.created),
                 apiTransaction.currency,
                 apiTransaction.description,
                 apiTransaction.id,
-                apiTransaction.merchant,
                 apiTransaction.notes,
                 apiTransaction.is_load,
                 if (!apiTransaction.settled.isEmpty()) ZonedDateTime.parse(apiTransaction.settled) else null,
-                apiTransaction.category)
+                category)
     }
 
-    fun mapToSpending(category: String, transactions: List<Transaction>, savedSpending: Spending?, projectSettings: Project, totalDayCount: Int): Spending {
+    fun mapToSpending(category: Spending.Category, transactions: List<Transaction>, savedSpending: Spending?, projectSettings: Project, totalDayCount: Int): Spending {
         val spending = Spending()
 
         val cycle: Cycle = override(savedSpending?.cycle, flag = projectSettings.cycleOverride) ?: getOptimalCycle(transactions)
@@ -65,14 +62,14 @@ class MonzoMapper @Inject constructor(private val projectInteractor: ProjectInte
                             Spending.Cycle.YEARS -> 365.0
                         }
                 )
-        spending.value = Math.round(spending.value).div(100.0) // cents to pounds
-        spending.type = override(savedSpending?.type, projectSettings.categoryOverride) ?: mapSpendingType(category)
-        spending.name = override(savedSpending?.name, projectSettings.nameOverride) ?: WordUtils.capitalizeFully(category.replace("\\_".toRegex(), " "))
+        spending.value = override(savedSpending?.value, projectSettings.averageOverride) ?: Math.round(spending.value).div(100.0) // cents to pounds
+        spending.type = override(savedSpending?.type, projectSettings.categoryOverride) ?: category
+        spending.name = override(savedSpending?.name, projectSettings.nameOverride) ?: WordUtils.capitalizeFully(category.toString().replace("\\_".toRegex(), " "))
         spending.cycleMultiplier = override(savedSpending?.cycleMultiplier, flag = projectSettings.cycleOverride) ?: 1
         val firstOccurrence: LocalDate = transactions.minBy { it.created }!!.created.toLocalDate()
         spending.fromStartDate = override(savedSpending?.fromStartDate, projectSettings.whenOverride) ?: fromLocalDate(firstOccurrence)
         spending.fromEndDate = override(savedSpending?.fromEndDate, projectSettings.whenOverride) ?: fromLocalDate(firstOccurrence.add(cycle, 1).minusDays(1))
-        spending.sourceData.put(Spending.SOURCE_MONZO_CATEGORY, category)
+        spending.sourceData.put(Spending.SOURCE_MONZO_CATEGORY, category.name.toLowerCase())
         cycleMap[cycle.get(LocalDate.now(ZoneId.systemDefault()))]?.let { spending.spent = it.sumBy { it.amount }.div(100.0) } ?: let { spending.spent = 0.0 }
 
         spending.occurrenceCount = override(savedSpending?.occurrenceCount)
@@ -108,8 +105,8 @@ class MonzoMapper @Inject constructor(private val projectInteractor: ProjectInte
         }
     }
 
-    private fun mapSpendingType(monzoCategory: String): Spending.Category {
-        return when (monzoCategory) {
+    private fun mapApiCategory(apiCategory: String): Spending.Category {
+        return when (apiCategory) {
             "mondo" -> Spending.Category.INCOME
             "general" -> Spending.Category.OTHER
             "eating_out" -> Spending.Category.FOOD
@@ -121,7 +118,13 @@ class MonzoMapper @Inject constructor(private val projectInteractor: ProjectInte
             "shopping" -> Spending.Category.LUXURY
             "holidays" -> Spending.Category.VACATION
             "groceries" -> Spending.Category.GROCERIES
-            else -> Spending.Category.OTHER
+            else -> {
+                try {
+                    Spending.Category.valueOf(apiCategory.toUpperCase())
+                } catch (t: Throwable) {
+                    Spending.Category.OTHER
+                }
+            }
         }
     }
 

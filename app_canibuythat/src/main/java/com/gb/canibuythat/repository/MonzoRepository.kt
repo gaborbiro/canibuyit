@@ -50,7 +50,7 @@ class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi,
         }.distinct {
             it.id
         }.filter {
-            TextUtils.isEmpty(it.decline_reason) && !TextUtils.isEmpty(it.created)
+            it.include_in_spending
         }.map {
             mapper.mapToTransaction(it)
         }.toList().map { transactions ->
@@ -59,7 +59,7 @@ class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi,
                     .groupBy { it.sourceData[Spending.SOURCE_MONZO_CATEGORY] }
             val dayCount = ChronoUnit.DAYS.between(transactions.minBy { it.created }!!.created, transactions.maxBy { it.created }!!.created).toInt() + 1
             transactions.groupBy(Transaction::category).map { (category, transactionsForThatCategory) ->
-                mapper.mapToSpending(category, transactionsForThatCategory, savedSpending[category]?.get(0), projectSettings, dayCount)
+                mapper.mapToSpending(category, transactionsForThatCategory, savedSpending[category.toString()]?.get(0), projectSettings, dayCount)
             }
         }
     }
