@@ -1,11 +1,9 @@
 package com.gb.canibuythat.di
 
 import android.app.Application
-
-import javax.inject.Singleton
-
 import dagger.BindsInstance
 import dagger.Component
+import javax.inject.Singleton
 
 @Singleton
 @Component(modules = arrayOf(CanIBuyThatModule::class))

@@ -11,5 +11,6 @@ class ApiTransaction(
         val notes: String,
         val is_load: Boolean,
         val settled: String,
+        val decline_reason: String,
         val category: String
 )

@@ -2,7 +2,6 @@ package com.gb.canibuythat.api
 
 import com.gb.canibuythat.api.model.ApiLogin
 import io.reactivex.Single
-import retrofit2.Call
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.POST

@@ -1,7 +1,16 @@
 package com.gb.canibuythat.presenter
 
 import android.content.Intent
-import com.gb.canibuythat.*
+import com.gb.canibuythat.ACCOUNT_ID_PREPAID
+import com.gb.canibuythat.ACCOUNT_ID_RETAIL
+import com.gb.canibuythat.BACKUP_FOLDER
+import com.gb.canibuythat.CredentialsProvider
+import com.gb.canibuythat.MONZO_AUTH_AUTHORITY
+import com.gb.canibuythat.MONZO_AUTH_PATH_BASE
+import com.gb.canibuythat.MONZO_AUTH_PATH_CALLBACK
+import com.gb.canibuythat.MONZO_OAUTH_PARAM_AUTHORIZATION_CODE
+import com.gb.canibuythat.TRANSACTION_HISTORY_LENGTH_MONTHS
+import com.gb.canibuythat.UserPreferences
 import com.gb.canibuythat.interactor.BackupingInteractor
 import com.gb.canibuythat.interactor.MonzoInteractor
 import com.gb.canibuythat.interactor.ProjectInteractor
@@ -70,13 +79,13 @@ constructor(val monzoInteractor: MonzoInteractor,
 
     fun handleDeepLink(intent: Intent) {
         val data = intent.data
-        if (data != null && data.authority == MonzoConstants.MONZO_AUTH_AUTHORITY) {
+        if (data != null && data.authority == MONZO_AUTH_AUTHORITY) {
             val pathSegments = data.pathSegments
 
-            if (pathSegments[0] == MonzoConstants.MONZO_AUTH_PATH_BASE) {
-                if (pathSegments[1] == MonzoConstants.MONZO_AUTH_PATH_CALLBACK) {
+            if (pathSegments[0] == MONZO_AUTH_PATH_BASE) {
+                if (pathSegments[1] == MONZO_AUTH_PATH_CALLBACK) {
                     // finished email authentication -> exchange code for auth token
-                    val authorizationCode = data.getQueryParameter(MonzoConstants.MONZO_OAUTH_PARAM_AUTHORIZATION_CODE)
+                    val authorizationCode = data.getQueryParameter(MONZO_OAUTH_PARAM_AUTHORIZATION_CODE)
                     login(authorizationCode)
                 }
             }
@@ -95,7 +104,7 @@ constructor(val monzoInteractor: MonzoInteractor,
         if (!credentialsProvider.isRefresh()) {
             getScreen().showLoginActivity()
         } else {
-            disposeOnFinish(monzoInteractor.loadSpendings(listOf(MonzoConstants.ACCOUNT_ID_PREPAID, MonzoConstants.ACCOUNT_ID_RETAIL), SPENDINGS_MONTH_SPAN))
+            disposeOnFinish(monzoInteractor.loadSpendings(listOf(ACCOUNT_ID_PREPAID, ACCOUNT_ID_RETAIL), TRANSACTION_HISTORY_LENGTH_MONTHS))
         }
     }
 

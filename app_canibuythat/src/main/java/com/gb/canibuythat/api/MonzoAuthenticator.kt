@@ -1,9 +1,14 @@
 package com.gb.canibuythat.api
 
+import com.gb.canibuythat.CLIENT_ID
+import com.gb.canibuythat.CLIENT_SECRET
 import com.gb.canibuythat.CredentialsProvider
-import com.gb.canibuythat.MonzoConstants
 import com.gb.canibuythat.repository.MonzoMapper
-import okhttp3.*
+import okhttp3.Authenticator
+import okhttp3.Interceptor
+import okhttp3.Request
+import okhttp3.Response
+import okhttp3.Route
 import javax.inject.Inject
 
 class MonzoAuthenticator @Inject constructor(val monzoAuthApi: MonzoAuthApi,
@@ -24,8 +29,8 @@ class MonzoAuthenticator @Inject constructor(val monzoAuthApi: MonzoAuthApi,
         val login = monzoAuthApi.refresh(
                 grantType = "refresh_token",
                 refreshToken = credentialsProvider.refreshToken ?: "",
-                clientId = MonzoConstants.CLIENT_ID,
-                clientSecret = MonzoConstants.CLIENT_SECRET).map { monzoMapper.mapToLogin(it) }.blockingGet()
+                clientId = CLIENT_ID,
+                clientSecret = CLIENT_SECRET).map { monzoMapper.mapToLogin(it) }.blockingGet()
         credentialsProvider.accessToken = login.accessToken
         credentialsProvider.refreshToken = login.refreshToken
         credentialsProvider.accessTokenExpiry = login.expiresAt

@@ -1,10 +1,18 @@
 package com.gb.canibuythat.repository
 
-import com.gb.canibuythat.api.model.*
+import com.gb.canibuythat.api.model.ApiLogin
+import com.gb.canibuythat.api.model.ApiTransaction
+import com.gb.canibuythat.api.model.ApiTransactions
+import com.gb.canibuythat.api.model.ApiWebhook
+import com.gb.canibuythat.api.model.ApiWebhooks
 import com.gb.canibuythat.interactor.Project
 import com.gb.canibuythat.interactor.ProjectInteractor
-import com.gb.canibuythat.model.*
+import com.gb.canibuythat.model.Login
+import com.gb.canibuythat.model.Spending
 import com.gb.canibuythat.model.Spending.Cycle
+import com.gb.canibuythat.model.Transaction
+import com.gb.canibuythat.model.Webhook
+import com.gb.canibuythat.model.Webhooks
 import org.apache.commons.lang3.text.WordUtils
 import org.threeten.bp.LocalDate
 import org.threeten.bp.ZoneId

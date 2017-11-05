@@ -3,8 +3,19 @@ package com.gb.canibuythat.ui
 import android.database.sqlite.SQLiteConstraintException
 import android.os.Bundle
 import android.text.TextUtils
-import android.view.*
-import android.widget.*
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
+import android.view.MotionEvent
+import android.view.View
+import android.view.ViewGroup
+import android.widget.ArrayAdapter
+import android.widget.CheckBox
+import android.widget.CompoundButton
+import android.widget.EditText
+import android.widget.Spinner
+import android.widget.TextView
 import com.gb.canibuythat.R
 import com.gb.canibuythat.UserPreferences
 import com.gb.canibuythat.di.Injector
@@ -15,7 +26,12 @@ import com.gb.canibuythat.model.Spending
 import com.gb.canibuythat.presenter.BasePresenter
 import com.gb.canibuythat.repository.BalanceCalculator
 import com.gb.canibuythat.screen.Screen
-import com.gb.canibuythat.util.*
+import com.gb.canibuythat.util.ArrayUtils
+import com.gb.canibuythat.util.DateUtils
+import com.gb.canibuythat.util.DialogUtils
+import com.gb.canibuythat.util.TextChangeListener
+import com.gb.canibuythat.util.ValidationError
+import com.gb.canibuythat.util.ViewUtils
 import java.util.*
 import javax.inject.Inject
 
@@ -40,7 +56,7 @@ class SpendingEditorFragment : BaseFragment() {
     private val cyclePicker: Spinner by lazy { rootView?.findViewById(R.id.cycle_picker) as Spinner }
     private val fromDatePicker: DateRangePicker by lazy { rootView?.findViewById(R.id.from_date_picker) as DateRangePicker }
     private val notesInput: EditText by lazy { rootView?.findViewById(R.id.notes_input) as EditText }
-    private val spendingEventsLayout: TextView by lazy { rootView?.findViewById(R.id.spending_events_text) as TextView }
+    private val spendingEventsLbl: TextView by lazy { rootView?.findViewById(R.id.spending_events_text) as TextView }
     private val sourceCategoryLbl: TextView by lazy { rootView?.findViewById(R.id.source_category_lbl) as TextView }
     private val nameOverrideCB: CheckBox by lazy { rootView?.findViewById(R.id.name_override_cb) as CheckBox }
     private val categoryOverrideCB: CheckBox by lazy { rootView?.findViewById(R.id.category_override_cb) as CheckBox }
@@ -100,7 +116,7 @@ class SpendingEditorFragment : BaseFragment() {
             averageInput.setText(getString(R.string.detail_amount, spending.value))
             spending.target?.let {
                 targetInput.setText(getString(R.string.detail_amount, it))
-            }?.let {
+            } ?: let {
                 targetInput.text = null
             }
             enabledCB.isChecked = spending.enabled
@@ -119,6 +135,7 @@ class SpendingEditorFragment : BaseFragment() {
             }
             cyclePicker.setSelection(spending.cycle!!.ordinal + 1)
             notesInput.setText(spending.notes)
+            sourceCategoryLbl.text = spending.sourceData[Spending.SOURCE_MONZO_CATEGORY]
             loadSpendingOccurrences(spending)
         }
 
@@ -295,7 +312,7 @@ class SpendingEditorFragment : BaseFragment() {
                 userPreferences.estimateDate)
         var spentStr = ArrayUtils.join("\n", spendingEvents) { index, item -> getString(R.string.spending_occurrence, index + 1, DateUtils.FORMAT_MONTH_DAY_YR.format(item)) }
         spentStr = "Spent: $definitely/$maybeEvenThisMuch\n$spentStr"
-        spendingEventsLayout.text = spentStr
+        spendingEventsLbl.text = spentStr
     }
 
     /**
@@ -345,7 +362,7 @@ class SpendingEditorFragment : BaseFragment() {
     private fun shouldSave(): Boolean {
         val newSpending = displayedSpending
         val isNew = originalSpending == null && !Spending().compareForEditing(newSpending, !(fromDatePicker.isStartDateChanged || fromDatePicker.isEndDateChanged), !cycleMultiplierChanged)
-        val changed = originalSpending != null && !originalSpending!!.compareForEditing(newSpending, false, false)
+        val changed = originalSpending?.let { !it.compareForEditing(newSpending, false, false) } ?: false
         return isNew || changed
     }
 

@@ -1,7 +1,9 @@
 package com.gb.canibuythat.repository
 
 import android.text.TextUtils
-import com.gb.canibuythat.MonzoConstants
+import com.gb.canibuythat.CLIENT_ID
+import com.gb.canibuythat.CLIENT_SECRET
+import com.gb.canibuythat.MONZO_URI_AUTH_CALLBACK
 import com.gb.canibuythat.api.BaseFormDataApi
 import com.gb.canibuythat.api.MonzoApi
 import com.gb.canibuythat.api.MonzoAuthApi
@@ -29,9 +31,9 @@ class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi,
     fun login(authorizationCode: String): Single<Login> {
         return monzoAuthApi.login("authorization_code",
                 code = authorizationCode,
-                redirectUri = MonzoConstants.MONZO_URI_AUTH_CALLBACK,
-                clientId = MonzoConstants.CLIENT_ID,
-                clientSecret = MonzoConstants.CLIENT_SECRET)
+                redirectUri = MONZO_URI_AUTH_CALLBACK,
+                clientId = CLIENT_ID,
+                clientSecret = CLIENT_SECRET)
                 .map(mapper::mapToLogin)
     }
 
@@ -44,8 +46,10 @@ class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi,
                 ).blockingGet().transactions.forEach { emitter.onNext(it) }
             }
             emitter.onComplete()
+        }.distinct {
+            it.id
         }.filter {
-            !TextUtils.isEmpty(it.settled)
+            TextUtils.isEmpty(it.decline_reason)
         }.map {
             mapper.mapToTransaction(it)
         }.toList().map { transactions ->

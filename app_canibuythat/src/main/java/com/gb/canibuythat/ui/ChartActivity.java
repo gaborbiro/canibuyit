@@ -13,7 +13,6 @@ import com.gb.canibuythat.di.Injector;
 import com.gb.canibuythat.model.Spending;
 import com.gb.canibuythat.presenter.BasePresenter;
 import com.gb.canibuythat.repository.BalanceCalculator;
-import com.gb.canibuythat.db.SpendingDBHelper;
 import com.gb.canibuythat.ui.model.BalanceReading;
 import com.gb.canibuythat.util.DateUtils;
 import com.github.mikephil.charting.charts.BarChart;

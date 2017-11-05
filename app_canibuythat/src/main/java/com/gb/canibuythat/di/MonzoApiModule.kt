@@ -2,7 +2,8 @@ package com.gb.canibuythat.di
 
 import com.gb.canibuythat.BuildConfig
 import com.gb.canibuythat.DEFAULT_TIMEOUT_SECONDS
-import com.gb.canibuythat.MonzoConstants
+import com.gb.canibuythat.MONZO_API_BASE
+import com.gb.canibuythat.MONZO_DISPATCH_API_BASE
 import com.gb.canibuythat.api.MonzoApi
 import com.gb.canibuythat.api.MonzoAuthApi
 import com.gb.canibuythat.api.MonzoAuthenticator
@@ -36,7 +37,7 @@ class MonzoApiModule {
 
         return Retrofit.Builder()
                 .client(okHttpClientBuilder.build())
-                .baseUrl(MonzoConstants.MONZO_API_BASE)
+                .baseUrl(MONZO_API_BASE)
                 .addConverterFactory(gsonConverterFactory)
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .build()
@@ -63,7 +64,7 @@ class MonzoApiModule {
 
         return Retrofit.Builder()
                 .client(okHttpClientBuilder.build())
-                .baseUrl(MonzoConstants.MONZO_API_BASE)
+                .baseUrl(MONZO_API_BASE)
                 .addConverterFactory(gsonConverterFactory)
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .build()
@@ -85,7 +86,7 @@ class MonzoApiModule {
 
         return Retrofit.Builder()
                 .client(okHttpClientBuilder.build())
-                .baseUrl(MonzoConstants.MONZO_DISPATCH_API_BASE)
+                .baseUrl(MONZO_DISPATCH_API_BASE)
                 .addConverterFactory(gsonConverterFactory)
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .build()

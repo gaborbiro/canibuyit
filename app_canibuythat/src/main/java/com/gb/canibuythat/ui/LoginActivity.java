@@ -1,5 +1,6 @@
 package com.gb.canibuythat.ui;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -10,13 +11,12 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.Toast;
 
 import com.gb.canibuythat.CredentialsProvider;
-import com.gb.canibuythat.MonzoConstants;
 import com.gb.canibuythat.R;
 import com.gb.canibuythat.di.Injector;
 import com.gb.canibuythat.presenter.BasePresenter;
+import com.gb.canibuythat.screen.Screen;
 import com.gb.canibuythat.util.Logger;
 
 import java.net.URLEncoder;
@@ -24,6 +24,10 @@ import java.net.URLEncoder;
 import javax.inject.Inject;
 
 import butterknife.BindView;
+
+import static com.gb.canibuythat.MonzoConstantsKt.CLIENT_ID;
+import static com.gb.canibuythat.MonzoConstantsKt.MONZO_OAUTH_URL;
+import static com.gb.canibuythat.MonzoConstantsKt.MONZO_URI_AUTH_CALLBACK;
 
 public class LoginActivity extends BaseActivity {
 
@@ -35,6 +39,7 @@ public class LoginActivity extends BaseActivity {
         context.startActivity(i);
     }
 
+    @SuppressLint("SetJavaScriptEnabled")
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,16 +54,16 @@ public class LoginActivity extends BaseActivity {
         WebSettings webSettings = webView.getSettings();
         webSettings.setJavaScriptEnabled(true);
 
-        String url = MonzoConstants.MONZO_OAUTH_URL
-                + "/?client_id=" + MonzoConstants.CLIENT_ID
-                + "&redirect_uri=" + URLEncoder.encode(MonzoConstants.MONZO_URI_AUTH_CALLBACK)
+        String url = MONZO_OAUTH_URL
+                + "/?client_id=" + CLIENT_ID
+                + "&redirect_uri=" + URLEncoder.encode(MONZO_URI_AUTH_CALLBACK)
                 + "&response_type=code";
         Logger.INSTANCE.d("CanIBuyThat", url);
         webView.loadUrl(url);
     }
 
     @Override
-    protected BasePresenter inject() {
+    protected BasePresenter<Screen> inject() {
         Injector.INSTANCE.getGraph().inject(this);
         return null;
     }

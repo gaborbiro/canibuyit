@@ -112,7 +112,6 @@
             <EditText
                 android:id="@+id/target_input"
                 android:imeOptions="actionNext"
-                android:inputType="numberDecimal|numberSigned"
                 android:layout_height="wrap_content"
                 android:layout_width="wrap_content"
                 android:lines="1"
