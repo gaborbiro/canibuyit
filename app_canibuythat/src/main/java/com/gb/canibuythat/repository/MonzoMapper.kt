@@ -47,14 +47,25 @@ class MonzoMapper @Inject constructor(private val projectInteractor: ProjectInte
                 apiTransaction.category)
     }
 
-    fun mapToSpending(category: String, transactions: List<Transaction>, savedSpending: Spending?, projectSettings: Project): Spending {
+    fun mapToSpending(category: String, transactions: List<Transaction>, savedSpending: Spending?, projectSettings: Project, totalDayCount: Int): Spending {
         val spending = Spending()
 
         val cycle: Cycle = override(savedSpending?.cycle, flag = projectSettings.cycleOverride) ?: getOptimalCycle(transactions)
 
         spending.cycle = cycle
         val cycleMap: Map<Int, List<Transaction>> = transactions.groupBy { cycle.get(it.created.toLocalDate()) }
-        spending.value = override(savedSpending?.value, projectSettings.averageOverride) ?: transactions.sumBy { it.amount }.div(cycleMap.size).div(100.0)
+        spending.value = override(savedSpending?.value, projectSettings.averageOverride) ?: transactions
+                .sumBy { it.amount }
+                .div(totalDayCount)
+                .times(
+                        when (cycle) {
+                            Spending.Cycle.DAYS -> 1.0
+                            Spending.Cycle.WEEKS -> 7.0
+                            Spending.Cycle.MONTHS -> 30.42
+                            Spending.Cycle.YEARS -> 365.0
+                        }
+                )
+        spending.value = Math.round(spending.value).div(100.0) // cents to pounds
         spending.type = override(savedSpending?.type, projectSettings.categoryOverride) ?: mapSpendingType(category)
         spending.name = override(savedSpending?.name, projectSettings.nameOverride) ?: WordUtils.capitalizeFully(category.replace("\\_".toRegex(), " "))
         spending.cycleMultiplier = override(savedSpending?.cycleMultiplier, flag = projectSettings.cycleOverride) ?: 1
@@ -62,7 +73,7 @@ class MonzoMapper @Inject constructor(private val projectInteractor: ProjectInte
         spending.fromStartDate = override(savedSpending?.fromStartDate, projectSettings.whenOverride) ?: fromLocalDate(firstOccurrence)
         spending.fromEndDate = override(savedSpending?.fromEndDate, projectSettings.whenOverride) ?: fromLocalDate(firstOccurrence.add(cycle, 1).minusDays(1))
         spending.sourceData.put(Spending.SOURCE_MONZO_CATEGORY, category)
-        cycleMap[cycle.get(LocalDate.now(ZoneId.systemDefault()))]?.let { spending.spent = it.sumBy { it.amount }.div(100.0) } ?:let { spending.spent = 0.0 }
+        cycleMap[cycle.get(LocalDate.now(ZoneId.systemDefault()))]?.let { spending.spent = it.sumBy { it.amount }.div(100.0) } ?: let { spending.spent = 0.0 }
 
         spending.occurrenceCount = override(savedSpending?.occurrenceCount)
         spending.target = override(savedSpending?.target)

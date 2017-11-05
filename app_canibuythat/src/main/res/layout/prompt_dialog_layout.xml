@@ -1,69 +1,107 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              xmlns:tools="http://schemas.android.com/tools"
-              style="@style/Dialog"
-              android:id="@+id/dialogParent"
-              android:orientation="vertical">
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                                             xmlns:app="http://schemas.android.com/apk/res-auto"
+                                             xmlns:tools="http://schemas.android.com/tools"
+                                             android:layout_height="wrap_content"
+                                             android:layout_width="wrap_content"
+                                             android:minWidth="@dimen/dialog_width">
 
-    <LinearLayout style="@style/DialogMessageContent">
+    <TextView
+        style="@style/DialogTitle"
+        android:gravity="start"
+        android:id="@+id/title"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/dialog_padding"
+        android:layout_marginStart="@dimen/dialog_padding"
+        android:layout_marginTop="@dimen/dialog_padding"
+        android:layout_width="0dp"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Title Text"
+        tools:visibility="visible"/>
+
+    <ProgressBar
+        style="?android:attr/progressBarStyleLarge"
+        android:id="@+id/progress_bar"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/dialog_padding"
+        android:layout_marginEnd="@dimen/dialog_padding"
+        android:layout_marginTop="@dimen/dialog_padding"
+        android:layout_width="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/button"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/title"
+        tools:visibility="visible"/>
+
+    <TextView
+        style="@style/DialogMessage"
+        android:id="@+id/message"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/dialog_padding"
+        android:layout_marginEnd="@dimen/dialog_padding"
+        android:layout_marginStart="@dimen/dialog_padding"
+        android:layout_marginTop="@dimen/dialog_padding"
+        android:layout_width="0dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/button"
+        app:layout_constraintEnd_toStartOf="@+id/progress_bar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/title"
+        tools:text="Message Text will be displayed"
+        tools:visibility="gone"/>
+
+    <ScrollView
+        android:id="@+id/big_message_container"
+        android:layout_height="300dp"
+        android:layout_marginBottom="48dp"
+        android:layout_marginEnd="@dimen/dialog_padding"
+        android:layout_marginStart="@dimen/dialog_padding"
+        android:layout_marginTop="@dimen/dialog_padding"
+        android:layout_width="0dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/progress_bar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/title"
+        tools:visibility="visible">
 
         <TextView
-            style="@style/DialogTitle"
-            android:id="@+id/title"
-            android:visibility="gone"
-            tools:visibility="visible"
-            tools:text="Title Text"/>
-
-        <RelativeLayout
+            style="@style/DialogMessage"
+            android:id="@+id/big_message"
             android:layout_height="wrap_content"
-            android:layout_width="match_parent">
-
-            <ProgressBar
-                style="?android:attr/progressBarStyleLarge"
-                android:id="@+id/progress_bar"
-                android:layout_alignParentRight="true"
-                android:layout_height="wrap_content"
-                android:layout_width="wrap_content"
-                android:visibility="gone"
-                tools:visibility="visible"/>
-
-            <ScrollView
-                android:layout_height="wrap_content"
-                android:layout_width="match_parent"
-                android:layout_marginTop="20dp"
-                android:layout_centerVertical="true"
-                android:layout_toLeftOf="@id/progress_bar">
-
-                <TextView
-                    style="@style/DialogMessage"
-                    android:id="@+id/message"
-                    android:visibility="gone"
-                    tools:text="Message Text will be displayed"
-                    tools:visibility="visible"/>
-            </ScrollView>
-
-            <EditText
-                android:id="@+id/input"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:visibility="gone"
-                android:selectAllOnFocus="true"
-                tools:visibility="visible"/>
-        </RelativeLayout>
-    </LinearLayout>
-
-    <RelativeLayout
-        android:id="@+id/buttons_parent"
-        android:layout_height="match_parent"
-        android:layout_width="wrap_content">
-
-        <Button
-            style="@style/DialogButtonHorizontal"
-            android:id="@+id/positive_button"
-            android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true"
-            android:layout_margin="@dimen/dialog_button_padding"
+            android:layout_width="match_parent"
             android:visibility="gone"
-            tools:text="ok"/>
-    </RelativeLayout>
-</LinearLayout>
+            tools:text="Message Text will be displayed"
+            tools:visibility="visible"/>
+    </ScrollView>
+
+    <EditText
+        android:id="@+id/input"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/dialog_padding"
+        android:layout_marginEnd="@dimen/dialog_padding"
+        android:layout_marginStart="@dimen/dialog_padding"
+        android:layout_marginTop="@dimen/dialog_padding"
+        android:layout_width="0dp"
+        android:selectAllOnFocus="true"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/button"
+        app:layout_constraintEnd_toStartOf="@+id/progress_bar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/title"
+        tools:visibility="visible"/>
+
+    <Button
+        style="@style/DialogButton"
+        android:id="@+id/button"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:text="ok"
+        tools:visibility="visible"/>
+</android.support.constraint.ConstraintLayout>

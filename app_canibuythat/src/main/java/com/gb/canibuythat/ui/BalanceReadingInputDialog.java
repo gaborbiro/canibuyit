@@ -37,7 +37,6 @@ public class BalanceReadingInputDialog extends DialogFragment
 
     private BalanceReading lastUpdate;
 
-    @BindView(R.id.last_update) TextView lastUpdateView;
     @BindView(R.id.amount) EditText valueView;
     @BindView(R.id.when_btn) DatePickerButton whenButton;
 
@@ -59,16 +58,14 @@ public class BalanceReadingInputDialog extends DialogFragment
         LinearLayout body = (LinearLayout) LayoutInflater.from(getActivity()).inflate(R.layout.dialog_balance_reading, null);
         unbinder = ButterKnife.bind(this, body);
 
-        Date today = new Date();
-        whenButton.setText(DateUtils.getFORMAT_MONTH_DAY_YR().format(today));
-        whenButton.setDate(today);
-
         if (lastUpdate != null) {
             valueView.setText(Float.toString(lastUpdate.getBalance()));
-            lastUpdateView.setText(getString(R.string.balance_update_reading, lastUpdate.getBalance(),
-                    DateUtils.getFORMAT_MONTH_DAY_YR().format(lastUpdate.getWhen())));
+            whenButton.setText(DateUtils.getFORMAT_MONTH_DAY_YR().format(lastUpdate.getWhen()));
+            whenButton.setDate(lastUpdate.getWhen());
         } else {
-            lastUpdateView.setText("None");
+            Date today = new Date();
+            whenButton.setText(DateUtils.getFORMAT_MONTH_DAY_YR().format(today));
+            whenButton.setDate(today);
         }
 
         return new AlertDialog.Builder(getActivity()).setTitle("Set starting balance")

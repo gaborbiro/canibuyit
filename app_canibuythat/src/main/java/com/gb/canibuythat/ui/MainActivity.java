@@ -333,7 +333,7 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
         if (TextUtils.isEmpty(text)) {
             Toast.makeText(MainActivity.this, "Add some spendings", Toast.LENGTH_SHORT).show();
         } else {
-            PromptDialog.newInstance("Category balance", text).setPositiveButton(android.R.string.ok, null).show(getSupportFragmentManager(), null);
+            PromptDialog.bigMessageDialog("Balance breakdown", text).setPositiveButton(android.R.string.ok, null).show(getSupportFragmentManager(), null);
         }
     }
 

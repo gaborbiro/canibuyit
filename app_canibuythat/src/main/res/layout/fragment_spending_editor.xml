@@ -49,7 +49,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginRight="4dp"
                 android:layout_width="wrap_content"
-                android:text="Category:"/>
+                android:text="Category*:"/>
 
             <Spinner
                 android:id="@+id/category_picker"
@@ -71,11 +71,48 @@
         </LinearLayout>
 
         <LinearLayout
+            android:gravity="center_vertical"
+            android:id="@+id/cycle_container"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent">
+
+            <TextView
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:text="Once every* "/>
+
+            <EditText
+                android:id="@+id/cycle_multiplier_input"
+                android:imeOptions="actionNext"
+                android:inputType="number"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="4dp"
+                android:layout_marginRight="4dp"
+                android:layout_width="wrap_content"
+                android:lines="1"
+                android:minWidth="32dp"
+                android:selectAllOnFocus="true"
+                android:text="1"/>
+
+            <Spinner
+                android:id="@+id/cycle_picker"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_width="0dp"/>
+
+            <CheckBox
+                android:id="@+id/cycle_override_cb"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"/>
+        </LinearLayout>
+
+        <LinearLayout
             android:layout_height="match_parent"
             android:layout_width="match_parent"
             android:orientation="horizontal">
 
             <TextView
+                android:id="@+id/average_text"
                 android:layout_height="wrap_content"
                 android:layout_width="wrap_content"
                 android:text="Amount/Average:"/>
@@ -107,7 +144,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginRight="4dp"
                 android:layout_width="wrap_content"
-                android:text="Limit:"/>
+                android:text="Target:"/>
 
             <EditText
                 android:id="@+id/target_input"
@@ -118,48 +155,6 @@
                 android:minWidth="64dp"
                 android:nextFocusDown="@+id/category_picker"
                 android:selectAllOnFocus="true"/>
-
-            <TextView
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="4dp"
-                android:layout_width="wrap_content"
-                android:text="(this refers to the cycle below, optional)"/>
-        </LinearLayout>
-
-        <LinearLayout
-            android:gravity="center_vertical"
-            android:id="@+id/cycle_container"
-            android:layout_height="wrap_content"
-            android:layout_width="match_parent">
-
-            <TextView
-                android:layout_height="wrap_content"
-                android:layout_width="wrap_content"
-                android:text="Repetition:"/>
-
-            <EditText
-                android:id="@+id/cycle_multiplier_input"
-                android:imeOptions="actionNext"
-                android:inputType="number"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="4dp"
-                android:layout_marginRight="4dp"
-                android:layout_width="wrap_content"
-                android:lines="1"
-                android:minWidth="32dp"
-                android:selectAllOnFocus="true"
-                android:text="1"/>
-
-            <Spinner
-                android:id="@+id/cycle_picker"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_width="0dp"/>
-
-            <CheckBox
-                android:id="@+id/cycle_override_cb"
-                android:layout_height="wrap_content"
-                android:layout_width="wrap_content"/>
         </LinearLayout>
 
         <LinearLayout

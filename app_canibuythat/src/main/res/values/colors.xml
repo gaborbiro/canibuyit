@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
+    <color name="primary">#007a70</color>
+    <color name="primary_dark">#003732</color>
+    <color name="accent">@color/primary</color>
+
     <color name="spending_list_item_spend_low">@color/lime50</color>
     <color name="spending_list_item_spend_medium">@color/lemoncheesecake</color>
     <color name="spending_list_item_spend_high">@color/pimiento</color>

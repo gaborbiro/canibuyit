@@ -3,31 +3,13 @@
               android:layout_height="match_parent"
               android:layout_width="match_parent"
               android:orientation="vertical"
-              android:padding="@dimen/padding">
-
-    <LinearLayout
-        android:layout_height="wrap_content"
-        android:layout_width="match_parent"
-        android:orientation="horizontal">
-
-        <TextView
-            android:layout_height="wrap_content"
-            android:layout_width="wrap_content"
-            android:text="Current value:"/>
-
-        <TextView
-            android:id="@+id/last_update"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/padding"
-            android:layout_width="match_parent"/>
-    </LinearLayout>
+              android:padding="@dimen/dialog_padding">
 
     <EditText
         android:hint="Amount"
         android:id="@+id/amount"
         android:inputType="numberDecimal"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/padding"
         android:layout_width="match_parent"
         android:selectAllOnFocus="true"/>
 
@@ -39,7 +21,6 @@
 
         <TextView
             android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/half_padding"
             android:layout_width="wrap_content"
             android:text="Date of reading: "/>
 

@@ -10,16 +10,28 @@ public class PromptDialog extends BaseDialogFragment {
 
     private static final String EXTRA_TITLE = "title";
     private static final String EXTRA_MESSAGE = "message";
+    private static final String EXTRA_BIG_MESSAGE = "big_message";
 
     private @StringRes int btnStringResId = android.R.string.ok;
     private View.OnClickListener onClickListener;
 
-    public static PromptDialog newInstance(String title, String message) {
+    public static PromptDialog messageDialog(String title, String message) {
         PromptDialog promptDialog = new PromptDialog();
 
         Bundle args = new Bundle();
         args.putString(EXTRA_TITLE, title);
         args.putString(EXTRA_MESSAGE, message);
+        promptDialog.setArguments(args);
+
+        return promptDialog;
+    }
+
+    public static PromptDialog bigMessageDialog(String title, String message) {
+        PromptDialog promptDialog = new PromptDialog();
+
+        Bundle args = new Bundle();
+        args.putString(EXTRA_TITLE, title);
+        args.putString(EXTRA_BIG_MESSAGE, message);
         promptDialog.setArguments(args);
 
         return promptDialog;
@@ -33,7 +45,12 @@ public class PromptDialog extends BaseDialogFragment {
         Bundle b = getArguments();
 
         setTitle(b.getString(EXTRA_TITLE));
-        setMessage(b.getString(EXTRA_MESSAGE));
+        if (b.containsKey(EXTRA_MESSAGE)) {
+            setMessage(b.getString(EXTRA_MESSAGE));
+        }
+        if (b.containsKey(EXTRA_BIG_MESSAGE)) {
+            setBigMessage(b.getString(EXTRA_BIG_MESSAGE));
+        }
 
         super.setPositiveButton(btnStringResId, v -> {
             dismiss();

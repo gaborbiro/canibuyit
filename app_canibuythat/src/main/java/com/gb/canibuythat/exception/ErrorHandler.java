@@ -30,20 +30,20 @@ public class ErrorHandler {
             DomainException domainException = (DomainException) exception;
             switch (domainException.getKind()) {
                 case HTTP:
-                    dialog = PromptDialog.newInstance("Server error " + domainException.getCode(), domainException.getMessage());
+                    dialog = PromptDialog.messageDialog("Server error " + domainException.getCode(), domainException.getMessage());
                     if (domainException.getAction() == DomainException.Action.LOGIN) {
                         dialog.setPositiveButton(android.R.string.ok, v -> LoginActivity.show(Injector.INSTANCE.getContext()));
                     }
                     break;
                 case NETWORK:
-                    dialog = PromptDialog.newInstance("Network error", domainException.getMessage());
+                    dialog = PromptDialog.messageDialog("Network error", domainException.getMessage());
                     break;
                 case GENERIC:
-                    dialog = PromptDialog.newInstance("Error", domainException.getMessage());
+                    dialog = PromptDialog.messageDialog("Error", domainException.getMessage());
                     break;
             }
         } else {
-            dialog = PromptDialog.newInstance("Error", exception.getMessage() + "\n\nCheck log for details");
+            dialog = PromptDialog.messageDialog("Error", exception.getMessage() + "\n\nCheck log for details");
         }
         FragmentManager fragmentManager = Injector.INSTANCE.getFragmentManager();
 

@@ -22,10 +22,12 @@ public abstract class BaseDialogFragment extends DialogFragment {
 
     private Unbinder unbinder;
 
-    @BindView(R.id.positive_button) Button positiveBtn;
+    @BindView(R.id.button) Button positiveBtn;
     @BindView(R.id.progress_bar) ProgressBar activityIndicator;
     @BindView(R.id.title) TextView title;
     @BindView(R.id.message) TextView message;
+    @BindView(R.id.big_message) TextView bigMessage;
+    @BindView(R.id.big_message_container) View bigMessageContainer;
     @BindView(R.id.input) EditText input;
 
     @Override
@@ -57,9 +59,21 @@ public abstract class BaseDialogFragment extends DialogFragment {
         return this;
     }
 
+    public BaseDialogFragment setBigMessage(@StringRes int message) {
+        setBigMessage(getString(message));
+        return this;
+    }
+
     public BaseDialogFragment setMessage(String body) {
         this.message.setText(body);
         this.message.setVisibility(View.VISIBLE);
+        return this;
+    }
+
+    public BaseDialogFragment setBigMessage(String body) {
+        this.bigMessage.setText(body);
+        this.bigMessage.setVisibility(View.VISIBLE);
+        this.bigMessageContainer.setVisibility(View.VISIBLE);
         return this;
     }
 

@@ -156,15 +156,22 @@ constructor(val spendingDao: Dao<Spending, Int>,
 
     fun getCategoryBalance(): String {
         val buffer = StringBuffer()
-        val startDate = userPreferences.balanceReading?.`when`
-        val endDate = userPreferences.estimateDate
-
-        Spending.Category.values().forEach { category ->
+        userPreferences.balanceReading?.let { balanceReading ->
+            val startDate = balanceReading.`when`
+            val endDate = userPreferences.estimateDate
+            val total = calculateBalanceForCategory(null, startDate = startDate, endDate = endDate)!!.definitely!!
             try {
-                val balance = calculateBalanceForCategory(category, startDate, endDate)
-                if (balance != null) {
-                    buffer.append("${category.name}:\n${balance.definitely}/${balance.maybeEvenThisMuch}\n")
-                }
+                Spending.Category.values()
+                        .map { Pair(it, calculateBalanceForCategory(it, startDate, endDate)) }
+                        .filter { it.second?.let { it.definitely != 0f || it.maybeEvenThisMuch != 0f } ?: false }
+                        .sortedBy { it.second!!.definitely }
+                        .joinTo(buffer = buffer, separator = "\n", transform = {
+                            val name = it.first.name.toLowerCase().capitalize()
+                            val definitely = it.second!!.definitely!!
+                            val maybe = it.second!!.maybeEvenThisMuch
+                            val percent = definitely.div(total).times(100)
+                            "%1\$s: %2\$.0f/%3\$.0f (%4\$.0f%%)".format(name, definitely, maybe, percent)
+                        })
             } catch (e: IllegalArgumentException) {
                 throw DomainException("Date of balance reading must not come after date of target estimate", e)
             }

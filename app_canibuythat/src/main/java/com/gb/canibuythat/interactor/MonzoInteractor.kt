@@ -7,6 +7,7 @@ import com.gb.canibuythat.model.Webhook
 import com.gb.canibuythat.model.Webhooks
 import com.gb.canibuythat.repository.MonzoRepository
 import com.gb.canibuythat.rx.SchedulerProvider
+import com.gb.canibuythat.util.clearLowerBits
 import io.reactivex.Completable
 import io.reactivex.Single
 import io.reactivex.disposables.Disposable
@@ -44,7 +45,7 @@ constructor(private val schedulerProvider: SchedulerProvider,
 
     fun loadSpendings(accountIds: List<String>, lastXMonths: Int?): Disposable {
         val since = lastXMonths?.let {
-            Calendar.getInstance()
+            clearLowerBits()
                     .also { it.add(Calendar.MONTH, -lastXMonths) }
                     .also { it.set(Calendar.DAY_OF_MONTH, 1) }
                     .time

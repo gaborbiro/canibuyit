@@ -17,6 +17,7 @@ import com.gb.canibuythat.util.DateUtils
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
+import org.threeten.bp.temporal.ChronoUnit
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -49,15 +50,16 @@ class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi,
         }.distinct {
             it.id
         }.filter {
-            TextUtils.isEmpty(it.decline_reason)
+            TextUtils.isEmpty(it.decline_reason) && !TextUtils.isEmpty(it.created)
         }.map {
             mapper.mapToTransaction(it)
         }.toList().map { transactions ->
             val projectSettings = projectInteractor.getProject().blockingGet()
             val savedSpending = spendingsRepository.all.blockingGet()
                     .groupBy { it.sourceData[Spending.SOURCE_MONZO_CATEGORY] }
+            val dayCount = ChronoUnit.DAYS.between(transactions.minBy { it.created }!!.created, transactions.maxBy { it.created }!!.created).toInt() + 1
             transactions.groupBy(Transaction::category).map { (category, transactionsForThatCategory) ->
-                mapper.mapToSpending(category, transactionsForThatCategory, savedSpending[category]?.get(0), projectSettings)
+                mapper.mapToSpending(category, transactionsForThatCategory, savedSpending[category]?.get(0), projectSettings, dayCount)
             }
         }
     }

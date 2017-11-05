@@ -48,6 +48,7 @@ class SpendingEditorFragment : BaseFragment() {
 
     private val nameInput: EditText by lazy { rootView?.findViewById(R.id.name_input) as EditText }
     private val averageInput: EditText by lazy { rootView?.findViewById(R.id.average_input) as EditText }
+    private val averageLbl: TextView by lazy { rootView?.findViewById(R.id.average_text) as TextView }
     private val targetInput: EditText by lazy { rootView?.findViewById(R.id.target_input) as EditText }
     private val enabledCB: CompoundButton by lazy { rootView?.findViewById(R.id.enabled_switch) as CompoundButton }
     private val categoryPicker: Spinner by lazy { rootView?.findViewById(R.id.category_picker) as Spinner }
@@ -125,8 +126,10 @@ class SpendingEditorFragment : BaseFragment() {
             fromDatePicker.endDate = spending.fromEndDate
             spending.occurrenceCount?.let {
                 occurrenceInput.setText(it.toString())
+                averageLbl.text = "Value*: "
             } ?: let {
                 occurrenceInput.text = null
+                averageLbl.text = "Average*: "
             }
             spending.cycleMultiplier?.let {
                 cycleMultiplierInput.setText(it.toString())
@@ -135,8 +138,7 @@ class SpendingEditorFragment : BaseFragment() {
             }
             cyclePicker.setSelection(spending.cycle!!.ordinal + 1)
             notesInput.setText(spending.notes)
-            sourceCategoryLbl.text = spending.sourceData[Spending.SOURCE_MONZO_CATEGORY]
-            loadSpendingOccurrences(spending)
+            sourceCategoryLbl.text = "(monzo: " + spending.sourceData[Spending.SOURCE_MONZO_CATEGORY] + ")"
         }
 
     private val cycleMultiplierFromScreen: Int?
