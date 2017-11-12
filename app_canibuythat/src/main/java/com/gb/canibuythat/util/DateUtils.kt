@@ -1,5 +1,6 @@
 package com.gb.canibuythat.util
 
+import android.annotation.SuppressLint
 import android.app.DatePickerDialog
 import android.content.Context
 import org.threeten.bp.ZoneId
@@ -47,10 +48,11 @@ fun clearLowerBits(): Calendar {
     return c
 }
 
+@SuppressLint("SimpleDateFormat")
 class DateUtils {
 
     companion object {
-        var SUFFIXES = arrayOf("0th", "1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th",
+        private var SUFFIXES = arrayOf("0th", "1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th",
                 "10th", "11th", "12th", "13th", "14th", "15th", "16th", "17th", "18th", "19th", "20th",
                 "21st", "22nd", "23rd", "24th", "25th", "26th", "27th", "28th", "29th", "30th", "31st")
 
@@ -84,16 +86,12 @@ class DateUtils {
             if (start.after(end)) {
                 throw IllegalArgumentException("Start date must come before end date")
             }
-            if (date.before(start)) {
-                return -2
-            } else if (date == start) {
-                return -1
-            } else if (date.timeInMillis >= start.timeInMillis && date.timeInMillis <= end.timeInMillis) {
-                return 0
-            } else if (date == end) {
-                return 1
-            } else {
-                return 2
+            return when {
+                date.before(start) -> -2
+                date == start -> -1
+                date.timeInMillis >= start.timeInMillis && date.timeInMillis <= end.timeInMillis -> 0
+                date == end -> 1
+                else -> 2
             }
         }
 
@@ -130,9 +128,9 @@ class DateUtils {
         fun isToday(d: Date): Boolean {
             val now = Calendar.getInstance()
             val c = d.toCalendar()
-            return c.get(Calendar.ERA) === now.get(Calendar.ERA) &&
-                    c.get(Calendar.YEAR) === now.get(Calendar.YEAR) &&
-                    c.get(Calendar.DAY_OF_YEAR) === now.get(Calendar.DAY_OF_YEAR)
+            return c[Calendar.ERA] == now[Calendar.ERA] &&
+                    c[Calendar.YEAR] == now[Calendar.YEAR] &&
+                    c[Calendar.DAY_OF_YEAR] == now[Calendar.DAY_OF_YEAR]
         }
 
         @JvmStatic

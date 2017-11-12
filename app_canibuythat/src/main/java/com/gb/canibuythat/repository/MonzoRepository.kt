@@ -37,6 +37,7 @@ class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi,
                 .map(mapper::mapToLogin)
     }
 
+    @Suppress("NAME_SHADOWING")
     fun getSpendings(accountIds: List<String>, since: Date? = null): Single<List<Spending>> {
         return Observable.create<ApiTransaction> { emitter ->
             accountIds.forEach {
