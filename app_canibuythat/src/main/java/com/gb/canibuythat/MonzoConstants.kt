@@ -6,8 +6,6 @@ const val CLIENT_SECRET = "2WIqPL+7cdaH1Dgl6Gi776GUPPWlHPs2kLjvC7cB0389MCJvVOqZr
 const val ACCOUNT_ID_PREPAID = "acc_00009GgHgzFZ5EffRUGtxR"
 const val ACCOUNT_ID_RETAIL = "acc_00009OlZSKsjVzXiCZVXwv"
 
-const val TRANSACTION_HISTORY_LENGTH_MONTHS = 3
-
 // Auth
 
 const val MONZO_OAUTH_URL = "https://auth.getmondo.co.uk"

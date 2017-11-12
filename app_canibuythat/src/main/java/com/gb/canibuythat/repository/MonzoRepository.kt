@@ -66,7 +66,7 @@ class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi,
                         it.value = 0.0
                         it.enabled = false
                         it
-                    } ?: null
+                    } ?: let { null }
                 } else {
                     savedSpending?.let {
                         if (it.value == 0.0 && !it.enabled) {
