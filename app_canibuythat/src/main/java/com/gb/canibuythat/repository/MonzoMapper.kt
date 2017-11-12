@@ -12,6 +12,7 @@ import com.gb.canibuythat.model.Spending.Cycle
 import com.gb.canibuythat.model.Transaction
 import com.gb.canibuythat.model.Webhook
 import com.gb.canibuythat.model.Webhooks
+import com.gb.canibuythat.util.nonNullAndTrue
 import org.apache.commons.lang3.text.WordUtils
 import org.threeten.bp.LocalDate
 import org.threeten.bp.ZoneId
@@ -150,8 +151,4 @@ class MonzoMapper @Inject constructor(private val projectInteractor: ProjectInte
     }
 
     private fun fromLocalDate(localDate: LocalDate): Date = Date(localDate.year - 1900, localDate.monthValue - 1, localDate.dayOfMonth)
-
-    private fun <T> nonNullAndTrue(data: T?, flag: Boolean? = true): T? {
-        return if (data != null && flag == true) data else null
-    }
 }

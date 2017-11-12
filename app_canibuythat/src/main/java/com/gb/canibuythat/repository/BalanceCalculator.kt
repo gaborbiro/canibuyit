@@ -13,7 +13,7 @@ object BalanceCalculator {
      * applied up until the specified `end` date (usually today) and sum up
      * it's value.
 
-     * @param end if null, `today` is used instead
+     * @param endDate if null, `today` is used instead
      * *
      * @return two floating point values, the first is the minimum possible value, the second is
      * * the maximum possible value
@@ -26,7 +26,9 @@ object BalanceCalculator {
         var `break` = false
         var definitelySpentThisMuch = 0f
         var maybeSpentThisMuch = 0f
-        val spendingEvents = ArrayList<Date>()
+        var targetDefinitelySpentThisMuch = 0f
+        var targetMaybeSpentThisMuch = 0f
+//        val spendingEvents = ArrayList<Date>()
         var count = 0
         val occurrenceStart = spending.fromStartDate.toCalendar()
         val occurrenceEnd = spending.fromEndDate.toCalendar()
@@ -36,15 +38,18 @@ object BalanceCalculator {
         do {
             if (start == null || occurrenceEnd.timeInMillis >= start.time) {
                 val r = DateUtils.compare(end, occurrenceStart, occurrenceEnd)
+                val target = spending.target?.let { if (it > 0) -it.toFloat() else it.toFloat() } ?: spending.value.toFloat()
                 if (r >= -1) { // >= start date
                     if (spending.enabled) {
                         maybeSpentThisMuch += spending.value.toFloat()
+                        targetMaybeSpentThisMuch += target
                     }
                     if (r > 1) { // > end date
                         if (spending.enabled) {
                             definitelySpentThisMuch += spending.value.toFloat()
+                            targetDefinitelySpentThisMuch += target
                         }
-                        spendingEvents.add(occurrenceEnd.time)
+//                        spendingEvents.add(occurrenceEnd.time)
                     }
                 } else {
                     `break` = true
@@ -56,7 +61,7 @@ object BalanceCalculator {
                 `break` = true
             }
         } while (!`break`)
-        return BalanceResult(definitelySpentThisMuch, maybeSpentThisMuch, spendingEvents.toTypedArray())
+        return BalanceResult(definitelySpentThisMuch, maybeSpentThisMuch, targetDefinitelySpentThisMuch, targetMaybeSpentThisMuch, null/*spendingEvents.toTypedArray()*/)
     }
 
     data class BalanceResult(
@@ -71,10 +76,19 @@ object BalanceCalculator {
              */
             val maybeEvenThisMuch: Float,
             /**
+             * Use the spending target instead of the historical average-based estimation. The "well behaved user" scenario.
+             * Not all spendings have a target set, in which case this defaults back to the estimate
+             */
+            val targetDefinitely: Float,
+            /**
+             * Similar to maybeEvenThisMuch
+             */
+            val targetMaybeEvenThisMuch: Float,
+            /**
              * Spending event is the latest day on which we expect a payment/income to happen.
              * For eg if a weekly Spending starts on a Monday, than the array of spending
              * events will be all the Sundays after that Monday and before today (including
              * today).
              */
-            val spendingEvents: Array<Date>)
+            val spendingEvents: Array<Date>?)
 }

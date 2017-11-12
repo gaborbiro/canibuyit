@@ -14,7 +14,7 @@ interface MainScreen : MonzoDispatchScreen {
 
     fun showLoginActivity()
 
-    fun setBalanceInfo(balance: Balance)
+    fun setBalanceInfo(balance: Balance?)
 
     fun showPickerForImport(directory: String, spendingsImportType: SpendingsImportType)
 
@@ -22,7 +22,7 @@ interface MainScreen : MonzoDispatchScreen {
 
     fun showEditorScreen(spendingId: Int?)
 
-    fun showCategoryBalance(text: String)
+    fun showDialog(title: String, text: String)
 
     fun setTitle(projectName: String?)
 

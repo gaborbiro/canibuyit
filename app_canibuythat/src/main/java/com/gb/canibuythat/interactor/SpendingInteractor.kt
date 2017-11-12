@@ -103,7 +103,15 @@ constructor(private val spendingsRepository: SpendingsRepository,
                 .observeOn(schedulerProvider.mainThread())
     }
 
-    fun getCategoryBalance(): String {
-        return spendingsRepository.getCategoryBalance()
+    fun getBalanceBreakdown(): String {
+        return spendingsRepository.getBalanceBreakdown()
+    }
+
+    fun getTargetBalanceBreakdown(): String {
+        return spendingsRepository.getTargetBalanceBreakdown()
+    }
+
+    fun getTargetSavingBreakdown(): String {
+        return spendingsRepository.getTargetSavingBreakdown()
     }
 }

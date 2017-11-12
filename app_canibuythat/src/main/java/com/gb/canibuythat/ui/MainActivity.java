@@ -263,7 +263,7 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
     }
 
     @Override
-    public void setBalanceInfo(@NonNull Balance balance) {
+    public void setBalanceInfo(Balance balance) {
         if (referenceLbl != null) {
             String text;
             BalanceReading balanceReading = userPreferences.getBalanceReading();
@@ -272,18 +272,20 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
             } else {
                 text = getString(R.string.reading_none);
             }
-            ViewUtils.setTextWithLink(referenceLbl, text, text, this::showBalanceUpdateDialog);
+            ViewUtils.setTextWithLink(referenceLbl, text, text.substring(6), this::showBalanceUpdateDialog);
         }
         if (projectionLbl != null) {
             final Date estimateDate = userPreferences.getEstimateDate();
             String estimateDateStr = DateUtils.isToday(estimateDate) ? getString(R.string.today) : DateUtils.formatDayMonthYear(estimateDate);
 
             String defoMaybeStr = "?";
-            if (balance.getDefinitely() != null || balance.getMaybeEvenThisMuch() != null) {
-                defoMaybeStr = getString(R.string.definitely_maybe, balance.getDefinitely(), balance.getMaybeEvenThisMuch());
+            String targetDefoMaybeStr = "?";
+            if (balance != null) {
+                defoMaybeStr = getString(R.string.definitely_maybe, balance.getDefinitely(), balance.getMaybeEvenThisMuch() - balance.getDefinitely());
+                targetDefoMaybeStr = getString(R.string.definitely_maybe, balance.getTargetDefinitely(), balance.getTargetMaybeEvenThisMuch() - balance.getTargetDefinitely());
             }
-            String estimateAtTime = getString(R.string.estimate_at_date, defoMaybeStr, estimateDateStr);
-            ViewUtils.setTextWithLinks(projectionLbl, estimateAtTime, new String[]{defoMaybeStr, estimateDateStr}, new Runnable[]{defoMaybeClickListener, estimateDateUpdater});
+            String estimateAtTime = getString(R.string.estimate_at_date, defoMaybeStr, estimateDateStr, targetDefoMaybeStr);
+            ViewUtils.setTextWithLinks(projectionLbl, estimateAtTime, new String[]{defoMaybeStr, targetDefoMaybeStr, "behave", estimateDateStr}, new Runnable[]{defoMaybeClickListener, targetDefoMaybeClickListener, savingClickListener, estimateDateUpdater});
         }
     }
 
@@ -304,7 +306,11 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
         datePickerDialog.show();
     };
 
-    private Runnable defoMaybeClickListener = () -> mainPresenter.fetchCategoryBalance();
+    private Runnable defoMaybeClickListener = () -> mainPresenter.getBalanceBreakdown();
+
+    private Runnable targetDefoMaybeClickListener = () -> mainPresenter.getTargetBalanceBreakdown();
+
+    private Runnable savingClickListener = () -> mainPresenter.getTargetSavingBreakdown();
 
     @Override
     public void showLoginActivity() {
@@ -322,11 +328,11 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
     }
 
     @Override
-    public void showCategoryBalance(@NotNull String text) {
+    public void showDialog(@NotNull String title, @NotNull String text) {
         if (TextUtils.isEmpty(text)) {
             Toast.makeText(MainActivity.this, "Add some spendings", Toast.LENGTH_SHORT).show();
         } else {
-            PromptDialog.bigMessageDialog("Balance breakdown", text).setPositiveButton(android.R.string.ok, null).show(getSupportFragmentManager(), null);
+            PromptDialog.bigMessageDialog(title, text).setPositiveButton(android.R.string.ok, null).show(getSupportFragmentManager(), null);
         }
     }
 

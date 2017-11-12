@@ -1,4 +1,6 @@
 package com.gb.canibuythat.model
 
-data class Balance(var definitely: Float? = null,
-                   var maybeEvenThisMuch: Float? = null)
+data class Balance(var definitely: Float,
+                   var maybeEvenThisMuch: Float,
+                   var targetDefinitely: Float,
+                   var targetMaybeEvenThisMuch: Float)

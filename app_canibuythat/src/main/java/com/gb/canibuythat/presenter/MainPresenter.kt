@@ -14,7 +14,6 @@ import com.gb.canibuythat.interactor.BackupingInteractor
 import com.gb.canibuythat.interactor.MonzoInteractor
 import com.gb.canibuythat.interactor.ProjectInteractor
 import com.gb.canibuythat.interactor.SpendingInteractor
-import com.gb.canibuythat.model.Balance
 import com.gb.canibuythat.screen.MainScreen
 import com.gb.canibuythat.util.DateUtils
 import io.reactivex.functions.Consumer
@@ -22,12 +21,12 @@ import java.util.*
 import javax.inject.Inject
 
 class MainPresenter @Inject
-constructor(val monzoInteractor: MonzoInteractor,
-            val spendingInteractor: SpendingInteractor,
-            val projectInteractor: ProjectInteractor,
-            val backupingInteractor: BackupingInteractor,
-            val credentialsProvider: CredentialsProvider,
-            val userPreferences: UserPreferences) : BasePresenter<MainScreen>() {
+constructor(private val monzoInteractor: MonzoInteractor,
+            private val spendingInteractor: SpendingInteractor,
+            private val projectInteractor: ProjectInteractor,
+            private val backupingInteractor: BackupingInteractor,
+            private val credentialsProvider: CredentialsProvider,
+            private val userPreferences: UserPreferences) : BasePresenter<MainScreen>() {
 
     init {
         disposeOnFinish(spendingInteractor.getSpendingsDataStream().subscribe({
@@ -64,7 +63,7 @@ constructor(val monzoInteractor: MonzoInteractor,
                 .doOnSubscribe { getScreen().showProgress() }
                 .doAfterTerminate { getScreen().hideProgress() }
                 .subscribe(getScreen()::setBalanceInfo, {
-                    getScreen().setBalanceInfo(Balance())
+                    getScreen().setBalanceInfo(null)
                     this.onError(com.gb.canibuythat.exception.DomainException("Cannot calculate balance. See logs", it))
                 }))
         projectInteractor.getProject().subscribe(Consumer {
@@ -72,8 +71,16 @@ constructor(val monzoInteractor: MonzoInteractor,
         })
     }
 
-    fun fetchCategoryBalance() {
-        getScreen().showCategoryBalance(spendingInteractor.getCategoryBalance())
+    fun getBalanceBreakdown() {
+        getScreen().showDialog("Balance breakdown", spendingInteractor.getBalanceBreakdown())
+    }
+
+    fun getTargetBalanceBreakdown() {
+        getScreen().showDialog("Target balance breakdown", spendingInteractor.getTargetBalanceBreakdown())
+    }
+
+    fun getTargetSavingBreakdown() {
+        getScreen().showDialog("Saved by keeping targets", spendingInteractor.getTargetSavingBreakdown())
     }
 
     fun handleDeepLink(intent: Intent) {
@@ -130,7 +137,7 @@ constructor(val monzoInteractor: MonzoInteractor,
     }
 
     fun onImportDatabase(importType: MainScreen.SpendingsImportType) {
-        val directory = BACKUP_FOLDER + "/";
+        val directory = BACKUP_FOLDER + "/"
         getScreen().showPickerForImport(directory, importType)
     }
 

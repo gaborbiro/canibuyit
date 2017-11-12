@@ -139,42 +139,100 @@ constructor(private val spendingDao: Dao<Spending, Int>,
     }
 
     fun getBalance(): Single<Balance> {
-        try {
+        return try {
             val balance = calculateBalanceForCategory(null, startDate = userPreferences.balanceReading?.`when`, endDate = userPreferences.estimateDate)
-            balance?.let {
-                userPreferences.balanceReading?.let {
-                    balance.definitely = balance.definitely?.plus(it.balance)
-                    balance.maybeEvenThisMuch = balance.maybeEvenThisMuch?.plus(it.balance)
-                }
-                return Single.just(balance)
+            userPreferences.balanceReading?.let {
+                balance.definitely = balance.definitely.plus(it.balance)
+                balance.maybeEvenThisMuch = balance.maybeEvenThisMuch.plus(it.balance)
+                balance.targetDefinitely = balance.targetDefinitely.plus(it.balance)
+                balance.targetMaybeEvenThisMuch = balance.targetMaybeEvenThisMuch.plus(it.balance)
             }
-            return Single.just(Balance())
+            Single.just(balance)
         } catch (e: IllegalArgumentException) {
-            return Single.error(DomainException("Date of balance reading must not come after date of target estimate", e))
+            Single.error(DomainException("Date of balance reading must not come after date of target estimate", e))
         }
     }
 
-    fun getCategoryBalance(): String {
+    fun getBalanceBreakdown(): String {
         val buffer = StringBuffer()
         userPreferences.balanceReading?.let { balanceReading ->
             val startDate = balanceReading.`when`
             val endDate = userPreferences.estimateDate
-            val total = calculateBalanceButForCategory(Spending.Category.INCOME, startDate = startDate, endDate = endDate)!!.definitely!!
+            val total = calculateBalanceButForCategory(Spending.Category.INCOME, startDate = startDate, endDate = endDate)!!.definitely
             try {
                 Spending.Category.values()
                         .map { Pair(it, calculateBalanceForCategory(it, startDate, endDate)) }
-                        .filter { it.second?.let { it.definitely != 0f || it.maybeEvenThisMuch != 0f } ?: false }
-                        .sortedBy { it.second!!.definitely }
+                        .filter { it.second.definitely != 0f || it.second.maybeEvenThisMuch != 0f }
+                        .sortedBy { it.second.definitely }
                         .joinTo(buffer = buffer, separator = "\n", transform = {
-                            val name = it.first.name.substring(0, Math.min(8, it.first.name.length)).toLowerCase().capitalize()
-                            val definitely = it.second!!.definitely!!
-                            val maybe = it.second!!.maybeEvenThisMuch
+                            val name = it.first.name.substring(0, Math.min(12, it.first.name.length)).toLowerCase().capitalize()
+                            val definitely = it.second.definitely
+                            val maybe = it.second.maybeEvenThisMuch
+                            val amount = if (definitely == maybe) "%1\$.0f".format(definitely) else "%1\$.0f/%2\$.0f".format(definitely, maybe - definitely)
+
                             if (it.first != Spending.Category.INCOME) {
                                 val percent = definitely.div(total).times(100)
-                                "%1\$s: %2\$.0f/%3\$.0f (%4\$.1f%%)".format(name, definitely, maybe, percent)
+                                "%1\$s: %2\$s (%3\$.1f%%)".format(name, amount, percent)
                             } else {
-                                "%1\$s: %2\$.0f/%3\$.0f".format(name, definitely, maybe)
+                                "%1\$s: %2\$s".format(name, amount)
                             }
+                        })
+            } catch (e: IllegalArgumentException) {
+                throw DomainException("Date of balance reading must not come after date of target estimate", e)
+            }
+        }
+        return buffer.toString()
+    }
+
+    fun getTargetBalanceBreakdown(): String {
+        val buffer = StringBuffer()
+        userPreferences.balanceReading?.let { balanceReading ->
+            val startDate = balanceReading.`when`
+            val endDate = userPreferences.estimateDate
+            val total = calculateBalanceButForCategory(Spending.Category.INCOME, startDate = startDate, endDate = endDate)!!.targetDefinitely
+            try {
+                Spending.Category.values()
+                        .map { Pair(it, calculateBalanceForCategory(it, startDate, endDate)) }
+                        .filter { it.second.targetDefinitely != 0f || it.second.targetMaybeEvenThisMuch != 0f }
+                        .sortedBy { it.second.targetDefinitely }
+                        .joinTo(buffer = buffer, separator = "\n", transform = {
+                            val name = it.first.name.substring(0, Math.min(12, it.first.name.length)).toLowerCase().capitalize()
+                            val definitely = it.second.targetDefinitely
+                            val maybe = it.second.targetMaybeEvenThisMuch
+                            val amount = if (definitely == maybe) "%1\$.0f".format(definitely) else "%1\$.0f/%2\$.0f".format(definitely, maybe - definitely)
+
+                            if (it.first != Spending.Category.INCOME) {
+                                val percent = definitely.div(total).times(100)
+                                "%1\$s: %2\$s (%3\$.1f%%)".format(name, amount, percent)
+                            } else {
+                                "%1\$s: %2\$s".format(name, amount)
+                            }
+                        })
+            } catch (e: IllegalArgumentException) {
+                throw DomainException("Date of balance reading must not come after date of target estimate", e)
+            }
+        }
+        return buffer.toString()
+    }
+
+    fun getTargetSavingBreakdown(): String {
+        val buffer = StringBuffer()
+        userPreferences.balanceReading?.let { balanceReading ->
+            val startDate = balanceReading.`when`
+            val endDate = userPreferences.estimateDate
+            val balance = calculateBalanceButForCategory(Spending.Category.INCOME, startDate = startDate, endDate = endDate)
+            val total = balance!!.targetDefinitely - balance.definitely
+            try {
+                Spending.Category.values()
+                        .map { Pair(it, calculateBalanceForCategory(it, startDate, endDate)) }
+                        .filter { (it.second.targetDefinitely - it.second.definitely) != 0f || (it.second.targetMaybeEvenThisMuch - it.second.maybeEvenThisMuch) != 0f }
+                        .sortedBy { it.second.targetDefinitely }
+                        .joinTo(buffer = buffer, separator = "\n", transform = {
+                            val name = it.first.name.substring(0, Math.min(12, it.first.name.length)).toLowerCase().capitalize()
+                            val definitely = it.second.targetDefinitely - it.second.definitely
+                            val maybe = it.second.targetMaybeEvenThisMuch - it.second.maybeEvenThisMuch
+                            val amount = if (definitely == maybe) "%1\$.0f".format(definitely) else "%1\$.0f/%2\$.0f".format(definitely, maybe - definitely)
+                            "%1\$s: %2\$s".format(name, amount)
                         })
             } catch (e: IllegalArgumentException) {
                 throw DomainException("Date of balance reading must not come after date of target estimate", e)
@@ -188,8 +246,8 @@ constructor(private val spendingDao: Dao<Spending, Int>,
      * @param startDate from which the calculation should start. If null, the individual spending start-dates will be used.
      * @param endDate up until which the calculations should go. If null, `today` is used.
      */
-    private fun calculateBalanceForCategory(category: Spending.Category?, startDate: Date?, endDate: Date): Balance? {
-        var balance: Balance? = null
+    private fun calculateBalanceForCategory(category: Spending.Category?, startDate: Date?, endDate: Date): Balance {
+        val balance = Balance(0f, 0f, 0f, 0f)
 
         val query: MutableMap<String, Any> = mutableMapOf(Contract.Spending.ENABLED to true)
         category?.let { query.put(Contract.Spending.TYPE, category) }
@@ -197,18 +255,15 @@ constructor(private val spendingDao: Dao<Spending, Int>,
 
 
         for (spending: Spending in spendingDao.queryForFieldValues(query)) {
-            if (balance == null) {
-                balance = Balance(0f, 0f)
-            }
-            val (definitely, maybeEvenThisMuch, _) = BalanceCalculator.getEstimatedBalance(
-                    spending, startDate, endDate)
-            balance.definitely = balance.definitely?.plus(definitely)
-            balance.maybeEvenThisMuch = balance.maybeEvenThisMuch?.plus(maybeEvenThisMuch)
+            val (definitely, maybeEvenThisMuch, targetDefinitely, targetMaybeEvenThisMuch, _) = BalanceCalculator.getEstimatedBalance(spending, startDate, endDate)
+            balance.definitely = balance.definitely.plus(definitely)
+            balance.maybeEvenThisMuch = balance.maybeEvenThisMuch.plus(maybeEvenThisMuch)
+            balance.targetDefinitely = balance.targetDefinitely.plus(targetDefinitely)
+            balance.targetMaybeEvenThisMuch = balance.targetMaybeEvenThisMuch.plus(targetMaybeEvenThisMuch)
         }
 
         return balance
     }
-
 
     /**
      * @param category which should be omitted from the total.
@@ -221,12 +276,14 @@ constructor(private val spendingDao: Dao<Spending, Int>,
         builder.where().notIn(Contract.Spending.TYPE, category)
         for (spending: Spending in spendingDao.query(builder.prepare())) {
             if (balance == null) {
-                balance = Balance(0f, 0f)
+                balance = Balance(0f, 0f, 0f, 0f)
             }
-            val (definitely, maybeEvenThisMuch, _) = BalanceCalculator.getEstimatedBalance(
+            val (definitely, maybeEvenThisMuch, targetDefinitely, targetMaybeEvenThisMuch, _) = BalanceCalculator.getEstimatedBalance(
                     spending, startDate, endDate)
-            balance.definitely = balance.definitely?.plus(definitely)
-            balance.maybeEvenThisMuch = balance.maybeEvenThisMuch?.plus(maybeEvenThisMuch)
+            balance.definitely = balance.definitely.plus(definitely)
+            balance.maybeEvenThisMuch = balance.maybeEvenThisMuch.plus(maybeEvenThisMuch)
+            balance.targetDefinitely = balance.targetDefinitely.plus(targetDefinitely)
+            balance.targetMaybeEvenThisMuch = balance.targetMaybeEvenThisMuch.plus(targetMaybeEvenThisMuch)
         }
 
         return balance
