@@ -1,56 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
-<merge xmlns:android="http://schemas.android.com/apk/res/android"
-       xmlns:tools="http://schemas.android.com/tools"
-       tools:context=".ui.SpendingEditorActivity">
+<merge
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_height="wrap_content"
+    android:layout_width="wrap_content"
+    tools:showIn="@layout/fragment_spending_editor">
 
-    <LinearLayout
-        android:gravity="center_vertical"
+    <Button
+        android:focusable="true"
+        android:id="@+id/start_date_btn"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="8dp"
         android:layout_width="wrap_content"
-        android:orientation="horizontal">
+        android:textAllCaps="false"/>
 
-        <RadioButton
-            android:id="@+id/date_range_rb"
-            android:layout_height="wrap_content"
-            android:layout_marginRight="8dp"
-            android:layout_width="wrap_content"
-            android:text="When:"/>
-
-        <Button
-            android:focusable="true"
-            android:id="@+id/start_date_btn"
-            android:layout_height="wrap_content"
-            android:layout_width="wrap_content"/>
-
-        <Button
-            android:focusable="true"
-            android:id="@+id/end_date_btn"
-            android:layout_height="wrap_content"
-            android:layout_width="wrap_content"/>
-
-        <ImageView
-            android:background="?android:attr/selectableItemBackground"
-            android:focusable="true"
-            android:id="@+id/reset_btn"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="4dp"
-            android:layout_width="wrap_content"
-            android:padding="4dp"
-            android:src="@drawable/ic_today_black_24dp"/>
-    </LinearLayout>
-
-    <RadioButton
-        android:id="@+id/first_day_of_month_rb"
+    <Button
+        android:focusable="true"
+        android:id="@+id/end_date_btn"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="8dp"
         android:layout_width="wrap_content"
-        android:text="First day of month"/>
+        android:textAllCaps="false"/>
 
-    <RadioButton
-        android:id="@+id/last_day_of_month_rb"
+    <ImageView
+        android:background="?android:attr/selectableItemBackground"
+        android:focusable="true"
+        android:id="@+id/reset_btn"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="8dp"
+        android:layout_marginLeft="4dp"
         android:layout_width="wrap_content"
-        android:text="Last day of month"/>
+        android:padding="4dp"
+        android:src="@drawable/ic_today_black_24dp"/>
 </merge>

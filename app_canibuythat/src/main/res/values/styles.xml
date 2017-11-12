@@ -28,4 +28,9 @@
         <item name="android:minHeight">48dp</item>
         <item name="android:lineSpacingExtra">6sp</item>
     </style>
+
+    <style name="cloud">
+        <item name="android:button">@drawable/cloud_selector</item>
+        <item name="android:buttonTint">@color/accent</item>
+    </style>
 </resources>

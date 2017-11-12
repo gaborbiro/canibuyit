@@ -12,7 +12,6 @@ import com.gb.canibuythat.model.Spending.Cycle
 import com.gb.canibuythat.model.Transaction
 import com.gb.canibuythat.model.Webhook
 import com.gb.canibuythat.model.Webhooks
-import com.gb.canibuythat.util.DateUtils
 import org.apache.commons.lang3.text.WordUtils
 import org.threeten.bp.LocalDate
 import org.threeten.bp.ZoneId
@@ -47,29 +46,29 @@ class MonzoMapper @Inject constructor(private val projectInteractor: ProjectInte
 
     fun mapToSpending(category: Spending.Category, transactions: List<Transaction>, savedSpending: Spending?, projectSettings: Project): Spending? {
         val spending = Spending()
-        val cycle: Cycle = override(savedSpending?.cycle, flag = projectSettings.cycleOverride) ?: getOptimalCycle(transactions)
+        val cycle: Cycle = nonNullAndTrue(savedSpending?.cycle, projectSettings.cyclePinned) ?: getOptimalCycle(transactions)
 
         spending.cycle = cycle
         val cycleMap: Map<Int, List<Transaction>> = transactions.groupBy { cycle.of(it.created.toLocalDate()) }
 
-        spending.value = override(savedSpending?.value, projectSettings.averageOverride) ?: transactions
+        spending.value = nonNullAndTrue(savedSpending?.value, projectSettings.averagePinned) ?: transactions
                 .sumBy { it.amount }
                 .div(cycle.span(transactions.minBy { it.created }!!.created, ZonedDateTime.now()))
                 .toDouble()
-        spending.value = override(savedSpending?.value, projectSettings.averageOverride) ?: Math.round(spending.value).div(100.0) // cents to pounds
-        spending.type = override(savedSpending?.type, projectSettings.categoryOverride) ?: category
-        spending.name = override(savedSpending?.name, projectSettings.nameOverride) ?: WordUtils.capitalizeFully(category.toString().replace("\\_".toRegex(), " "))
-        spending.cycleMultiplier = override(savedSpending?.cycleMultiplier, flag = projectSettings.cycleOverride) ?: 1
+        spending.value = nonNullAndTrue(savedSpending?.value, projectSettings.averagePinned) ?: Math.round(spending.value).div(100.0) // cents to pounds
+        spending.type = nonNullAndTrue(savedSpending?.type, projectSettings.categoryPinned) ?: category
+        spending.name = nonNullAndTrue(savedSpending?.name, projectSettings.namePinned) ?: WordUtils.capitalizeFully(category.toString().replace("\\_".toRegex(), " "))
+        spending.cycleMultiplier = nonNullAndTrue(savedSpending?.cycleMultiplier, projectSettings.cyclePinned) ?: 1
         val firstOccurrence: LocalDate = transactions.minBy { it.created }!!.created.toLocalDate()
-        spending.fromStartDate = override(savedSpending?.fromStartDate, projectSettings.whenOverride) ?: fromLocalDate(firstOccurrence)
-        spending.fromEndDate = override(savedSpending?.fromEndDate, projectSettings.whenOverride) ?: fromLocalDate(firstOccurrence.add(cycle, 1).minusDays(1))
+        spending.fromStartDate = nonNullAndTrue(savedSpending?.fromStartDate, projectSettings.whenPinned) ?: fromLocalDate(firstOccurrence)
+        spending.fromEndDate = nonNullAndTrue(savedSpending?.fromEndDate, projectSettings.whenPinned) ?: fromLocalDate(firstOccurrence.add(cycle, 1).minusDays(1))
         spending.sourceData.put(Spending.SOURCE_MONZO_CATEGORY, category.name.toLowerCase())
         cycleMap[cycle.of(LocalDate.now(ZoneId.systemDefault()))]?.let { spending.spent = it.sumBy { it.amount }.div(100.0) } ?: let { spending.spent = 0.0 }
 
-        spending.occurrenceCount = override(savedSpending?.occurrenceCount)
-        spending.target = override(savedSpending?.target)
-        spending.notes = override(savedSpending?.notes)
-        spending.enabled = override(savedSpending?.enabled) ?: spending.type!!.defaultEnabled
+        spending.occurrenceCount = nonNullAndTrue(savedSpending?.occurrenceCount)
+        spending.target = nonNullAndTrue(savedSpending?.target)
+        spending.notes = nonNullAndTrue(savedSpending?.notes)
+        spending.enabled = nonNullAndTrue(savedSpending?.enabled) ?: spending.type!!.defaultEnabled
         return spending
     }
 
@@ -152,7 +151,7 @@ class MonzoMapper @Inject constructor(private val projectInteractor: ProjectInte
 
     private fun fromLocalDate(localDate: LocalDate): Date = Date(localDate.year - 1900, localDate.monthValue - 1, localDate.dayOfMonth)
 
-    private fun <T> override(data: T?, flag: Boolean? = true): T? {
+    private fun <T> nonNullAndTrue(data: T?, flag: Boolean? = true): T? {
         return if (data != null && flag == true) data else null
     }
 }

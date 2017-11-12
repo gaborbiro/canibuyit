@@ -3,6 +3,7 @@ package com.gb.canibuythat.ui;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -30,7 +31,7 @@ import butterknife.BindView;
  * <p/>
  * Activities containing this fragment MUST implement the {@link FragmentCallback} interface.
  */
-public class SpendingListFragment extends BaseFragment implements SpendingListScreen, SpendingAdapter.OnSpendingClickedListener {
+public class SpendingListFragment extends BaseFragment implements SpendingListScreen, SpendingAdapter.OnSpendingClickedListener, SwipeRefreshLayout.OnRefreshListener {
 
     /**
      * A dummy implementation of the {@link FragmentCallback} interface that does
@@ -38,7 +39,9 @@ public class SpendingListFragment extends BaseFragment implements SpendingListSc
      * only when this fragment is not
      * attached to an activity.
      */
-    private static FragmentCallback dummyFragmentCallback = id -> {
+    private static FragmentCallback dummyFragmentCallback = new FragmentCallback() {
+        @Override public void onSpendingSelected(int id) {}
+        @Override public void refresh() {}
     };
     /**
      * The fragment's current callback object, which is notified of list item clicks.
@@ -46,6 +49,7 @@ public class SpendingListFragment extends BaseFragment implements SpendingListSc
     private FragmentCallback callback = dummyFragmentCallback;
 
     @BindView(android.R.id.list) RecyclerView list;
+    @BindView(R.id.swipe_container) SwipeRefreshLayout swipeRefreshLayout;
 
     private SpendingAdapter adapter;
 
@@ -70,6 +74,7 @@ public class SpendingListFragment extends BaseFragment implements SpendingListSc
         list.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL));
         adapter = new SpendingAdapter(this);
         list.setAdapter(adapter);
+        swipeRefreshLayout.setOnRefreshListener(this);
     }
 
     @Override
@@ -115,6 +120,12 @@ public class SpendingListFragment extends BaseFragment implements SpendingListSc
         callback.onSpendingSelected(spending.getId());
     }
 
+    @Override
+    public void onRefresh() {
+        swipeRefreshLayout.setRefreshing(false);
+        callback.refresh();
+    }
+
     /**
      * A callback interface that all activities containing this fragment must implement.
      * This mechanism allows activities to be notified of events in the fragment.
@@ -127,5 +138,7 @@ public class SpendingListFragment extends BaseFragment implements SpendingListSc
          * @param id database id of the spending
          */
         void onSpendingSelected(int id);
+
+        void refresh();
     }
 }

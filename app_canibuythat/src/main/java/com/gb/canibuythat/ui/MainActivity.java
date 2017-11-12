@@ -59,15 +59,9 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
     @Inject MainPresenter mainPresenter;
     @Inject MonzoDispatchPresenter monzoDispatchPresenter;
 
-    @Nullable
-    @BindView(R.id.estimate_at_time)
-    TextView estimateAtTimeView;
-    @Nullable
-    @BindView(R.id.reference)
-    TextView referenceView;
-    @Nullable
-    @BindView(R.id.chart_button)
-    ImageView chartButton;
+    @Nullable @BindView(R.id.projection_lbl) TextView projectionLbl;
+    @Nullable @BindView(R.id.reference_lbl) TextView referenceLbl;
+    @Nullable @BindView(R.id.chart_button) ImageView chartButton;
 
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet device.
@@ -114,6 +108,11 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
     }
 
     @Override
+    public void refresh() {
+        mainPresenter.fetchMonzoData();
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
@@ -144,9 +143,6 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
                 String token = FirebaseInstanceId.getInstance().getToken();
                 Log.d("MonzoDispatch", token);
                 monzoDispatchPresenter.sendFCMTokenToServer(token);
-                break;
-            case R.id.menu_monzo:
-                mainPresenter.fetchMonzoData();
                 break;
             case R.id.menu_delete_spendings:
                 mainPresenter.deleteAllSpendings();
@@ -268,26 +264,26 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
 
     @Override
     public void setBalanceInfo(@NonNull Balance balance) {
-        if (referenceView != null) {
+        if (referenceLbl != null) {
             String text;
             BalanceReading balanceReading = userPreferences.getBalanceReading();
             if (balanceReading != null) {
-                text = getString(R.string.reading, balanceReading.getBalance(), DateUtils.getFORMAT_MONTH_DAY_YR().format(balanceReading.getWhen()));
+                text = getString(R.string.reading, balanceReading.getBalance(), DateUtils.formatDayMonthYear(balanceReading.getWhen()));
             } else {
                 text = getString(R.string.reading_none);
             }
-            ViewUtils.setTextWithLink(referenceView, text, text, this::showBalanceUpdateDialog);
+            ViewUtils.setTextWithLink(referenceLbl, text, text, this::showBalanceUpdateDialog);
         }
-        if (estimateAtTimeView != null) {
+        if (projectionLbl != null) {
             final Date estimateDate = userPreferences.getEstimateDate();
-            String estimateDateStr = DateUtils.isToday(estimateDate) ? getString(R.string.today) : DateUtils.getFORMAT_MONTH_DAY_YR().format(estimateDate);
+            String estimateDateStr = DateUtils.isToday(estimateDate) ? getString(R.string.today) : DateUtils.formatDayMonthYear(estimateDate);
 
             String defoMaybeStr = "?";
             if (balance.getDefinitely() != null || balance.getMaybeEvenThisMuch() != null) {
                 defoMaybeStr = getString(R.string.definitely_maybe, balance.getDefinitely(), balance.getMaybeEvenThisMuch());
             }
             String estimateAtTime = getString(R.string.estimate_at_date, defoMaybeStr, estimateDateStr);
-            ViewUtils.setTextWithLinks(estimateAtTimeView, estimateAtTime, new String[]{defoMaybeStr, estimateDateStr}, new Runnable[]{defoMaybeClickListener, estimateDateUpdater});
+            ViewUtils.setTextWithLinks(projectionLbl, estimateAtTime, new String[]{defoMaybeStr, estimateDateStr}, new Runnable[]{defoMaybeClickListener, estimateDateUpdater});
         }
     }
 

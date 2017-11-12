@@ -12,7 +12,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.gb.canibuythat.R;
@@ -60,11 +59,11 @@ public class BalanceReadingInputDialog extends DialogFragment
 
         if (lastUpdate != null) {
             valueView.setText(Float.toString(lastUpdate.getBalance()));
-            whenButton.setText(DateUtils.getFORMAT_MONTH_DAY_YR().format(lastUpdate.getWhen()));
+            whenButton.setText(DateUtils.formatDayMonthYear(lastUpdate.getWhen()));
             whenButton.setDate(lastUpdate.getWhen());
         } else {
             Date today = new Date();
-            whenButton.setText(DateUtils.getFORMAT_MONTH_DAY_YR().format(today));
+            whenButton.setText(DateUtils.formatDayMonthYear(today));
             whenButton.setDate(today);
         }
 

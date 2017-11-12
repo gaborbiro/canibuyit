@@ -5,8 +5,8 @@
              android:layout_width="match_parent"
              xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <FrameLayout
-        android:id="@+id/listContainer"
+    <android.support.v4.widget.SwipeRefreshLayout
+        android:id="@+id/swipe_container"
         android:layout_height="match_parent"
         android:layout_width="match_parent">
 
@@ -19,6 +19,6 @@
             app:layoutManager="android.support.v7.widget.LinearLayoutManager"
             tools:context=".ui.MainActivity"
             tools:listitem="@layout/list_item_spending"/>
-    </FrameLayout>
+    </android.support.v4.widget.SwipeRefreshLayout>
 
 </FrameLayout>

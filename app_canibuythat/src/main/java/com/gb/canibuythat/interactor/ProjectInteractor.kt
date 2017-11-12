@@ -9,7 +9,7 @@ import javax.inject.Inject
 import kotlin.reflect.KMutableProperty0
 
 class ProjectInteractor @Inject
-constructor(val projectRepository: ProjectRepository,
+constructor(private val projectRepository: ProjectRepository,
             private val schedulerProvider: SchedulerProvider) {
 
     fun getProject(): Single<Project> = Single.create<Project> { singleEmitter ->
@@ -37,38 +37,38 @@ class Project constructor(projectRepository: ProjectRepository,
             nameUpdater.update(value)
         }
 
-    var nameOverride: Boolean = apiProject?.nameOverride ?: false
+    var namePinned: Boolean = apiProject?.nameOverride ?: false
         set(value) {
             field = value
             nameOverrideUpdater.update(value)
         }
 
-    var categoryOverride: Boolean = apiProject?.categoryOverride ?: false
+    var categoryPinned: Boolean = apiProject?.categoryOverride ?: false
         set(value) {
             field = value
             categoryOverrideUpdater.update(value)
         }
 
-    var averageOverride: Boolean = apiProject?.averageOverride ?: false
+    var averagePinned: Boolean = apiProject?.averageOverride ?: false
         set(value) {
             field = value
             averageOverrideUpdater.update(value)
         }
 
-    var cycleOverride: Boolean = apiProject?.cycleOverride ?: false
+    var cyclePinned: Boolean = apiProject?.cycleOverride ?: false
         set(value) {
             field = value
             cycleOverrideUpdater.update(value)
         }
 
-    var whenOverride: Boolean = apiProject?.whenOverride ?: false
+    var whenPinned: Boolean = apiProject?.whenOverride ?: false
         set(value) {
             field = value
             whenOverrideUpdater.update(value)
         }
 
-    class Updater<T>(val schedulerProvider: SchedulerProvider,
-                     val property: KMutableProperty0<T>) {
+    class Updater<in T>(private val schedulerProvider: SchedulerProvider,
+                        private val property: KMutableProperty0<T>) {
         private var disposable: Disposable? = null
 
         fun update(value: T) {

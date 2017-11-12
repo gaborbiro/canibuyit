@@ -17,7 +17,7 @@ import javax.inject.Singleton
 
 @Singleton
 class SpendingsRepository @Inject
-constructor(val spendingDao: Dao<Spending, Int>,
+constructor(private val spendingDao: Dao<Spending, Int>,
             private val userPreferences: UserPreferences) {
 
     val all: Single<List<Spending>>

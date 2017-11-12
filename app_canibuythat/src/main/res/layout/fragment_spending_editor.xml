@@ -34,6 +34,7 @@
             </EditText>
 
             <CheckBox
+                style="@style/cloud"
                 android:id="@+id/name_override_cb"
                 android:layout_height="wrap_content"
                 android:layout_width="wrap_content"/>
@@ -58,6 +59,7 @@
                 android:layout_width="0dp"/>
 
             <CheckBox
+                style="@style/cloud"
                 android:id="@+id/category_override_cb"
                 android:layout_height="wrap_content"
                 android:layout_width="wrap_content"/>
@@ -100,6 +102,7 @@
                 android:layout_width="0dp"/>
 
             <CheckBox
+                style="@style/cloud"
                 android:id="@+id/cycle_override_cb"
                 android:layout_height="wrap_content"
                 android:layout_width="wrap_content"/>
@@ -129,6 +132,7 @@
                 android:selectAllOnFocus="true"/>
 
             <CheckBox
+                style="@style/cloud"
                 android:id="@+id/average_override_cb"
                 android:layout_height="wrap_content"
                 android:layout_width="wrap_content"/>
@@ -143,32 +147,40 @@
                 android:layout_height="wrap_content"
                 android:layout_marginRight="4dp"
                 android:layout_width="wrap_content"
-                android:text="Target/Limit(negative):"/>
+                android:text="Target:"/>
 
             <EditText
                 android:id="@+id/target_input"
                 android:imeOptions="actionNext"
+                android:inputType="numberDecimal|numberSigned"
                 android:layout_height="wrap_content"
                 android:layout_width="wrap_content"
                 android:lines="1"
-                android:inputType="numberDecimal|numberSigned"
                 android:minWidth="64dp"
                 android:nextFocusDown="@+id/category_picker"
                 android:selectAllOnFocus="true"/>
         </LinearLayout>
 
         <LinearLayout
+            android:gravity="center_vertical"
             android:layout_height="wrap_content"
             android:layout_width="match_parent"
             android:orientation="horizontal">
 
+            <TextView
+                android:layout_height="wrap_content"
+                android:layout_marginRight="4dp"
+                android:layout_width="wrap_content"
+                android:text="Period:"/>
+
             <com.gb.canibuythat.ui.DateRangePicker
                 android:id="@+id/from_date_picker"
                 android:layout_height="wrap_content"
-                android:layout_width="0dp"
-                android:layout_weight="1"/>
+                android:layout_weight="1"
+                android:layout_width="0dp"/>
 
             <CheckBox
+                style="@style/cloud"
                 android:id="@+id/when_override_cb"
                 android:layout_height="wrap_content"
                 android:layout_width="wrap_content"/>

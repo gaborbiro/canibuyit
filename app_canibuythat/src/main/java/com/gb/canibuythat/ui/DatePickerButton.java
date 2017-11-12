@@ -16,11 +16,11 @@ import java.util.GregorianCalendar;
 
 public class DatePickerButton extends AppCompatButton {
 
-    private Calendar mOriginalDate;
-    private DatePickerDialog mDatePickerDialog;
-    private GestureDetector mDetector;
-    private DatePickerDialog.OnDateSetListener mOnDateSetListener = (view, year, monthOfYear, dayOfMonth) ->
-            setText(DateUtils.getFORMAT_MONTH_DAY_YR().format(new GregorianCalendar(year, monthOfYear, dayOfMonth).getTime()));
+    private Calendar originalDate;
+    private DatePickerDialog datePickerDialog;
+    private GestureDetector detector;
+    private DatePickerDialog.OnDateSetListener onDateSetListener = (view, year, monthOfYear, dayOfMonth) ->
+            setText(DateUtils.formatDayMonthYear(new GregorianCalendar(year, monthOfYear, dayOfMonth).getTime()));
 
     public DatePickerButton(Context context) {
         super(context);
@@ -38,43 +38,43 @@ public class DatePickerButton extends AppCompatButton {
     }
 
     private void init() {
-        mDetector = new GestureDetector(getContext(), new GestureDetector.SimpleOnGestureListener() {
+        detector = new GestureDetector(getContext(), new GestureDetector.SimpleOnGestureListener() {
             @Override
             public boolean onSingleTapConfirmed(MotionEvent e) {
                 getDatePickerDialog().show();
                 return false;
             }
         });
-        mOriginalDate = Calendar.getInstance();
+        originalDate = Calendar.getInstance();
     }
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent e) {
-        mDetector.onTouchEvent(e);
+        detector.onTouchEvent(e);
         return super.dispatchTouchEvent(e);
     }
 
     private DatePickerDialog getDatePickerDialog() {
-        if (mDatePickerDialog == null) {
-            mDatePickerDialog = DateUtils.getDatePickerDialog(getContext(), mOnDateSetListener, mOriginalDate);
+        if (datePickerDialog == null) {
+            datePickerDialog = DateUtils.getDatePickerDialog(getContext(), onDateSetListener, originalDate);
         }
-        return mDatePickerDialog;
+        return datePickerDialog;
     }
 
     public void setDate(Date date) {
-        mOriginalDate.setTime(date);
-        if (mDatePickerDialog != null) {
-            getDatePickerDialog().updateDate(mOriginalDate.get(Calendar.YEAR),
-                    mOriginalDate.get(Calendar.MONTH),
-                    mOriginalDate.get(Calendar.DAY_OF_MONTH));
+        originalDate.setTime(date);
+        if (datePickerDialog != null) {
+            getDatePickerDialog().updateDate(originalDate.get(Calendar.YEAR),
+                    originalDate.get(Calendar.MONTH),
+                    originalDate.get(Calendar.DAY_OF_MONTH));
         }
     }
 
     public Date getSelectedDate() {
-        if (mDatePickerDialog != null) {
-            DatePicker datePicker = mDatePickerDialog.getDatePicker();
+        if (datePickerDialog != null) {
+            DatePicker datePicker = datePickerDialog.getDatePicker();
             return new GregorianCalendar(datePicker.getYear(), datePicker.getMonth(), datePicker.getDayOfMonth()).getTime();
         }
-        return mOriginalDate.getTime();
+        return originalDate.getTime();
     }
 }

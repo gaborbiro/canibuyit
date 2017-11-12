@@ -24,9 +24,7 @@ import com.gb.canibuythat.interactor.ProjectInteractor
 import com.gb.canibuythat.interactor.SpendingInteractor
 import com.gb.canibuythat.model.Spending
 import com.gb.canibuythat.presenter.BasePresenter
-import com.gb.canibuythat.repository.BalanceCalculator
 import com.gb.canibuythat.screen.Screen
-import com.gb.canibuythat.util.ArrayUtils
 import com.gb.canibuythat.util.DateUtils
 import com.gb.canibuythat.util.DialogUtils
 import com.gb.canibuythat.util.TextChangeListener
@@ -188,11 +186,11 @@ class SpendingEditorFragment : BaseFragment() {
             keyboardDismisser.onTouch(fromDatePicker, MotionEvent.obtain(0, 0, MotionEvent.ACTION_DOWN, 0f, 0f, 0))
             false
         }
-        nameOverrideCB.setOnCheckedChangeListener { _, isChecked -> projectSettings?.nameOverride = isChecked }
-        categoryOverrideCB.setOnCheckedChangeListener { _, isChecked -> projectSettings?.categoryOverride = isChecked }
-        averageOverrideCB.setOnCheckedChangeListener { _, isChecked -> projectSettings?.averageOverride = isChecked }
-        cycleOverrideCB.setOnCheckedChangeListener { _, isChecked -> projectSettings?.cycleOverride = isChecked }
-        whenOverrideCB.setOnCheckedChangeListener { _, isChecked -> projectSettings?.whenOverride = isChecked }
+        nameOverrideCB.setOnCheckedChangeListener { _, isChecked -> projectSettings?.namePinned = isChecked }
+        categoryOverrideCB.setOnCheckedChangeListener { _, isChecked -> projectSettings?.categoryPinned = isChecked }
+        averageOverrideCB.setOnCheckedChangeListener { _, isChecked -> projectSettings?.averagePinned = isChecked }
+        cycleOverrideCB.setOnCheckedChangeListener { _, isChecked -> projectSettings?.cyclePinned = isChecked }
+        whenOverrideCB.setOnCheckedChangeListener { _, isChecked -> projectSettings?.whenPinned = isChecked }
     }
 
     override fun inject(): BasePresenter<Screen>? {
@@ -272,7 +270,7 @@ class SpendingEditorFragment : BaseFragment() {
                     .subscribe({
                         this@SpendingEditorFragment.originalSpending = newSpending
                         deleteBtn!!.isVisible = true
-                        loadSpendingOccurrences(newSpending)
+//                        loadSpendingOccurrences(newSpending)
                     }) {
                         var throwable: Throwable = it
                         onError(throwable)
@@ -302,22 +300,22 @@ class SpendingEditorFragment : BaseFragment() {
     }
 
     private fun applyProjectSettingsToScreen(project: Project) {
-        nameOverrideCB.isChecked = project.nameOverride
-        categoryOverrideCB.isChecked = project.categoryOverride
-        averageOverrideCB.isChecked = project.averageOverride
-        cycleOverrideCB.isChecked = project.cycleOverride
-        whenOverrideCB.isChecked = project.whenOverride
+        nameOverrideCB.isChecked = project.namePinned
+        categoryOverrideCB.isChecked = project.categoryPinned
+        averageOverrideCB.isChecked = project.averagePinned
+        cycleOverrideCB.isChecked = project.cyclePinned
+        whenOverrideCB.isChecked = project.whenPinned
     }
 
-    private fun loadSpendingOccurrences(spending: Spending) {
-        val balanceReading = userPreferences.balanceReading
-        val (definitely, maybeEvenThisMuch, spendingEvents) = BalanceCalculator.getEstimatedBalance(spending,
-                balanceReading?.`when`,
-                userPreferences.estimateDate)
-        var spentStr = ArrayUtils.join("\n", spendingEvents) { index, item -> getString(R.string.spending_occurrence, index + 1, DateUtils.FORMAT_MONTH_DAY_YR.format(item)) }
-        spentStr = "Spent: $definitely/$maybeEvenThisMuch\n$spentStr"
-        spendingEventsLbl.text = spentStr
-    }
+//    private fun loadSpendingOccurrences(spending: Spending) {
+//        val balanceReading = userPreferences.balanceReading
+//        val (definitely, maybeEvenThisMuch, spendingEvents) = BalanceCalculator.getEstimatedBalance(spending,
+//                balanceReading?.`when`,
+//                userPreferences.estimateDate)
+//        var spentStr = ArrayUtils.join("\n", spendingEvents) { index, item -> getString(R.string.spending_occurrence, index + 1, DateUtils.FORMAT_MONTH_DAY_YR.format(item)) }
+//        spentStr = "Spent: $definitely/$maybeEvenThisMuch\n$spentStr"
+//        spendingEventsLbl.text = spentStr
+//    }
 
     /**
      * Verify whether user input is valid and show appropriate error messages
@@ -355,7 +353,7 @@ class SpendingEditorFragment : BaseFragment() {
 
         return if (firstOccurrenceEnd.after(calendar.time)) {
             ValidationError(ValidationError.TYPE_NON_INPUT_FIELD, null,
-                    "End date cannot be higher than " + DateUtils.FORMAT_MONTH_DAY_YR.format(calendar.time))
+                    "End date cannot be higher than " + DateUtils.formatDayMonthYear(calendar.time))
         } else null
     }
 

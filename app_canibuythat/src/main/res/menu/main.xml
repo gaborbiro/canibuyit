@@ -1,39 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+      xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:title="Add new"
-        android:id="@+id/menu_add"
         android:icon="@drawable/ic_add_white_24dp"
-        app:showAsAction="always" />
-
+        android:id="@+id/menu_add"
+        android:title="Add new"
+        app:showAsAction="always"/>
     <item
-        android:title="Export database"
-        android:id="@+id/menu_export"
-        app:showAsAction="never|withText" />
+        android:id="@+id/menu_delete_spendings"
+        android:title="Clear all"/>
     <item
-        android:title="Import spendings"
-        android:id="@+id/menu_import_all"
-        app:showAsAction="never|withText" />
+        android:id="@+id/menu_backup"
+        android:title="Backup/Restore"
+        app:showAsAction="never|withText">
+        <menu>
+            <item
+                android:id="@+id/menu_export"
+                android:title="Backup database"
+                app:showAsAction="never|withText"/>
+            <item
+                android:id="@+id/menu_import_monzo"
+                android:title="Restore Monzo spendings"
+                app:showAsAction="never|withText"/>
+            <item
+                android:id="@+id/menu_import_non_monzo"
+                android:title="Restore non-Monzo spendings"
+                app:showAsAction="never|withText"/>
+            <item
+                android:id="@+id/menu_import_all"
+                android:title="Restore all spendings"
+                app:showAsAction="never|withText"/>
+        </menu>
+    </item>
     <item
-        android:title="Import monzo spendings"
-        android:id="@+id/menu_import_monzo"
-        app:showAsAction="never|withText" />
+        android:id="@+id/menu_fcm"
+        android:title="Register with FCM"/>
     <item
-        android:title="Import non-monzo spendings"
-        android:id="@+id/menu_import_non_monzo"
-        app:showAsAction="never|withText" />
-    <item
-        android:title="Log FCM Token"
-        android:id="@+id/menu_fcm" />
-    <item
-        android:title="Refresh Monzo data"
-        android:icon="@drawable/monzo"
-        android:id="@+id/menu_monzo" />
-    <item
-        android:title="Delete spendings"
-        android:id="@+id/menu_delete_spendings" />
-    <item
-        android:title="Set project name"
-        android:id="@+id/menu_set_project_name" />
+        android:id="@+id/menu_set_project_name"
+        android:title="Set project name"/>
 </menu>

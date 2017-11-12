@@ -4,12 +4,13 @@ import android.app.DatePickerDialog;
 import android.content.Context;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
+import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.ImageView;
-import android.widget.RadioButton;
+import android.widget.LinearLayout;
 import android.widget.RadioGroup;
 
 import com.gb.canibuythat.R;
@@ -21,7 +22,7 @@ import java.util.Date;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class DateRangePicker extends RadioGroup implements View.OnClickListener {
+public class DateRangePicker extends LinearLayout {
 
     public interface TouchInterceptor {
         boolean onInterceptTouchEvent(MotionEvent ev);
@@ -30,9 +31,6 @@ public class DateRangePicker extends RadioGroup implements View.OnClickListener 
     @BindView(R.id.start_date_btn) Button startDateBtn;
     @BindView(R.id.end_date_btn) Button endDateBtn;
     @BindView(R.id.reset_btn) ImageView resetBtn;
-    @BindView(R.id.date_range_rb) RadioButton dateRangeRB;
-    @BindView(R.id.first_day_of_month_rb) RadioButton firstDayOfMonthRB;
-    @BindView(R.id.last_day_of_month_rb) RadioButton lastDayOfMonthRB;
 
     private Date startDate;
     private Date endDate;
@@ -47,7 +45,7 @@ public class DateRangePicker extends RadioGroup implements View.OnClickListener 
             switch ((int) view.getTag()) {
                 case R.id.start_date_btn:
                     startDate = newDate.getTime();
-                    startDateBtn.setText(DateUtils.getFORMAT_MONTH_DAY_YR().format(newDate.getTime()));
+                    startDateBtn.setText(DateUtils.formatDayMonthYear(newDate.getTime()));
                     if (endDate.getTime() < newDate.getTime().getTime()) {
                         endDatePickerDialog = new DatePickerDialog(getContext(),
                                 dateSetListener, DateUtils.decompose(newDate)[0], DateUtils.decompose(newDate)[1], DateUtils.decompose(newDate)[2]);
@@ -57,7 +55,7 @@ public class DateRangePicker extends RadioGroup implements View.OnClickListener 
                     break;
                 case R.id.end_date_btn:
                     endDate = newDate.getTime();
-                    endDateBtn.setText(DateUtils.getFORMAT_MONTH_DAY_YR().format(newDate.getTime()));
+                    endDateBtn.setText(DateUtils.formatDayMonthYear(newDate.getTime()));
                     if (startDate.getTime() > newDate.getTime().getTime()) {
                         startDatePickerDialog = new DatePickerDialog(getContext(),
                                 dateSetListener, DateUtils.decompose(newDate)[0], DateUtils.decompose(newDate)[1], DateUtils.decompose(newDate)[2]);
@@ -109,31 +107,8 @@ public class DateRangePicker extends RadioGroup implements View.OnClickListener 
             startDatePickerDialog = null;
             endDatePickerDialog = null;
         });
-
-        dateRangeRB.setOnClickListener(this);
-        firstDayOfMonthRB.setOnClickListener(this);
-        lastDayOfMonthRB.setOnClickListener(this);
-    }
-
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.date_range_rb:
-                dateRangeRB.setChecked(true);
-                firstDayOfMonthRB.setChecked(false);
-                lastDayOfMonthRB.setChecked(false);
-                break;
-            case R.id.first_day_of_month_rb:
-                dateRangeRB.setChecked(false);
-                firstDayOfMonthRB.setChecked(true);
-                lastDayOfMonthRB.setChecked(false);
-                break;
-            case R.id.last_day_of_month_rb:
-                dateRangeRB.setChecked(false);
-                firstDayOfMonthRB.setChecked(false);
-                lastDayOfMonthRB.setChecked(true);
-                break;
-        }
+        setOrientation(LinearLayout.HORIZONTAL);
+        setGravity(Gravity.CENTER_VERTICAL);
     }
 
     public void setStartDate(Date startDate) {
@@ -173,8 +148,8 @@ public class DateRangePicker extends RadioGroup implements View.OnClickListener 
     }
 
     private void updateButtons() {
-        startDateBtn.setText(DateUtils.getFORMAT_MONTH_DAY_YR().format(this.startDate));
-        endDateBtn.setText(DateUtils.getFORMAT_MONTH_DAY_YR().format(this.endDate));
+        startDateBtn.setText(DateUtils.formatDayMonthYear(this.startDate));
+        endDateBtn.setText(DateUtils.formatDayMonthYear(this.endDate));
     }
 
     private DatePickerDialog getStartDatePickerDialog() {
