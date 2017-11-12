@@ -1,6 +1,5 @@
 package com.gb.canibuythat.repository
 
-import android.text.TextUtils
 import com.gb.canibuythat.CLIENT_ID
 import com.gb.canibuythat.CLIENT_SECRET
 import com.gb.canibuythat.MONZO_URI_AUTH_CALLBACK
@@ -14,10 +13,10 @@ import com.gb.canibuythat.model.Spending
 import com.gb.canibuythat.model.Transaction
 import com.gb.canibuythat.model.Webhooks
 import com.gb.canibuythat.util.DateUtils
+import com.gb.canibuythat.util.toZDT
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
-import org.threeten.bp.temporal.ChronoUnit
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -55,11 +54,27 @@ class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi,
             mapper.mapToTransaction(it)
         }.toList().map { transactions ->
             val projectSettings = projectInteractor.getProject().blockingGet()
-            val savedSpending = spendingsRepository.all.blockingGet()
-                    .groupBy { it.sourceData[Spending.SOURCE_MONZO_CATEGORY] }
-            val dayCount = ChronoUnit.DAYS.between(transactions.minBy { it.created }!!.created, transactions.maxBy { it.created }!!.created).toInt() + 1
-            transactions.groupBy(Transaction::category).map { (category, transactionsForThatCategory) ->
-                mapper.mapToSpending(category, transactionsForThatCategory, savedSpending[category.toString()]?.get(0), projectSettings, dayCount)
+            val savedSpendings = spendingsRepository.all.blockingGet().groupBy { it.sourceData[Spending.SOURCE_MONZO_CATEGORY] }
+            transactions.groupBy(Transaction::category).mapNotNull { (category, transactionsForThatCategory) ->
+                val savedSpending = savedSpendings[category.toString()]?.get(0)
+                var transactionsForThatCategory = transactionsForThatCategory
+                savedSpending?.let {
+                    transactionsForThatCategory = transactionsForThatCategory.filter { !it.created.isBefore(savedSpending.fromStartDate.toZDT()) }
+                }
+                if (transactionsForThatCategory.isEmpty()) {
+                    savedSpending?.let {
+                        it.value = 0.0
+                        it.enabled = false
+                        it
+                    } ?: null
+                } else {
+                    savedSpending?.let {
+                        if (it.value == 0.0 && !it.enabled) {
+                            it.enabled = true
+                        }
+                    }
+                    mapper.mapToSpending(category, transactionsForThatCategory, savedSpending, projectSettings)
+                }
             }
         }
     }

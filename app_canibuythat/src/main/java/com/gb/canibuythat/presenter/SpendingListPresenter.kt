@@ -13,7 +13,7 @@ constructor(private val spendingInteractor: SpendingInteractor) : BasePresenter<
                 if (it.hasError()) {
                     this.onError(it.error!!)
                 } else {
-                    getScreen().setData(it.content!!.sortedBy { it.value }.sortedBy { !it.enabled })
+                    getScreen().setData(it.content!!.sortedBy { -Math.abs(it.valuePerMonth) }.sortedBy { !it.enabled })
                 }
             }
         }, this::onError))

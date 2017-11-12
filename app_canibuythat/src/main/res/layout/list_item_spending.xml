@@ -1,4 +1,4 @@
-
+<?xml version="1.0" encoding="utf-8"?>
 <com.gb.canibuythat.ui.ProgressRelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
@@ -6,6 +6,7 @@
     android:id="@+id/progress"
     android:layout_height="wrap_content"
     android:layout_width="match_parent"
+    android:minHeight="64dp"
     android:orientation="vertical">
 
     <RelativeLayout
@@ -27,7 +28,7 @@
 
         <TextView
             style="?android:attr/textAppearanceListItem"
-            android:id="@+id/name_input"
+            android:id="@+id/name_lbl"
             android:layout_centerVertical="true"
             android:layout_height="wrap_content"
             android:layout_toLeftOf="@id/icon"
@@ -37,12 +38,13 @@
 
     <TextView
         style="?android:attr/textAppearanceListItemSmall"
-        android:id="@+id/details"
+        android:id="@+id/spent"
         android:layout_below="@id/icon_and_name"
         android:layout_height="wrap_content"
         android:layout_marginBottom="@dimen/padding"
         android:layout_marginLeft="@dimen/padding"
         android:layout_marginRight="@dimen/padding"
         android:layout_width="wrap_content"
+        tools:visibility="gone"
         tools:text="12.34 / month"/>
 </com.gb.canibuythat.ui.ProgressRelativeLayout>

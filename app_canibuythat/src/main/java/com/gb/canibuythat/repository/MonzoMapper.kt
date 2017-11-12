@@ -2,7 +2,6 @@ package com.gb.canibuythat.repository
 
 import com.gb.canibuythat.api.model.ApiLogin
 import com.gb.canibuythat.api.model.ApiTransaction
-import com.gb.canibuythat.api.model.ApiTransactions
 import com.gb.canibuythat.api.model.ApiWebhook
 import com.gb.canibuythat.api.model.ApiWebhooks
 import com.gb.canibuythat.interactor.Project
@@ -13,11 +12,13 @@ import com.gb.canibuythat.model.Spending.Cycle
 import com.gb.canibuythat.model.Transaction
 import com.gb.canibuythat.model.Webhook
 import com.gb.canibuythat.model.Webhooks
+import com.gb.canibuythat.util.DateUtils
 import org.apache.commons.lang3.text.WordUtils
 import org.threeten.bp.LocalDate
 import org.threeten.bp.ZoneId
 import org.threeten.bp.ZonedDateTime
 import org.threeten.bp.temporal.ChronoField
+import org.threeten.bp.temporal.ChronoUnit
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -44,24 +45,17 @@ class MonzoMapper @Inject constructor(private val projectInteractor: ProjectInte
                 category)
     }
 
-    fun mapToSpending(category: Spending.Category, transactions: List<Transaction>, savedSpending: Spending?, projectSettings: Project, totalDayCount: Int): Spending {
+    fun mapToSpending(category: Spending.Category, transactions: List<Transaction>, savedSpending: Spending?, projectSettings: Project): Spending? {
         val spending = Spending()
-
         val cycle: Cycle = override(savedSpending?.cycle, flag = projectSettings.cycleOverride) ?: getOptimalCycle(transactions)
 
         spending.cycle = cycle
-        val cycleMap: Map<Int, List<Transaction>> = transactions.groupBy { cycle.get(it.created.toLocalDate()) }
+        val cycleMap: Map<Int, List<Transaction>> = transactions.groupBy { cycle.of(it.created.toLocalDate()) }
+
         spending.value = override(savedSpending?.value, projectSettings.averageOverride) ?: transactions
                 .sumBy { it.amount }
-                .div(totalDayCount)
-                .times(
-                        when (cycle) {
-                            Spending.Cycle.DAYS -> 1.0
-                            Spending.Cycle.WEEKS -> 7.0
-                            Spending.Cycle.MONTHS -> 30.42
-                            Spending.Cycle.YEARS -> 365.0
-                        }
-                )
+                .div(cycle.span(transactions.minBy { it.created }!!.created, ZonedDateTime.now()))
+                .toDouble()
         spending.value = override(savedSpending?.value, projectSettings.averageOverride) ?: Math.round(spending.value).div(100.0) // cents to pounds
         spending.type = override(savedSpending?.type, projectSettings.categoryOverride) ?: category
         spending.name = override(savedSpending?.name, projectSettings.nameOverride) ?: WordUtils.capitalizeFully(category.toString().replace("\\_".toRegex(), " "))
@@ -70,7 +64,7 @@ class MonzoMapper @Inject constructor(private val projectInteractor: ProjectInte
         spending.fromStartDate = override(savedSpending?.fromStartDate, projectSettings.whenOverride) ?: fromLocalDate(firstOccurrence)
         spending.fromEndDate = override(savedSpending?.fromEndDate, projectSettings.whenOverride) ?: fromLocalDate(firstOccurrence.add(cycle, 1).minusDays(1))
         spending.sourceData.put(Spending.SOURCE_MONZO_CATEGORY, category.name.toLowerCase())
-        cycleMap[cycle.get(LocalDate.now(ZoneId.systemDefault()))]?.let { spending.spent = it.sumBy { it.amount }.div(100.0) } ?: let { spending.spent = 0.0 }
+        cycleMap[cycle.of(LocalDate.now(ZoneId.systemDefault()))]?.let { spending.spent = it.sumBy { it.amount }.div(100.0) } ?: let { spending.spent = 0.0 }
 
         spending.occurrenceCount = override(savedSpending?.occurrenceCount)
         spending.target = override(savedSpending?.target)
@@ -87,13 +81,24 @@ class MonzoMapper @Inject constructor(private val projectInteractor: ProjectInte
         return Webhook(apiWebhook.id, apiWebhook.url)
     }
 
-    fun Cycle.get(date: LocalDate): Int {
+    fun Cycle.of(date: LocalDate): Int {
         return when (this) {
             Cycle.DAYS -> date.toEpochDay().toInt()
             Cycle.WEEKS -> date.minusDays(1)[ChronoField.ALIGNED_WEEK_OF_YEAR]
             Cycle.MONTHS -> date.monthValue
             Cycle.YEARS -> date.year
         }
+    }
+
+    fun Cycle.span(start: ZonedDateTime, end: ZonedDateTime): Long {
+        return when (this) {
+            Cycle.DAYS -> ChronoUnit.DAYS.between(start.withHour(0), end.withHour(24))
+            Cycle.WEEKS -> ChronoUnit.WEEKS.between(
+                    start.minusDays(start.dayOfWeek.value.toLong() - 1),
+                    end.plusDays(7 - end.dayOfWeek.value.toLong()))
+            Cycle.MONTHS -> ChronoUnit.MONTHS.between(start.withDayOfMonth(1), end.withDayOfMonth(end.month.length(false)))
+            Cycle.YEARS -> ChronoUnit.YEARS.between(start.withDayOfYear(1), end.withDayOfYear(365))
+        } + 1
     }
 
     fun LocalDate.add(cycle: Cycle, amount: Long): LocalDate {

@@ -8,10 +8,6 @@
         app:showAsAction="always" />
 
     <item
-        android:title="Set starting balance"
-        android:id="@+id/menu_update_balance"
-        app:showAsAction="never|withText" />
-    <item
         android:title="Export database"
         android:id="@+id/menu_export"
         app:showAsAction="never|withText" />

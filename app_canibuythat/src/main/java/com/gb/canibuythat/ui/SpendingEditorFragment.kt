@@ -138,7 +138,9 @@ class SpendingEditorFragment : BaseFragment() {
             }
             cyclePicker.setSelection(spending.cycle!!.ordinal + 1)
             notesInput.setText(spending.notes)
-            sourceCategoryLbl.text = "(monzo: " + spending.sourceData[Spending.SOURCE_MONZO_CATEGORY] + ")"
+            spending.sourceData[Spending.SOURCE_MONZO_CATEGORY]?.let {
+                sourceCategoryLbl.text = "\t(monzo: $it)"
+            }
         }
 
     private val cycleMultiplierFromScreen: Int?

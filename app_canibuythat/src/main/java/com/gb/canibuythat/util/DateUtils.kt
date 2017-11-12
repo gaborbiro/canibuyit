@@ -2,6 +2,10 @@ package com.gb.canibuythat.util
 
 import android.app.DatePickerDialog
 import android.content.Context
+import org.threeten.bp.LocalDateTime
+import org.threeten.bp.ZoneId
+import org.threeten.bp.ZoneOffset
+import org.threeten.bp.ZonedDateTime
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -28,6 +32,14 @@ fun Date.toCalendar(): Calendar {
     val c = Calendar.getInstance()
     c.time = this
     return c
+}
+
+fun Date.toZDT(): ZonedDateTime {
+    val date = Calendar.getInstance(TimeZone.getDefault())
+    date.time = this
+    return ZonedDateTime.of(date[Calendar.YEAR], date[Calendar.MONTH], date[Calendar.DAY_OF_MONTH],
+            date[Calendar.HOUR_OF_DAY], date[Calendar.MINUTE], date[Calendar.SECOND],
+            date[Calendar.MILLISECOND], ZoneId.systemDefault())
 }
 
 /**

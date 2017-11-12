@@ -16,7 +16,8 @@ import java.util.*
 class Spending {
 
     companion object {
-        @JvmStatic val SOURCE_MONZO_CATEGORY: String = "monzo_category"
+        @JvmStatic
+        val SOURCE_MONZO_CATEGORY: String = "monzo_category"
     }
 
     @DatabaseField(generatedId = true, columnName = Contract.Spending._ID, canBeNull = true)
@@ -82,6 +83,11 @@ class Spending {
 
     @DatabaseField(columnName = Contract.Spending.TARGET, canBeNull = true)
     var target: Double? = null
+
+    val valuePerMonth: Double
+        get() {
+            return value / cycle!!.toMonth() * cycleMultiplier!!
+        }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -164,7 +170,7 @@ class Spending {
     enum class Category(val defaultEnabled: Boolean = true) {
         ACCOMMODATION, AUTOMOBILE, CHILD_SUPPORT, DONATIONS_GIVEN, ENTERTAINMENT, FOOD,
         GIFTS_GIVEN, GROCERIES, HOUSEHOLD, INSURANCE, MEDICARE, PERSONAL_CARE, PETS,
-        SELF_IMPROVEMENT, SPORTS_RECREATION, TAX, TRANSPORTATION, UTILITIES,  VACATION(false),
+        SELF_IMPROVEMENT, SPORTS_RECREATION, TAX, TRANSPORTATION, UTILITIES, VACATION(false),
         GIFTS_RECEIVED, INCOME(false), FINES,
         ONLINE_SERVICES, LUXURY, CASH, SAVINGS, EXPENSES(false), OTHER;
 
@@ -186,6 +192,13 @@ class Spending {
                 MONTHS -> c.add(Calendar.MONTH, increment)
                 YEARS -> c.add(Calendar.YEAR, increment)
             }
+        }
+
+        fun toMonth() = when (this) {
+            DAYS -> 0.0328731097961867
+            WEEKS -> 0.2301368854194475
+            MONTHS -> 1.0
+            YEARS -> 12.0
         }
 
         override fun toString(): String {

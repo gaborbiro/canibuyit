@@ -143,10 +143,6 @@ constructor(val monzoInteractor: MonzoInteractor,
         }
     }
 
-    fun updateBalance() {
-        getScreen().showBalanceUpdateDialog()
-    }
-
     fun showEditorScreenForSpending(id: Int) {
         getScreen().showEditorScreen(id)
     }

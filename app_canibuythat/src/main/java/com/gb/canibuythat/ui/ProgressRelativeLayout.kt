@@ -15,23 +15,41 @@ class ProgressRelativeLayout @JvmOverloads constructor(context: Context,
 
     internal var progress: Float = 0.0f
         set(value) {
-            if (value > 1) {
-                field = 1f
-            } else {
-                field = value
-            }
-            if (value > 0.9) {
-                paint.color = ContextCompat.getColor(context, R.color.spending_list_item_spend_high)
-            } else if (value > 0.75) {
-                paint.color = ContextCompat.getColor(context, R.color.spending_list_item_spend_medium)
-            } else {
-                paint.color = ContextCompat.getColor(context, R.color.spending_list_item_spend_low)
+            field = value
+            mode = mode
+            invalidate()
+        }
+
+    internal var mode: Mode = Mode.OFF
+        set(value) {
+            field = value
+            when (value) {
+                Mode.MIN_LIMIT -> {
+                    when {
+                        progress > 0.9 -> paint.color = ContextCompat.getColor(context, R.color.spending_list_item_spend_high)
+                        progress > 0.75 -> paint.color = ContextCompat.getColor(context, R.color.spending_list_item_spend_medium)
+                        else -> paint.color = ContextCompat.getColor(context, R.color.spending_list_item_spend_low)
+                    }
+                }
+                Mode.MAX_LIMIT -> {
+                    when {
+                        progress > 0.9 -> paint.color = ContextCompat.getColor(context, R.color.spending_list_item_spend_low)
+                        progress > 0.75 -> paint.color = ContextCompat.getColor(context, R.color.spending_list_item_spend_medium)
+                        else -> paint.color = ContextCompat.getColor(context, R.color.spending_list_item_spend_high)
+                    }
+                }
+                Mode.DEFAULT -> {
+                    paint.color = ContextCompat.getColor(context, R.color.soba40)
+                }
+                Mode.OFF -> {
+                    paint.color = ContextCompat.getColor(context, android.R.color.transparent)
+                }
             }
             invalidate()
         }
 
-    val paint: Paint = Paint()
-    val path = Path()
+    private val paint: Paint = Paint()
+    private val path = Path()
 
     init {
         paint.color = ContextCompat.getColor(context, R.color.spending_list_item_spend_low)
@@ -46,5 +64,9 @@ class ProgressRelativeLayout @JvmOverloads constructor(context: Context,
         path.lineTo(width.toFloat() * progress - 10, height.toFloat())
         path.lineTo(0f, height.toFloat())
         canvas.drawPath(path, paint)
+    }
+
+    enum class Mode {
+        MIN_LIMIT, MAX_LIMIT, DEFAULT, OFF
     }
 }

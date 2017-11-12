@@ -10,44 +10,37 @@ import com.gb.canibuythat.ui.ProgressRelativeLayout
 
 class SpendingViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
-    val nameView: TextView = itemView.findViewById(R.id.name_input) as TextView
-    val iconView: ImageView = itemView.findViewById(R.id.icon) as ImageView
-    val detailView: TextView = itemView.findViewById(R.id.details) as TextView
-    val progressView: ProgressRelativeLayout = itemView.findViewById(R.id.progress) as ProgressRelativeLayout
+    private val nameView: TextView = itemView.findViewById(R.id.name_lbl) as TextView
+    private val iconView: ImageView = itemView.findViewById(R.id.icon) as ImageView
+    private val spentView: TextView = itemView.findViewById(R.id.spent) as TextView
+    private val progressView: ProgressRelativeLayout = itemView.findViewById(R.id.progress) as ProgressRelativeLayout
 
     fun bind(spending: Spending) {
         val context = nameView.context
-        if (spending.value > 0) {
-            nameView.text = context.getString(R.string.income, spending.name)
-        } else {
-            nameView.text = spending.name
-        }
         nameView.paint.isStrikeThruText = !spending.enabled
-        val cycle = spending.cycle!!
-        if (spending.spent != null) {
+        val perCycleAmount = spending.occurrenceCount?.let {
+            context.getString(R.string.spending_no_target, spending.value, context.resources.getQuantityString(R.plurals.times, it, it)) // -875.00 (once)
+        } ?: let {
+            context.resources.getQuantityString(R.plurals.amount_cycle, spending.cycleMultiplier!!,
+                    spending.value, spending.cycleMultiplier!!, context.resources.getQuantityText(spending.cycle!!.strRes, spending.cycleMultiplier!!)) // 3045.00 per month
+        }
+        nameView.text = context.getString(R.string.average, spending.name, perCycleAmount) // Rent (875.0)
+        spending.spent?.let { spent ->
             var cycleStr = ""
-            if (spending.occurrenceCount == null) {
-                if (cycle.strRes > 0) {
-                    cycleStr = context.resources.getQuantityString(R.plurals.period, spending.cycleMultiplier!!,
-                            spending.cycleMultiplier!!, context.resources.getQuantityText(cycle.strRes, spending.cycleMultiplier!!))
-                }
-            } else {
-                cycleStr = context.resources.getQuantityString(R.plurals.times, spending.occurrenceCount!!, spending.occurrenceCount!!)
+            spending.occurrenceCount?.let {
+                cycleStr = context.resources.getQuantityString(R.plurals.times, it, it) // (10 times)
+            } ?: let {
+                cycleStr = context.resources.getQuantityString(R.plurals.period, spending.cycleMultiplier!!,
+                        spending.cycleMultiplier!!, context.resources.getQuantityText(spending.cycle!!.strRes, spending.cycleMultiplier!!)) // this week
             }
-
-            if (spending.target != null) {
-                detailView.text = context.getString(R.string.spending, Math.abs(spending.spent!!), spending.target, cycleStr)
-            } else {
-                detailView.text = context.getString(R.string.spending_no_target, Math.abs(spending.spent!!), cycleStr)
+            spending.target?.let {
+                spentView.text = context.getString(R.string.spending, spent, it, cycleStr) // 82.79/90 this week
+            } ?: let {
+                spentView.text = context.getString(R.string.spending_no_target, spent, cycleStr) // 0.00 this month
             }
-        } else {
-            if (spending.occurrenceCount == null) {
-                detailView.text = context.resources.getQuantityString(R.plurals.cycle, spending.cycleMultiplier!!,
-                        spending.value, spending.cycleMultiplier!!, context.resources.getQuantityText(cycle.strRes, spending.cycleMultiplier!!))
-            } else {
-                detailView.text = context.getString(R.string.spending_no_target, spending.value,
-                        context.resources.getQuantityString(R.plurals.times, spending.occurrenceCount!!, spending.occurrenceCount!!))
-            }
+            spentView.visibility = View.VISIBLE
+        } ?: let {
+            spentView.visibility = View.GONE
         }
         if (spending.sourceData.containsKey(Spending.SOURCE_MONZO_CATEGORY)) {
             iconView.setImageResource(R.drawable.monzo)
@@ -55,11 +48,16 @@ class SpendingViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         } else {
             iconView.visibility = View.GONE
         }
-        if (spending.spent != null && spending.target != null) {
-            val progress: Float = (Math.abs(spending.spent!!) / spending.target!!).toFloat()
-            progressView.progress = progress
-        } else {
-            progressView.progress = 0f
+        spending.spent?.let { spent ->
+            spending.target?.let {
+                progressView.progress = Math.abs(spent / it).toFloat()
+                progressView.mode = if (it < 0.0) ProgressRelativeLayout.Mode.MIN_LIMIT else ProgressRelativeLayout.Mode.MAX_LIMIT
+            } ?: let {
+                progressView.progress = Math.abs(spent / spending.value).toFloat()
+                progressView.mode = ProgressRelativeLayout.Mode.DEFAULT
+            }
+        } ?: let {
+            progressView.mode = ProgressRelativeLayout.Mode.OFF
         }
     }
 }

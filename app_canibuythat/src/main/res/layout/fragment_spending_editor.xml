@@ -57,18 +57,17 @@
                 android:layout_weight="1"
                 android:layout_width="0dp"/>
 
-            <TextView
-                android:id="@+id/source_category_lbl"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_width="0dp"
-                tools:text="Source: eating_out"/>
-
             <CheckBox
                 android:id="@+id/category_override_cb"
                 android:layout_height="wrap_content"
                 android:layout_width="wrap_content"/>
         </LinearLayout>
+
+        <TextView
+            android:id="@+id/source_category_lbl"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            tools:text="Source: eating_out"/>
 
         <LinearLayout
             android:gravity="center_vertical"
@@ -144,7 +143,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginRight="4dp"
                 android:layout_width="wrap_content"
-                android:text="Target:"/>
+                android:text="Target/Limit(negative):"/>
 
             <EditText
                 android:id="@+id/target_input"
@@ -152,6 +151,7 @@
                 android:layout_height="wrap_content"
                 android:layout_width="wrap_content"
                 android:lines="1"
+                android:inputType="numberDecimal|numberSigned"
                 android:minWidth="64dp"
                 android:nextFocusDown="@+id/category_picker"
                 android:selectAllOnFocus="true"/>

@@ -125,9 +125,6 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
             case R.id.menu_add:
                 mainPresenter.showEditorScreen();
                 break;
-            case R.id.menu_update_balance:
-                mainPresenter.updateBalance();
-                break;
             case R.id.menu_export:
                 permissionVerifier = new PermissionVerifier(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE});
                 if (permissionVerifier.verifyPermissions(true, REQUEST_CODE_PERMISSIONS_FOR_DB_EXPORT)) {
