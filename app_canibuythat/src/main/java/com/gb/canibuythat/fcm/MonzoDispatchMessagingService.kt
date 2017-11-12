@@ -14,6 +14,7 @@ import com.gb.canibuythat.di.Injector
 import com.gb.canibuythat.fcm.model.FcmMonzoData
 import com.gb.canibuythat.interactor.MonzoInteractor
 import com.gb.canibuythat.interactor.SpendingInteractor
+import com.gb.canibuythat.repository.MonzoMapper
 import com.gb.canibuythat.ui.MainActivity
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
@@ -25,6 +26,7 @@ class MonzoDispatchMessagingService : FirebaseMessagingService() {
 
     @field:[Inject] lateinit var monzoInteractor: MonzoInteractor
     @field:[Inject] lateinit var spendingInteractor: SpendingInteractor
+    @field:[Inject] lateinit var monzoMapper: MonzoMapper
 
     private var disposable: Disposable? = null
 
@@ -37,16 +39,18 @@ class MonzoDispatchMessagingService : FirebaseMessagingService() {
         remoteMessage.notification?.let { Log.d(TAG, "Message notification payload: " + it.body) }
         remoteMessage.data?.let {
             Log.d(TAG, "Message data payload: " + it)
+            if (it.containsKey("monzo_data")) {
+                val category =  Gson().fromJson(it["monzo_data"], FcmMonzoData::class.java)?.data?.let {
+                    monzoMapper.mapToTransaction(it).category
+                }
+                category?.let { showSpendingInNotification(it.toString()) }
+            }
             if (it.containsKey("notification")) {
                 val notification = Gson().fromJson(it["notification"], Notification::class.java)
                 sendNotification(notification.title, notification.body)
                 showSpendingInNotification(notification.body)
             }
-            if (it.containsKey("monzo_data")) {
-                val category = Gson().fromJson(it["monzo_data"], FcmMonzoData::class.java)?.data?.merchant?.category
-
-                category?.let { showSpendingInNotification(it) }
-            }
+            monzoInteractor.loadSpendings(listOf(ACCOUNT_ID_PREPAID, ACCOUNT_ID_RETAIL))
         }
     }
 
@@ -68,7 +72,6 @@ class MonzoDispatchMessagingService : FirebaseMessagingService() {
         }, {
             disposable?.dispose()
         })
-        monzoInteractor.loadSpendings(listOf(ACCOUNT_ID_PREPAID, ACCOUNT_ID_RETAIL))
     }
 
     /**

@@ -159,7 +159,7 @@ constructor(private val spendingDao: Dao<Spending, Int>,
         userPreferences.balanceReading?.let { balanceReading ->
             val startDate = balanceReading.`when`
             val endDate = userPreferences.estimateDate
-            val total = calculateBalanceForCategory(null, startDate = startDate, endDate = endDate)!!.definitely!!
+            val total = calculateBalanceButForCategory(Spending.Category.INCOME, startDate = startDate, endDate = endDate)!!.definitely!!
             try {
                 Spending.Category.values()
                         .map { Pair(it, calculateBalanceForCategory(it, startDate, endDate)) }
@@ -169,8 +169,12 @@ constructor(private val spendingDao: Dao<Spending, Int>,
                             val name = it.first.name.substring(0, Math.min(8, it.first.name.length)).toLowerCase().capitalize()
                             val definitely = it.second!!.definitely!!
                             val maybe = it.second!!.maybeEvenThisMuch
-                            val percent = definitely.div(total).times(100)
-                            "%1\$s: %2\$.1f/%3\$.1f (%4\$.1f%%)".format(name, definitely, maybe, percent)
+                            if (it.first != Spending.Category.INCOME) {
+                                val percent = definitely.div(total).times(100)
+                                "%1\$s: %2\$.0f/%3\$.0f (%4\$.1f%%)".format(name, definitely, maybe, percent)
+                            } else {
+                                "%1\$s: %2\$.0f/%3\$.0f".format(name, definitely, maybe)
+                            }
                         })
             } catch (e: IllegalArgumentException) {
                 throw DomainException("Date of balance reading must not come after date of target estimate", e)
@@ -193,6 +197,29 @@ constructor(private val spendingDao: Dao<Spending, Int>,
 
 
         for (spending: Spending in spendingDao.queryForFieldValues(query)) {
+            if (balance == null) {
+                balance = Balance(0f, 0f)
+            }
+            val (definitely, maybeEvenThisMuch, _) = BalanceCalculator.getEstimatedBalance(
+                    spending, startDate, endDate)
+            balance.definitely = balance.definitely?.plus(definitely)
+            balance.maybeEvenThisMuch = balance.maybeEvenThisMuch?.plus(maybeEvenThisMuch)
+        }
+
+        return balance
+    }
+
+
+    /**
+     * @param category which should be omitted from the total.
+     * @param startDate from which the calculation should start. If null, the individual spending start-dates will be used.
+     * @param endDate up until which the calculations should go. If null, `today` is used.
+     */
+    private fun calculateBalanceButForCategory(category: Spending.Category, startDate: Date?, endDate: Date): Balance? {
+        var balance: Balance? = null
+        val builder = spendingDao.queryBuilder()
+        builder.where().notIn(Contract.Spending.TYPE, category)
+        for (spending: Spending in spendingDao.query(builder.prepare())) {
             if (balance == null) {
                 balance = Balance(0f, 0f)
             }

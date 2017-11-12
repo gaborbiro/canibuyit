@@ -1,7 +1,5 @@
 package com.gb.canibuythat.fcm.model
 
-class FcmMonzoData(val data: FcmTransactionData?)
+import com.gb.canibuythat.api.model.ApiTransaction
 
-class FcmTransactionData(val merchant: FcmMerchant?)
-
-class FcmMerchant(val category: String?)
+class FcmMonzoData(val data: ApiTransaction?)
