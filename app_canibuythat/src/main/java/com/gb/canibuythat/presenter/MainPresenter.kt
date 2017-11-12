@@ -9,6 +9,7 @@ import com.gb.canibuythat.MONZO_AUTH_AUTHORITY
 import com.gb.canibuythat.MONZO_AUTH_PATH_BASE
 import com.gb.canibuythat.MONZO_AUTH_PATH_CALLBACK
 import com.gb.canibuythat.MONZO_OAUTH_PARAM_AUTHORIZATION_CODE
+import com.gb.canibuythat.TRANSACTION_HISTORY_LENGTH_MONTHS
 import com.gb.canibuythat.UserPreferences
 import com.gb.canibuythat.interactor.BackupingInteractor
 import com.gb.canibuythat.interactor.MonzoInteractor
@@ -110,7 +111,7 @@ constructor(private val monzoInteractor: MonzoInteractor,
         if (!credentialsProvider.isRefresh()) {
             getScreen().showLoginActivity()
         } else {
-            disposeOnFinish(monzoInteractor.loadSpendings(listOf(ACCOUNT_ID_PREPAID, ACCOUNT_ID_RETAIL)))
+            disposeOnFinish(monzoInteractor.loadSpendings(listOf(ACCOUNT_ID_PREPAID, ACCOUNT_ID_RETAIL), TRANSACTION_HISTORY_LENGTH_MONTHS))
         }
     }
 

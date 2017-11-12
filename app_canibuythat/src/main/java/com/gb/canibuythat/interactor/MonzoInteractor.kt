@@ -43,8 +43,14 @@ constructor(private val schedulerProvider: SchedulerProvider,
                 })
     }
 
-    fun loadSpendings(accountIds: List<String>): Disposable {
-        return onErrorPrep(monzoRepository.getSpendings(accountIds)
+    fun loadSpendings(accountIds: List<String>, lastXMonths: Int?): Disposable {
+        val since = lastXMonths?.let {
+            clearLowerBits()
+                    .also { it.add(Calendar.MONTH, -lastXMonths) }
+                    .also { it.set(Calendar.DAY_OF_MONTH, 1) }
+                    .time
+        }
+        return onErrorPrep(monzoRepository.getSpendings(accountIds, since)
                 .subscribeOn(schedulerProvider.io())
                 .doOnSubscribe {
                     spendingInteractor.getSpendingsDataStream().onNext(Lce.loading())

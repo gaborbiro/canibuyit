@@ -32,13 +32,11 @@ fun Date.toCalendar(): Calendar {
     return c
 }
 
-fun Date.toZDT(): ZonedDateTime {
-    val date = Calendar.getInstance(TimeZone.getDefault())
-    date.time = this
-    return ZonedDateTime.of(date[Calendar.YEAR], date[Calendar.MONTH], date[Calendar.DAY_OF_MONTH],
-            date[Calendar.HOUR_OF_DAY], date[Calendar.MINUTE], date[Calendar.SECOND],
-            date[Calendar.MILLISECOND], ZoneId.systemDefault())
-}
+fun Date.toZDT() = this.toCalendar().let {
+    ZonedDateTime.of(it[Calendar.YEAR], it[Calendar.MONTH] + 1, it[Calendar.DAY_OF_MONTH],
+            it[Calendar.HOUR_OF_DAY], it[Calendar.MINUTE], it[Calendar.SECOND],
+            it[Calendar.MILLISECOND], ZoneId.systemDefault())
+}!!
 
 /**
  * Only day. No hour, minute, second or millisecond.

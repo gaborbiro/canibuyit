@@ -10,6 +10,7 @@ import android.util.Log
 import com.gb.canibuythat.ACCOUNT_ID_PREPAID
 import com.gb.canibuythat.ACCOUNT_ID_RETAIL
 import com.gb.canibuythat.R
+import com.gb.canibuythat.TRANSACTION_HISTORY_LENGTH_MONTHS
 import com.gb.canibuythat.di.Injector
 import com.gb.canibuythat.fcm.model.FcmMonzoData
 import com.gb.canibuythat.interactor.MonzoInteractor
@@ -50,7 +51,7 @@ class MonzoDispatchMessagingService : FirebaseMessagingService() {
                 sendNotification(notification.title, notification.body)
                 showSpendingInNotification(notification.body)
             }
-            monzoInteractor.loadSpendings(listOf(ACCOUNT_ID_PREPAID, ACCOUNT_ID_RETAIL))
+            monzoInteractor.loadSpendings(listOf(ACCOUNT_ID_PREPAID, ACCOUNT_ID_RETAIL), TRANSACTION_HISTORY_LENGTH_MONTHS)
         }
     }
 

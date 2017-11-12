@@ -26,14 +26,14 @@ class ProgressRelativeLayout @JvmOverloads constructor(context: Context,
             when (value) {
                 Mode.MIN_LIMIT -> {
                     when {
-                        progress > 0.9 -> paint.color = ContextCompat.getColor(context, R.color.spending_list_item_spend_high)
+                        progress > 0.99 -> paint.color = ContextCompat.getColor(context, R.color.spending_list_item_spend_high)
                         progress > 0.75 -> paint.color = ContextCompat.getColor(context, R.color.spending_list_item_spend_medium)
                         else -> paint.color = ContextCompat.getColor(context, R.color.spending_list_item_spend_low)
                     }
                 }
                 Mode.MAX_LIMIT -> {
                     when {
-                        progress > 0.9 -> paint.color = ContextCompat.getColor(context, R.color.spending_list_item_spend_low)
+                        progress > 0.99 -> paint.color = ContextCompat.getColor(context, R.color.spending_list_item_spend_low)
                         progress > 0.75 -> paint.color = ContextCompat.getColor(context, R.color.spending_list_item_spend_medium)
                         else -> paint.color = ContextCompat.getColor(context, R.color.spending_list_item_spend_high)
                     }

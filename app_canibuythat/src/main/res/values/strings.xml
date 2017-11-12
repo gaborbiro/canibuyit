@@ -30,8 +30,8 @@
         <item quantity="other">days</item>
     </plurals>
     <plurals name="times">
-        <item quantity="one">(once)</item>
-        <item quantity="other">(%1$d times)</item>
+        <item quantity="one">once</item>
+        <item quantity="other">%1$d times</item>
     </plurals>
     <plurals name="period">
         <item quantity="one">this %2$s</item>
