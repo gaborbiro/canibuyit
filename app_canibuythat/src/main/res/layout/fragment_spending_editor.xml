@@ -108,13 +108,13 @@
                 android:layout_width="wrap_content"/>
         </LinearLayout>
 
-        <LinearLayout
+        <RelativeLayout
             android:layout_height="match_parent"
-            android:layout_width="match_parent"
-            android:orientation="horizontal">
+            android:layout_width="match_parent">
 
             <TextView
                 android:id="@+id/average_text"
+                android:layout_centerVertical="true"
                 android:layout_height="wrap_content"
                 android:layout_width="wrap_content"
                 android:text="Amount/Average:"/>
@@ -123,20 +123,30 @@
                 android:id="@+id/average_input"
                 android:imeOptions="actionNext"
                 android:inputType="numberDecimal|numberSigned"
+                android:layout_centerVertical="true"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_width="0dp"
+                android:layout_toRightOf="@id/average_text"
+                android:layout_width="wrap_content"
                 android:lines="1"
                 android:minWidth="64dp"
                 android:nextFocusDown="@+id/category_picker"
                 android:selectAllOnFocus="true"/>
 
+            <TextView
+                android:id="@+id/average_cycle_lbl"
+                android:layout_centerVertical="true"
+                android:layout_height="wrap_content"
+                android:layout_toRightOf="@id/average_input"
+                android:layout_width="wrap_content"
+                tools:text="per 2 weeks"/>
+
             <CheckBox
-                style="@style/cloud"
                 android:id="@+id/average_override_cb"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true"
                 android:layout_height="wrap_content"
                 android:layout_width="wrap_content"/>
-        </LinearLayout>
+        </RelativeLayout>
 
         <LinearLayout
             android:layout_height="match_parent"
@@ -159,6 +169,12 @@
                 android:minWidth="64dp"
                 android:nextFocusDown="@+id/category_picker"
                 android:selectAllOnFocus="true"/>
+
+            <TextView
+                android:id="@+id/target_cycle_lbl"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                tools:text="per 2 weeks"/>
         </LinearLayout>
 
         <LinearLayout

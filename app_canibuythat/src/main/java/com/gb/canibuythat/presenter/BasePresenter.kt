@@ -33,7 +33,7 @@ abstract class BasePresenter<S : Screen> {
     }
 
     fun onPresenterDestroyed() {
-        currentDisposables.dispose()
+        currentDisposables.clear()
     }
 
     open fun onScreenSet() {

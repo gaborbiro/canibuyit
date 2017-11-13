@@ -3,19 +3,8 @@ package com.gb.canibuythat.ui
 import android.database.sqlite.SQLiteConstraintException
 import android.os.Bundle
 import android.text.TextUtils
-import android.view.LayoutInflater
-import android.view.Menu
-import android.view.MenuInflater
-import android.view.MenuItem
-import android.view.MotionEvent
-import android.view.View
-import android.view.ViewGroup
-import android.widget.ArrayAdapter
-import android.widget.CheckBox
-import android.widget.CompoundButton
-import android.widget.EditText
-import android.widget.Spinner
-import android.widget.TextView
+import android.view.*
+import android.widget.*
 import com.gb.canibuythat.R
 import com.gb.canibuythat.UserPreferences
 import com.gb.canibuythat.di.Injector
@@ -25,11 +14,7 @@ import com.gb.canibuythat.interactor.SpendingInteractor
 import com.gb.canibuythat.model.Spending
 import com.gb.canibuythat.presenter.BasePresenter
 import com.gb.canibuythat.screen.Screen
-import com.gb.canibuythat.util.DateUtils
-import com.gb.canibuythat.util.DialogUtils
-import com.gb.canibuythat.util.TextChangeListener
-import com.gb.canibuythat.util.ValidationError
-import com.gb.canibuythat.util.ViewUtils
+import com.gb.canibuythat.util.*
 import java.util.*
 import javax.inject.Inject
 
@@ -62,6 +47,8 @@ class SpendingEditorFragment : BaseFragment() {
     private val averageOverrideCB: CheckBox by lazy { rootView?.findViewById(R.id.average_override_cb) as CheckBox }
     private val cycleOverrideCB: CheckBox by lazy { rootView?.findViewById(R.id.cycle_override_cb) as CheckBox }
     private val whenOverrideCB: CheckBox by lazy { rootView?.findViewById(R.id.when_override_cb) as CheckBox }
+    private val averageCycleLbl: TextView by lazy { rootView?.findViewById(R.id.average_cycle_lbl) as TextView }
+    private val targetCycleLbl: TextView by lazy { rootView?.findViewById(R.id.target_cycle_lbl) as TextView }
 
     private var originalSpending: Spending? = null
     private var cycleMultiplierChanged: Boolean = false
@@ -131,6 +118,8 @@ class SpendingEditorFragment : BaseFragment() {
             }
             spending.cycleMultiplier?.let {
                 cycleMultiplierInput.setText(it.toString())
+                averageCycleLbl.text = " per $it ${context.resources.getQuantityString(spending.cycle!!.strRes, it)}"
+                targetCycleLbl.text = " per $it ${context.resources.getQuantityString(spending.cycle!!.strRes, it)}"
             } ?: let {
                 cycleMultiplierInput.text = null
             }
