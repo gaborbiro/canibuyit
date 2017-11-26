@@ -103,10 +103,6 @@ constructor(private val monzoInteractor: MonzoInteractor,
         disposeOnFinish(monzoInteractor.login(authorizationCode))
     }
 
-    fun chartButtonClicked() {
-        getScreen().showChartScreen()
-    }
-
     fun fetchMonzoData() {
         if (!credentialsProvider.isRefresh()) {
             getScreen().showLoginActivity()

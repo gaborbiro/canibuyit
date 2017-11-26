@@ -10,7 +10,6 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -61,7 +60,6 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
 
     @Nullable @BindView(R.id.projection_lbl) TextView projectionLbl;
     @Nullable @BindView(R.id.reference_lbl) TextView referenceLbl;
-    @Nullable @BindView(R.id.chart_button) ImageView chartButton;
 
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet device.
@@ -78,9 +76,6 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
 
         if (findViewById(R.id.spending_editor_container) != null) {
             twoPane = true;
-        }
-        if (chartButton != null) {
-            chartButton.setOnClickListener(v -> mainPresenter.chartButtonClicked());
         }
         mainPresenter.handleDeepLink(getIntent());
     }
@@ -315,11 +310,6 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
     @Override
     public void showLoginActivity() {
         LoginActivity.show(this);
-    }
-
-    @Override
-    public void showChartScreen() {
-        ChartActivity.show(MainActivity.this);
     }
 
     @Override

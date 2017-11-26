@@ -42,11 +42,6 @@
         </activity>
 
         <activity
-            android:label="@string/title_activity_chart"
-            android:name=".ui.ChartActivity"
-            android:screenOrientation="landscape">
-        </activity>
-        <activity
             android:name=".ui.FileDialogActivity">
         </activity>
         <activity
@@ -56,7 +51,6 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".ui.MainActivity"/>
         </activity>
-
         <service
             android:name=".fcm.MonzoDispatchMessagingService">
             <intent-filter>
@@ -70,5 +64,4 @@
             </intent-filter>
         </service>
     </application>
-
 </manifest>

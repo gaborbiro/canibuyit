@@ -10,8 +10,6 @@ interface MainScreen : MonzoDispatchScreen {
         ALL
     }
 
-    fun showChartScreen()
-
     fun showLoginActivity()
 
     fun setBalanceInfo(balance: Balance?)
