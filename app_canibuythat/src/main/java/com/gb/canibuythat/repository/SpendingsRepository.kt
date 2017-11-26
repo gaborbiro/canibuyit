@@ -220,8 +220,6 @@ constructor(private val spendingDao: Dao<Spending, Int>,
         userPreferences.balanceReading?.let { balanceReading ->
             val startDate = balanceReading.`when`
             val endDate = userPreferences.estimateDate
-            val balance = calculateBalanceButForCategory(Spending.Category.INCOME, startDate = startDate, endDate = endDate)
-            val total = balance!!.targetDefinitely - balance.definitely
             try {
                 Spending.Category.values()
                         .map { Pair(it, calculateBalanceForCategory(it, startDate, endDate)) }
@@ -237,6 +235,11 @@ constructor(private val spendingDao: Dao<Spending, Int>,
             } catch (e: IllegalArgumentException) {
                 throw DomainException("Date of balance reading must not come after date of target estimate", e)
             }
+            val balance = calculateBalanceButForCategory(Spending.Category.INCOME, startDate = startDate, endDate = endDate)!!
+            val definitely = balance.targetDefinitely - balance.definitely
+            val maybe = balance.targetMaybeEvenThisMuch - balance.maybeEvenThisMuch
+            buffer.append("\n-----------------\nTotal: ")
+            buffer.append("%1\$.0f/%2\$.0f".format(definitely, maybe))
         }
         return buffer.toString()
     }
