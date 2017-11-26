@@ -135,11 +135,14 @@ class MonzoMapper @Inject constructor(private val projectInteractor: ProjectInte
 
     private fun getOptimalCycle(transactions: List<Transaction>): Spending.Cycle {
         var highestDistanceDays = 0L
-        val sortedList = transactions.sortedBy { it.created }.map { it.created.toLocalDate() }
-        var distance: Long = 0
+        val sortedDates = transactions.sortedBy { it.created }.map { it.created.toLocalDate() }
+        var distance: Long
 
-        sortedList.indices.forEach { i ->
-            if (i > 0 && { distance = sortedList[i].toEpochDay() - sortedList[i - 1].toEpochDay(); distance }() > highestDistanceDays) {
+        fun diff(i: Int): Long = sortedDates[i].toEpochDay() - sortedDates[i - 1].toEpochDay()
+
+        sortedDates.indices.forEach { i ->
+            distance = diff(i)
+            if (i > 0 && distance > highestDistanceDays) {
                 highestDistanceDays = distance
             }
         }

@@ -136,7 +136,11 @@ class DateUtils {
         @JvmStatic
         fun formatDayMonthYear(date: Date): String {
             val dayNumberSuffix = SUFFIXES[date.toCalendar()[Calendar.DAY_OF_MONTH]]
-            return SimpleDateFormat("'$dayNumberSuffix' MMM, yyyy").format(date)
+            return if (date.year + 1900 == Calendar.getInstance()[Calendar.YEAR]) {
+                SimpleDateFormat("'the $dayNumberSuffix of' MMM")
+            } else {
+                SimpleDateFormat("'the $dayNumberSuffix of' MMM, yyyy")
+            }.format(date)
         }
     }
 }

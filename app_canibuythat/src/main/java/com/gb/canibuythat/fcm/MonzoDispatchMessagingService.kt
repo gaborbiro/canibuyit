@@ -62,7 +62,7 @@ class MonzoDispatchMessagingService : FirebaseMessagingService() {
                 spendingInteractor.getByMonzoCategory(category).subscribe({ spending ->
                     val spent = Math.abs(spending.spent ?: 0.0)
                     spending.target?.let {
-                        val progress: Float = (spent / it).toFloat() * 100
+                        val progress: Float = (spent / Math.abs(it)).toFloat() * 100
                         sendNotification(spending.name!!, ("%.0f%%(%.0f/%.0f)").format(progress, spent, it))
                     } ?: let {
 //                        sendNotification(spending.name!!, "£%.0f".format(spent))

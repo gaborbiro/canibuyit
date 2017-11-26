@@ -23,6 +23,8 @@
             android:id="@+id/projection_lbl"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:gravity="end"
+            android:lineSpacingExtra="6dp"
             tools:text="I'm going to have 9336/8471 on 9th of Nov, 2018"/>
     </LinearLayout>
 </RelativeLayout>
