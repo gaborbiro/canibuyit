@@ -168,7 +168,7 @@ constructor(private val spendingDao: Dao<Spending, Int>,
                             val name = it.first.name.substring(0, Math.min(12, it.first.name.length)).toLowerCase().capitalize()
                             val definitely = it.second.definitely
                             val maybe = it.second.maybeEvenThisMuch
-                            val amount = if (definitely == maybe) "%1\$.0f".format(definitely) else "%1\$.0f/%2\$.0f".format(definitely, maybe - definitely)
+                            val amount = if (definitely == maybe) "%1\$.0f".format(definitely) else "%1\$.0f/%2\$.0f".format(definitely, maybe)
 
                             if (it.first != Spending.Category.INCOME) {
                                 val percent = definitely.div(total).times(100)
@@ -199,7 +199,7 @@ constructor(private val spendingDao: Dao<Spending, Int>,
                             val name = it.first.name.substring(0, Math.min(12, it.first.name.length)).toLowerCase().capitalize()
                             val definitely = it.second.targetDefinitely
                             val maybe = it.second.targetMaybeEvenThisMuch
-                            val amount = if (definitely == maybe) "%1\$.0f".format(definitely) else "%1\$.0f/%2\$.0f".format(definitely, maybe - definitely)
+                            val amount = if (definitely == maybe) "%1\$.0f".format(definitely) else "%1\$.0f/%2\$.0f".format(definitely, maybe)
 
                             if (it.first != Spending.Category.INCOME) {
                                 val percent = definitely.div(total).times(100)
@@ -229,7 +229,7 @@ constructor(private val spendingDao: Dao<Spending, Int>,
                             val name = it.first.name.substring(0, Math.min(12, it.first.name.length)).toLowerCase().capitalize()
                             val definitely = it.second.targetDefinitely - it.second.definitely
                             val maybe = it.second.targetMaybeEvenThisMuch - it.second.maybeEvenThisMuch
-                            val amount = if (definitely == maybe) "%1\$.0f".format(definitely) else "%1\$.0f/%2\$.0f".format(definitely, maybe - definitely)
+                            val amount = if (definitely == maybe) "%1\$.0f".format(definitely) else "%1\$.0f/%2\$.0f".format(definitely, maybe)
                             "%1\$s: %2\$s".format(name, amount)
                         })
             } catch (e: IllegalArgumentException) {

@@ -35,7 +35,7 @@ class MonzoMapper @Inject constructor() {
         val category = mapApiCategory(noteCategory?.toString() ?: apiTransaction.category)
         return Transaction(apiTransaction.amount,
                 ZonedDateTime.parse(apiTransaction.created),
-                apiTransaction.description,
+                apiTransaction.description + if (apiTransaction.notes.isNotEmpty()) "\n" + apiTransaction.notes else "",
                 apiTransaction.id,
                 category)
     }
@@ -85,14 +85,18 @@ class MonzoMapper @Inject constructor() {
         }
     }
 
-    fun Cycle.span(start: ZonedDateTime, end: ZonedDateTime): Long {
+    private fun Cycle.span(start: ZonedDateTime, end: ZonedDateTime): Long {
         return when (this) {
-            Cycle.DAYS -> ChronoUnit.DAYS.between(start.withHour(0), end.withHour(24))
-            Cycle.WEEKS -> ChronoUnit.WEEKS.between(
-                    start.minusDays(start.dayOfWeek.value.toLong() - 1),
-                    end.plusDays(7 - end.dayOfWeek.value.toLong()))
-            Cycle.MONTHS -> ChronoUnit.MONTHS.between(start.withDayOfMonth(1), end.withDayOfMonth(end.month.length(false)))
-            Cycle.YEARS -> ChronoUnit.YEARS.between(start.withDayOfYear(1), end.withDayOfYear(365))
+//            Cycle.DAYS -> ChronoUnit.DAYS.between(start.withHour(0), end.withHour(24))
+//            Cycle.WEEKS -> ChronoUnit.WEEKS.between(
+//                    start.minusDays(start.dayOfWeek.value.toLong() - 1),
+//                    end.plusDays(7 - end.dayOfWeek.value.toLong()))
+//            Cycle.MONTHS -> ChronoUnit.MONTHS.between(start.withDayOfMonth(1), end.withDayOfMonth(end.month.length(false)))
+//            Cycle.YEARS -> ChronoUnit.YEARS.between(start.withDayOfYear(1), end.withDayOfYear(365))
+            Cycle.DAYS -> ChronoUnit.DAYS.between(start, end)
+            Cycle.WEEKS -> ChronoUnit.WEEKS.between(start, end)
+            Cycle.MONTHS -> ChronoUnit.MONTHS.between(start, end)
+            Cycle.YEARS -> ChronoUnit.YEARS.between(start, end)
         } + 1
     }
 

@@ -20,11 +20,12 @@ fun Date.clearLowerBits(): Date {
 /**
  * Only day. No hour, minute, second or millisecond.
  */
-fun Calendar.clearLowerBits() {
+fun Calendar.clearLowerBits(): Calendar {
     this.set(Calendar.HOUR_OF_DAY, 0)
     this.set(Calendar.MINUTE, 0)
     this.set(Calendar.SECOND, 0)
     this.set(Calendar.MILLISECOND, 0)
+    return this
 }
 
 fun Date.toCalendar(): Calendar {
@@ -40,7 +41,7 @@ fun Date.toZDT() = this.toCalendar().let {
 }!!
 
 /**
- * Only day. No hour, minute, second or millisecond.
+ * Today. No hour, minute, second or millisecond.
  */
 fun clearLowerBits(): Calendar {
     val c = Calendar.getInstance()

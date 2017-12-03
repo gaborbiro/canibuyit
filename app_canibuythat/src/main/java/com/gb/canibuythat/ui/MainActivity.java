@@ -276,8 +276,8 @@ public class MainActivity extends BaseActivity implements MainScreen, SpendingLi
             String defoMaybeStr = "?";
             String targetDefoMaybeStr = "?";
             if (balance != null) {
-                defoMaybeStr = getString(R.string.definitely_maybe, balance.getDefinitely(), balance.getMaybeEvenThisMuch() - balance.getDefinitely());
-                targetDefoMaybeStr = getString(R.string.definitely_maybe, balance.getTargetDefinitely(), balance.getTargetMaybeEvenThisMuch() - balance.getTargetDefinitely());
+                defoMaybeStr = getString(R.string.definitely_maybe, balance.getDefinitely(), balance.getMaybeEvenThisMuch());
+                targetDefoMaybeStr = getString(R.string.definitely_maybe, balance.getTargetDefinitely(), balance.getTargetMaybeEvenThisMuch());
             }
             String estimateAtTime = getString(R.string.estimate_at_date, defoMaybeStr, estimateDateStr, targetDefoMaybeStr);
             ViewUtils.setTextWithLinks(projectionLbl, estimateAtTime, new String[]{defoMaybeStr, targetDefoMaybeStr, "behave", estimateDateStr}, new Runnable[]{defoMaybeClickListener, targetDefoMaybeClickListener, savingClickListener, estimateDateUpdater});

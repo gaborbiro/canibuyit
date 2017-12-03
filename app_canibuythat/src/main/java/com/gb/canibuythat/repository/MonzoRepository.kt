@@ -49,7 +49,11 @@ class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi,
             }
             emitter.onComplete()
         }.filter {
-            it.include_in_spending
+            // Top-ups to an account are represented as transactions with a positive amount and is_load = true
+            // Other transactions such as refunds, reversals or chargebacks may have a positive amount but is_load = false
+            !(it.is_load && it.amount > 0)
+            && it.amount != 0
+            && !it.description.contains("top-up", true)
         }.map {
             mapper.mapToTransaction(it)
         }.toList().map { transactions ->
@@ -58,9 +62,9 @@ class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi,
             transactions.groupBy(Transaction::category).mapNotNull { (category, transactionsForThatCategory) ->
                 val savedSpending = savedSpendings[category.toString()]?.get(0)
                 var transactionsForThatCategory = transactionsForThatCategory
-                savedSpending?.let {
-                    transactionsForThatCategory = transactionsForThatCategory.filter { !it.created.isBefore(savedSpending.fromStartDate.toZDT()) }
-                }
+//                savedSpending?.let {
+//                    transactionsForThatCategory = transactionsForThatCategory.filter { !it.created.isBefore(savedSpending.fromStartDate.toZDT()) }
+//                }
                 if (transactionsForThatCategory.isEmpty()) {
                     savedSpending?.let {
                         it.value = 0.0
