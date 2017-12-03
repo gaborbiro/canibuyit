@@ -5,7 +5,6 @@ import com.gb.canibuythat.api.model.ApiTransaction
 import com.gb.canibuythat.api.model.ApiWebhook
 import com.gb.canibuythat.api.model.ApiWebhooks
 import com.gb.canibuythat.interactor.Project
-import com.gb.canibuythat.interactor.ProjectInteractor
 import com.gb.canibuythat.model.Login
 import com.gb.canibuythat.model.Spending
 import com.gb.canibuythat.model.Spending.Cycle
@@ -24,7 +23,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class MonzoMapper @Inject constructor(private val projectInteractor: ProjectInteractor) {
+class MonzoMapper @Inject constructor() {
 
     fun mapToLogin(apiLogin: ApiLogin): Login {
         val expiresAt = apiLogin.expires_in * 1000 + System.currentTimeMillis()
@@ -32,16 +31,12 @@ class MonzoMapper @Inject constructor(private val projectInteractor: ProjectInte
     }
 
     fun mapToTransaction(apiTransaction: ApiTransaction): Transaction {
-        val noteCategory = if (!apiTransaction.notes.isEmpty()) Spending.Category.values().firstOrNull { apiTransaction.notes.startsWith(it.toString(), ignoreCase = true) } else null
+        val noteCategory = if (!apiTransaction.notes.isEmpty()) Spending.Category.values().firstOrNull { apiTransaction.notes.contains(it.toString(), ignoreCase = true) } else null
         val category = mapApiCategory(noteCategory?.toString() ?: apiTransaction.category)
         return Transaction(apiTransaction.amount,
                 ZonedDateTime.parse(apiTransaction.created),
-                apiTransaction.currency,
                 apiTransaction.description,
                 apiTransaction.id,
-                apiTransaction.notes,
-                apiTransaction.is_load,
-                if (!apiTransaction.settled.isEmpty()) ZonedDateTime.parse(apiTransaction.settled) else null,
                 category)
     }
 
@@ -136,13 +131,10 @@ class MonzoMapper @Inject constructor(private val projectInteractor: ProjectInte
     private fun getOptimalCycle(transactions: List<Transaction>): Spending.Cycle {
         var highestDistanceDays = 0L
         val sortedDates = transactions.sortedBy { it.created }.map { it.created.toLocalDate() }
-        var distance: Long
-
-        fun diff(i: Int): Long = sortedDates[i].toEpochDay() - sortedDates[i - 1].toEpochDay()
+        var distance: Long = 0
 
         sortedDates.indices.forEach { i ->
-            distance = diff(i)
-            if (i > 0 && distance > highestDistanceDays) {
+            if (i > 0 && { distance = sortedDates[i].toEpochDay() - sortedDates[i - 1].toEpochDay(); distance }() > highestDistanceDays) {
                 highestDistanceDays = distance
             }
         }

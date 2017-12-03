@@ -3,13 +3,12 @@ package com.gb.canibuythat.api.model
 class ApiTransaction(
         val amount: Int,
         val created: String,
-        val currency: String,
         val description: String,
         val id: String,
         val notes: String,
-        val is_load: Boolean,
-        val settled: String,
-        val decline_reason: String,
         val category: String,
-        val include_in_spending: Boolean
-)
+        val include_in_spending: Boolean) {
+    override fun toString(): String {
+        return "ApiTransaction(category='$category', amount=$amount, created='$created', description='$description', notes='$notes', include_in_spending=$include_in_spending, id='$id')"
+    }
+}

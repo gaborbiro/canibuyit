@@ -28,7 +28,6 @@ object BalanceCalculator {
         var maybeSpentThisMuch = 0f
         var targetDefinitelySpentThisMuch = 0f
         var targetMaybeSpentThisMuch = 0f
-//        val spendingEvents = ArrayList<Date>()
         var count = 0
         val occurrenceStart = spending.fromStartDate.toCalendar()
         val occurrenceEnd = spending.fromEndDate.toCalendar()
@@ -49,7 +48,6 @@ object BalanceCalculator {
                             definitelySpentThisMuch += spending.value.toFloat()
                             targetDefinitelySpentThisMuch += target
                         }
-//                        spendingEvents.add(occurrenceEnd.time)
                     }
                 } else {
                     `break` = true

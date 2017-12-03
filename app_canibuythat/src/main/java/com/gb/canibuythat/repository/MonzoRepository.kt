@@ -41,14 +41,13 @@ class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi,
     fun getSpendings(accountIds: List<String>, since: Date? = null): Single<List<Spending>> {
         return Observable.create<ApiTransaction> { emitter ->
             accountIds.forEach {
-                monzoApi.transactions(
+                val t = monzoApi.transactions(
                         it,
                         since?.let { DateUtils.FORMAT_RFC3339.format(it) }
-                ).blockingGet().transactions.forEach { emitter.onNext(it) }
+                ).blockingGet().transactions
+                t.forEach { emitter.onNext(it) }
             }
             emitter.onComplete()
-        }.distinct {
-            it.id
         }.filter {
             it.include_in_spending
         }.map {
