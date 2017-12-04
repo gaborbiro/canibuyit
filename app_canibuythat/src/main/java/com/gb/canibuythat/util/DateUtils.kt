@@ -3,6 +3,7 @@ package com.gb.canibuythat.util
 import android.annotation.SuppressLint
 import android.app.DatePickerDialog
 import android.content.Context
+import android.widget.DatePicker
 import org.threeten.bp.ZoneId
 import org.threeten.bp.ZonedDateTime
 import java.text.SimpleDateFormat
@@ -97,13 +98,13 @@ class DateUtils {
         }
 
         @JvmStatic
-        fun getDatePickerDialog(context: Context, listener: DatePickerDialog.OnDateSetListener, date: Date?): DatePickerDialog {
+        fun getDatePickerDialog(context: Context, listener: (DatePicker, Int, Int, Int) -> Unit, date: Date?): DatePickerDialog {
             return getDatePickerDialog(context, listener, date?.toCalendar() ?: Calendar.getInstance())
         }
 
         @JvmStatic
-        fun getDatePickerDialog(context: Context, listener: DatePickerDialog.OnDateSetListener, date: Calendar): DatePickerDialog {
-            return DatePickerDialog(context, listener, decompose(date)[0], decompose(date)[1], decompose(date)[2])
+        fun getDatePickerDialog(context: Context, listener: (DatePicker, Int, Int, Int) -> Unit, calendar: Calendar): DatePickerDialog {
+            return DatePickerDialog(context, listener, decompose(calendar)[0], decompose(calendar)[1], decompose(calendar)[2])
         }
 
         @JvmStatic
@@ -135,13 +136,29 @@ class DateUtils {
         }
 
         @JvmStatic
-        fun formatDayMonthYear(date: Date): String {
+        fun formatDayMonthYearWithPrefix(date: Date): String {
             val dayNumberSuffix = SUFFIXES[date.toCalendar()[Calendar.DAY_OF_MONTH]]
             return if (date.year + 1900 == Calendar.getInstance()[Calendar.YEAR]) {
                 SimpleDateFormat("'the $dayNumberSuffix of' MMM")
             } else {
                 SimpleDateFormat("'the $dayNumberSuffix of' MMM, yyyy")
             }.format(date)
+        }
+
+        @JvmStatic
+        fun formatDayMonthYear(date: Date): String {
+            val dayNumberSuffix = SUFFIXES[date.toCalendar()[Calendar.DAY_OF_MONTH]]
+            return if (date.year + 1900 == Calendar.getInstance()[Calendar.YEAR]) {
+                SimpleDateFormat("'$dayNumberSuffix' MMM")
+            } else {
+                SimpleDateFormat("'$dayNumberSuffix' MMM, '`'yy")
+            }.format(date)
+        }
+
+        @JvmStatic
+        fun formatDayMonth(date: Date): String {
+            val dayNumberSuffix = SUFFIXES[date.toCalendar()[Calendar.DAY_OF_MONTH]]
+            return SimpleDateFormat("'$dayNumberSuffix' MMM").format(date)
         }
     }
 }

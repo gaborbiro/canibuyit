@@ -6,11 +6,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import org.jetbrains.annotations.NotNull;
+
 public class PromptDialog extends BaseDialogFragment {
 
-    private static final String EXTRA_TITLE = "title";
-    private static final String EXTRA_MESSAGE = "message";
-    private static final String EXTRA_BIG_MESSAGE = "big_message";
+    static final String EXTRA_TITLE = "title";
+    static final String EXTRA_MESSAGE = "message";
+    static final String EXTRA_BIG_MESSAGE = "big_message";
 
     private @StringRes int btnStringResId = android.R.string.ok;
     private View.OnClickListener onClickListener;
@@ -38,18 +40,17 @@ public class PromptDialog extends BaseDialogFragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public @NotNull View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = super.onCreateView(inflater, container, savedInstanceState);
 
-        Bundle b = getArguments();
+        Bundle args = getArguments();
 
-        setTitle(b.getString(EXTRA_TITLE));
-        if (b.containsKey(EXTRA_MESSAGE)) {
-            setMessage(b.getString(EXTRA_MESSAGE));
-        }
-        if (b.containsKey(EXTRA_BIG_MESSAGE)) {
-            setBigMessage(b.getString(EXTRA_BIG_MESSAGE));
+        setTitle(args.getString(EXTRA_TITLE));
+        if (args.containsKey(EXTRA_MESSAGE)) {
+            setMessage(args.getString(EXTRA_MESSAGE));
+        } // TODO: else here maybe?
+        if (args.containsKey(EXTRA_BIG_MESSAGE)) {
+            setBigMessage(args.getString(EXTRA_BIG_MESSAGE));
         }
 
         super.setPositiveButton(btnStringResId, v -> {

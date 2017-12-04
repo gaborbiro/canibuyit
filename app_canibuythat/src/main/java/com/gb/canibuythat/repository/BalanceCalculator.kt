@@ -1,5 +1,6 @@
 package com.gb.canibuythat.repository
 
+import com.gb.canibuythat.model.Balance
 import com.gb.canibuythat.model.Spending
 import com.gb.canibuythat.util.DateUtils
 import com.gb.canibuythat.util.clearLowerBits
@@ -18,7 +19,7 @@ object BalanceCalculator {
      * @return two floating point values, the first is the minimum possible value, the second is
      * * the maximum possible value
      */
-    fun getEstimatedBalance(spending: Spending, start: Date?, end: Date?): BalanceResult {
+    fun getEstimatedBalance(spending: Spending, start: Date?, end: Date?): Balance {
         if (start != null && end != null && end.before(start)) {
             throw IllegalArgumentException("Start date must come before end date!")
         }
@@ -29,6 +30,7 @@ object BalanceCalculator {
         var targetDefinitely = 0f
         var targetMaybe = 0f
         var occurrenceCount = 0
+        val spendingEvents = mutableListOf<Array<Date>>()
         val movingStart = spending.fromStartDate.toCalendar()
         val movingEnd = spending.fromEndDate.toCalendar()
         val start = start?.clearLowerBits()
@@ -48,6 +50,7 @@ object BalanceCalculator {
                             targetDefinitely += target
                         }
                     }
+                    spendingEvents.add(arrayOf(movingStart.time, movingEnd.time))
                 } else {
                     `break` = true
                 }
@@ -58,34 +61,6 @@ object BalanceCalculator {
                 `break` = true
             }
         } while (!`break`)
-        return BalanceResult(definitely, maybe, targetDefinitely, targetMaybe, null/*spendingEvents.toTypedArray()*/)
+        return Balance(definitely, maybe, targetDefinitely, targetMaybe, spendingEvents.toTypedArray())
     }
-
-    data class BalanceResult(
-            /**
-             * We know for certain that this amount has been spent by the selected date
-             */
-            val definitely: Float,
-            /**
-             * `maybeEvenThisMuch` is `definitely` plus spendings that may have been spent by the selected date.
-             * A weekly spending for eg. "may be spent" for one week after which it becomes "definitely spent"
-             * and is included only with the `definitely` sum.
-             */
-            val maybeEvenThisMuch: Float,
-            /**
-             * Use the spending target instead of the historical average-based estimation. The "well behaved user" scenario.
-             * Not all spendings have a target set, in which case this defaults back to the estimate
-             */
-            val targetDefinitely: Float,
-            /**
-             * Similar to maybeEvenThisMuch
-             */
-            val targetMaybeEvenThisMuch: Float,
-            /**
-             * Spending event is the latest day on which we expect a payment/income to happen.
-             * For eg if a weekly Spending starts on a Monday, than the array of spending
-             * events will be all the Sundays after that Monday and before today (including
-             * today).
-             */
-            val spendingEvents: Array<Date>?)
 }

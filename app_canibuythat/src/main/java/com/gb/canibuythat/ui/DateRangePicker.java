@@ -45,7 +45,7 @@ public class DateRangePicker extends LinearLayout {
             switch ((int) view.getTag()) {
                 case R.id.start_date_btn:
                     startDate = newDate.getTime();
-                    startDateBtn.setText(DateUtils.formatDayMonthYear(newDate.getTime()));
+                    startDateBtn.setText(DateUtils.formatDayMonthYearWithPrefix(newDate.getTime()));
                     if (endDate.getTime() < newDate.getTime().getTime()) {
                         endDatePickerDialog = new DatePickerDialog(getContext(),
                                 dateSetListener, DateUtils.decompose(newDate)[0], DateUtils.decompose(newDate)[1], DateUtils.decompose(newDate)[2]);
@@ -55,7 +55,7 @@ public class DateRangePicker extends LinearLayout {
                     break;
                 case R.id.end_date_btn:
                     endDate = newDate.getTime();
-                    endDateBtn.setText(DateUtils.formatDayMonthYear(newDate.getTime()));
+                    endDateBtn.setText(DateUtils.formatDayMonthYearWithPrefix(newDate.getTime()));
                     if (startDate.getTime() > newDate.getTime().getTime()) {
                         startDatePickerDialog = new DatePickerDialog(getContext(),
                                 dateSetListener, DateUtils.decompose(newDate)[0], DateUtils.decompose(newDate)[1], DateUtils.decompose(newDate)[2]);
@@ -148,8 +148,8 @@ public class DateRangePicker extends LinearLayout {
     }
 
     private void updateButtons() {
-        startDateBtn.setText(DateUtils.formatDayMonthYear(this.startDate));
-        endDateBtn.setText(DateUtils.formatDayMonthYear(this.endDate));
+        startDateBtn.setText(DateUtils.formatDayMonthYearWithPrefix(this.startDate));
+        endDateBtn.setText(DateUtils.formatDayMonthYearWithPrefix(this.endDate));
     }
 
     private DatePickerDialog getStartDatePickerDialog() {

@@ -1,6 +1,7 @@
 package com.gb.canibuythat.screen
 
 import com.gb.canibuythat.model.Balance
+import com.gb.canibuythat.model.Spending
 
 interface MainScreen : MonzoDispatchScreen {
 
@@ -27,4 +28,6 @@ interface MainScreen : MonzoDispatchScreen {
     fun showPickerForExport(suggestedPath: String)
 
     fun setProjectName(currentName: String?)
+
+    fun setBalanceBreakdown(breakdown: HashMap<Spending.Category, String>)
 }

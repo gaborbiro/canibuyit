@@ -12,6 +12,7 @@ import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.subjects.PublishSubject
 import io.reactivex.subjects.Subject
+import java.sql.SQLException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -52,7 +53,9 @@ constructor(private val spendingsRepository: SpendingsRepository,
                 .subscribe({
                     loadSpendings()
                 }, { throwable ->
-                    spendingsSubject.onNext(Lce.error(throwable))
+                    if (throwable is SQLException) {
+                        spendingsSubject.onNext(Lce.error(throwable))
+                    }
                 })
     }
 
@@ -91,7 +94,7 @@ constructor(private val spendingsRepository: SpendingsRepository,
     }
 
     fun getByMonzoCategory(category: String): Observable<Spending> {
-        return spendingsRepository.getByMonzoCategory(category)
+        return spendingsRepository.getSpendingByMonzoCategory(category)
                 .onErrorResumeNext { throwable: Throwable -> Observable.error<Spending>(DomainException("Error reading spending with category `$category` from database. See logs.", throwable)) }
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())
@@ -103,7 +106,7 @@ constructor(private val spendingsRepository: SpendingsRepository,
                 .observeOn(schedulerProvider.mainThread())
     }
 
-    fun getBalanceBreakdown(): String {
+    fun getBalanceBreakdown(): HashMap<Spending.Category, String> {
         return spendingsRepository.getBalanceBreakdown()
     }
 
@@ -112,6 +115,10 @@ constructor(private val spendingsRepository: SpendingsRepository,
     }
 
     fun getTargetSavingBreakdown(): String {
-        return spendingsRepository.getTargetSavingBreakdown()
+        return spendingsRepository.getSavingsBreakdown()
+    }
+
+    fun getBalanceBreakdownCategoryDetails(category: Spending.Category): String? {
+        return spendingsRepository.getBalanceBreakdownCategoryDetails(category)
     }
 }

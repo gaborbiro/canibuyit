@@ -342,7 +342,7 @@ class SpendingEditorFragment : BaseFragment() {
 
         return if (firstOccurrenceEnd.after(calendar.time)) {
             ValidationError(ValidationError.TYPE_NON_INPUT_FIELD, null,
-                    "End date cannot be higher than " + DateUtils.formatDayMonthYear(calendar.time))
+                    "End date cannot be higher than " + DateUtils.formatDayMonthYearWithPrefix(calendar.time))
         } else null
     }
 

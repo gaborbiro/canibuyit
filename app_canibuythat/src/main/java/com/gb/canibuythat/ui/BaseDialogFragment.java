@@ -14,6 +14,8 @@ import android.widget.TextView;
 
 import com.gb.canibuythat.R;
 
+import org.jetbrains.annotations.NotNull;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
@@ -31,7 +33,7 @@ public abstract class BaseDialogFragment extends DialogFragment {
     @BindView(R.id.input) EditText input;
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public @NotNull View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.prompt_dialog_layout, container, false);
         unbinder = ButterKnife.bind(this, view);
         return view;

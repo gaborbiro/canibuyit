@@ -15,6 +15,7 @@ import com.gb.canibuythat.interactor.BackupingInteractor
 import com.gb.canibuythat.interactor.MonzoInteractor
 import com.gb.canibuythat.interactor.ProjectInteractor
 import com.gb.canibuythat.interactor.SpendingInteractor
+import com.gb.canibuythat.model.Spending
 import com.gb.canibuythat.screen.MainScreen
 import com.gb.canibuythat.util.DateUtils
 import io.reactivex.functions.Consumer
@@ -63,17 +64,22 @@ constructor(private val monzoInteractor: MonzoInteractor,
         disposeOnFinish(spendingInteractor.getBalance()
                 .doOnSubscribe { getScreen().showProgress() }
                 .doAfterTerminate { getScreen().hideProgress() }
-                .subscribe(getScreen()::setBalanceInfo, {
-                    getScreen().setBalanceInfo(null)
-                    this.onError(com.gb.canibuythat.exception.DomainException("Cannot calculate balance. See logs", it))
-                }))
+                .subscribe(getScreen()::setBalanceInfo,
+                        {
+                            getScreen().setBalanceInfo(null)
+                            this.onError(com.gb.canibuythat.exception.DomainException("Cannot calculate balance. See logs", it))
+                        }))
         projectInteractor.getProject().subscribe(Consumer {
             getScreen().setTitle(it.projectName)
         })
     }
 
     fun getBalanceBreakdown() {
-        getScreen().showDialog("Balance breakdown", spendingInteractor.getBalanceBreakdown())
+        getScreen().setBalanceBreakdown(spendingInteractor.getBalanceBreakdown())
+    }
+
+    fun onBalanceBreakdownItemClicked(category: Spending.Category) {
+        getScreen().showDialog(category.name, spendingInteractor.getBalanceBreakdownCategoryDetails(category) ?: "")
     }
 
     fun getTargetBalanceBreakdown() {

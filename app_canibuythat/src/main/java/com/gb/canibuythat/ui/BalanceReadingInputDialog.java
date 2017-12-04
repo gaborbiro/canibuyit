@@ -59,11 +59,11 @@ public class BalanceReadingInputDialog extends DialogFragment
 
         if (lastUpdate != null) {
             valueView.setText(Float.toString(lastUpdate.getBalance()));
-            whenButton.setText(DateUtils.formatDayMonthYear(lastUpdate.getWhen()));
+            whenButton.setText(DateUtils.formatDayMonthYearWithPrefix(lastUpdate.getWhen()));
             whenButton.setDate(lastUpdate.getWhen());
         } else {
             Date today = new Date();
-            whenButton.setText(DateUtils.formatDayMonthYear(today));
+            whenButton.setText(DateUtils.formatDayMonthYearWithPrefix(today));
             whenButton.setDate(today);
         }
 
