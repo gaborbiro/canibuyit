@@ -17,12 +17,12 @@
     <TextView
         android:background="?attr/selectableItemBackground"
         android:gravity="center_vertical"
-        android:id="@+id/file_name"
+        android:id="@+id/file_name_input"
         android:layout_alignBottom="@+id/icon"
         android:layout_alignTop="@+id/icon"
         android:layout_height="wrap_content"
         android:layout_toEndOf="@+id/icon"
         android:layout_width="match_parent"
-        android:text="@+id/file_name"/>
+        android:text="@+id/file_name_input"/>
 
 </RelativeLayout>

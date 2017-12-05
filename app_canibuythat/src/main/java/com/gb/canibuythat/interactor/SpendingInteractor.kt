@@ -106,7 +106,7 @@ constructor(private val spendingsRepository: SpendingsRepository,
                 .observeOn(schedulerProvider.mainThread())
     }
 
-    fun getBalanceBreakdown(): HashMap<Spending.Category, String> {
+    fun getBalanceBreakdown(): Array<Pair<Spending.Category, String>> {
         return spendingsRepository.getBalanceBreakdown()
     }
 

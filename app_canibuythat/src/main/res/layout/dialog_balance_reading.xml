@@ -7,7 +7,7 @@
 
     <EditText
         android:hint="Amount"
-        android:id="@+id/amount"
+        android:id="@+id/amount_input"
         android:inputType="numberDecimal"
         android:layout_height="wrap_content"
         android:layout_width="match_parent"

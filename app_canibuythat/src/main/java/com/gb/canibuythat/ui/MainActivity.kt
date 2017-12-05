@@ -26,7 +26,8 @@ import com.gb.canibuythat.screen.MainScreen
 import com.gb.canibuythat.screen.Screen
 import com.gb.canibuythat.util.DateUtils
 import com.gb.canibuythat.util.PermissionVerifier
-import com.gb.canibuythat.util.ViewUtils
+import com.gb.canibuythat.util.setTextWithLink
+import com.gb.canibuythat.util.setTextWithLinks
 import com.google.firebase.iid.FirebaseInstanceId
 import javax.inject.Inject
 
@@ -60,7 +61,7 @@ class MainActivity : BaseActivity(), MainScreen, SpendingListFragment.FragmentCa
 
     private lateinit var permissionVerifier: PermissionVerifier
 
-    private val estimateDateUpdater = Runnable {
+    private fun estimateDateUpdater() {
         val listener = { _: DatePicker, year: Int, month: Int, dayOfMonth: Int ->
             val c = DateUtils.compose(year, month, dayOfMonth)
             val balanceReading = userPreferences.balanceReading
@@ -72,16 +73,9 @@ class MainActivity : BaseActivity(), MainScreen, SpendingListFragment.FragmentCa
                 userPreferences.estimateDate = c.time
             }
         }
-
         val datePickerDialog = DateUtils.getDatePickerDialog(this@MainActivity, listener, userPreferences.estimateDate)
         datePickerDialog.show()
     }
-
-    private val defoMaybeClickListener = Runnable { mainPresenter.getBalanceBreakdown() }
-
-    private val targetDefoMaybeClickListener = Runnable { mainPresenter.getTargetBalanceBreakdown() }
-
-    private val savingClickListener = Runnable { mainPresenter.getTargetSavingBreakdown() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -233,16 +227,15 @@ class MainActivity : BaseActivity(), MainScreen, SpendingListFragment.FragmentCa
     }
 
     override fun setBalanceInfo(balance: Balance?) {
-        if (referenceLbl != null) {
+        referenceLbl?.let {
             val text: String
             val balanceReading = userPreferences.balanceReading
             text = balanceReading?.`when`?.let {
                 getString(R.string.reading, balanceReading.balance, DateUtils.formatDayMonthYearWithPrefix(balanceReading.`when`))
             } ?: getString(R.string.reading_none)
-
-            ViewUtils.setTextWithLink(referenceLbl, text, text.substring(6)) { this.showBalanceUpdateDialog() }
+            it.setTextWithLink(text, text.substring(6), this::showBalanceUpdateDialog)
         }
-        if (projectionLbl != null) {
+        projectionLbl?.let {
             val estimateDate = userPreferences.estimateDate
             val estimateDateStr = if (DateUtils.isToday(estimateDate)) getString(R.string.today) else DateUtils.formatDayMonthYearWithPrefix(estimateDate)
 
@@ -253,11 +246,14 @@ class MainActivity : BaseActivity(), MainScreen, SpendingListFragment.FragmentCa
                 targetDefoMaybeStr = getString(R.string.definitely_maybe, balance.targetDefinitely, balance.targetMaybeEvenThisMuch)
             }
             val estimateAtTime = getString(R.string.estimate_at_date, defoMaybeStr, estimateDateStr, targetDefoMaybeStr)
-            ViewUtils.setTextWithLinks(
-                    projectionLbl,
+            it.setTextWithLinks(
                     estimateAtTime,
                     arrayOf(defoMaybeStr, targetDefoMaybeStr, "behave", estimateDateStr),
-                    arrayOf(defoMaybeClickListener, targetDefoMaybeClickListener, savingClickListener, estimateDateUpdater))
+                    arrayOf(
+                            mainPresenter::getBalanceBreakdown,
+                            mainPresenter::getTargetBalanceBreakdown,
+                            mainPresenter::getTargetSavingBreakdown,
+                            this::estimateDateUpdater))
         }
     }
 
@@ -294,7 +290,7 @@ class MainActivity : BaseActivity(), MainScreen, SpendingListFragment.FragmentCa
         mainPresenter.onBalanceBreakdownItemClicked(category)
     }
 
-    override fun setBalanceBreakdown(breakdown: HashMap<Spending.Category, String>) {
+    override fun setBalanceBreakdown(breakdown: Array<Pair<Spending.Category, String>>) {
         val promptDialog = BalanceBreakdownDialog()
         val args = Bundle()
         args.putString(PromptDialog.EXTRA_TITLE, "Balance breakdown")
@@ -324,19 +320,18 @@ class BalanceBreakdownDialog : PromptDialog() {
         val view = super.onCreateView(inflater, container, savedInstanceState)
         val bigMessageTV = view.findViewById(R.id.big_message) as TextView
 
-        val breakdown: HashMap<Spending.Category, String> = arguments.getSerializable("breakdown") as HashMap<Spending.Category, String>
+        val breakdown = arguments.getSerializable("breakdown") as Array<Pair<Spending.Category, String>>
         val buffer = StringBuffer()
-        breakdown.entries.joinTo(buffer = buffer, separator = "\n", transform = {
-            it.value
+        breakdown.joinTo(buffer = buffer, separator = "\n", transform = {
+            it.second
         })
         setBigMessage(buffer.toString())
-        ViewUtils.setTextWithLinks(
-                bigMessageTV,
+        bigMessageTV.setTextWithLinks(
                 buffer.toString(),
-                breakdown.values.toTypedArray(),
-                breakdown.keys.map {
-                    Runnable {
-                        (activity as Callback).onBalanceBreakdownItemClicked(it)
+                breakdown.map { it.second }.toTypedArray(),
+                breakdown.map { pair ->
+                    {
+                        (activity as Callback).onBalanceBreakdownItemClicked(pair.first)
                     }
                 }.toTypedArray())
         return view

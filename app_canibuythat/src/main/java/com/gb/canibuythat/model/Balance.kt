@@ -23,4 +23,9 @@ data class Balance(
          */
         var targetMaybeEvenThisMuch: Float,
 
-        var spendingEvents: Array<Array<Date>>?)
+        var spendingEvents: Array<SpendingEvent>?)
+
+class SpendingEvent(val start: Date,
+                    val end: Date,
+                    val definitely: Float,
+                    val maybe: Float)

@@ -1,12 +1,23 @@
 package com.gb.canibuythat.ui
 
+import android.annotation.SuppressLint
 import android.database.sqlite.SQLiteConstraintException
 import android.os.Bundle
 import android.text.TextUtils
-import android.view.*
-import android.widget.*
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
+import android.view.MotionEvent
+import android.view.View
+import android.view.ViewGroup
+import android.widget.ArrayAdapter
+import android.widget.CheckBox
+import android.widget.CompoundButton
+import android.widget.EditText
+import android.widget.Spinner
+import android.widget.TextView
 import com.gb.canibuythat.R
-import com.gb.canibuythat.UserPreferences
 import com.gb.canibuythat.di.Injector
 import com.gb.canibuythat.interactor.Project
 import com.gb.canibuythat.interactor.ProjectInteractor
@@ -14,7 +25,11 @@ import com.gb.canibuythat.interactor.SpendingInteractor
 import com.gb.canibuythat.model.Spending
 import com.gb.canibuythat.presenter.BasePresenter
 import com.gb.canibuythat.screen.Screen
-import com.gb.canibuythat.util.*
+import com.gb.canibuythat.util.DateUtils
+import com.gb.canibuythat.util.DialogUtils
+import com.gb.canibuythat.util.TextChangeListener
+import com.gb.canibuythat.util.ValidationError
+import com.gb.canibuythat.util.hideKeyboard
 import java.util.*
 import javax.inject.Inject
 
@@ -25,38 +40,37 @@ import javax.inject.Inject
  */
 class SpendingEditorFragment : BaseFragment() {
 
-    @Inject lateinit var userPreferences: UserPreferences
     @Inject lateinit var spendingInteractor: SpendingInteractor
     @Inject lateinit var projectInteractor: ProjectInteractor
 
-    private val nameInput: EditText by lazy { rootView?.findViewById(R.id.name_input) as EditText }
-    private val averageInput: EditText by lazy { rootView?.findViewById(R.id.average_input) as EditText }
-    private val averageLbl: TextView by lazy { rootView?.findViewById(R.id.average_text) as TextView }
-    private val targetInput: EditText by lazy { rootView?.findViewById(R.id.target_input) as EditText }
-    private val enabledCB: CompoundButton by lazy { rootView?.findViewById(R.id.enabled_switch) as CompoundButton }
-    private val categoryPicker: Spinner by lazy { rootView?.findViewById(R.id.category_picker) as Spinner }
-    private val occurrenceInput: EditText by lazy { rootView?.findViewById(R.id.occurrence_count_input) as EditText }
-    private val cycleMultiplierInput: EditText by lazy { rootView?.findViewById(R.id.cycle_multiplier_input) as EditText }
-    private val cyclePicker: Spinner by lazy { rootView?.findViewById(R.id.cycle_picker) as Spinner }
-    private val fromDatePicker: DateRangePicker by lazy { rootView?.findViewById(R.id.from_date_picker) as DateRangePicker }
-    private val notesInput: EditText by lazy { rootView?.findViewById(R.id.notes_input) as EditText }
-    private val spendingEventsLbl: TextView by lazy { rootView?.findViewById(R.id.spending_events_text) as TextView }
-    private val sourceCategoryLbl: TextView by lazy { rootView?.findViewById(R.id.source_category_lbl) as TextView }
-    private val nameOverrideCB: CheckBox by lazy { rootView?.findViewById(R.id.name_override_cb) as CheckBox }
-    private val categoryOverrideCB: CheckBox by lazy { rootView?.findViewById(R.id.category_override_cb) as CheckBox }
-    private val averageOverrideCB: CheckBox by lazy { rootView?.findViewById(R.id.average_override_cb) as CheckBox }
-    private val cycleOverrideCB: CheckBox by lazy { rootView?.findViewById(R.id.cycle_override_cb) as CheckBox }
-    private val whenOverrideCB: CheckBox by lazy { rootView?.findViewById(R.id.when_override_cb) as CheckBox }
-    private val averageCycleLbl: TextView by lazy { rootView?.findViewById(R.id.average_cycle_lbl) as TextView }
-    private val targetCycleLbl: TextView by lazy { rootView?.findViewById(R.id.target_cycle_lbl) as TextView }
+    private val nameInput: EditText by lazy { rootView.findViewById(R.id.name_input) as EditText }
+    private val averageInput: EditText by lazy { rootView.findViewById(R.id.average_input) as EditText }
+    private val averageLbl: TextView by lazy { rootView.findViewById(R.id.average_text) as TextView }
+    private val targetInput: EditText by lazy { rootView.findViewById(R.id.target_input) as EditText }
+    private val enabledCB: CompoundButton by lazy { rootView.findViewById(R.id.enabled_switch) as CompoundButton }
+    private val categoryPicker: Spinner by lazy { rootView.findViewById(R.id.category_picker) as Spinner }
+    private val occurrenceInput: EditText by lazy { rootView.findViewById(R.id.occurrence_count_input) as EditText }
+    private val cycleMultiplierInput: EditText by lazy { rootView.findViewById(R.id.cycle_multiplier_input) as EditText }
+    private val cyclePicker: Spinner by lazy { rootView.findViewById(R.id.cycle_picker) as Spinner }
+    private val fromDatePicker: DateRangePicker by lazy { rootView.findViewById(R.id.from_date_picker) as DateRangePicker }
+    private val notesInput: EditText by lazy { rootView.findViewById(R.id.notes_input) as EditText }
+//    private val spendingEventsLbl: TextView by lazy { rootView.findViewById(R.id.spending_events_text) as TextView }
+    private val sourceCategoryLbl: TextView by lazy { rootView.findViewById(R.id.source_category_lbl) as TextView }
+    private val nameOverrideCB: CheckBox by lazy { rootView.findViewById(R.id.name_override_cb) as CheckBox }
+    private val categoryOverrideCB: CheckBox by lazy { rootView.findViewById(R.id.category_override_cb) as CheckBox }
+    private val averageOverrideCB: CheckBox by lazy { rootView.findViewById(R.id.average_override_cb) as CheckBox }
+    private val cycleOverrideCB: CheckBox by lazy { rootView.findViewById(R.id.cycle_override_cb) as CheckBox }
+    private val whenOverrideCB: CheckBox by lazy { rootView.findViewById(R.id.when_override_cb) as CheckBox }
+    private val averageCycleLbl: TextView by lazy { rootView.findViewById(R.id.average_cycle_lbl) as TextView }
+    private val targetCycleLbl: TextView by lazy { rootView.findViewById(R.id.target_cycle_lbl) as TextView }
 
     private var originalSpending: Spending? = null
     private var cycleMultiplierChanged: Boolean = false
     private var deleteBtn: MenuItem? = null
-    private var rootView: ViewGroup? = null
+    private lateinit var rootView: ViewGroup
     private val keyboardDismisser = View.OnTouchListener { _, event ->
-        if (event.action == MotionEvent.ACTION_DOWN && rootView!!.focusedChild != null) {
-            ViewUtils.hideKeyboard(rootView!!.focusedChild)
+        if (event.action == MotionEvent.ACTION_DOWN && rootView.focusedChild != null) {
+            rootView.focusedChild.hideKeyboard()
         }
         false
     }
@@ -97,6 +111,7 @@ class SpendingEditorFragment : BaseFragment() {
             }
             return spending
         }
+        @SuppressLint("SetTextI18n")
         set(spending) {
             nameInput.setText(spending.name)
             averageInput.setText(getString(R.string.detail_amount, spending.value))
@@ -152,7 +167,7 @@ class SpendingEditorFragment : BaseFragment() {
 
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        rootView = view as ViewGroup?
+        rootView = view as ViewGroup
 
         categoryPicker.adapter = PlusOneAdapter(Spending.Category.values())
         categoryPicker.setOnTouchListener(keyboardDismisser)

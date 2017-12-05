@@ -29,5 +29,5 @@ interface MainScreen : MonzoDispatchScreen {
 
     fun setProjectName(currentName: String?)
 
-    fun setBalanceBreakdown(breakdown: HashMap<Spending.Category, String>)
+    fun setBalanceBreakdown(breakdown: Array<Pair<Spending.Category, String>>)
 }

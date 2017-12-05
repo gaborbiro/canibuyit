@@ -58,7 +58,7 @@
                 android:text="@string/file_name"/>
 
             <EditText
-                android:id="@+id/file_name"
+                android:id="@+id/file_name_input"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:text=""/>
@@ -93,7 +93,7 @@
         android:orientation="vertical">
 
         <TextView
-            android:id="@+id/path"
+            android:id="@+id/path_lbl"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"/>
 
@@ -103,7 +103,7 @@
             android:layout_height="fill_parent"/>
 
         <TextView
-            android:id="@android:id/empty"
+            android:id="@+id/empty_lbl"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
             android:text="@string/no_data"/>

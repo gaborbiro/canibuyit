@@ -79,7 +79,10 @@ constructor(private val monzoInteractor: MonzoInteractor,
     }
 
     fun onBalanceBreakdownItemClicked(category: Spending.Category) {
-        getScreen().showDialog(category.name, spendingInteractor.getBalanceBreakdownCategoryDetails(category) ?: "")
+        val details = spendingInteractor.getBalanceBreakdownCategoryDetails(category)
+        details?.let {
+            getScreen().showDialog(category.name.toLowerCase().capitalize(), it)
+        } ?: let { getScreen().showToast("Unavailable") }
     }
 
     fun getTargetBalanceBreakdown() {

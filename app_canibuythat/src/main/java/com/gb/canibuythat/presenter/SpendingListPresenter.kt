@@ -10,11 +10,11 @@ constructor(private val spendingInteractor: SpendingInteractor) : BasePresenter<
     init {
         disposeOnFinish(spendingInteractor.getSpendingsDataStream().subscribe({
             if (!it.loading) {
-                if (it.hasError()) {
-                    this.onError(it.error!!)
-                } else {
-                    getScreen().setData(it.content!!.sortedBy { -Math.abs(it.valuePerMonth) }.sortedBy { !it.enabled })
-                }
+                it.error?.let(this::onError)
+                it.content
+                        ?.sortedBy { -Math.abs(it.valuePerMonth) }
+                        ?.sortedBy { !it.enabled }
+                        ?.let(getScreen()::setData)
             }
         }, this::onError))
     }

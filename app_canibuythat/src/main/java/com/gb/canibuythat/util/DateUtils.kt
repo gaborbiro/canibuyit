@@ -84,14 +84,14 @@ class DateUtils {
         </pre> *
          */
         @JvmStatic
-        fun compare(date: Calendar, start: Calendar, end: Calendar): Int {
+        fun compare(date: Date, start: Date, end: Date): Int {
             if (start.after(end)) {
                 throw IllegalArgumentException("Start date must come before end date")
             }
             return when {
                 date.before(start) -> -2
                 date == start -> -1
-                date.timeInMillis >= start.timeInMillis && date.timeInMillis <= end.timeInMillis -> 0
+                date.time >= start.time && date.time <= end.time -> 0
                 date == end -> 1
                 else -> 2
             }
@@ -147,18 +147,16 @@ class DateUtils {
 
         @JvmStatic
         fun formatDayMonthYear(date: Date): String {
-            val dayNumberSuffix = SUFFIXES[date.toCalendar()[Calendar.DAY_OF_MONTH]]
             return if (date.year + 1900 == Calendar.getInstance()[Calendar.YEAR]) {
-                SimpleDateFormat("'$dayNumberSuffix' MMM")
+                SimpleDateFormat("dd.MMM")
             } else {
-                SimpleDateFormat("'$dayNumberSuffix' MMM, '`'yy")
+                SimpleDateFormat("dd.MMM, '`'yy")
             }.format(date)
         }
 
         @JvmStatic
         fun formatDayMonth(date: Date): String {
-            val dayNumberSuffix = SUFFIXES[date.toCalendar()[Calendar.DAY_OF_MONTH]]
-            return SimpleDateFormat("'$dayNumberSuffix' MMM").format(date)
+            return SimpleDateFormat("dd.MMM").format(date)
         }
     }
 }

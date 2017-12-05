@@ -185,6 +185,18 @@ class Spending {
         MONTHS(R.plurals.month),
         YEARS(R.plurals.year);
 
+        fun apply(date: Date, increment: Int): Date {
+            val cal = Calendar.getInstance()
+            cal.time = date
+            when (this) {
+                DAYS -> cal.add(Calendar.DAY_OF_MONTH, increment)
+                WEEKS -> cal.add(Calendar.WEEK_OF_MONTH, increment)
+                MONTHS -> cal.add(Calendar.MONTH, increment)
+                YEARS -> cal.add(Calendar.YEAR, increment)
+            }
+            return cal.time
+        }
+
         fun apply(c: Calendar, increment: Int) {
             when (this) {
                 DAYS -> c.add(Calendar.DAY_OF_MONTH, increment)
