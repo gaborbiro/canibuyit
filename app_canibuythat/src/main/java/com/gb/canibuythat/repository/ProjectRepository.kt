@@ -5,7 +5,7 @@ import com.j256.ormlite.dao.Dao
 import javax.inject.Inject
 
 class ProjectRepository @Inject
-constructor(val projectDao: Dao<ApiProject, Int>) {
+constructor(private val projectDao: Dao<ApiProject, Int>) {
 
     var project: ApiProject?
         get() = projectDao.queryForId(1)

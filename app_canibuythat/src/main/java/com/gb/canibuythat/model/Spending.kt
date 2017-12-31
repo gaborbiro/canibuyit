@@ -1,97 +1,77 @@
 package com.gb.canibuythat.model
 
-import com.gb.canibuythat.R
-import com.gb.canibuythat.db.Contract
-import com.j256.ormlite.field.DataType
-import com.j256.ormlite.field.DatabaseField
-import com.j256.ormlite.table.DatabaseTable
+import com.gb.canibuythat.db.model.ApiSaving
+import com.gb.canibuythat.db.model.ApiSpending
+import com.j256.ormlite.dao.ForeignCollection
+import org.threeten.bp.LocalDate
+import org.threeten.bp.ZonedDateTime
+import org.threeten.bp.temporal.ChronoField
+import org.threeten.bp.temporal.ChronoUnit
 import java.util.*
 
-
-/**
- * An income or expense that affects the balance of a specified time-span. The user
- * doesn't need to know the exact moment of payment.
- */
-@DatabaseTable(tableName = Contract.Spending.TABLE)
-class Spending {
-
-    companion object {
-        @JvmStatic
-        val SOURCE_MONZO_CATEGORY: String = "monzo_category"
-    }
-
-    @DatabaseField(generatedId = true, columnName = Contract.Spending._ID, canBeNull = true)
-    var id: Int? = null
-
-    @DatabaseField(index = true, columnName = Contract.Spending.NAME, unique = true, canBeNull = false)
-    var name: String? = null
-
-    @DatabaseField(columnName = Contract.Spending.NOTES, canBeNull = true)
-    var notes: String? = null
-
-    @DatabaseField(columnName = Contract.Spending.TYPE, canBeNull = false)
-    var type: Category? = null
-
-    @DatabaseField(columnName = Contract.Spending.VALUE, canBeNull = false)
-    var value: Double = 0.0
-
-    /**
-     * Date before witch the transaction certainly won't happen. The repetition cycle
-     * is added to this date.
-     */
-    @DatabaseField(columnName = Contract.Spending.FROM_START_DATE, canBeNull = false)
-    lateinit var fromStartDate: Date
-
-    /**
-     * Date by witch the transaction most certainly did happen. The repetition cycle is
-     * added to this date.
-     */
-    @DatabaseField(columnName = Contract.Spending.FROM_END_DATE, canBeNull = false)
-    lateinit var fromEndDate: Date
-
-    /**
-     * How many times this modifier will be spent/cashed in. If 0, the field
-     * #cycleMultiplier and #cycle are ignored
-     */
-    @DatabaseField(columnName = Contract.Spending.OCCURRENCE_COUNT, canBeNull = true)
-    var occurrenceCount: Int? = null
-
-    /**
-     * For cycles like every 2 days or 2 weeks...
-     */
-    @DatabaseField(columnName = Contract.Spending.CYCLE_MULTIPLIER, canBeNull = true)
-    var cycleMultiplier: Int? = null
-
-    /**
-     * Does this modifier repeat every day/week/month/year. The first affected time-span
-     * (specified by {@link Spending#fromStartDate} and {@link Spending#fromEndDate}) must not be larger
-     * the this cycle.<br></br>
-     * Ex: The first week of every month, cold months of the year, every weekend, every
-     * semester
-     */
-    @DatabaseField(columnName = Contract.Spending.CYCLE, canBeNull = false)
-    var cycle: Cycle? = null
-
-    @DatabaseField(columnName = Contract.Spending.ENABLED, canBeNull = true)
-    var enabled = true
-
-    @DatabaseField(columnName = Contract.Spending.SOURCE_DATA, dataType = DataType.SERIALIZABLE, canBeNull = false)
-    val sourceData: SerializableMap<String, String> = SerializableMap()
-
-    @DatabaseField(columnName = Contract.Spending.SPENT, canBeNull = true)
-    var spent: Double? = null
-
-    @DatabaseField(columnName = Contract.Spending.TARGET, canBeNull = true)
-    var target: Double? = null
+class Spending(var id: Int? = null,
+               var name: String,
+               var notes: String? = null,
+               var type: ApiSpending.Category,
+               var value: Double,
+               /**
+                * Date before witch the transaction certainly won't happen. The repetition cycle
+                * is added to this date.
+                */
+               var fromStartDate: Date,
+               var fromEndDate: Date,
+               var occurrenceCount: Int?,
+               /**
+                * For cycles like every 2 days or 2 weeks...
+                */
+               var cycleMultiplier: Int,
+               /**
+                * Does this modifier repeat every day/week/month/year. The first affected time-span
+                * (specified by {@link Spending#fromStartDate} and {@link Spending#fromEndDate}) must not be larger
+                * the this cycle.<br></br>
+                * Ex: The first week of every month, cold months of the year, every weekend, every
+                * semester
+                */
+               var cycle: ApiSpending.Cycle,
+               var enabled: Boolean,
+               var sourceData: SerializableMap<String, String>?,
+               var spent: Double?,
+               var target: Double?,
+               var savings: ForeignCollection<ApiSaving>?) {
 
     val valuePerMonth: Double
         get() {
-            return value / cycle!!.toMonth() * cycleMultiplier!!
+            return value / cycle.toMonth() * cycleMultiplier
         }
+
+    fun compareForEditing(other: Any?, ignoreDates: Boolean, ignoreCycleMultiplier: Boolean): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as Spending
+
+        if (name != other.name) return false
+        if (notes != other.notes) return false
+        if (type != other.type) return false
+        if (value != other.value) return false
+        if (!ignoreDates) {
+            if (fromStartDate != other.fromStartDate) return false
+            if (fromEndDate != other.fromEndDate) return false
+        }
+        if (occurrenceCount != other.occurrenceCount) return false
+        if (!ignoreCycleMultiplier) {
+            if (cycleMultiplier != other.cycleMultiplier) return false
+        }
+        if (cycle != other.cycle) return false
+        if (enabled != other.enabled) return false
+        if (spent != other.spent) return false
+        if (target != other.target) return false
+        return true
+    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other?.javaClass != javaClass) return false
+        if (javaClass != other?.javaClass) return false
 
         other as Spending
 
@@ -109,112 +89,87 @@ class Spending {
         if (sourceData != other.sourceData) return false
         if (spent != other.spent) return false
         if (target != other.target) return false
+        if (savings != other.savings) return false
 
         return true
     }
 
-    fun compareForEditing(other: Any?, ignoreDates: Boolean, ignoreCycleMultiplier: Boolean): Boolean {
-        if (this === other) return true
-        if (other?.javaClass != javaClass) return false
 
-        other as Spending
-
-        if (id != other.id) return false
-        if (enabled != other.enabled) return false
-        if (name != other.name) return false
-        if (notes != other.notes) return false
-        if (type != other.type) return false
-        if (value != other.value) return false
-        if (!ignoreDates) {
-            if (fromStartDate != other.fromStartDate) return false
-            if (fromEndDate != other.fromEndDate) return false
-        }
-        if (occurrenceCount != other.occurrenceCount) return false
-        if (!ignoreCycleMultiplier) {
-            if (cycleMultiplier != other.cycleMultiplier) return false
-        }
-        if (cycle != other.cycle) return false
-        if (enabled != other.enabled) return false
-        if (sourceData != other.sourceData) return false
-        if (spent != other.spent) return false
-        if (target != other.target) return false
-        return true
+    override fun toString(): String {
+        return "Spending(id=$id, name='$name', notes=$notes, type=$type, value=$value, fromStartDate=$fromStartDate, fromEndDate=$fromEndDate, occurrenceCount=$occurrenceCount, cycleMultiplier=$cycleMultiplier, cycle=$cycle, enabled=$enabled, sourceData=$sourceData, spent=$spent, target=$target, savings=$savings)"
     }
 
     override fun hashCode(): Int {
         var result = id ?: 0
-        result = 31 * result + (name?.hashCode() ?: 0)
+        result = 31 * result + name.hashCode()
         result = 31 * result + (notes?.hashCode() ?: 0)
-        result = 31 * result + (type?.hashCode() ?: 0)
-        result = 31 * result + (value.hashCode())
-        result = 31 * result + (fromStartDate.hashCode())
-        result = 31 * result + (fromEndDate.hashCode())
+        result = 31 * result + type.hashCode()
+        result = 31 * result + value.hashCode()
+        result = 31 * result + fromStartDate.hashCode()
+        result = 31 * result + fromEndDate.hashCode()
         result = 31 * result + (occurrenceCount ?: 0)
-        result = 31 * result + (cycleMultiplier ?: 0)
-        result = 31 * result + (cycle?.hashCode() ?: 0)
+        result = 31 * result + cycleMultiplier
+        result = 31 * result + cycle.hashCode()
         result = 31 * result + enabled.hashCode()
-        result = 31 * result + (sourceData.hashCode())
+        result = 31 * result + (sourceData?.hashCode() ?: 0)
         result = 31 * result + (spent?.hashCode() ?: 0)
         result = 31 * result + (target?.hashCode() ?: 0)
+        result = 31 * result + (savings?.hashCode() ?: 0)
         return result
     }
 
-    override fun toString(): String {
-        return "Spending(id=$id, name=$name, notes=$notes, type=$type, value=$value, fromStartDate=$fromStartDate, fromEndDate=$fromEndDate, occurrenceCount=$occurrenceCount, cycleMultiplier=$cycleMultiplier, cycle=$cycle, enabled=$enabled, sourceData=$sourceData, spent=$spent, target=$target)"
-    }
-
-
-    val isPersisted: Boolean
+    val isPersisted
         get() = id != null
+}
 
-    enum class Category(val defaultEnabled: Boolean = true) {
-        ACCOMMODATION, AUTOMOBILE, CHILD_SUPPORT, DONATIONS_GIVEN, ENTERTAINMENT, FOOD,
-        GIFTS_GIVEN, GROCERIES, HOUSEHOLD, INSURANCE, MEDICARE, PERSONAL_CARE, PETS,
-        SELF_IMPROVEMENT, SPORTS_RECREATION, TAX, TRANSPORTATION, UTILITIES, VACATION(false),
-        GIFTS_RECEIVED, INCOME(false), FINES,
-        ONLINE_SERVICES, LUXURY, CASH, SAVINGS, EXPENSES(false), OTHER;
-
-        override fun toString(): String {
-            return name.toLowerCase()
-        }
+fun ApiSpending.Cycle.applyTo(date: Date, increment: Int): Date {
+    val cal = Calendar.getInstance()
+    cal.time = date
+    when (this) {
+        ApiSpending.Cycle.DAYS -> cal.add(Calendar.DAY_OF_MONTH, increment)
+        ApiSpending.Cycle.WEEKS -> cal.add(Calendar.WEEK_OF_MONTH, increment)
+        ApiSpending.Cycle.MONTHS -> cal.add(Calendar.MONTH, increment)
+        ApiSpending.Cycle.YEARS -> cal.add(Calendar.YEAR, increment)
     }
+    return cal.time
+}
 
-    enum class Cycle(val strRes: Int) {
-        DAYS(R.plurals.day),
-        WEEKS(R.plurals.week),
-        MONTHS(R.plurals.month),
-        YEARS(R.plurals.year);
+fun ApiSpending.Cycle.applyTo(c: Calendar, increment: Int) {
+    when (this) {
+        ApiSpending.Cycle.DAYS -> c.add(Calendar.DAY_OF_MONTH, increment)
+        ApiSpending.Cycle.WEEKS -> c.add(Calendar.WEEK_OF_MONTH, increment)
+        ApiSpending.Cycle.MONTHS -> c.add(Calendar.MONTH, increment)
+        ApiSpending.Cycle.YEARS -> c.add(Calendar.YEAR, increment)
+    }
+}
 
-        fun apply(date: Date, increment: Int): Date {
-            val cal = Calendar.getInstance()
-            cal.time = date
-            when (this) {
-                DAYS -> cal.add(Calendar.DAY_OF_MONTH, increment)
-                WEEKS -> cal.add(Calendar.WEEK_OF_MONTH, increment)
-                MONTHS -> cal.add(Calendar.MONTH, increment)
-                YEARS -> cal.add(Calendar.YEAR, increment)
-            }
-            return cal.time
-        }
+fun ApiSpending.Cycle.toMonth() = when (this) {
+    ApiSpending.Cycle.DAYS -> 0.0328731097961867
+    ApiSpending.Cycle.WEEKS -> 0.2301368854194475
+    ApiSpending.Cycle.MONTHS -> 1.0
+    ApiSpending.Cycle.YEARS -> 12.0
+}
 
-        fun apply(c: Calendar, increment: Int) {
-            when (this) {
-                DAYS -> c.add(Calendar.DAY_OF_MONTH, increment)
-                WEEKS -> c.add(Calendar.WEEK_OF_MONTH, increment)
-                MONTHS -> c.add(Calendar.MONTH, increment)
-                YEARS -> c.add(Calendar.YEAR, increment)
-            }
-        }
+fun ApiSpending.Cycle.span(start: ZonedDateTime, end: ZonedDateTime): Long {
+    return when (this) {
+//            Cycle.DAYS -> ChronoUnit.DAYS.between(start.withHour(0), end.withHour(24))
+//            Cycle.WEEKS -> ChronoUnit.WEEKS.between(
+//                    start.minusDays(start.dayOfWeek.value.toLong() - 1),
+//                    end.plusDays(7 - end.dayOfWeek.value.toLong()))
+//            Cycle.MONTHS -> ChronoUnit.MONTHS.between(start.withDayOfMonth(1), end.withDayOfMonth(end.month.length(false)))
+//            Cycle.YEARS -> ChronoUnit.YEARS.between(start.withDayOfYear(1), end.withDayOfYear(365))
+        ApiSpending.Cycle.DAYS -> ChronoUnit.DAYS.between(start, end)
+        ApiSpending.Cycle.WEEKS -> ChronoUnit.WEEKS.between(start, end)
+        ApiSpending.Cycle.MONTHS -> ChronoUnit.MONTHS.between(start, end)
+        ApiSpending.Cycle.YEARS -> ChronoUnit.YEARS.between(start, end)
+    } + 1
+}
 
-        fun toMonth() = when (this) {
-            DAYS -> 0.0328731097961867
-            WEEKS -> 0.2301368854194475
-            MONTHS -> 1.0
-            YEARS -> 12.0
-        }
-
-        override fun toString(): String {
-            return name.toLowerCase()
-        }
+fun ApiSpending.Cycle.of(date: LocalDate): Int {
+    return when (this) {
+        ApiSpending.Cycle.DAYS -> date.toEpochDay().toInt()
+        ApiSpending.Cycle.WEEKS -> date.minusDays(1)[ChronoField.ALIGNED_WEEK_OF_YEAR]
+        ApiSpending.Cycle.MONTHS -> date.monthValue
+        ApiSpending.Cycle.YEARS -> date.year
     }
 }

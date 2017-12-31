@@ -21,8 +21,8 @@ public class SpendingAdapter extends RecyclerView.Adapter<SpendingViewHolder> {
 
     public void setData(List<Spending> spendings) {
 //        if (this.spendings == null || this.spendings.size() == 0) {
-            this.spendings = spendings;
-            notifyDataSetChanged();
+        this.spendings = spendings;
+        notifyDataSetChanged();
 //        } else {
 //            this.spendings = spendings;
 //            callback.setNewSpendings(spendings);
@@ -55,10 +55,10 @@ public class SpendingAdapter extends RecyclerView.Adapter<SpendingViewHolder> {
 
 //    private class SpendingListDiffCallback extends DiffUtil.Callback {
 //
-//        private List<Spending> oldSpendings = new ArrayList<>();
-//        private List<Spending> newSpendings;
+//        private List<ApiSpending> oldSpendings = new ArrayList<>();
+//        private List<ApiSpending> newSpendings;
 //
-//        void setNewSpendings(List<Spending> newSpendings) {
+//        void setNewSpendings(List<ApiSpending> newSpendings) {
 //            this.oldSpendings = this.newSpendings;
 //            this.newSpendings = newSpendings;
 //        }

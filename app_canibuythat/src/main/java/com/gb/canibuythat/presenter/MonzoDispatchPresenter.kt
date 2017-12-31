@@ -3,16 +3,14 @@ package com.gb.canibuythat.presenter
 import com.gb.canibuythat.ACCOUNT_ID_PREPAID
 import com.gb.canibuythat.ACCOUNT_ID_RETAIL
 import com.gb.canibuythat.MONZO_DISPATCH_API_WEBHOOK
-import com.gb.canibuythat.UserPreferences
 import com.gb.canibuythat.interactor.MonzoDispatchInteractor
 import com.gb.canibuythat.interactor.MonzoInteractor
 import com.gb.canibuythat.screen.MonzoDispatchScreen
 import javax.inject.Inject
 
 class MonzoDispatchPresenter @Inject
-constructor(val monzoInteractor: MonzoInteractor,
-            val monzoDispatchInteractor: MonzoDispatchInteractor,
-            val userPreferences: UserPreferences) : BasePresenter<MonzoDispatchScreen>() {
+constructor(private val monzoInteractor: MonzoInteractor,
+            private val monzoDispatchInteractor: MonzoDispatchInteractor) : BasePresenter<MonzoDispatchScreen>() {
 
     fun sendFCMTokenToServer(token: String) {
         monzoDispatchInteractor.register(token)

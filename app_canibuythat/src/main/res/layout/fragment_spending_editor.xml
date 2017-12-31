@@ -141,6 +141,7 @@
                 tools:text="per 2 weeks"/>
 
             <CheckBox
+                style="@style/cloud"
                 android:id="@+id/average_override_cb"
                 android:layout_alignParentRight="true"
                 android:layout_centerVertical="true"

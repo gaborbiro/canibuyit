@@ -3,6 +3,7 @@ package com.gb.canibuythat.repository
 import com.gb.canibuythat.model.Balance
 import com.gb.canibuythat.model.Spending
 import com.gb.canibuythat.model.SpendingEvent
+import com.gb.canibuythat.model.applyTo
 import com.gb.canibuythat.util.DateUtils
 import com.gb.canibuythat.util.clearLowerBits
 import java.util.*
@@ -56,10 +57,12 @@ object BalanceCalculator {
                 }
             }
             counter++
-            movingStart = spending.cycle!!.apply(spending.fromStartDate, spending.cycleMultiplier!! * counter)
-            movingEnd = spending.cycle!!.apply(spending.fromEndDate, spending.cycleMultiplier!! * counter)
-            if (spending.occurrenceCount != null && ++occurrenceCount >= spending.occurrenceCount!!) {
-                `break` = true
+            movingStart = spending.cycle.applyTo(spending.fromStartDate, spending.cycleMultiplier * counter)
+            movingEnd = spending.cycle.applyTo(spending.fromEndDate, spending.cycleMultiplier * counter)
+            spending.occurrenceCount?.let {
+                if (++occurrenceCount >= it) {
+                    `break` = true
+                }
             }
         } while (!`break`)
         return Balance(definitely, maybe, targetDefinitely, targetMaybe, spendingEvents.toTypedArray())

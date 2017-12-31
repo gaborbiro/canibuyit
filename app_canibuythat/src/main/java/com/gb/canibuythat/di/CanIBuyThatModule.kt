@@ -4,7 +4,8 @@ import android.app.Application
 import android.content.Context
 import com.gb.canibuythat.db.SpendingDBHelper
 import com.gb.canibuythat.db.model.ApiProject
-import com.gb.canibuythat.model.Spending
+import com.gb.canibuythat.db.model.ApiSaving
+import com.gb.canibuythat.db.model.ApiSpending
 import com.gb.canibuythat.rx.SchedulerProvider
 import com.gb.canibuythat.rx.SchedulerProviderImpl
 import com.j256.ormlite.dao.Dao
@@ -32,7 +33,12 @@ class CanIBuyThatModule {
     }
 
     @Provides
-    fun provideSpendingDao(spendingDBHelper: SpendingDBHelper): Dao<Spending, Int> {
-        return spendingDBHelper.getDao<Dao<Spending, Int>, Spending>(Spending::class.java)
+    fun provideSpendingDao(spendingDBHelper: SpendingDBHelper): Dao<ApiSpending, Int> {
+        return spendingDBHelper.getDao<Dao<ApiSpending, Int>, ApiSpending>(ApiSpending::class.java)
+    }
+
+    @Provides
+    fun provideSavingsDao(spendingDBHelper: SpendingDBHelper): Dao<ApiSaving, Int> {
+        return spendingDBHelper.getDao<Dao<ApiSaving, Int>, ApiSaving>(ApiSaving::class.java)
     }
 }

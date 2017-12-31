@@ -7,7 +7,8 @@ import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteException
 import com.gb.canibuythat.db.model.ApiProject
-import com.gb.canibuythat.model.Spending
+import com.gb.canibuythat.db.model.ApiSaving
+import com.gb.canibuythat.db.model.ApiSpending
 import com.j256.ormlite.android.apptools.OrmLiteSqliteOpenHelper
 import com.j256.ormlite.support.ConnectionSource
 import com.j256.ormlite.table.TableUtils
@@ -23,14 +24,16 @@ constructor(appContext: Context) : OrmLiteSqliteOpenHelper(appContext, DATABASE_
 
     override fun onCreate(database: SQLiteDatabase, connectionSource: ConnectionSource) {
         try {
-            TableUtils.createTable(connectionSource, Spending::class.java)
+            TableUtils.createTable(connectionSource, ApiSpending::class.java)
             TableUtils.createTable(connectionSource, ApiProject::class.java)
+            TableUtils.createTable(connectionSource, ApiSaving::class.java)
         } catch (e: SQLException) {
             e.printStackTrace()
         }
     }
 
-    override fun onUpgrade(database: SQLiteDatabase, connectionSource: ConnectionSource, oldVersion: Int, newVersion: Int) {}
+    override fun onUpgrade(database: SQLiteDatabase, connectionSource: ConnectionSource, oldVersion: Int, newVersion: Int) {
+    }
 
     @Throws(SQLiteException::class)
     fun getDatabaseFromFile(file: String): SQLiteDatabase {
@@ -137,13 +140,13 @@ constructor(appContext: Context) : OrmLiteSqliteOpenHelper(appContext, DATABASE_
 
         val FILTER_MONZO = object : HashMap<String, Any?>() {
             init {
-                put(Contract.Spending.SOURCE_DATA + "/" + Spending.SOURCE_MONZO_CATEGORY, Any())
+                put(Contract.Spending.SOURCE_DATA + "/" + ApiSpending.SOURCE_MONZO_CATEGORY, Any())
             }
         }
 
         val FILTER_NON_MONZO = object : HashMap<String, Any?>() {
             init {
-                put(Contract.Spending.SOURCE_DATA + "/" + Spending.SOURCE_MONZO_CATEGORY, null)
+                put(Contract.Spending.SOURCE_DATA + "/" + ApiSpending.SOURCE_MONZO_CATEGORY, null)
             }
         }
     }

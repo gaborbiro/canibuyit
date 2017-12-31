@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.support.annotation.StringRes;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -33,7 +34,8 @@ public abstract class BaseDialogFragment extends DialogFragment {
     @BindView(R.id.input) EditText input;
 
     @Override
-    public @NotNull View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public @NotNull
+    View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.prompt_dialog_layout, container, false);
         unbinder = ButterKnife.bind(this, view);
         return view;
@@ -91,8 +93,8 @@ public abstract class BaseDialogFragment extends DialogFragment {
 
     @Override
     public void show(FragmentManager manager, String tag) {
-        if (!isAdded()) {
-            super.show(manager, tag);
-        }
+        FragmentTransaction ft = manager.beginTransaction();
+        ft.add(this, tag);
+        ft.commitAllowingStateLoss();
     }
 }

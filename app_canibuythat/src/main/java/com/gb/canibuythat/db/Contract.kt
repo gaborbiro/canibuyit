@@ -30,6 +30,20 @@ class Contract {
         }
     }
 
+    class Savings {
+        companion object {
+            const val TABLE = "savings"
+
+            const val _ID = BaseColumns._ID
+            const val SPENDING = "spending"
+            const val AMOUNT = "amount"
+            const val CREATED = "created"
+            const val TARGET = "target"
+
+            val COLUMNS = arrayOf(_ID, SPENDING, AMOUNT, CREATED, TARGET)
+        }
+    }
+
     class Project {
         companion object {
             const val TABLE = "project"

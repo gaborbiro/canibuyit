@@ -7,13 +7,13 @@ import com.gb.canibuythat.api.BaseFormDataApi
 import com.gb.canibuythat.api.MonzoApi
 import com.gb.canibuythat.api.MonzoAuthApi
 import com.gb.canibuythat.api.model.ApiTransaction
+import com.gb.canibuythat.db.model.ApiSpending
 import com.gb.canibuythat.interactor.ProjectInteractor
 import com.gb.canibuythat.model.Login
 import com.gb.canibuythat.model.Spending
 import com.gb.canibuythat.model.Transaction
 import com.gb.canibuythat.model.Webhooks
 import com.gb.canibuythat.util.DateUtils
-import com.gb.canibuythat.util.toZDT
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
@@ -52,16 +52,16 @@ class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi,
             // Top-ups to an account are represented as transactions with a positive amount and is_load = true
             // Other transactions such as refunds, reversals or chargebacks may have a positive amount but is_load = false
             !(it.is_load && it.amount > 0)
-            && it.amount != 0
-            && !it.description.contains("top-up", true)
+                    && it.amount != 0
+                    && !it.description.contains("top-up", true)
         }.map {
             mapper.mapToTransaction(it)
         }.toList().map { transactions ->
             val projectSettings = projectInteractor.getProject().blockingGet()
-            val savedSpendings = spendingsRepository.all.blockingGet().groupBy { it.sourceData[Spending.SOURCE_MONZO_CATEGORY] }
+            val savedSpendings = spendingsRepository.all.blockingGet().groupBy { it.sourceData?.get(ApiSpending.SOURCE_MONZO_CATEGORY) }
             transactions.groupBy(Transaction::category).mapNotNull { (category, transactionsForThatCategory) ->
                 val savedSpending = savedSpendings[category.toString()]?.get(0)
-                var transactionsForThatCategory = transactionsForThatCategory
+//                var transactionsForThatCategory = transactionsForThatCategory
 //                savedSpending?.let {
 //                    transactionsForThatCategory = transactionsForThatCategory.filter { !it.created.isBefore(savedSpending.fromStartDate.toZDT()) }
 //                }

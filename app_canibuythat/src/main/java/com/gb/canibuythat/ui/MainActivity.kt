@@ -18,7 +18,7 @@ import com.gb.canibuythat.R
 import com.gb.canibuythat.UserPreferences
 import com.gb.canibuythat.di.Injector
 import com.gb.canibuythat.model.Balance
-import com.gb.canibuythat.model.Spending
+import com.gb.canibuythat.db.model.ApiSpending
 import com.gb.canibuythat.presenter.BasePresenter
 import com.gb.canibuythat.presenter.MainPresenter
 import com.gb.canibuythat.presenter.MonzoDispatchPresenter
@@ -86,6 +86,7 @@ class MainActivity : BaseActivity(), MainScreen, SpendingListFragment.FragmentCa
             twoPane = true
         }
         mainPresenter.handleDeepLink(intent)
+        mainPresenter.calculateCurrentSavings()
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -134,17 +135,15 @@ class MainActivity : BaseActivity(), MainScreen, SpendingListFragment.FragmentCa
             }
             R.id.menu_delete_spendings -> mainPresenter.deleteAllSpendings()
             R.id.menu_set_project_name -> mainPresenter.onSetProjectName()
+            R.id.menu_hooks -> mainPresenter.logWebhooks()
         }
         return super.onOptionsItemSelected(item)
     }
 
     override fun onBackPressed() {
         val detailFragment = supportFragmentManager.findFragmentById(R.id.spending_editor_container) as SpendingEditorFragment?
-        if (detailFragment != null) {
-            detailFragment.saveAndRun(Runnable { super@MainActivity.onBackPressed() })
-        } else {
-            super@MainActivity.onBackPressed()
-        }
+        detailFragment?.saveAndRun(Runnable { super@MainActivity.onBackPressed() })
+                ?: super@MainActivity.onBackPressed()
     }
 
     override fun showPickerForExport(suggestedPath: String) {
@@ -286,11 +285,11 @@ class MainActivity : BaseActivity(), MainScreen, SpendingListFragment.FragmentCa
         inputDialog.setPositiveButton(R.string.save) { _ -> mainPresenter.setProjectName(inputDialog.getInput()) }.show(supportFragmentManager, null)
     }
 
-    override fun onBalanceBreakdownItemClicked(category: Spending.Category) {
+    override fun onBalanceBreakdownItemClicked(category: ApiSpending.Category) {
         mainPresenter.onBalanceBreakdownItemClicked(category)
     }
 
-    override fun setBalanceBreakdown(breakdown: Array<Pair<Spending.Category, String>>) {
+    override fun setBalanceBreakdown(breakdown: Array<Pair<ApiSpending.Category, String>>) {
         val promptDialog = BalanceBreakdownDialog()
         val args = Bundle()
         args.putString(PromptDialog.EXTRA_TITLE, "Balance breakdown")
@@ -312,7 +311,7 @@ class BalanceBreakdownDialog : PromptDialog() {
 
     companion object {
         interface Callback {
-            fun onBalanceBreakdownItemClicked(category: Spending.Category)
+            fun onBalanceBreakdownItemClicked(category: ApiSpending.Category)
         }
     }
 
@@ -320,7 +319,7 @@ class BalanceBreakdownDialog : PromptDialog() {
         val view = super.onCreateView(inflater, container, savedInstanceState)
         val bigMessageTV = view.findViewById(R.id.big_message) as TextView
 
-        val breakdown = arguments.getSerializable("breakdown") as Array<Pair<Spending.Category, String>>
+        val breakdown = arguments.getSerializable("breakdown") as Array<Pair<ApiSpending.Category, String>>
         val buffer = StringBuffer()
         breakdown.joinTo(buffer = buffer, separator = "\n", transform = {
             it.second

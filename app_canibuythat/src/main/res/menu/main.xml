@@ -38,4 +38,7 @@
     <item
         android:id="@+id/menu_set_project_name"
         android:title="Set project name"/>
+    <item
+        android:id="@+id/menu_hooks"
+        android:title="Log webhooks"/>
 </menu>

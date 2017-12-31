@@ -40,8 +40,13 @@ public class SpendingListFragment extends BaseFragment implements SpendingListSc
      * attached to an activity.
      */
     private static FragmentCallback dummyFragmentCallback = new FragmentCallback() {
-        @Override public void onSpendingSelected(int id) {}
-        @Override public void refresh() {}
+        @Override
+        public void onSpendingSelected(int id) {
+        }
+
+        @Override
+        public void refresh() {
+        }
     };
     /**
      * The fragment's current callback object, which is notified of list item clicks.

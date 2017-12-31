@@ -11,13 +11,18 @@ import com.gb.canibuythat.MONZO_AUTH_PATH_CALLBACK
 import com.gb.canibuythat.MONZO_OAUTH_PARAM_AUTHORIZATION_CODE
 import com.gb.canibuythat.TRANSACTION_HISTORY_LENGTH_MONTHS
 import com.gb.canibuythat.UserPreferences
+import com.gb.canibuythat.db.model.ApiSpending
 import com.gb.canibuythat.interactor.BackupingInteractor
 import com.gb.canibuythat.interactor.MonzoInteractor
 import com.gb.canibuythat.interactor.ProjectInteractor
+import com.gb.canibuythat.interactor.SavingsInteractor
 import com.gb.canibuythat.interactor.SpendingInteractor
+import com.gb.canibuythat.model.Saving
 import com.gb.canibuythat.model.Spending
 import com.gb.canibuythat.screen.MainScreen
 import com.gb.canibuythat.util.DateUtils
+import com.gb.canibuythat.util.Logger
+import io.reactivex.Single
 import io.reactivex.functions.Consumer
 import java.util.*
 import javax.inject.Inject
@@ -28,7 +33,8 @@ constructor(private val monzoInteractor: MonzoInteractor,
             private val projectInteractor: ProjectInteractor,
             private val backupingInteractor: BackupingInteractor,
             private val credentialsProvider: CredentialsProvider,
-            private val userPreferences: UserPreferences) : BasePresenter<MainScreen>() {
+            private val userPreferences: UserPreferences,
+            private val savingsInteractor: SavingsInteractor) : BasePresenter<MainScreen>() {
 
     init {
         disposeOnFinish(spendingInteractor.getSpendingsDataStream().subscribe({
@@ -57,7 +63,7 @@ constructor(private val monzoInteractor: MonzoInteractor,
     override fun onScreenSet() {
         disposeOnFinish(userPreferences.getBalanceReadingDataStream().subscribe { fetchBalance() })
         disposeOnFinish(userPreferences.getEstimateDateDataStream().subscribe { fetchBalance() })
-        getScreen().showToast("Session expiry: " + DateUtils.FORMAT_DATE_TIME.format(credentialsProvider.accessTokenExpiry))
+//        getScreen().showToast("Session expiry: " + DateUtils.FORMAT_DATE_TIME.format(credentialsProvider.accessTokenExpiry))
     }
 
     private fun fetchBalance() {
@@ -78,7 +84,7 @@ constructor(private val monzoInteractor: MonzoInteractor,
         getScreen().setBalanceBreakdown(spendingInteractor.getBalanceBreakdown())
     }
 
-    fun onBalanceBreakdownItemClicked(category: Spending.Category) {
+    fun onBalanceBreakdownItemClicked(category: ApiSpending.Category) {
         val details = spendingInteractor.getBalanceBreakdownCategoryDetails(category)
         details?.let {
             getScreen().showDialog(category.name.toLowerCase().capitalize(), it)
@@ -174,6 +180,64 @@ constructor(private val monzoInteractor: MonzoInteractor,
             it.projectName = projectName
             getScreen().showToast("Project name saved")
             getScreen().setTitle(projectName)
+        }, errorHandler::onErrorSoft)
+    }
+
+    fun calculateCurrentSavings() {
+        // 1. Every end of cycle, save spendings
+//        spendingInteractor.getSpendingsWithTarget().subscribe({ spendings: Array<ApiSpending> ->
+//            savingsInteractor.save(spendings.map(this::mapSaving).toTypedArray())
+//        })
+
+        // 2. At every launch, fetch savings, and display their sum (maybe breakdown?)
+//        spendingInteractor.getSpendingsWithTarget().subscribe({ spendings: Array<ApiSpending> ->
+//            Single.merge(spendings.map { spending ->
+//                savingsInteractor.getSavingsForSpending(spending.id!!)
+//                        .map { Pair(spending.id!!, it.toList().sumByDouble { it.amount }) }
+//            }).toList().subscribe({ result: MutableList<Pair<Int, Double>> ->
+//                val savingStr = result
+//                        .joinTo(buffer = StringBuffer(), separator = "\n", transform = { (spendingId, savingsForSpending) ->
+//                            spendings.first { it.id == spendingId }.name!! + ": $savingsForSpending"
+//                        }).append("\n-----------------\nTotal: ${result.sumByDouble { it.second }}")
+//                        .toString()
+//                getScreen().showDialog("Savings", savingStr)
+//            }, errorHandler::onErrorSoft)
+//        }, errorHandler::onErrorSoft)
+
+        savingsInteractor.clearAll().subscribe({ }, errorHandler::onErrorSoft)
+        spendingInteractor.getSpendingsWithTarget().subscribe({ spendings: Array<Spending> ->
+            savingsInteractor.save(spendings.map(this::mapSaving).toTypedArray())
+                    .subscribe({
+                        Single.merge(spendings.map { spending ->
+                            savingsInteractor.getSavingsForSpending(spending.id!!)
+                                    .map { Pair(spending.id!!, it.toList().sumByDouble { it.amount }) }
+                        }).toList().subscribe({ result: MutableList<Pair<Int, Double>> ->
+                            val savingStr = result
+                                    .joinTo(buffer = StringBuffer(), separator = "\n", transform = { (spendingId, savingsForSpending) ->
+                                        spendings.first { it.id == spendingId }.name + ": $savingsForSpending"
+                                    }).append("\n-----------------\nTotal: ${result.sumByDouble { it.second }}")
+                                    .toString()
+                            getScreen().showDialog("Savings", savingStr)
+                        }, errorHandler::onErrorSoft)
+                    }, errorHandler::onErrorSoft)
+        }, errorHandler::onErrorSoft)
+    }
+
+    private fun mapSaving(spending: Spending): Saving {
+        return Saving(spending.id!!, spending.spent!! - spending.target!!, Date(), spending.target!!)
+    }
+
+    fun logWebhooks() {
+        monzoInteractor.getWebhooks(ACCOUNT_ID_RETAIL).subscribe({ retailWebhooks ->
+            monzoInteractor.getWebhooks(ACCOUNT_ID_PREPAID).subscribe({ prepaidWebHooks ->
+                val buffer = StringBuffer()
+                buffer.append("Retail account:\n")
+                retailWebhooks.webhooks.joinTo(buffer, separator = "\n", transform = { it.url })
+                buffer.append("\nPrepaid account:\n")
+                prepaidWebHooks.webhooks.joinTo(buffer, separator = "\n", transform = { it.url })
+                Logger.d("com.gb.canibuythat.presenter.MainPresenter", buffer.toString())
+                getScreen().showDialog("Webhooks", buffer.toString())
+            }, errorHandler::onErrorSoft)
         }, errorHandler::onErrorSoft)
     }
 }

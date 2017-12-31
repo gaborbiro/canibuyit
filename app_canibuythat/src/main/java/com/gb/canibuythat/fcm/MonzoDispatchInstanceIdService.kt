@@ -5,8 +5,6 @@ import android.util.Log
 import android.widget.Toast
 import com.gb.canibuythat.di.Injector
 import com.gb.canibuythat.exception.ErrorHandler
-import com.gb.canibuythat.interactor.MonzoDispatchInteractor
-import com.gb.canibuythat.interactor.MonzoInteractor
 import com.gb.canibuythat.presenter.MonzoDispatchPresenter
 import com.gb.canibuythat.screen.MonzoDispatchScreen
 import com.google.firebase.iid.FirebaseInstanceId
@@ -15,8 +13,6 @@ import javax.inject.Inject
 
 class MonzoDispatchInstanceIdService : FirebaseInstanceIdService(), MonzoDispatchScreen {
 
-    @field:[Inject] lateinit var monzoDispatchInteractor: MonzoDispatchInteractor
-    @field:[Inject] lateinit var monzoInteractor: MonzoInteractor
     @field:[Inject] lateinit var errorHandler: ErrorHandler
     @field:[Inject] lateinit var appContext: Context
     @field:[Inject] lateinit var presenter: MonzoDispatchPresenter

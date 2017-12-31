@@ -4,20 +4,21 @@ import com.gb.canibuythat.api.model.ApiLogin
 import com.gb.canibuythat.api.model.ApiTransaction
 import com.gb.canibuythat.api.model.ApiWebhook
 import com.gb.canibuythat.api.model.ApiWebhooks
+import com.gb.canibuythat.db.model.ApiSpending
 import com.gb.canibuythat.interactor.Project
 import com.gb.canibuythat.model.Login
+import com.gb.canibuythat.model.SerializableMap
 import com.gb.canibuythat.model.Spending
-import com.gb.canibuythat.model.Spending.Cycle
 import com.gb.canibuythat.model.Transaction
 import com.gb.canibuythat.model.Webhook
 import com.gb.canibuythat.model.Webhooks
+import com.gb.canibuythat.model.of
+import com.gb.canibuythat.model.span
 import com.gb.canibuythat.util.nonNullAndTrue
 import org.apache.commons.lang3.text.WordUtils
 import org.threeten.bp.LocalDate
 import org.threeten.bp.ZoneId
 import org.threeten.bp.ZonedDateTime
-import org.threeten.bp.temporal.ChronoField
-import org.threeten.bp.temporal.ChronoUnit
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -31,7 +32,7 @@ class MonzoMapper @Inject constructor() {
     }
 
     fun mapToTransaction(apiTransaction: ApiTransaction): Transaction {
-        val noteCategory = if (!apiTransaction.notes.isEmpty()) Spending.Category.values().firstOrNull { apiTransaction.notes.contains(it.toString(), ignoreCase = true) } else null
+        val noteCategory = if (!apiTransaction.notes.isEmpty()) ApiSpending.Category.values().firstOrNull { apiTransaction.notes.contains(it.toString(), ignoreCase = true) } else null
         val category = mapApiCategory(noteCategory?.toString() ?: apiTransaction.category)
         return Transaction(apiTransaction.amount,
                 ZonedDateTime.parse(apiTransaction.created),
@@ -40,99 +41,75 @@ class MonzoMapper @Inject constructor() {
                 category)
     }
 
-    fun mapToSpending(category: Spending.Category, transactions: List<Transaction>, savedSpending: Spending?, projectSettings: Project): Spending? {
-        val spending = Spending()
-        val cycle: Cycle = nonNullAndTrue(savedSpending?.cycle, projectSettings.cyclePinned) ?: getOptimalCycle(transactions)
-
-        spending.cycle = cycle
-        val cycleMap: Map<Int, List<Transaction>> = transactions.groupBy { cycle.of(it.created.toLocalDate()) }
-
-        spending.value = nonNullAndTrue(savedSpending?.value, projectSettings.averagePinned) ?: transactions
+    fun mapToSpending(category: ApiSpending.Category, transactions: List<Transaction>, savedSpending: Spending?, projectSettings: Project): Spending? {
+        val cycle: ApiSpending.Cycle = nonNullAndTrue(savedSpending?.cycle, projectSettings.cyclePinned) ?: getOptimalCycle(transactions)
+        val transactionsGroupedByCycle: Map<Int, List<Transaction>> = transactions.groupBy { cycle.of(it.created.toLocalDate()) }
+        val cycleMultiplier = nonNullAndTrue(savedSpending?.cycleMultiplier, projectSettings.cyclePinned) ?: 1
+        val value = nonNullAndTrue(savedSpending?.value, projectSettings.averagePinned) ?: transactions
                 .sumBy { it.amount }
-                .div(cycle.span(transactions.minBy { it.created }!!.created, ZonedDateTime.now()))
-                .toDouble()
-        spending.value = nonNullAndTrue(savedSpending?.value, projectSettings.averagePinned) ?: Math.round(spending.value).div(100.0) // cents to pounds
-        spending.type = nonNullAndTrue(savedSpending?.type, projectSettings.categoryPinned) ?: category
-        spending.name = nonNullAndTrue(savedSpending?.name, projectSettings.namePinned) ?: WordUtils.capitalizeFully(category.toString().replace("\\_".toRegex(), " "))
-        spending.cycleMultiplier = nonNullAndTrue(savedSpending?.cycleMultiplier, projectSettings.cyclePinned) ?: 1
+                .div(cycle.span(transactions.minBy { it.created }!!.created, ZonedDateTime.now()) / cycleMultiplier)
+                .div(100.0) // cents to pounds
+        val type = nonNullAndTrue(savedSpending?.type, projectSettings.categoryPinned) ?: category
         val firstOccurrence: LocalDate = transactions.minBy { it.created }!!.created.toLocalDate()
-        spending.fromStartDate = nonNullAndTrue(savedSpending?.fromStartDate, projectSettings.whenPinned) ?: fromLocalDate(firstOccurrence)
-        spending.fromEndDate = nonNullAndTrue(savedSpending?.fromEndDate, projectSettings.whenPinned) ?: fromLocalDate(firstOccurrence.add(cycle, 1).minusDays(1))
-        spending.sourceData.put(Spending.SOURCE_MONZO_CATEGORY, category.name.toLowerCase())
-        cycleMap[cycle.of(LocalDate.now(ZoneId.systemDefault()))]?.let { spending.spent = it.sumBy { it.amount }.div(100.0) } ?: let { spending.spent = 0.0 }
-
-        spending.occurrenceCount = nonNullAndTrue(savedSpending?.occurrenceCount)
-        spending.target = nonNullAndTrue(savedSpending?.target)
-        spending.notes = nonNullAndTrue(savedSpending?.notes)
-        spending.enabled = nonNullAndTrue(savedSpending?.enabled) ?: spending.type!!.defaultEnabled
-        return spending
+        return Spending(
+                id = savedSpending?.id,
+                target = nonNullAndTrue(savedSpending?.target),
+                name = nonNullAndTrue(savedSpending?.name, projectSettings.namePinned) ?: WordUtils.capitalizeFully(category.toString().replace("\\_".toRegex(), " ")),
+                notes = nonNullAndTrue(savedSpending?.notes),
+                type = type,
+                value = value,
+                fromStartDate = nonNullAndTrue(savedSpending?.fromStartDate, projectSettings.whenPinned) ?: fromLocalDate(firstOccurrence),
+                fromEndDate = nonNullAndTrue(savedSpending?.fromEndDate, projectSettings.whenPinned) ?: fromLocalDate(firstOccurrence.add(cycle, cycleMultiplier.toLong()).minusDays(1)),
+                occurrenceCount = nonNullAndTrue(savedSpending?.occurrenceCount),
+                cycleMultiplier = cycleMultiplier,
+                cycle = cycle,
+                enabled = nonNullAndTrue(savedSpending?.enabled) ?: type.defaultEnabled,
+                spent = transactionsGroupedByCycle[cycle.of(LocalDate.now(ZoneId.systemDefault()))]?.sumBy { it.amount }?.div(100.0) ?: 0.0,
+                savings = savedSpending?.savings,
+                sourceData = SerializableMap<String, String>().apply { put(ApiSpending.SOURCE_MONZO_CATEGORY, category.name.toLowerCase()) })
     }
 
     fun mapToWebhooks(apiWebhooks: ApiWebhooks): Webhooks {
         return Webhooks(apiWebhooks.webhooks.map { mapToWebhook(it) })
     }
 
-    fun mapToWebhook(apiWebhook: ApiWebhook): Webhook {
+    private fun mapToWebhook(apiWebhook: ApiWebhook): Webhook {
         return Webhook(apiWebhook.id, apiWebhook.url)
     }
 
-    fun Cycle.of(date: LocalDate): Int {
-        return when (this) {
-            Cycle.DAYS -> date.toEpochDay().toInt()
-            Cycle.WEEKS -> date.minusDays(1)[ChronoField.ALIGNED_WEEK_OF_YEAR]
-            Cycle.MONTHS -> date.monthValue
-            Cycle.YEARS -> date.year
-        }
-    }
-
-    private fun Cycle.span(start: ZonedDateTime, end: ZonedDateTime): Long {
-        return when (this) {
-//            Cycle.DAYS -> ChronoUnit.DAYS.between(start.withHour(0), end.withHour(24))
-//            Cycle.WEEKS -> ChronoUnit.WEEKS.between(
-//                    start.minusDays(start.dayOfWeek.value.toLong() - 1),
-//                    end.plusDays(7 - end.dayOfWeek.value.toLong()))
-//            Cycle.MONTHS -> ChronoUnit.MONTHS.between(start.withDayOfMonth(1), end.withDayOfMonth(end.month.length(false)))
-//            Cycle.YEARS -> ChronoUnit.YEARS.between(start.withDayOfYear(1), end.withDayOfYear(365))
-            Cycle.DAYS -> ChronoUnit.DAYS.between(start, end)
-            Cycle.WEEKS -> ChronoUnit.WEEKS.between(start, end)
-            Cycle.MONTHS -> ChronoUnit.MONTHS.between(start, end)
-            Cycle.YEARS -> ChronoUnit.YEARS.between(start, end)
-        } + 1
-    }
-
-    fun LocalDate.add(cycle: Cycle, amount: Long): LocalDate {
+    fun LocalDate.add(cycle: ApiSpending.Cycle, amount: Long): LocalDate {
         return when (cycle) {
-            Cycle.DAYS -> this.plusDays(amount)
-            Cycle.WEEKS -> this.plusWeeks(amount)
-            Cycle.MONTHS -> this.plusMonths(amount)
-            Cycle.YEARS -> this.plusYears(amount)
+            ApiSpending.Cycle.DAYS -> this.plusDays(amount)
+            ApiSpending.Cycle.WEEKS -> this.plusWeeks(amount)
+            ApiSpending.Cycle.MONTHS -> this.plusMonths(amount)
+            ApiSpending.Cycle.YEARS -> this.plusYears(amount)
         }
     }
 
-    private fun mapApiCategory(apiCategory: String): Spending.Category {
+    private fun mapApiCategory(apiCategory: String): ApiSpending.Category {
         return when (apiCategory) {
-            "mondo" -> Spending.Category.INCOME
-            "general" -> Spending.Category.OTHER
-            "eating_out" -> Spending.Category.FOOD
-            "expenses" -> Spending.Category.EXPENSES
-            "transport" -> Spending.Category.TRANSPORTATION
-            "cash" -> Spending.Category.CASH
-            "bills" -> Spending.Category.UTILITIES
-            "entertainment" -> Spending.Category.ENTERTAINMENT
-            "shopping" -> Spending.Category.LUXURY
-            "holidays" -> Spending.Category.VACATION
-            "groceries" -> Spending.Category.GROCERIES
+            "mondo" -> ApiSpending.Category.INCOME
+            "general" -> ApiSpending.Category.OTHER
+            "eating_out" -> ApiSpending.Category.FOOD
+            "expenses" -> ApiSpending.Category.EXPENSES
+            "transport" -> ApiSpending.Category.TRANSPORTATION
+            "cash" -> ApiSpending.Category.CASH
+            "bills" -> ApiSpending.Category.UTILITIES
+            "entertainment" -> ApiSpending.Category.ENTERTAINMENT
+            "shopping" -> ApiSpending.Category.LUXURY
+            "holidays" -> ApiSpending.Category.VACATION
+            "groceries" -> ApiSpending.Category.GROCERIES
             else -> {
                 try {
-                    Spending.Category.valueOf(apiCategory.toUpperCase())
+                    ApiSpending.Category.valueOf(apiCategory.toUpperCase())
                 } catch (t: Throwable) {
-                    Spending.Category.OTHER
+                    ApiSpending.Category.OTHER
                 }
             }
         }
     }
 
-    private fun getOptimalCycle(transactions: List<Transaction>): Spending.Cycle {
+    private fun getOptimalCycle(transactions: List<Transaction>): ApiSpending.Cycle {
         var highestDistanceDays = 0L
         val sortedDates = transactions.sortedBy { it.created }.map { it.created.toLocalDate() }
         var distance: Long = 0
@@ -143,9 +120,9 @@ class MonzoMapper @Inject constructor() {
             }
         }
         return when {
-            highestDistanceDays <= 7 -> Spending.Cycle.WEEKS
-            highestDistanceDays <= 365 -> Spending.Cycle.MONTHS
-            else -> Spending.Cycle.YEARS
+            highestDistanceDays <= 7 -> ApiSpending.Cycle.WEEKS
+            highestDistanceDays <= 365 -> ApiSpending.Cycle.MONTHS
+            else -> ApiSpending.Cycle.YEARS
         }
     }
 
