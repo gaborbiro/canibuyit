@@ -1,30 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                xmlns:tools="http://schemas.android.com/tools"
-                android:padding="@dimen/padding">
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                                             xmlns:app="http://schemas.android.com/apk/res-auto"
+                                             xmlns:tools="http://schemas.android.com/tools"
+                                             android:layout_height="wrap_content"
+                                             android:layout_width="match_parent"
+                                             android:padding="@dimen/padding">
 
-    <LinearLayout
-        android:layout_width="match_parent"
+    <TextView
+        android:id="@+id/reference_lbl"
         android:layout_height="wrap_content"
-        android:layout_centerVertical="true"
-        android:orientation="vertical">
+        android:layout_marginBottom="@dimen/half_padding"
+        android:layout_width="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="I had 1800 on 9th of Nov, 2017"/>
 
-        <TextView
-            android:id="@+id/reference_lbl"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:clickable="true"
-            tools:text="I had 1800 on 9th of Nov, 2017"
-            android:layout_marginBottom="@dimen/half_padding"/>
+    <TextView
+        android:id="@+id/saving_lbl"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/half_padding"
+        android:layout_width="wrap_content"
+        android:lines="1"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Saving: 445.88"/>
 
-        <TextView
-            android:id="@+id/projection_lbl"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="end"
-            android:lineSpacingExtra="6dp"
-            tools:text="I'm going to have 9336/8471 on 9th of Nov, 2018"/>
-    </LinearLayout>
-</RelativeLayout>
+    <TextView
+        android:id="@+id/projection_lbl"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:lineSpacingExtra="6dp"
+        android:gravity="end"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/reference_lbl"
+        tools:text="I'm going to have 9336/8471 on 9th of Nov, 2018"/>
+</android.support.constraint.ConstraintLayout>

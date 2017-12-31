@@ -8,12 +8,15 @@ import com.gb.canibuythat.R
 import com.gb.canibuythat.db.model.ApiSpending
 import com.gb.canibuythat.model.Spending
 import com.gb.canibuythat.ui.ProgressRelativeLayout
+import com.gb.canibuythat.util.hide
+import com.gb.canibuythat.util.show
 
 class SpendingViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
     private val nameView: TextView = itemView.findViewById(R.id.name_lbl) as TextView
     private val iconView: ImageView = itemView.findViewById(R.id.icon) as ImageView
     private val spentView: TextView = itemView.findViewById(R.id.spent) as TextView
+    private val savingView: TextView = itemView.findViewById(R.id.saving) as TextView
     private val progressView: ProgressRelativeLayout = itemView.findViewById(R.id.progress) as ProgressRelativeLayout
 
     fun bind(spending: Spending) {
@@ -60,5 +63,11 @@ class SpendingViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         } ?: let {
             progressView.mode = ProgressRelativeLayout.Mode.OFF
         }
+        spending.savings?.let {
+            it.sumByDouble { it.amount }.let {
+                savingView.text = context.getString(R.string.saving, it)
+                savingView.show()
+            }
+        } ?: savingView.hide()
     }
 }

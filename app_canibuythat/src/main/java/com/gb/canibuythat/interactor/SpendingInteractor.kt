@@ -1,12 +1,11 @@
 package com.gb.canibuythat.interactor
 
+import com.gb.canibuythat.db.model.ApiSpending
 import com.gb.canibuythat.exception.DomainException
 import com.gb.canibuythat.model.Balance
-import com.gb.canibuythat.db.model.ApiSpending
 import com.gb.canibuythat.model.Spending
 import com.gb.canibuythat.repository.SpendingsRepository
 import com.gb.canibuythat.rx.SchedulerProvider
-import com.j256.ormlite.dao.Dao
 import io.reactivex.Completable
 import io.reactivex.Maybe
 import io.reactivex.Observable
@@ -73,9 +72,9 @@ constructor(private val repo: SpendingsRepository,
 
     // NON-REACTIVE METHODS
 
-    fun createOrUpdate(spending: Spending): Single<Dao.CreateOrUpdateStatus> {
+    fun createOrUpdate(spending: Spending): Completable {
         return repo.createOrUpdate(spending)
-                .onErrorResumeNext { throwable -> Single.error<Dao.CreateOrUpdateStatus>(DomainException("Error updating spending in database. See logs.", throwable)) }
+                .onErrorResumeNext { throwable -> Completable.error(DomainException("Error updating spending in database. See logs.", throwable)) }
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())
     }

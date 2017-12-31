@@ -23,6 +23,7 @@ import javax.inject.Singleton
 class SpendingsRepository @Inject
 constructor(private val dao: Dao<ApiSpending, Int>,
             private val mapper: SpendingMapper,
+            private val savingsRepository: SavingsRepository,
             private val prefs: UserPreferences) {
 
     val all: Single<List<Spending>>
@@ -36,10 +37,14 @@ constructor(private val dao: Dao<ApiSpending, Int>,
             }
         }
 
-    fun createOrUpdate(spending: Spending): Single<Dao.CreateOrUpdateStatus> {
-        return Single.create { emitter ->
+    fun createOrUpdate(spending: Spending): Completable {
+        return Completable.create { emitter ->
             try {
-                emitter.onSuccess(dao.createOrUpdate(mapper.map(spending)))
+                dao.createOrUpdate(mapper.map(spending))
+                spending.savings?.let {
+                    savingsRepository.createIfNotExist(it).blockingAwait()
+                }
+                emitter.onComplete()
             } catch (e: SQLException) {
                 emitter.onError(e)
             }
@@ -74,6 +79,10 @@ constructor(private val dao: Dao<ApiSpending, Int>,
                         dao.update(mapper.map(it))
                     } else {
                         dao.create(mapper.map(it))
+                    }
+                    savingsRepository.deleteSavingsForSpending(it.id!!).blockingGet()
+                    it.savings?.let {
+                        savingsRepository.createIfNotExist(it).blockingAwait()
                     }
                 }
                 emitter.onComplete()

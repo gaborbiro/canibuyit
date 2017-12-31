@@ -16,10 +16,7 @@ import com.gb.canibuythat.exception.DomainException
 import com.gb.canibuythat.interactor.BackupingInteractor
 import com.gb.canibuythat.interactor.MonzoInteractor
 import com.gb.canibuythat.interactor.ProjectInteractor
-import com.gb.canibuythat.interactor.SavingsInteractor
 import com.gb.canibuythat.interactor.SpendingInteractor
-import com.gb.canibuythat.model.Saving
-import com.gb.canibuythat.model.Spending
 import com.gb.canibuythat.screen.MainScreen
 import com.gb.canibuythat.util.DateUtils
 import com.gb.canibuythat.util.Logger
@@ -33,13 +30,22 @@ constructor(private val monzoInteractor: MonzoInteractor,
             private val projectInteractor: ProjectInteractor,
             private val backupingInteractor: BackupingInteractor,
             private val credentialsProvider: CredentialsProvider,
-            private val userPreferences: UserPreferences,
-            private val savingsInteractor: SavingsInteractor) : BasePresenter<MainScreen>() {
+            private val userPreferences: UserPreferences) : BasePresenter<MainScreen>() {
 
     init {
         disposeOnFinish(spendingInteractor.getSpendingsDataStream().subscribe({
             if (it.loading) getScreen().showProgress() else getScreen().hideProgress()
-            if (!it.loading && !it.hasError()) fetchBalance()
+            if (!it.loading && !it.hasError()) {
+                it.content?.mapNotNull { it.savings }?.toTypedArray()?.flatten()?.
+                        sumByDouble { it.amount }.let {
+                    if (it != 0.0) {
+                        getScreen().setTotalSaving(it)
+                    } else {
+                        getScreen().setTotalSaving(null)
+                    }
+                }
+                fetchBalance()
+            }
         }, this::onError))
         disposeOnFinish(monzoInteractor.getLoginDataStream().subscribe({
             if (it.loading) {
@@ -183,50 +189,6 @@ constructor(private val monzoInteractor: MonzoInteractor,
             getScreen().showToast("Project name saved")
             getScreen().setTitle(projectName)
         }, errorHandler::onErrorSoft)
-    }
-
-    fun calculateCurrentSavings() {
-        // 1. Every end of cycle, save spendings
-//        spendingInteractor.getSpendingsWithTarget().subscribe({ spendings: Array<ApiSpending> ->
-//            savingsInteractor.save(spendings.map(this::mapSaving).toTypedArray())
-//        })
-
-        // 2. At every launch, fetch savings, and display their sum (maybe breakdown?)
-//        spendingInteractor.getSpendingsWithTarget().subscribe({ spendings: Array<ApiSpending> ->
-//            Single.merge(spendings.map { spending ->
-//                savingsInteractor.getSavingsForSpending(spending.id!!)
-//                        .map { Pair(spending.id!!, it.toList().sumByDouble { it.amount }) }
-//            }).toList().subscribe({ result: MutableList<Pair<Int, Double>> ->
-//                val savingStr = result
-//                        .joinTo(buffer = StringBuffer(), separator = "\n", transform = { (spendingId, savingsForSpending) ->
-//                            spendings.first { it.id == spendingId }.name!! + ": $savingsForSpending"
-//                        }).append("\n-----------------\nTotal: ${result.sumByDouble { it.second }}")
-//                        .toString()
-//                getScreen().showDialog("Savings", savingStr)
-//            }, errorHandler::onErrorSoft)
-//        }, errorHandler::onErrorSoft)
-
-//        savingsInteractor.clearAll().subscribe({ }, errorHandler::onErrorSoft)
-//        spendingInteractor.getSpendingsWithTarget().subscribe({ spendings: Array<Spending> ->
-//            savingsInteractor.save(spendings.map(this::mapSaving).toTypedArray())
-//                    .subscribe({
-//                        Single.merge(spendings.map { spending ->
-//                            savingsInteractor.getSavingsForSpending(spending.id!!)
-//                                    .map { Pair(spending.id!!, it.toList().sumByDouble { it.amount }) }
-//                        }).toList().subscribe({ result: MutableList<Pair<Int, Double>> ->
-//                            val savingStr = result
-//                                    .joinTo(buffer = StringBuffer(), separator = "\n", transform = { (spendingId, savingsForSpending) ->
-//                                        spendings.first { it.id == spendingId }.name + ": $savingsForSpending"
-//                                    }).append("\n-----------------\nTotal: ${result.sumByDouble { it.second }}")
-//                                    .toString()
-//                            getScreen().showDialog("Savings", savingStr)
-//                        }, errorHandler::onErrorSoft)
-//                    }, errorHandler::onErrorSoft)
-//        }, errorHandler::onErrorSoft)
-    }
-
-    private fun mapSaving(spending: Spending): Saving {
-        return Saving(spending.id!!, spending.spent!! - spending.target!!, Date(), spending.target!!)
     }
 
     fun logWebhooks() {

@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.DatePickerDialog
 import android.content.Context
 import android.widget.DatePicker
+import org.threeten.bp.LocalDate
 import org.threeten.bp.ZoneId
 import org.threeten.bp.ZonedDateTime
 import java.text.SimpleDateFormat
@@ -40,6 +41,8 @@ fun Date.toZDT() = this.toCalendar().let {
             it[Calendar.HOUR_OF_DAY], it[Calendar.MINUTE], it[Calendar.SECOND],
             it[Calendar.MILLISECOND], ZoneId.systemDefault())
 }!!
+
+fun LocalDate.toDate() = Date(this.year - 1900, this.monthValue - 1, this.dayOfMonth)
 
 /**
  * Today. No hour, minute, second or millisecond.

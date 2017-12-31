@@ -15,6 +15,8 @@ interface MainScreen : MonzoDispatchScreen {
 
     fun setBalanceInfo(balance: Balance?)
 
+    fun setTotalSaving(totalSaving: Double?)
+
     fun showPickerForImport(directory: String, spendingsImportType: SpendingsImportType)
 
     fun showBalanceUpdateDialog()

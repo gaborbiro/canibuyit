@@ -2,7 +2,8 @@ package com.gb.canibuythat.model
 
 import java.util.*
 
-class Saving(val spendingId: Int,
+class Saving(val id: Int?,
+             val spendingId: Int?,
              val amount: Double,
              val created: Date,
              val target: Double) {

@@ -5,7 +5,7 @@ import com.j256.ormlite.field.DatabaseField
 import com.j256.ormlite.table.DatabaseTable
 
 @DatabaseTable(tableName = Contract.Savings.TABLE)
-data class ApiSaving(
+class ApiSaving(
         @DatabaseField(generatedId = true, columnName = Contract.Project._ID, canBeNull = false)
         var id: Int? = null,
         @DatabaseField(columnName = Contract.Savings.SPENDING, canBeNull = false, foreign = true)

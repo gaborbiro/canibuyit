@@ -2,10 +2,11 @@ package com.gb.canibuythat.repository
 
 import com.gb.canibuythat.db.Contract
 import com.gb.canibuythat.db.model.ApiSaving
+import com.gb.canibuythat.db.model.ApiSpending
 import com.gb.canibuythat.exception.DomainException
 import com.gb.canibuythat.model.Saving
-import com.gb.canibuythat.db.model.ApiSpending
 import com.j256.ormlite.dao.Dao
+import com.j256.ormlite.stmt.DeleteBuilder
 import io.reactivex.Completable
 import io.reactivex.Single
 import java.sql.SQLException
@@ -16,18 +17,16 @@ constructor(private val savingsDao: Dao<ApiSaving, Int>,
             private val spendingDao: Dao<ApiSpending, Int>,
             private val savingMapper: SavingMapper) {
 
-    fun create(savings: Array<Saving>): Completable {
+    fun createIfNotExist(savings: Array<Saving>): Completable {
         return Completable.create { emitter ->
             try {
                 savings.forEach {
-                    if (savingsDao.create(ApiSaving(
-                            null,
+                    savingsDao.createIfNotExists(ApiSaving(
+                            it.id,
                             spendingDao.queryForId(it.spendingId),
                             it.amount,
                             it.created,
-                            it.target)) == 0) {
-                        emitter.onError(DomainException("Error persisting $it"))
-                    }
+                            it.target))
                 }
                 emitter.onComplete()
             } catch (e: SQLException) {
@@ -45,6 +44,19 @@ constructor(private val savingsDao: Dao<ApiSaving, Int>,
             try {
                 val builder = savingsDao.queryBuilder().where().eq(Contract.Savings.SPENDING, spendingDao.queryForId(spendingId))
                 emitter.onSuccess(savingsDao.query(builder.prepare()).map(savingMapper::mapApiSaving).toTypedArray())
+            } catch (e: SQLException) {
+                emitter.onError(e)
+            }
+        }
+    }
+
+    fun deleteSavingsForSpending(spendingId: Int): Completable {
+        return Completable.create { emitter ->
+            try {
+                val builder: DeleteBuilder<ApiSaving, Int> = savingsDao.deleteBuilder()
+                builder.where().eq(Contract.Savings.SPENDING, spendingDao.queryForId(spendingId))
+                savingsDao.delete(builder.prepare())
+                emitter.onComplete()
             } catch (e: SQLException) {
                 emitter.onError(e)
             }

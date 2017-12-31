@@ -16,9 +16,9 @@ import android.widget.TextView
 import android.widget.Toast
 import com.gb.canibuythat.R
 import com.gb.canibuythat.UserPreferences
+import com.gb.canibuythat.db.model.ApiSpending
 import com.gb.canibuythat.di.Injector
 import com.gb.canibuythat.model.Balance
-import com.gb.canibuythat.db.model.ApiSpending
 import com.gb.canibuythat.presenter.BasePresenter
 import com.gb.canibuythat.presenter.MainPresenter
 import com.gb.canibuythat.presenter.MonzoDispatchPresenter
@@ -53,6 +53,7 @@ class MainActivity : BaseActivity(), MainScreen, SpendingListFragment.FragmentCa
 
     private val projectionLbl: TextView? by lazy { findViewById(R.id.projection_lbl) as TextView? }
     private val referenceLbl: TextView? by lazy { findViewById(R.id.reference_lbl) as TextView? }
+    private val totalSavingLbl: TextView? by lazy { findViewById(R.id.saving_lbl) as TextView? }
 
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet device.
@@ -86,7 +87,6 @@ class MainActivity : BaseActivity(), MainScreen, SpendingListFragment.FragmentCa
             twoPane = true
         }
         mainPresenter.handleDeepLink(intent)
-        mainPresenter.calculateCurrentSavings()
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -249,6 +249,12 @@ class MainActivity : BaseActivity(), MainScreen, SpendingListFragment.FragmentCa
                             mainPresenter::getTargetBalanceBreakdown,
                             mainPresenter::getTargetSavingBreakdown,
                             this::estimateDateUpdater))
+        }
+    }
+
+    override fun setTotalSaving(totalSaving: Double?) {
+        totalSaving?.let {
+            totalSavingLbl?.text = getString(R.string.saving, it)
         }
     }
 

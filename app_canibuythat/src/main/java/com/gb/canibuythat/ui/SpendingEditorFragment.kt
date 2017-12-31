@@ -121,6 +121,7 @@ class SpendingEditorFragment : BaseFragment() {
                             newTargets.put(Date(), target)
                         }
                     } ?: newTargets.put(Date(), target)
+                    targets = newTargets
                 }
             }
         }
@@ -330,10 +331,14 @@ class SpendingEditorFragment : BaseFragment() {
      * this fragment contains unsaved user input
      */
     private fun shouldSave(): Boolean {
-        val newSpending = displayedSpending
-        val isNew = originalSpending == null && !isEmpty()
-        val changed = originalSpending?.let { !it.compareForEditing(newSpending, false, false) } ?: false
-        return isNew || changed
+        try {
+            val newSpending = displayedSpending
+            val isNew = originalSpending == null && !isEmpty()
+            val changed = originalSpending?.let { !it.compareForEditing(newSpending, false, false) } ?: false
+            return isNew || changed
+        } catch (ve: ValidationError) {
+            return true
+        }
     }
 
     companion object {

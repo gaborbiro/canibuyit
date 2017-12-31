@@ -10,7 +10,7 @@ import javax.inject.Inject
 class SavingsInteractor @Inject constructor(private val savingsRepository: SavingsRepository,
                                             private val schedulerProvider: SchedulerProvider) {
     fun save(savings: Array<Saving>): Completable {
-        return savingsRepository.create(savings)
+        return savingsRepository.createIfNotExist(savings)
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())
     }

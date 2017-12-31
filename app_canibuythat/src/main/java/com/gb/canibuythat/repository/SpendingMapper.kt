@@ -6,7 +6,7 @@ import com.gb.canibuythat.model.SerializableMap
 import com.gb.canibuythat.model.Spending
 import javax.inject.Inject
 
-class SpendingMapper @Inject constructor() {
+class SpendingMapper @Inject constructor(val savingMapper: SavingMapper) {
     fun map(apiSpending: ApiSpending): Spending {
         return Spending(
                 id = apiSpending.id,
@@ -23,10 +23,17 @@ class SpendingMapper @Inject constructor() {
                 enabled = apiSpending.enabled ?: throw MapperException("Missing enabled"),
                 spent = apiSpending.spent,
                 targets = apiSpending.targets,
-                savings = apiSpending.savings
-        )
+                savings = apiSpending.savings?.map(savingMapper::mapApiSaving)?.toTypedArray()
+        ).apply {
+            if (savings?.isEmpty() == true) {
+                savings = null
+            }
+        }
     }
 
+    /**
+     * Note, savings are omitted. Those need to be stored separately with the SavingRepository
+     */
     fun map(spending: Spending): ApiSpending {
         return ApiSpending(
                 id = spending.id,
@@ -42,7 +49,6 @@ class SpendingMapper @Inject constructor() {
                 sourceData = spending.sourceData ?: SerializableMap(),
                 enabled = spending.enabled,
                 spent = spending.spent,
-                targets = spending.targets,
-                savings = spending.savings)
+                targets = spending.targets)
     }
 }

@@ -45,6 +45,17 @@
         android:layout_marginLeft="@dimen/padding"
         android:layout_marginRight="@dimen/padding"
         android:layout_width="wrap_content"
-        tools:visibility="gone"
         tools:text="12.34 / month"/>
+
+    <TextView
+        style="?android:attr/textAppearanceListItemSmall"
+        android:id="@+id/saving"
+        android:layout_alignParentEnd="true"
+        android:layout_below="@id/icon_and_name"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="@dimen/padding"
+        android:layout_width="wrap_content"
+        android:visibility="gone"
+        tools:visibility="visible"
+        tools:text="Saved up: 46.45"/>
 </com.gb.canibuythat.ui.ProgressRelativeLayout>

@@ -1,12 +1,13 @@
 package com.gb.canibuythat.model
 
-import com.gb.canibuythat.db.model.ApiSaving
 import com.gb.canibuythat.db.model.ApiSpending
-import com.j256.ormlite.dao.ForeignCollection
+import org.threeten.bp.DayOfWeek
 import org.threeten.bp.LocalDate
 import org.threeten.bp.ZonedDateTime
 import org.threeten.bp.temporal.ChronoField
 import org.threeten.bp.temporal.ChronoUnit
+import org.threeten.bp.temporal.TemporalAdjusters.lastDayOfMonth
+import org.threeten.bp.temporal.TemporalAdjusters.lastDayOfYear
 import java.util.*
 
 class Spending(var id: Int? = null,
@@ -37,7 +38,7 @@ class Spending(var id: Int? = null,
                var sourceData: SerializableMap<String, String>?,
                var spent: Double?,
                var targets: SerializableMap<Date, Double>?,
-               var savings: ForeignCollection<ApiSaving>?) {
+               var savings: Array<Saving>?) {
 
     val target = targets?.maxBy { it.key }?.value
 
@@ -124,8 +125,6 @@ class Spending(var id: Int? = null,
         get() = id != null
 }
 
-class Target(date: Date, target: Double)
-
 fun ApiSpending.Cycle.applyTo(date: Date, increment: Int): Date {
     val cal = Calendar.getInstance()
     cal.time = date
@@ -176,4 +175,13 @@ fun ApiSpending.Cycle.of(date: LocalDate): Int {
         ApiSpending.Cycle.MONTHS -> date.year * 12 + date.monthValue
         ApiSpending.Cycle.YEARS -> date.year
     }
+}
+
+fun ApiSpending.Cycle.end(date: ZonedDateTime): ZonedDateTime {
+    return when (this) {
+        ApiSpending.Cycle.DAYS -> date
+        ApiSpending.Cycle.WEEKS -> date.with(DayOfWeek.SUNDAY)
+        ApiSpending.Cycle.MONTHS -> date.with(lastDayOfMonth())
+        ApiSpending.Cycle.YEARS -> date.with(lastDayOfYear())
+    }.toLocalDate().atStartOfDay(date.zone).plusDays(1).minusNanos(1)
 }
