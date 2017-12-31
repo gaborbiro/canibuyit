@@ -24,9 +24,9 @@ class Contract {
             const val ENABLED = "enabled"
             const val SOURCE_DATA = "source_data"
             const val SPENT = "spent"
-            const val TARGET = "target"
+            const val TARGETS = "targets"
 
-            val COLUMNS = arrayOf(_ID, NAME, NOTES, VALUE, TYPE, FROM_START_DATE, FROM_END_DATE, OCCURRENCE_COUNT, CYCLE_MULTIPLIER, CYCLE, ENABLED, SOURCE_DATA, SPENT, TARGET)
+            val COLUMNS = arrayOf(_ID, NAME, NOTES, VALUE, TYPE, FROM_START_DATE, FROM_END_DATE, OCCURRENCE_COUNT, CYCLE_MULTIPLIER, CYCLE, ENABLED, SOURCE_DATA, SPENT, TARGETS)
         }
     }
 
@@ -39,8 +39,6 @@ class Contract {
             const val AMOUNT = "amount"
             const val CREATED = "created"
             const val TARGET = "target"
-
-            val COLUMNS = arrayOf(_ID, SPENDING, AMOUNT, CREATED, TARGET)
         }
     }
 
@@ -55,8 +53,6 @@ class Contract {
             const val AVERAGE_OVERRIDE = "average_override"
             const val CYCLE_OVERRIDE = "cycle_override"
             const val WHEN_OVERRIDE = "when_override"
-
-            val COLUMNS = arrayOf(_ID, NAME, NAME_OVERRIDE, CATEGORY_OVERRIDE, AVERAGE_OVERRIDE, CYCLE_OVERRIDE, WHEN_OVERRIDE)
         }
     }
 }

@@ -12,6 +12,7 @@ import com.gb.canibuythat.MONZO_OAUTH_PARAM_AUTHORIZATION_CODE
 import com.gb.canibuythat.TRANSACTION_HISTORY_LENGTH_MONTHS
 import com.gb.canibuythat.UserPreferences
 import com.gb.canibuythat.db.model.ApiSpending
+import com.gb.canibuythat.exception.DomainException
 import com.gb.canibuythat.interactor.BackupingInteractor
 import com.gb.canibuythat.interactor.MonzoInteractor
 import com.gb.canibuythat.interactor.ProjectInteractor
@@ -22,7 +23,6 @@ import com.gb.canibuythat.model.Spending
 import com.gb.canibuythat.screen.MainScreen
 import com.gb.canibuythat.util.DateUtils
 import com.gb.canibuythat.util.Logger
-import io.reactivex.Single
 import io.reactivex.functions.Consumer
 import java.util.*
 import javax.inject.Inject
@@ -45,15 +45,17 @@ constructor(private val monzoInteractor: MonzoInteractor,
             if (it.loading) {
                 getScreen().showProgress()
             } else {
+                getScreen().hideProgress()
                 if (it.hasError()) {
                     this.onError(it.error!!)
                 } else {
-                    getScreen().hideProgress()
-                    it.content!!.let {
+                    it.content?.let {
                         credentialsProvider.accessToken = it.accessToken
                         credentialsProvider.accessTokenExpiry = it.expiresAt
                         credentialsProvider.refreshToken = it.refreshToken
-                        getScreen().showToast("You are now logged in")
+                        getScreen().showToast("You are now logged in. Registering for Monzo notifications...")
+                        getScreen().sendFCMTokenToServer()
+                        fetchMonzoData()
                     }
                 }
             }
@@ -73,7 +75,7 @@ constructor(private val monzoInteractor: MonzoInteractor,
                 .subscribe(getScreen()::setBalanceInfo,
                         {
                             getScreen().setBalanceInfo(null)
-                            this.onError(com.gb.canibuythat.exception.DomainException("Cannot calculate balance. See logs", it))
+                            this.onError(DomainException("Cannot calculate balance. See logs", it))
                         }))
         projectInteractor.getProject().subscribe(Consumer {
             getScreen().setTitle(it.projectName)
@@ -204,23 +206,23 @@ constructor(private val monzoInteractor: MonzoInteractor,
 //            }, errorHandler::onErrorSoft)
 //        }, errorHandler::onErrorSoft)
 
-        savingsInteractor.clearAll().subscribe({ }, errorHandler::onErrorSoft)
-        spendingInteractor.getSpendingsWithTarget().subscribe({ spendings: Array<Spending> ->
-            savingsInteractor.save(spendings.map(this::mapSaving).toTypedArray())
-                    .subscribe({
-                        Single.merge(spendings.map { spending ->
-                            savingsInteractor.getSavingsForSpending(spending.id!!)
-                                    .map { Pair(spending.id!!, it.toList().sumByDouble { it.amount }) }
-                        }).toList().subscribe({ result: MutableList<Pair<Int, Double>> ->
-                            val savingStr = result
-                                    .joinTo(buffer = StringBuffer(), separator = "\n", transform = { (spendingId, savingsForSpending) ->
-                                        spendings.first { it.id == spendingId }.name + ": $savingsForSpending"
-                                    }).append("\n-----------------\nTotal: ${result.sumByDouble { it.second }}")
-                                    .toString()
-                            getScreen().showDialog("Savings", savingStr)
-                        }, errorHandler::onErrorSoft)
-                    }, errorHandler::onErrorSoft)
-        }, errorHandler::onErrorSoft)
+//        savingsInteractor.clearAll().subscribe({ }, errorHandler::onErrorSoft)
+//        spendingInteractor.getSpendingsWithTarget().subscribe({ spendings: Array<Spending> ->
+//            savingsInteractor.save(spendings.map(this::mapSaving).toTypedArray())
+//                    .subscribe({
+//                        Single.merge(spendings.map { spending ->
+//                            savingsInteractor.getSavingsForSpending(spending.id!!)
+//                                    .map { Pair(spending.id!!, it.toList().sumByDouble { it.amount }) }
+//                        }).toList().subscribe({ result: MutableList<Pair<Int, Double>> ->
+//                            val savingStr = result
+//                                    .joinTo(buffer = StringBuffer(), separator = "\n", transform = { (spendingId, savingsForSpending) ->
+//                                        spendings.first { it.id == spendingId }.name + ": $savingsForSpending"
+//                                    }).append("\n-----------------\nTotal: ${result.sumByDouble { it.second }}")
+//                                    .toString()
+//                            getScreen().showDialog("Savings", savingStr)
+//                        }, errorHandler::onErrorSoft)
+//                    }, errorHandler::onErrorSoft)
+//        }, errorHandler::onErrorSoft)
     }
 
     private fun mapSaving(spending: Spending): Saving {

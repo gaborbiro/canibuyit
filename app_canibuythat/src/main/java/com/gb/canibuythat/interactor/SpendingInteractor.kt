@@ -73,12 +73,6 @@ constructor(private val repo: SpendingsRepository,
 
     // NON-REACTIVE METHODS
 
-    fun getSpendingsWithTarget(): Single<Array<Spending>> {
-        return repo.getSpendingsWithTarget()
-                .subscribeOn(schedulerProvider.io())
-                .observeOn(schedulerProvider.mainThread())
-    }
-
     fun createOrUpdate(spending: Spending): Single<Dao.CreateOrUpdateStatus> {
         return repo.createOrUpdate(spending)
                 .onErrorResumeNext { throwable -> Single.error<Dao.CreateOrUpdateStatus>(DomainException("Error updating spending in database. See logs.", throwable)) }

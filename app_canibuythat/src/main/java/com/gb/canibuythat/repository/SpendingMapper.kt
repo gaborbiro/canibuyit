@@ -2,6 +2,7 @@ package com.gb.canibuythat.repository
 
 import com.gb.canibuythat.db.model.ApiSpending
 import com.gb.canibuythat.exception.MapperException
+import com.gb.canibuythat.model.SerializableMap
 import com.gb.canibuythat.model.Spending
 import javax.inject.Inject
 
@@ -21,7 +22,7 @@ class SpendingMapper @Inject constructor() {
                 sourceData = apiSpending.sourceData,
                 enabled = apiSpending.enabled ?: throw MapperException("Missing enabled"),
                 spent = apiSpending.spent,
-                target = apiSpending.target,
+                targets = apiSpending.targets,
                 savings = apiSpending.savings
         )
     }
@@ -38,10 +39,10 @@ class SpendingMapper @Inject constructor() {
                 occurrenceCount = spending.occurrenceCount,
                 cycleMultiplier = spending.cycleMultiplier,
                 cycle = spending.cycle,
-                sourceData = spending.sourceData,
+                sourceData = spending.sourceData ?: SerializableMap(),
                 enabled = spending.enabled,
                 spent = spending.spent,
-                target = spending.target,
+                targets = spending.targets,
                 savings = spending.savings)
     }
 }

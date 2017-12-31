@@ -53,7 +53,7 @@ class MonzoMapper @Inject constructor() {
         val firstOccurrence: LocalDate = transactions.minBy { it.created }!!.created.toLocalDate()
         return Spending(
                 id = savedSpending?.id,
-                target = nonNullAndTrue(savedSpending?.target),
+                targets = nonNullAndTrue(savedSpending?.targets),
                 name = nonNullAndTrue(savedSpending?.name, projectSettings.namePinned) ?: WordUtils.capitalizeFully(category.toString().replace("\\_".toRegex(), " ")),
                 notes = nonNullAndTrue(savedSpending?.notes),
                 type = type,
@@ -64,7 +64,7 @@ class MonzoMapper @Inject constructor() {
                 cycleMultiplier = cycleMultiplier,
                 cycle = cycle,
                 enabled = nonNullAndTrue(savedSpending?.enabled) ?: type.defaultEnabled,
-                spent = transactionsGroupedByCycle[cycle.of(LocalDate.now(ZoneId.systemDefault()))]?.sumBy { it.amount }?.div(100.0) ?: 0.0,
+                spent = transactionsGroupedByCycle[cycle.of(LocalDate.now(ZoneId.systemDefault()))]?.sumBy { it.amount }?.div(100.0) ?: 0.0, // cents to pounds
                 savings = savedSpending?.savings,
                 sourceData = SerializableMap<String, String>().apply { put(ApiSpending.SOURCE_MONZO_CATEGORY, category.name.toLowerCase()) })
     }

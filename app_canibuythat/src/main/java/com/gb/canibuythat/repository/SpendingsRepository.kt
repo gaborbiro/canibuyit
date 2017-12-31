@@ -141,25 +141,6 @@ constructor(private val dao: Dao<ApiSpending, Int>,
     }
 
     /**
-     * Fetch all enabled spending items that have a target set and also have `spent` value set
-     */
-    fun getSpendingsWithTarget(): Single<Array<Spending>> {
-        return Single.create<Array<Spending>> { emitter ->
-            try {
-                val builder = dao.queryBuilder().where()
-                builder.isNotNull(Contract.Spending.TARGET)
-                builder.and()
-                builder.isNotNull(Contract.Spending.SPENT)
-                builder.and()
-                builder.eq(Contract.Spending.ENABLED, true)
-                emitter.onSuccess(dao.query(builder.prepare()).toList().map(mapper::map).toTypedArray())
-            } catch (e: SQLException) {
-                emitter.onError(e)
-            }
-        }
-    }
-
-    /**
      * Fetch projection and target projection
      */
     fun getBalance(): Single<Balance> {

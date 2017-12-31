@@ -43,8 +43,8 @@ class ApiSpending(
         var sourceData: SerializableMap<String, String>? = null,
         @DatabaseField(columnName = Contract.Spending.SPENT, canBeNull = true)
         var spent: Double? = null,
-        @DatabaseField(columnName = Contract.Spending.TARGET, canBeNull = true)
-        var target: Double? = null,
+        @DatabaseField(columnName = Contract.Spending.TARGETS, dataType = DataType.SERIALIZABLE, canBeNull = true)
+        var targets: SerializableMap<Date, Double>? = null,
         @ForeignCollectionField(eager = true)
         var savings: ForeignCollection<ApiSaving>? = null) {
 
@@ -54,7 +54,7 @@ class ApiSpending(
     }
 
     override fun toString(): String {
-        return "ApiSpending(id=$id, name='$name', notes=$notes, type=$type, value=$value, fromStartDate=$fromStartDate, fromEndDate=$fromEndDate, occurrenceCount=$occurrenceCount, cycleMultiplier=$cycleMultiplier, cycle=$cycle, enabled=$enabled, sourceData=$sourceData, spent=$spent, target=$target, savings=$savings)"
+        return "ApiSpending(id=$id, name='$name', notes=$notes, type=$type, value=$value, fromStartDate=$fromStartDate, fromEndDate=$fromEndDate, occurrenceCount=$occurrenceCount, cycleMultiplier=$cycleMultiplier, cycle=$cycle, enabled=$enabled, sourceData=$sourceData, spent=$spent, target=$targets, savings=$savings)"
     }
 
     enum class Category(val defaultEnabled: Boolean = true) {

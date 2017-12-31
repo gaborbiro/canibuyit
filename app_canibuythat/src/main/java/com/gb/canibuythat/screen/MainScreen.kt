@@ -30,4 +30,6 @@ interface MainScreen : MonzoDispatchScreen {
     fun setProjectName(currentName: String?)
 
     fun setBalanceBreakdown(breakdown: Array<Pair<ApiSpending.Category, String>>)
+
+    fun sendFCMTokenToServer()
 }

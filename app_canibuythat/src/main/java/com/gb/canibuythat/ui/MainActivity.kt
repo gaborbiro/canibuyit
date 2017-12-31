@@ -51,8 +51,8 @@ class MainActivity : BaseActivity(), MainScreen, SpendingListFragment.FragmentCa
     @Inject internal lateinit var mainPresenter: MainPresenter
     @Inject internal lateinit var monzoDispatchPresenter: MonzoDispatchPresenter
 
-    val projectionLbl: TextView? by lazy { findViewById(R.id.projection_lbl) as TextView? }
-    val referenceLbl: TextView? by lazy { findViewById(R.id.reference_lbl) as TextView? }
+    private val projectionLbl: TextView? by lazy { findViewById(R.id.projection_lbl) as TextView? }
+    private val referenceLbl: TextView? by lazy { findViewById(R.id.reference_lbl) as TextView? }
 
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet device.
@@ -128,11 +128,7 @@ class MainActivity : BaseActivity(), MainScreen, SpendingListFragment.FragmentCa
             R.id.menu_import_all -> mainPresenter.onImportDatabase(MainScreen.SpendingsImportType.ALL)
             R.id.menu_import_monzo -> mainPresenter.onImportDatabase(MainScreen.SpendingsImportType.MONZO)
             R.id.menu_import_non_monzo -> mainPresenter.onImportDatabase(MainScreen.SpendingsImportType.NON_MONZO)
-            R.id.menu_fcm -> {
-                val token = FirebaseInstanceId.getInstance().token
-                Log.d("MonzoDispatch", token)
-                monzoDispatchPresenter.sendFCMTokenToServer(token!!)
-            }
+            R.id.menu_fcm -> sendFCMTokenToServer()
             R.id.menu_delete_spendings -> mainPresenter.deleteAllSpendings()
             R.id.menu_set_project_name -> mainPresenter.onSetProjectName()
             R.id.menu_hooks -> mainPresenter.logWebhooks()
@@ -296,6 +292,12 @@ class MainActivity : BaseActivity(), MainScreen, SpendingListFragment.FragmentCa
         args.putSerializable("breakdown", breakdown)
         promptDialog.arguments = args
         promptDialog.setPositiveButton(android.R.string.ok, null).show(supportFragmentManager, null)
+    }
+
+    override fun sendFCMTokenToServer() {
+        val token = FirebaseInstanceId.getInstance().token
+        Log.d("MonzoDispatch", token)
+        monzoDispatchPresenter.sendFCMTokenToServer(token!!)
     }
 
     companion object {

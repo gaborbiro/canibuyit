@@ -22,6 +22,7 @@ import com.gb.canibuythat.di.Injector
 import com.gb.canibuythat.interactor.Project
 import com.gb.canibuythat.interactor.ProjectInteractor
 import com.gb.canibuythat.interactor.SpendingInteractor
+import com.gb.canibuythat.model.SerializableMap
 import com.gb.canibuythat.model.Spending
 import com.gb.canibuythat.model.applyTo
 import com.gb.canibuythat.presenter.BasePresenter
@@ -111,8 +112,17 @@ class SpendingEditorFragment : BaseFragment() {
                     enabled = enabledCB.isChecked,
                     sourceData = originalSpending?.sourceData,
                     spent = originalSpending?.spent,
-                    target = targetInput.text.orNull()?.toString()?.toDouble(),
-                    savings = null)
+                    targets = originalSpending?.targets,
+                    savings = null).apply {
+                targetInput.text.orNull()?.toString()?.toDouble()?.let { target ->
+                    val newTargets = originalSpending?.targets ?: SerializableMap()
+                    newTargets.maxBy { it.key }?.let {
+                        if (it.key.before(Date())) {
+                            newTargets.put(Date(), target)
+                        }
+                    } ?: newTargets.put(Date(), target)
+                }
+            }
         }
         @SuppressLint("SetTextI18n")
         set(spending) {

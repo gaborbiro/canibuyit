@@ -36,8 +36,10 @@ class Spending(var id: Int? = null,
                var enabled: Boolean,
                var sourceData: SerializableMap<String, String>?,
                var spent: Double?,
-               var target: Double?,
+               var targets: SerializableMap<Date, Double>?,
                var savings: ForeignCollection<ApiSaving>?) {
+
+    val target = targets?.maxBy { it.key }?.value
 
     val valuePerMonth: Double
         get() {
@@ -65,7 +67,7 @@ class Spending(var id: Int? = null,
         if (cycle != other.cycle) return false
         if (enabled != other.enabled) return false
         if (spent != other.spent) return false
-        if (target != other.target) return false
+        if (targets != other.targets) return false
         return true
     }
 
@@ -88,15 +90,10 @@ class Spending(var id: Int? = null,
         if (enabled != other.enabled) return false
         if (sourceData != other.sourceData) return false
         if (spent != other.spent) return false
-        if (target != other.target) return false
+        if (targets != other.targets) return false
         if (savings != other.savings) return false
 
         return true
-    }
-
-
-    override fun toString(): String {
-        return "Spending(id=$id, name='$name', notes=$notes, type=$type, value=$value, fromStartDate=$fromStartDate, fromEndDate=$fromEndDate, occurrenceCount=$occurrenceCount, cycleMultiplier=$cycleMultiplier, cycle=$cycle, enabled=$enabled, sourceData=$sourceData, spent=$spent, target=$target, savings=$savings)"
     }
 
     override fun hashCode(): Int {
@@ -113,14 +110,21 @@ class Spending(var id: Int? = null,
         result = 31 * result + enabled.hashCode()
         result = 31 * result + (sourceData?.hashCode() ?: 0)
         result = 31 * result + (spent?.hashCode() ?: 0)
-        result = 31 * result + (target?.hashCode() ?: 0)
+        result = 31 * result + (targets?.hashCode() ?: 0)
         result = 31 * result + (savings?.hashCode() ?: 0)
         return result
     }
 
+    override fun toString(): String {
+        return "Spending(id=$id, name='$name', notes=$notes, type=$type, value=$value, fromStartDate=$fromStartDate, fromEndDate=$fromEndDate, occurrenceCount=$occurrenceCount, cycleMultiplier=$cycleMultiplier, cycle=$cycle, enabled=$enabled, sourceData=$sourceData, spent=$spent, targets=$targets, savings=$savings)"
+    }
+
+
     val isPersisted
         get() = id != null
 }
+
+class Target(date: Date, target: Double)
 
 fun ApiSpending.Cycle.applyTo(date: Date, increment: Int): Date {
     val cal = Calendar.getInstance()
@@ -168,8 +172,8 @@ fun ApiSpending.Cycle.span(start: ZonedDateTime, end: ZonedDateTime): Long {
 fun ApiSpending.Cycle.of(date: LocalDate): Int {
     return when (this) {
         ApiSpending.Cycle.DAYS -> date.toEpochDay().toInt()
-        ApiSpending.Cycle.WEEKS -> date.minusDays(1)[ChronoField.ALIGNED_WEEK_OF_YEAR]
-        ApiSpending.Cycle.MONTHS -> date.monthValue
+        ApiSpending.Cycle.WEEKS -> date.year * 53 + date.minusDays(1)[ChronoField.ALIGNED_WEEK_OF_YEAR]
+        ApiSpending.Cycle.MONTHS -> date.year * 12 + date.monthValue
         ApiSpending.Cycle.YEARS -> date.year
     }
 }
