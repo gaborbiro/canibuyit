@@ -14,6 +14,7 @@ import com.gb.canibuythat.model.Spending
 import com.gb.canibuythat.model.Transaction
 import com.gb.canibuythat.model.Webhooks
 import com.gb.canibuythat.util.DateUtils
+import com.gb.canibuythat.util.Logger
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
@@ -49,14 +50,12 @@ class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi,
             }
             emitter.onComplete()
         }.filter {
-            // Top-ups to an account are represented as transactions with a positive amount and is_load = true
-            // Other transactions such as refunds, reversals or chargebacks may have a positive amount but is_load = false
-            !(it.is_load && it.amount > 0)
-                    && it.amount != 0
+            it.include_in_spending && it.amount != 0
                     && !it.description.contains("top-up", true)
         }.map {
             mapper.mapToTransaction(it)
         }.toList().map { transactions ->
+            Logger.d("MonzoRepository", "${transactions.size} transactions loaded")
             val projectSettings = projectInteractor.getProject().blockingGet()
             val savedSpendings = spendingsRepository.all.blockingGet().groupBy { it.sourceData?.get(ApiSpending.SOURCE_MONZO_CATEGORY) }
             transactions.groupBy(Transaction::category).mapNotNull { (category, transactionsForThatCategory) ->
