@@ -33,7 +33,7 @@ class App : Application() {
         override fun onActivityDestroyed(activity: Activity) {
             activityCount--
             if (activityCount <= 0) {
-                Toast.makeText(this@App, "Releasing sqlite connection", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@App, "Releasing sqlite connection blah", Toast.LENGTH_SHORT).show()
                 OpenHelperManager.releaseHelper()
             }
         }
