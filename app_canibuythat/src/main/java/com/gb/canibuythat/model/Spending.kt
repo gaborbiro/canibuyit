@@ -35,9 +35,9 @@ class Spending(var id: Int? = null,
                 */
                var cycle: ApiSpending.Cycle,
                var enabled: Boolean,
-               var sourceData: SerializableMap<String, String>?,
+               var sourceData: MutableMap<String, String>?,
                var spent: Double?,
-               var targets: SerializableMap<Date, Double>?,
+               var targets: MutableMap<Date, Double>?,
                var savings: Array<Saving>?) {
 
     val target = targets?.maxBy { it.key }?.value

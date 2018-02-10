@@ -2,11 +2,14 @@ package com.gb.canibuythat.repository
 
 import com.gb.canibuythat.db.model.ApiSpending
 import com.gb.canibuythat.exception.MapperException
-import com.gb.canibuythat.model.SerializableMap
 import com.gb.canibuythat.model.Spending
+import com.gb.canibuythat.util.fromJson
+import com.google.gson.Gson
+import java.util.*
 import javax.inject.Inject
 
-class SpendingMapper @Inject constructor(val savingMapper: SavingMapper) {
+class SpendingMapper @Inject constructor(private val savingMapper: SavingMapper,
+                                         private val gson: Gson) {
     fun map(apiSpending: ApiSpending): Spending {
         return Spending(
                 id = apiSpending.id,
@@ -19,10 +22,10 @@ class SpendingMapper @Inject constructor(val savingMapper: SavingMapper) {
                 occurrenceCount = apiSpending.occurrenceCount,
                 cycleMultiplier = apiSpending.cycleMultiplier ?: throw MapperException("Missing cycleMultiplier"),
                 cycle = apiSpending.cycle ?: throw MapperException("cycle"),
-                sourceData = apiSpending.sourceData,
+                sourceData = apiSpending.sourceData?.let { gson.fromJson<MutableMap<String, String>>(it) },
                 enabled = apiSpending.enabled ?: throw MapperException("Missing enabled"),
                 spent = apiSpending.spent,
-                targets = apiSpending.targets,
+                targets = apiSpending.targets?.let { gson.fromJson<MutableMap<Date, Double>>(it) },
                 savings = apiSpending.savings?.map(savingMapper::mapApiSaving)?.toTypedArray()
         ).apply {
             if (savings?.isEmpty() == true) {
@@ -46,9 +49,9 @@ class SpendingMapper @Inject constructor(val savingMapper: SavingMapper) {
                 occurrenceCount = spending.occurrenceCount,
                 cycleMultiplier = spending.cycleMultiplier,
                 cycle = spending.cycle,
-                sourceData = spending.sourceData ?: SerializableMap(),
+                sourceData = spending.sourceData?.let { gson.toJson(it) },
                 enabled = spending.enabled,
                 spent = spending.spent,
-                targets = spending.targets)
+                targets = spending.targets?.let { gson.toJson(it) })
     }
 }

@@ -2,9 +2,7 @@ package com.gb.canibuythat.db.model
 
 import com.gb.canibuythat.R
 import com.gb.canibuythat.db.Contract
-import com.gb.canibuythat.model.SerializableMap
 import com.j256.ormlite.dao.ForeignCollection
-import com.j256.ormlite.field.DataType
 import com.j256.ormlite.field.DatabaseField
 import com.j256.ormlite.field.ForeignCollectionField
 import com.j256.ormlite.table.DatabaseTable
@@ -39,12 +37,12 @@ class ApiSpending(
         var cycle: Cycle? = null,
         @DatabaseField(columnName = Contract.Spending.ENABLED, canBeNull = false)
         var enabled: Boolean? = null,
-        @DatabaseField(columnName = Contract.Spending.SOURCE_DATA, dataType = DataType.SERIALIZABLE, canBeNull = false)
-        var sourceData: SerializableMap<String, String>? = null,
+        @DatabaseField(columnName = Contract.Spending.SOURCE_DATA, canBeNull = true)
+        var sourceData: String? = null,
         @DatabaseField(columnName = Contract.Spending.SPENT, canBeNull = true)
         var spent: Double? = null,
-        @DatabaseField(columnName = Contract.Spending.TARGETS, dataType = DataType.SERIALIZABLE, canBeNull = true)
-        var targets: SerializableMap<Date, Double>? = null,
+        @DatabaseField(columnName = Contract.Spending.TARGETS, canBeNull = true)
+        var targets: String? = null,
         @ForeignCollectionField(eager = true)
         var savings: ForeignCollection<ApiSaving>? = null) {
 

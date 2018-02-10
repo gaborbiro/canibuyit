@@ -9,6 +9,7 @@ import com.gb.canibuythat.api.MonzoAuthApi
 import com.gb.canibuythat.api.MonzoAuthenticator
 import com.gb.canibuythat.api.MonzoDispatchApi
 import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import dagger.Module
 import dagger.Provides
 import okhttp3.OkHttpClient
@@ -95,13 +96,12 @@ class MonzoApiModule {
 
     @Provides
     @Singleton
-    internal fun provideGson(): Gson {
-        return Gson()
-    }
+    internal fun provideGson(): Gson = GsonBuilder()
+            .setDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
+            .enableComplexMapKeySerialization()
+            .create()
 
     @Provides
     @Singleton
-    internal fun provideGsonConverterFactory(gson: Gson): GsonConverterFactory {
-        return GsonConverterFactory.create(gson)
-    }
+    internal fun provideGsonConverterFactory(gson: Gson): GsonConverterFactory = GsonConverterFactory.create(gson)
 }

@@ -8,6 +8,8 @@ import com.gb.canibuythat.model.Balance
 import com.gb.canibuythat.model.Spending
 import com.gb.canibuythat.model.SpendingEvent
 import com.gb.canibuythat.util.DateUtils
+import com.gb.canibuythat.util.fromJson
+import com.google.gson.Gson
 import com.j256.ormlite.dao.Dao
 import com.j256.ormlite.stmt.Where
 import io.reactivex.Completable
@@ -24,7 +26,8 @@ class SpendingsRepository @Inject
 constructor(private val dao: Dao<ApiSpending, Int>,
             private val mapper: SpendingMapper,
             private val savingsRepository: SavingsRepository,
-            private val prefs: UserPreferences) {
+            private val prefs: UserPreferences,
+            private val gson: Gson) {
 
     val all: Single<List<Spending>>
         get() {
@@ -63,9 +66,11 @@ constructor(private val dao: Dao<ApiSpending, Int>,
      */
     fun createOrUpdateMonzoSpendings(remoteSpendings: List<Spending>): Completable {
         return Completable.create { emitter ->
-            val savedMonzoSpendings: List<ApiSpending> = dao.queryForAll()
-                    .filter { it.sourceData?.containsKey(ApiSpending.SOURCE_MONZO_CATEGORY) == true }
-                    .sortedBy { it.sourceData?.get(ApiSpending.SOURCE_MONZO_CATEGORY) }
+            val savedMonzoSpendingCategories: List<String?> = dao.queryForAll()
+                    .map { it.sourceData?.let { gson.fromJson<Map<String, String>>(it) } }
+                    .filter { it?.containsKey(ApiSpending.SOURCE_MONZO_CATEGORY) == true }
+                    .sortedBy { it?.get(ApiSpending.SOURCE_MONZO_CATEGORY) }
+                    .map { it?.get(ApiSpending.SOURCE_MONZO_CATEGORY) }
 
             try {
                 remoteSpendings.forEach {
@@ -73,14 +78,15 @@ constructor(private val dao: Dao<ApiSpending, Int>,
 
                     // find the saved spending that has the same monzo category as the current remote spending
                     // Note: at the moment no two monzo spending will have the same monzo category, so there will only be one match
-                    val index = savedMonzoSpendings.indexOfFirst { it.sourceData?.get(ApiSpending.SOURCE_MONZO_CATEGORY) == remoteMonzoCategory }
+                    val index = savedMonzoSpendingCategories.indexOf(remoteMonzoCategory)
 
+                    val apiSpending = mapper.map(it)
                     if (index >= 0) {
-                        dao.update(mapper.map(it))
+                        dao.update(apiSpending)
                     } else {
-                        dao.create(mapper.map(it))
+                        dao.create(apiSpending)
                     }
-                    savingsRepository.deleteSavingsForSpending(it.id!!).blockingGet()
+                    savingsRepository.deleteSavingsForSpending(apiSpending.id!!).blockingGet()
                     it.savings?.let {
                         savingsRepository.createIfNotExist(it).blockingAwait()
                     }
@@ -140,8 +146,15 @@ constructor(private val dao: Dao<ApiSpending, Int>,
         return Observable.create<Spending> { emitter ->
             try {
                 dao.queryForAll()
-                        .filter { it.sourceData?.get(ApiSpending.SOURCE_MONZO_CATEGORY)?.equals(category) ?: false }
-                        .forEach { emitter.onNext(mapper.map(it)) }
+                        .map {
+                            Pair<ApiSpending, Map<String, String>?>(
+                                    it,
+                                    it.sourceData?.let {
+                                        gson.fromJson<Map<String, String>>(it)
+                                    })
+                        }
+                        .filter { it.second?.get(ApiSpending.SOURCE_MONZO_CATEGORY)?.equals(category) ?: false }
+                        .forEach { emitter.onNext(mapper.map(it.first)) }
                 emitter.onComplete()
             } catch (e: SQLException) {
                 emitter.onError(e)
