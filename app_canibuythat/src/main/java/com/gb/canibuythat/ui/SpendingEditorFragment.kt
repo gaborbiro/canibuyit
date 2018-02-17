@@ -22,7 +22,6 @@ import com.gb.canibuythat.di.Injector
 import com.gb.canibuythat.interactor.Project
 import com.gb.canibuythat.interactor.ProjectInteractor
 import com.gb.canibuythat.interactor.SpendingInteractor
-import com.gb.canibuythat.model.SerializableMap
 import com.gb.canibuythat.model.Spending
 import com.gb.canibuythat.model.add
 import com.gb.canibuythat.presenter.BasePresenter
@@ -34,6 +33,8 @@ import com.gb.canibuythat.util.ValidationError
 import com.gb.canibuythat.util.clearLowerBits
 import com.gb.canibuythat.util.hideKeyboard
 import com.gb.canibuythat.util.orNull
+import com.gb.canibuythat.util.toLocalDate
+import org.threeten.bp.LocalDate
 import java.util.*
 import javax.inject.Inject
 
@@ -44,8 +45,10 @@ import javax.inject.Inject
  */
 class SpendingEditorFragment : BaseFragment() {
 
-    @Inject lateinit var spendingInteractor: SpendingInteractor
-    @Inject lateinit var projectInteractor: ProjectInteractor
+    @Inject
+    lateinit var spendingInteractor: SpendingInteractor
+    @Inject
+    lateinit var projectInteractor: ProjectInteractor
 
     private val nameInput: EditText by lazy { rootView.findViewById(R.id.name_input) as EditText }
     private val averageInput: EditText by lazy { rootView.findViewById(R.id.average_input) as EditText }
@@ -114,18 +117,22 @@ class SpendingEditorFragment : BaseFragment() {
                     enabled = enabledCB.isChecked,
                     sourceData = originalSpending?.sourceData,
                     spent = originalSpending?.spent,
-                    targets = originalSpending?.targets,
-                    savings = null).apply {
-                targetInput.text.orNull()?.toString()?.toDouble()?.let { target ->
-                    val newTargets = originalSpending?.targets ?: SerializableMap()
-                    newTargets.maxBy { it.key }?.let {
-                        if (it.key.before(Date())) {
-                            newTargets.put(Date(), target)
+                    // delete target history if empty
+                    targets = targetInput.text.orNull()?.toString()?.toDouble()?.let { target ->
+                        val now = Date()
+                        val targetHistory = originalSpending?.targets?.toMutableMap()
+                        targetHistory?.maxBy { it.key }?.let {
+                            if (it.value != target) {
+                                if (it.key.toLocalDate().isBefore(LocalDate.now())) {
+                                    targetHistory[now] = target
+                                } else {
+                                    targetHistory[it.key] = target
+                                }
+                            }
                         }
-                    } ?: newTargets.put(Date(), target)
-                    targets = newTargets
-                }
-            }
+                        targetHistory ?: mutableMapOf(Pair(now, target))
+                    },
+                    savings = null)
         }
         @SuppressLint("SetTextI18n")
         set(spending) {

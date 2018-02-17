@@ -36,7 +36,7 @@ class Spending(var id: Int? = null,
                var enabled: Boolean,
                var sourceData: MutableMap<String, String>?,
                var spent: Double?,
-               var targets: MutableMap<Date, Double>?,
+               var targets: Map<Date, Double>?,
                var savings: Array<Saving>?) {
 
     val target = targets?.maxBy { it.key }?.value
