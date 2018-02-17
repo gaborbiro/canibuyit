@@ -13,12 +13,12 @@ import com.gb.canibuythat.model.Spending
 import com.gb.canibuythat.model.Transaction
 import com.gb.canibuythat.model.Webhook
 import com.gb.canibuythat.model.Webhooks
-import com.gb.canibuythat.model.end
+import com.gb.canibuythat.model.lastCycleDay
 import com.gb.canibuythat.model.of
 import com.gb.canibuythat.model.span
 import com.gb.canibuythat.util.nonNullAndTrue
 import com.gb.canibuythat.util.toDate
-import com.gb.canibuythat.util.toZDT
+import com.gb.canibuythat.util.toLocalDate
 import org.apache.commons.lang3.text.WordUtils
 import org.threeten.bp.LocalDate
 import org.threeten.bp.ZoneId
@@ -46,24 +46,27 @@ class MonzoMapper @Inject constructor() {
     }
 
     fun mapToSpending(category: ApiSpending.Category, transactions: List<Transaction>, savedSpending: Spending?, projectSettings: Project): Spending? {
-        val cycle: ApiSpending.Cycle = nonNullAndTrue(savedSpending?.cycle, projectSettings.cyclePinned) ?: getOptimalCycle(transactions)
+        val cycle: ApiSpending.Cycle = nonNullAndTrue(savedSpending?.cycle, projectSettings.cyclePinned)
+                ?: getOptimalCycle(transactions)
         val transactionsGroupedByCycle: Map<Int, List<Transaction>> = transactions.groupBy { cycle.of(it.created.toLocalDate()) }
-        val cycleMultiplier = nonNullAndTrue(savedSpending?.cycleMultiplier, projectSettings.cyclePinned) ?: 1
-        val value = nonNullAndTrue(savedSpending?.value, projectSettings.averagePinned) ?: transactions
-                .sumBy { it.amount }
-                .div(cycle.span(transactions.minBy { it.created }!!.created, ZonedDateTime.now()) / cycleMultiplier)
-                .div(100.0) // cents to pounds
+        val cycleMultiplier = nonNullAndTrue(savedSpending?.cycleMultiplier, projectSettings.cyclePinned)
+                ?: 1
+        val value = nonNullAndTrue(savedSpending?.value, projectSettings.averagePinned)
+                ?: transactions
+                        .sumBy { it.amount }
+                        .div(Pair(transactions.minBy { it.created }!!.created, ZonedDateTime.now()).span(cycle) / cycleMultiplier)
+                        .div(100.0) // cents to pounds
         val type = nonNullAndTrue(savedSpending?.type, projectSettings.categoryPinned) ?: category
         val firstOccurrence: LocalDate = transactions.minBy { it.created }!!.created.toLocalDate()
         var savings: List<Saving>? = transactionsGroupedByCycle.mapNotNull saving@ {
             val transactionsForCycle = it.value
-            val lastDayOfCycle = cycle.end(transactionsForCycle.maxBy { it.created }?.created!!)
+            val lastCycleDay = transactionsForCycle.maxBy { it.created }?.created!!.lastCycleDay(cycle)
 
-            if (!lastDayOfCycle.isAfter(ZonedDateTime.now())) { // a cycle must end before its savings can be recorded
-                val target = getTarget(lastDayOfCycle, savedSpending?.targets)
+            if (!lastCycleDay.isAfter(LocalDate.now())) { // a cycle must end before its savings can be recorded
+                val target = getTarget(lastCycleDay, savedSpending?.targets)
                 val saving = target?.let { transactionsForCycle.sumBy { it.amount }.div(100.0).minus(it) }
                 if (saving != null) {
-                    return@saving Saving(null, savedSpending?.id, saving, Date(), target)
+                    return@saving Saving(null, savedSpending?.id, saving, lastCycleDay.toDate(), target)
                 } else {
                     return@saving null
                 }
@@ -77,17 +80,21 @@ class MonzoMapper @Inject constructor() {
         return Spending(
                 id = savedSpending?.id,
                 targets = nonNullAndTrue(savedSpending?.targets),
-                name = nonNullAndTrue(savedSpending?.name, projectSettings.namePinned) ?: WordUtils.capitalizeFully(category.toString().replace("\\_".toRegex(), " ")),
+                name = nonNullAndTrue(savedSpending?.name, projectSettings.namePinned)
+                        ?: WordUtils.capitalizeFully(category.toString().replace("\\_".toRegex(), " ")),
                 notes = nonNullAndTrue(savedSpending?.notes),
                 type = type,
                 value = value,
-                fromStartDate = nonNullAndTrue(savedSpending?.fromStartDate, projectSettings.whenPinned) ?: firstOccurrence.toDate(),
-                fromEndDate = nonNullAndTrue(savedSpending?.fromEndDate, projectSettings.whenPinned) ?: firstOccurrence.add(cycle, cycleMultiplier.toLong()).minusDays(1).toDate(),
+                fromStartDate = nonNullAndTrue(savedSpending?.fromStartDate, projectSettings.whenPinned)
+                        ?: firstOccurrence.toDate(),
+                fromEndDate = nonNullAndTrue(savedSpending?.fromEndDate, projectSettings.whenPinned)
+                        ?: firstOccurrence.add(cycle, cycleMultiplier.toLong()).minusDays(1).toDate(),
                 occurrenceCount = nonNullAndTrue(savedSpending?.occurrenceCount),
                 cycleMultiplier = cycleMultiplier,
                 cycle = cycle,
                 enabled = nonNullAndTrue(savedSpending?.enabled) ?: type.defaultEnabled,
-                spent = transactionsGroupedByCycle[cycle.of(LocalDate.now(ZoneId.systemDefault()))]?.sumBy { it.amount }?.div(100.0) ?: 0.0, // cents to pounds
+                spent = transactionsGroupedByCycle[cycle.of(LocalDate.now(ZoneId.systemDefault()))]?.sumBy { it.amount }?.div(100.0)
+                        ?: 0.0, // cents to pounds
                 savings = savings?.toTypedArray(),
                 sourceData = SerializableMap<String, String>().apply { put(ApiSpending.SOURCE_MONZO_CATEGORY, category.name.toLowerCase()) })
     }
@@ -149,8 +156,8 @@ class MonzoMapper @Inject constructor() {
         }
     }
 
-    private fun getTarget(endDate: ZonedDateTime, targets: Map<Date, Double>?): Double? {
-        val lastTargetDate = targets?.keys?.filter { !endDate.isBefore(it.toZDT()) }?.max()
+    private fun getTarget(endDate: LocalDate, targets: Map<Date, Double>?): Double? {
+        val lastTargetDate = targets?.keys?.filter { !endDate.isBefore(it.toLocalDate()) }?.max()
         return lastTargetDate?.let { targets[it] }
     }
 }

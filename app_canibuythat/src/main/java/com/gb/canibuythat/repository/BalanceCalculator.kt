@@ -3,7 +3,7 @@ package com.gb.canibuythat.repository
 import com.gb.canibuythat.model.Balance
 import com.gb.canibuythat.model.Spending
 import com.gb.canibuythat.model.SpendingEvent
-import com.gb.canibuythat.model.applyTo
+import com.gb.canibuythat.model.add
 import com.gb.canibuythat.util.DateUtils
 import com.gb.canibuythat.util.clearLowerBits
 import java.util.*
@@ -39,7 +39,8 @@ object BalanceCalculator {
         do {
             if (start == null || movingEnd.time >= start.time) {
                 val r = DateUtils.compare(end, movingStart, movingEnd)
-                val target = spending.target?.let { if (it > 0) -it.toFloat() else it.toFloat() } ?: spending.value.toFloat()
+                val target = spending.target?.let { if (it > 0) -it.toFloat() else it.toFloat() }
+                        ?: spending.value.toFloat()
                 if (r >= -1) { // >= start date
                     if (spending.enabled) {
                         maybe += spending.value.toFloat()
@@ -57,8 +58,8 @@ object BalanceCalculator {
                 }
             }
             counter++
-            movingStart = spending.cycle.applyTo(spending.fromStartDate, spending.cycleMultiplier * counter)
-            movingEnd = spending.cycle.applyTo(spending.fromEndDate, spending.cycleMultiplier * counter)
+            movingStart = spending.fromStartDate.add(spending.cycle, spending.cycleMultiplier * counter)
+            movingEnd = spending.fromEndDate.add(spending.cycle, spending.cycleMultiplier * counter)
             spending.occurrenceCount?.let {
                 if (++occurrenceCount >= it) {
                     `break` = true

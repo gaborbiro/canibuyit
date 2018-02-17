@@ -25,7 +25,6 @@ import javax.inject.Singleton
 class SpendingsRepository @Inject
 constructor(private val dao: Dao<ApiSpending, Int>,
             private val mapper: SpendingMapper,
-            private val savingsRepository: SavingsRepository,
             private val prefs: UserPreferences,
             private val gson: Gson) {
 
@@ -44,9 +43,6 @@ constructor(private val dao: Dao<ApiSpending, Int>,
         return Completable.create { emitter ->
             try {
                 dao.createOrUpdate(mapper.map(spending))
-                spending.savings?.let {
-                    savingsRepository.createIfNotExist(it).blockingAwait()
-                }
                 emitter.onComplete()
             } catch (e: SQLException) {
                 emitter.onError(e)
@@ -67,11 +63,10 @@ constructor(private val dao: Dao<ApiSpending, Int>,
     fun createOrUpdateMonzoSpendings(remoteSpendings: List<Spending>): Completable {
         return Completable.create { emitter ->
             val savedMonzoSpendingCategories: List<String?> = dao.queryForAll()
-                    .map { it.sourceData?.let { gson.fromJson<Map<String, String>>(it) } }
-                    .filter { it?.containsKey(ApiSpending.SOURCE_MONZO_CATEGORY) == true }
-                    .sortedBy { it?.get(ApiSpending.SOURCE_MONZO_CATEGORY) }
-                    .map { it?.get(ApiSpending.SOURCE_MONZO_CATEGORY) }
-
+                    .mapNotNull { it.sourceData?.let { gson.fromJson<Map<String, String>>(it) } }
+                    .filter { it.containsKey(ApiSpending.SOURCE_MONZO_CATEGORY) }
+                    .sortedBy { it[ApiSpending.SOURCE_MONZO_CATEGORY] }
+                    .map { it[ApiSpending.SOURCE_MONZO_CATEGORY] }
             try {
                 remoteSpendings.forEach {
                     val remoteMonzoCategory = it.sourceData!![ApiSpending.SOURCE_MONZO_CATEGORY]
@@ -85,10 +80,6 @@ constructor(private val dao: Dao<ApiSpending, Int>,
                         dao.update(apiSpending)
                     } else {
                         dao.create(apiSpending)
-                    }
-                    savingsRepository.deleteSavingsForSpending(apiSpending.id!!).blockingGet()
-                    it.savings?.let {
-                        savingsRepository.createIfNotExist(it).blockingAwait()
                     }
                 }
                 emitter.onComplete()
@@ -153,7 +144,10 @@ constructor(private val dao: Dao<ApiSpending, Int>,
                                         gson.fromJson<Map<String, String>>(it)
                                     })
                         }
-                        .filter { it.second?.get(ApiSpending.SOURCE_MONZO_CATEGORY)?.equals(category) ?: false }
+                        .filter {
+                            it.second?.get(ApiSpending.SOURCE_MONZO_CATEGORY)?.equals(category)
+                                    ?: false
+                        }
                         .forEach { emitter.onNext(mapper.map(it.first)) }
                 emitter.onComplete()
             } catch (e: SQLException) {

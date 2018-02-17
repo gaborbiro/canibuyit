@@ -4,6 +4,7 @@ import com.gb.canibuythat.db.model.ApiSpending
 import com.gb.canibuythat.exception.DomainException
 import com.gb.canibuythat.model.Balance
 import com.gb.canibuythat.model.Spending
+import com.gb.canibuythat.repository.SavingsRepository
 import com.gb.canibuythat.repository.SpendingsRepository
 import com.gb.canibuythat.rx.SchedulerProvider
 import io.reactivex.Completable
@@ -18,7 +19,8 @@ import javax.inject.Singleton
 
 @Singleton
 class SpendingInteractor @Inject
-constructor(private val repo: SpendingsRepository,
+constructor(private val spendingsRepository: SpendingsRepository,
+            private val savingsRepository: SavingsRepository,
             private val schedulerProvider: SchedulerProvider) {
 
     private val spendingsSubject: Subject<Lce<List<Spending>>> = PublishSubject.create<Lce<List<Spending>>>()
@@ -30,7 +32,7 @@ constructor(private val repo: SpendingsRepository,
     // REACTIVE METHODS
 
     fun loadSpendings() {
-        repo.all
+        spendingsRepository.all
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())
                 .doOnSubscribe {
@@ -44,7 +46,7 @@ constructor(private val repo: SpendingsRepository,
     }
 
     fun clearSpendings() {
-        repo.deleteAll()
+        spendingsRepository.deleteAll()
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())
                 .doOnSubscribe {
@@ -60,7 +62,9 @@ constructor(private val repo: SpendingsRepository,
     }
 
     fun createOrUpdateMonzoCategories(spendings: List<Spending>) {
-        repo.createOrUpdateMonzoSpendings(spendings)
+        spendingsRepository.createOrUpdateMonzoSpendings(spendings)
+                .andThen(savingsRepository.clearAll())
+                .andThen(savingsRepository.create(spendings))
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())
                 .subscribe({
@@ -73,52 +77,54 @@ constructor(private val repo: SpendingsRepository,
     // NON-REACTIVE METHODS
 
     fun createOrUpdate(spending: Spending): Completable {
-        return repo.createOrUpdate(spending)
+        return spendingsRepository.createOrUpdate(spending)
+                .andThen(savingsRepository.clearAll())
+                .andThen(savingsRepository.create(listOf(spending)))
                 .onErrorResumeNext { throwable -> Completable.error(DomainException("Error updating spending in database. See logs.", throwable)) }
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())
     }
 
     fun delete(id: Int): Completable {
-        return repo.delete(id)
+        return spendingsRepository.delete(id)
                 .onErrorResumeNext { Completable.error(DomainException("Error deleting spending $id in database. See logs.")) }
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())
     }
 
     fun get(id: Int): Maybe<Spending> {
-        return repo.get(id)
+        return spendingsRepository.get(id)
                 .onErrorResumeNext { throwable: Throwable -> Maybe.error<Spending>(DomainException("Error reading spending $id from database. See logs.", throwable)) }
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())
     }
 
     fun getByMonzoCategory(category: String): Observable<Spending> {
-        return repo.getSpendingByMonzoCategory(category)
+        return spendingsRepository.getSpendingByMonzoCategory(category)
                 .onErrorResumeNext { throwable: Throwable -> Observable.error<Spending>(DomainException("Error reading spending with category `$category` from database. See logs.", throwable)) }
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())
     }
 
     fun getBalance(): Single<Balance> {
-        return repo.getBalance()
+        return spendingsRepository.getBalance()
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())
     }
 
     fun getBalanceBreakdown(): Array<Pair<ApiSpending.Category, String>> {
-        return repo.getBalanceBreakdown()
+        return spendingsRepository.getBalanceBreakdown()
     }
 
     fun getTargetBalanceBreakdown(): String {
-        return repo.getTargetBalanceBreakdown()
+        return spendingsRepository.getTargetBalanceBreakdown()
     }
 
     fun getTargetSavingBreakdown(): String {
-        return repo.getSavingsBreakdown()
+        return spendingsRepository.getSavingsBreakdown()
     }
 
     fun getBalanceBreakdownCategoryDetails(category: ApiSpending.Category): String? {
-        return repo.getBalanceBreakdownCategoryDetails(category)
+        return spendingsRepository.getBalanceBreakdownCategoryDetails(category)
     }
 }

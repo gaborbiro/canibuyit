@@ -4,7 +4,6 @@ import com.gb.canibuythat.db.model.ApiSpending
 import org.threeten.bp.DayOfWeek
 import org.threeten.bp.LocalDate
 import org.threeten.bp.ZonedDateTime
-import org.threeten.bp.temporal.ChronoField
 import org.threeten.bp.temporal.ChronoUnit
 import org.threeten.bp.temporal.TemporalAdjusters.lastDayOfMonth
 import org.threeten.bp.temporal.TemporalAdjusters.lastDayOfYear
@@ -72,31 +71,6 @@ class Spending(var id: Int? = null,
         return true
     }
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as Spending
-
-        if (id != other.id) return false
-        if (name != other.name) return false
-        if (notes != other.notes) return false
-        if (type != other.type) return false
-        if (value != other.value) return false
-        if (fromStartDate != other.fromStartDate) return false
-        if (fromEndDate != other.fromEndDate) return false
-        if (occurrenceCount != other.occurrenceCount) return false
-        if (cycleMultiplier != other.cycleMultiplier) return false
-        if (cycle != other.cycle) return false
-        if (enabled != other.enabled) return false
-        if (sourceData != other.sourceData) return false
-        if (spent != other.spent) return false
-        if (targets != other.targets) return false
-        if (savings != other.savings) return false
-
-        return true
-    }
-
     override fun hashCode(): Int {
         var result = id ?: 0
         result = 31 * result + name.hashCode()
@@ -120,15 +94,41 @@ class Spending(var id: Int? = null,
         return "Spending(id=$id, name='$name', notes=$notes, type=$type, value=$value, fromStartDate=$fromStartDate, fromEndDate=$fromEndDate, occurrenceCount=$occurrenceCount, cycleMultiplier=$cycleMultiplier, cycle=$cycle, enabled=$enabled, sourceData=$sourceData, spent=$spent, targets=$targets, savings=$savings)"
     }
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as Spending
+
+        if (id != other.id) return false
+        if (name != other.name) return false
+        if (notes != other.notes) return false
+        if (type != other.type) return false
+        if (value != other.value) return false
+        if (fromStartDate != other.fromStartDate) return false
+        if (fromEndDate != other.fromEndDate) return false
+        if (occurrenceCount != other.occurrenceCount) return false
+        if (cycleMultiplier != other.cycleMultiplier) return false
+        if (cycle != other.cycle) return false
+        if (enabled != other.enabled) return false
+        if (sourceData != other.sourceData) return false
+        if (spent != other.spent) return false
+        if (targets != other.targets) return false
+        if (!Arrays.equals(savings, other.savings)) return false
+        if (target != other.target) return false
+
+        return true
+    }
+
 
     val isPersisted
         get() = id != null
 }
 
-fun ApiSpending.Cycle.applyTo(date: Date, increment: Int): Date {
+fun Date.add(cycle: ApiSpending.Cycle, increment: Int): Date {
     val cal = Calendar.getInstance()
-    cal.time = date
-    when (this) {
+    cal.time = this
+    when (cycle) {
         ApiSpending.Cycle.DAYS -> cal.add(Calendar.DAY_OF_MONTH, increment)
         ApiSpending.Cycle.WEEKS -> cal.add(Calendar.WEEK_OF_MONTH, increment)
         ApiSpending.Cycle.MONTHS -> cal.add(Calendar.MONTH, increment)
@@ -137,12 +137,12 @@ fun ApiSpending.Cycle.applyTo(date: Date, increment: Int): Date {
     return cal.time
 }
 
-fun ApiSpending.Cycle.applyTo(c: Calendar, increment: Int) {
-    when (this) {
-        ApiSpending.Cycle.DAYS -> c.add(Calendar.DAY_OF_MONTH, increment)
-        ApiSpending.Cycle.WEEKS -> c.add(Calendar.WEEK_OF_MONTH, increment)
-        ApiSpending.Cycle.MONTHS -> c.add(Calendar.MONTH, increment)
-        ApiSpending.Cycle.YEARS -> c.add(Calendar.YEAR, increment)
+fun Calendar.add(cycle: ApiSpending.Cycle, increment: Int) {
+    when (cycle) {
+        ApiSpending.Cycle.DAYS -> this.add(Calendar.DAY_OF_MONTH, increment)
+        ApiSpending.Cycle.WEEKS -> this.add(Calendar.WEEK_OF_MONTH, increment)
+        ApiSpending.Cycle.MONTHS -> this.add(Calendar.MONTH, increment)
+        ApiSpending.Cycle.YEARS -> this.add(Calendar.YEAR, increment)
     }
 }
 
@@ -153,35 +153,29 @@ fun ApiSpending.Cycle.toMonth() = when (this) {
     ApiSpending.Cycle.YEARS -> 12.0
 }
 
-fun ApiSpending.Cycle.span(start: ZonedDateTime, end: ZonedDateTime): Long {
-    return when (this) {
-//            Cycle.DAYS -> ChronoUnit.DAYS.between(start.withHour(0), end.withHour(24))
-//            Cycle.WEEKS -> ChronoUnit.WEEKS.between(
-//                    start.minusDays(start.dayOfWeek.value.toLong() - 1),
-//                    end.plusDays(7 - end.dayOfWeek.value.toLong()))
-//            Cycle.MONTHS -> ChronoUnit.MONTHS.between(start.withDayOfMonth(1), end.withDayOfMonth(end.month.length(false)))
-//            Cycle.YEARS -> ChronoUnit.YEARS.between(start.withDayOfYear(1), end.withDayOfYear(365))
-        ApiSpending.Cycle.DAYS -> ChronoUnit.DAYS.between(start, end)
-        ApiSpending.Cycle.WEEKS -> ChronoUnit.WEEKS.between(start, end)
-        ApiSpending.Cycle.MONTHS -> ChronoUnit.MONTHS.between(start, end)
-        ApiSpending.Cycle.YEARS -> ChronoUnit.YEARS.between(start, end)
+fun Pair<ZonedDateTime, ZonedDateTime>.span(cycle: ApiSpending.Cycle): Long {
+    return when (cycle) {
+        ApiSpending.Cycle.DAYS -> ChronoUnit.DAYS.between(this.first, this.second)
+        ApiSpending.Cycle.WEEKS -> ChronoUnit.WEEKS.between(this.first, second)
+        ApiSpending.Cycle.MONTHS -> ChronoUnit.MONTHS.between(this.first, second)
+        ApiSpending.Cycle.YEARS -> ChronoUnit.YEARS.between(this.first, second)
     } + 1
 }
 
 fun ApiSpending.Cycle.of(date: LocalDate): Int {
     return when (this) {
         ApiSpending.Cycle.DAYS -> date.toEpochDay().toInt()
-        ApiSpending.Cycle.WEEKS -> date.year * 53 + date.minusDays(1)[ChronoField.ALIGNED_WEEK_OF_YEAR]
-        ApiSpending.Cycle.MONTHS -> date.year * 12 + date.monthValue
+        ApiSpending.Cycle.WEEKS -> (date.with(DayOfWeek.MONDAY).toEpochDay() / 7).toInt()
+        ApiSpending.Cycle.MONTHS -> date.monthValue
         ApiSpending.Cycle.YEARS -> date.year
     }
 }
 
-fun ApiSpending.Cycle.end(date: ZonedDateTime): ZonedDateTime {
-    return when (this) {
-        ApiSpending.Cycle.DAYS -> date
-        ApiSpending.Cycle.WEEKS -> date.with(DayOfWeek.SUNDAY)
-        ApiSpending.Cycle.MONTHS -> date.with(lastDayOfMonth())
-        ApiSpending.Cycle.YEARS -> date.with(lastDayOfYear())
-    }.toLocalDate().atStartOfDay(date.zone).plusDays(1).minusNanos(1)
+fun ZonedDateTime.lastCycleDay(cycle: ApiSpending.Cycle): LocalDate {
+    return when (cycle) {
+        ApiSpending.Cycle.DAYS -> this
+        ApiSpending.Cycle.WEEKS -> this.with(DayOfWeek.SUNDAY)
+        ApiSpending.Cycle.MONTHS -> this.with(lastDayOfMonth())
+        ApiSpending.Cycle.YEARS -> this.with(lastDayOfYear())
+    }.toLocalDate().atStartOfDay(this.zone).plusDays(1).minusNanos(1).toLocalDate()
 }

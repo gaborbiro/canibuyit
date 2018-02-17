@@ -24,7 +24,7 @@ import com.gb.canibuythat.interactor.ProjectInteractor
 import com.gb.canibuythat.interactor.SpendingInteractor
 import com.gb.canibuythat.model.SerializableMap
 import com.gb.canibuythat.model.Spending
-import com.gb.canibuythat.model.applyTo
+import com.gb.canibuythat.model.add
 import com.gb.canibuythat.presenter.BasePresenter
 import com.gb.canibuythat.screen.Screen
 import com.gb.canibuythat.util.DateUtils
@@ -91,7 +91,7 @@ class SpendingEditorFragment : BaseFragment() {
             Calendar.getInstance().let {
                 it.time = fromStartDate
                 it.clearLowerBits()
-                cycle.applyTo(it, cycleMultiplierFromScreen)
+                it.add(cycle, cycleMultiplierFromScreen)
                 it.add(Calendar.DAY_OF_MONTH, -1)
                 if (fromEndDate.after(it.time)) {
                     throw ValidationError(ValidationError.TYPE_NON_INPUT_FIELD, null,
@@ -100,10 +100,12 @@ class SpendingEditorFragment : BaseFragment() {
             }
             return Spending(
                     id = originalSpending?.id,
-                    name = nameInput.text.orNull()?.toString() ?: throw ValidationError(ValidationError.TYPE_INPUT_FIELD, nameInput, "Please specify a name"),
+                    name = nameInput.text.orNull()?.toString()
+                            ?: throw ValidationError(ValidationError.TYPE_INPUT_FIELD, nameInput, "Please specify a name"),
                     notes = notesInput.text.orNull()?.toString(),
                     type = if (categoryPicker.selectedItem is ApiSpending.Category) categoryPicker.selectedItem as ApiSpending.Category else throw ValidationError(ValidationError.TYPE_NON_INPUT_FIELD, null, "Please select a category"),
-                    value = averageInput.text.orNull()?.toString()?.toDouble() ?: throw ValidationError(ValidationError.TYPE_INPUT_FIELD, averageInput, "Please specify a value"),
+                    value = averageInput.text.orNull()?.toString()?.toDouble()
+                            ?: throw ValidationError(ValidationError.TYPE_INPUT_FIELD, averageInput, "Please specify a value"),
                     fromStartDate = fromStartDate,
                     fromEndDate = fromEndDate,
                     occurrenceCount = occurrenceInput.text.orNull()?.toString()?.toInt(),
@@ -160,7 +162,9 @@ class SpendingEditorFragment : BaseFragment() {
         }
 
     private val cycleMultiplierFromScreen: Int
-        get() = cycleMultiplierInput.text.orNull()?.toString()?.toInt() ?: originalSpending?.cycleMultiplier ?: throw ValidationError(ValidationError.TYPE_INPUT_FIELD, cycleMultiplierInput, "Please fill in")
+        get() = cycleMultiplierInput.text.orNull()?.toString()?.toInt()
+                ?: originalSpending?.cycleMultiplier
+                ?: throw ValidationError(ValidationError.TYPE_INPUT_FIELD, cycleMultiplierInput, "Please fill in")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -272,7 +276,8 @@ class SpendingEditorFragment : BaseFragment() {
     /**
      * @return true if user data is valid
      */
-    @Synchronized private fun saveUserInputOrShowError(): Boolean {
+    @Synchronized
+    private fun saveUserInputOrShowError(): Boolean {
         try {
             val newSpending = displayedSpending
             spendingInteractor.createOrUpdate(newSpending)
@@ -334,7 +339,8 @@ class SpendingEditorFragment : BaseFragment() {
         try {
             val newSpending = displayedSpending
             val isNew = originalSpending == null && !isEmpty()
-            val changed = originalSpending?.let { !it.compareForEditing(newSpending, false, false) } ?: false
+            val changed = originalSpending?.let { !it.compareForEditing(newSpending, false, false) }
+                    ?: false
             return isNew || changed
         } catch (ve: ValidationError) {
             return true

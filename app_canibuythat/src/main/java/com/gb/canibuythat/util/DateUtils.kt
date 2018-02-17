@@ -36,11 +36,9 @@ fun Date.toCalendar(): Calendar {
     return c
 }
 
-fun Date.toZDT() = this.toCalendar().let {
-    ZonedDateTime.of(it[Calendar.YEAR], it[Calendar.MONTH] + 1, it[Calendar.DAY_OF_MONTH],
-            it[Calendar.HOUR_OF_DAY], it[Calendar.MINUTE], it[Calendar.SECOND],
-            it[Calendar.MILLISECOND], ZoneId.systemDefault())
-}!!
+fun Date.toLocalDate() = this.toCalendar().let {
+    LocalDate.of(it[Calendar.YEAR], it[Calendar.MONTH] + 1, it[Calendar.DAY_OF_MONTH])
+}
 
 fun LocalDate.toDate() = Date(this.year - 1900, this.monthValue - 1, this.dayOfMonth)
 

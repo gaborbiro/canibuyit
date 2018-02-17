@@ -253,9 +253,7 @@ class MainActivity : BaseActivity(), MainScreen, SpendingListFragment.FragmentCa
     }
 
     override fun setTotalSaving(totalSaving: Double?) {
-        totalSaving?.let {
-            totalSavingLbl?.text = getString(R.string.saving, it)
-        }
+        totalSavingLbl?.text = totalSaving?.let {getString(R.string.saving, it)}
     }
 
     override fun showLoginActivity() {
