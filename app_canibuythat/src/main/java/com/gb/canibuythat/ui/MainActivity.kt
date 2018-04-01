@@ -83,7 +83,7 @@ class MainActivity : BaseActivity(), MainScreen, SpendingListFragment.FragmentCa
         monzoDispatchPresenter.setScreen(this)
         setContentView(R.layout.activity_main)
 
-        if (findViewById(R.id.spending_editor_container) != null) {
+        if (findViewById<View>(R.id.spending_editor_container) != null) {
             twoPane = true
         }
         mainPresenter.handleDeepLink(intent)
@@ -321,11 +321,11 @@ class BalanceBreakdownDialog : PromptDialog() {
         }
     }
 
-    override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         val view = super.onCreateView(inflater, container, savedInstanceState)
         val bigMessageTV = view.findViewById(R.id.big_message) as TextView
 
-        val breakdown = arguments.getSerializable("breakdown") as Array<Pair<ApiSpending.Category, String>>
+        val breakdown = arguments?.getSerializable("breakdown") as Array<Pair<ApiSpending.Category, String>>
         val buffer = StringBuffer()
         breakdown.joinTo(buffer = buffer, separator = "\n", transform = {
             it.second

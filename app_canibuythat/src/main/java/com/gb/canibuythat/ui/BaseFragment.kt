@@ -29,9 +29,9 @@ abstract class BaseFragment : Fragment(), ContextSource, Screen {
         presenter?.setScreen(this)
     }
 
-    override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        unbinder = ButterKnife.bind(this, view!!)
+        unbinder = ButterKnife.bind(this, view)
     }
 
     override fun onResume() {
@@ -58,11 +58,11 @@ abstract class BaseFragment : Fragment(), ContextSource, Screen {
         errorHandler.onError(throwable)
     }
 
-    override fun getSupportFragmentManager(): FragmentManager {
-        return fragmentManager
+    override fun getSupportFragmentManager(): FragmentManager? {
+        return activity?.supportFragmentManager
     }
 
-    override fun getBaseContext(): Context {
+    override fun getBaseContext(): Context? {
         return activity
     }
 

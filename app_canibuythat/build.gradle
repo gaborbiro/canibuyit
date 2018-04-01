@@ -13,16 +13,16 @@ android {
         }
     }
 
-    compileSdkVersion 25
-    buildToolsVersion '26.0.2'
+    compileSdkVersion 27
+    buildToolsVersion '27.0.3'
 
     defaultConfig {
         applicationId "com.gb.canibuythat"
         minSdkVersion 21
-        targetSdkVersion 22
+        targetSdkVersion 27
         versionCode 1
         versionName "1.0"
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        multiDexEnabled true
     }
     buildTypes {
         debug {
@@ -39,15 +39,22 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    dexOptions {
+        dexInProcess true
+    }
 }
 
-final SUPPORT_LIBRARY = '25.4.0'
+kapt {
+    useBuildCache = true
+}
+
+final SUPPORT_LIBRARY = '27.1.0'
 final DAGGER = '2.10'
 final BUTTERKNIFE='8.8.1'
 final RETROFIT='2.3.0'
 final RETROFIT_RXJAVA2='2.3.0'
 final RXJAVA='2.1.0'
-final RXANDROID='2.0.1'
+final RXANDROID='2.0.2'
 final OK_HTTP='3.8.1'
 final CONSTRAINT_LAYOUT='1.0.2'
 
@@ -94,7 +101,7 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
 
     // Firebase Cloud Messaging
-    implementation 'com.google.firebase:firebase-messaging:11.4.2'
+    implementation 'com.google.firebase:firebase-messaging:12.0.1'
 }
 
 apply plugin: 'com.google.gms.google-services'

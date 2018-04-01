@@ -16,7 +16,7 @@ import java.lang.annotation.RetentionPolicy
  */
 class ValidationError(@param:ValidationErrorType internal val type: Int, internal val target: View?, internal val errorMessage: String): Exception() {
 
-    @IntDef(TYPE_INPUT_FIELD.toLong(), TYPE_NON_INPUT_FIELD.toLong())
+    @IntDef(TYPE_INPUT_FIELD, TYPE_NON_INPUT_FIELD)
     @Retention(RetentionPolicy.SOURCE)
     private annotation class ValidationErrorType
 

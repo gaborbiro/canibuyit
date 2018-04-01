@@ -156,7 +156,7 @@ class SpendingEditorFragment : BaseFragment() {
             }
             spending.cycleMultiplier.let { cycleMultiplier ->
                 cycleMultiplierInput.setText(cycleMultiplier.toString())
-                context.resources.apply {
+                context?.resources?.apply {
                     averageCycleLbl.text = " per $cycleMultiplier ${getQuantityString(spending.cycle.strRes, cycleMultiplier)}"
                     targetCycleLbl.text = " per $cycleMultiplier ${getQuantityString(spending.cycle.strRes, cycleMultiplier)}"
                 }
@@ -182,7 +182,7 @@ class SpendingEditorFragment : BaseFragment() {
         return inflater.inflate(R.layout.fragment_spending_editor, container, false)
     }
 
-    override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         rootView = view as ViewGroup
 
@@ -192,10 +192,12 @@ class SpendingEditorFragment : BaseFragment() {
         cyclePicker.adapter = PlusOneAdapter(ApiSpending.Cycle.values())
         cyclePicker.setOnTouchListener(keyboardDismisser)
 
-        if (originalSpending == null && arguments != null && arguments.containsKey(EXTRA_SPENDING_ID)) {
-            showSpending(arguments.getInt(EXTRA_SPENDING_ID))
-        } else {
-            showSpending(null)
+        arguments?.let {
+            if (originalSpending == null && it.containsKey(EXTRA_SPENDING_ID)) {
+                showSpending(it.getInt(EXTRA_SPENDING_ID))
+            } else {
+                showSpending(null)
+            }
         }
 
         cycleMultiplierInput.addTextChangedListener(object : TextChangeListener() {
@@ -252,8 +254,10 @@ class SpendingEditorFragment : BaseFragment() {
         inflater.inflate(R.menu.edit, menu)
         this.deleteBtn = menu.findItem(R.id.menu_delete)
 
-        if (arguments == null || !arguments.containsKey(EXTRA_SPENDING_ID)) {
-            deleteBtn?.isVisible = false
+        arguments?.let {
+            if (it.containsKey(EXTRA_SPENDING_ID)) {
+                deleteBtn?.isVisible = false
+            }
         }
     }
 
@@ -305,7 +309,7 @@ class SpendingEditorFragment : BaseFragment() {
                     }
             return true
         } catch (error: ValidationError) {
-            error.showError(activity)
+            context?.let(error::showError)
             return false
         }
     }
