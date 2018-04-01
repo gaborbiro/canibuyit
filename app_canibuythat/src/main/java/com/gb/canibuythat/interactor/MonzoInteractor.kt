@@ -7,13 +7,12 @@ import com.gb.canibuythat.model.Webhook
 import com.gb.canibuythat.model.Webhooks
 import com.gb.canibuythat.repository.MonzoRepository
 import com.gb.canibuythat.rx.SchedulerProvider
-import com.gb.canibuythat.util.clearLowerBits
 import io.reactivex.Completable
 import io.reactivex.Single
 import io.reactivex.disposables.Disposable
 import io.reactivex.subjects.PublishSubject
 import io.reactivex.subjects.Subject
-import java.util.*
+import org.threeten.bp.ZonedDateTime
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -43,12 +42,9 @@ constructor(private val schedulerProvider: SchedulerProvider,
                 })
     }
 
-    fun loadSpendings(accountIds: List<String>, lastXMonths: Int?): Disposable {
+    fun loadSpendings(accountIds: List<String>, lastXMonths: Long?): Disposable {
         val since = lastXMonths?.let {
-            clearLowerBits()
-                    .also { it.add(Calendar.MONTH, -lastXMonths) }
-                    .also { it.set(Calendar.DAY_OF_MONTH, 1) }
-                    .time
+            ZonedDateTime.now().minusMonths(it).withHour(0).withMinute(0).withSecond(0).withNano(0)
         }
         return onErrorPrep(monzoRepository.getSpendings(accountIds, since)
                 .subscribeOn(schedulerProvider.io())

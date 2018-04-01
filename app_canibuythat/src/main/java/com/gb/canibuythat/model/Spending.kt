@@ -1,10 +1,10 @@
 package com.gb.canibuythat.model
 
 import com.gb.canibuythat.db.model.ApiSpending
+import com.gb.canibuythat.db.model.ApiSpending.Cycle.*
 import org.threeten.bp.DayOfWeek
 import org.threeten.bp.LocalDate
 import org.threeten.bp.ZonedDateTime
-import org.threeten.bp.temporal.ChronoUnit
 import org.threeten.bp.temporal.TemporalAdjusters.lastDayOfMonth
 import org.threeten.bp.temporal.TemporalAdjusters.lastDayOfYear
 import java.util.*
@@ -43,7 +43,7 @@ class Spending(var id: Int? = null,
 
     val valuePerMonth: Double
         get() {
-            return value / cycle.toMonth() * cycleMultiplier
+            return value / cycle.toMonths() * cycleMultiplier
         }
 
     fun compareForEditing(other: Any?, ignoreDates: Boolean, ignoreCycleMultiplier: Boolean): Boolean {
@@ -129,53 +129,55 @@ fun Date.add(cycle: ApiSpending.Cycle, increment: Int): Date {
     val cal = Calendar.getInstance()
     cal.time = this
     when (cycle) {
-        ApiSpending.Cycle.DAYS -> cal.add(Calendar.DAY_OF_MONTH, increment)
-        ApiSpending.Cycle.WEEKS -> cal.add(Calendar.WEEK_OF_MONTH, increment)
-        ApiSpending.Cycle.MONTHS -> cal.add(Calendar.MONTH, increment)
-        ApiSpending.Cycle.YEARS -> cal.add(Calendar.YEAR, increment)
+        DAYS -> cal.add(Calendar.DAY_OF_MONTH, increment)
+        WEEKS -> cal.add(Calendar.WEEK_OF_MONTH, increment)
+        MONTHS -> cal.add(Calendar.MONTH, increment)
+        YEARS -> cal.add(Calendar.YEAR, increment)
     }
     return cal.time
 }
 
 fun Calendar.add(cycle: ApiSpending.Cycle, increment: Int) {
     when (cycle) {
-        ApiSpending.Cycle.DAYS -> this.add(Calendar.DAY_OF_MONTH, increment)
-        ApiSpending.Cycle.WEEKS -> this.add(Calendar.WEEK_OF_MONTH, increment)
-        ApiSpending.Cycle.MONTHS -> this.add(Calendar.MONTH, increment)
-        ApiSpending.Cycle.YEARS -> this.add(Calendar.YEAR, increment)
+        DAYS -> this.add(Calendar.DAY_OF_MONTH, increment)
+        WEEKS -> this.add(Calendar.WEEK_OF_MONTH, increment)
+        MONTHS -> this.add(Calendar.MONTH, increment)
+        YEARS -> this.add(Calendar.YEAR, increment)
     }
 }
 
-fun ApiSpending.Cycle.toMonth() = when (this) {
-    ApiSpending.Cycle.DAYS -> 0.0328731097961867
-    ApiSpending.Cycle.WEEKS -> 0.2301368854194475
-    ApiSpending.Cycle.MONTHS -> 1.0
-    ApiSpending.Cycle.YEARS -> 12.0
+fun ApiSpending.Cycle.toMonths(): Double = when (this) {
+    DAYS -> 0.0328731097961867
+    WEEKS -> 0.2301368854194475
+    MONTHS -> 1.0
+    YEARS -> 12.0
 }
 
-fun Pair<ZonedDateTime, ZonedDateTime>.span(cycle: ApiSpending.Cycle): Long {
-    return when (cycle) {
-        ApiSpending.Cycle.DAYS -> ChronoUnit.DAYS.between(this.first, this.second)
-        ApiSpending.Cycle.WEEKS -> ChronoUnit.WEEKS.between(this.first, second)
-        ApiSpending.Cycle.MONTHS -> ChronoUnit.MONTHS.between(this.first, second)
-        ApiSpending.Cycle.YEARS -> ChronoUnit.YEARS.between(this.first, second)
-    } + 1
-}
-
-fun ApiSpending.Cycle.of(date: LocalDate): Int {
-    return when (this) {
-        ApiSpending.Cycle.DAYS -> date.toEpochDay().toInt()
-        ApiSpending.Cycle.WEEKS -> (date.with(DayOfWeek.MONDAY).toEpochDay() / 7).toInt()
-        ApiSpending.Cycle.MONTHS -> date.monthValue
-        ApiSpending.Cycle.YEARS -> date.year
+fun Pair<ZonedDateTime, ZonedDateTime>.span(cycle: ApiSpending.Cycle): Float = when (cycle) {
+    DAYS -> (this.second.toLocalDate().toEpochDay() - this.first.toLocalDate().toEpochDay()).toFloat()
+    WEEKS -> this.span(DAYS) / 7f
+    MONTHS -> {
+        val packed1 = this.first.toLocalDate().let { it.getProlepticMonth() * 32f + it.dayOfMonth.toLong() }
+        val packed2 = this.second.toLocalDate().let { it.getProlepticMonth() * 32f + it.dayOfMonth.toLong() }
+        (packed2 - packed1) / 32f
     }
+    YEARS -> this.span(MONTHS) / 12f
 }
 
-fun ZonedDateTime.lastCycleDay(cycle: ApiSpending.Cycle): LocalDate {
-    return when (cycle) {
-        ApiSpending.Cycle.DAYS -> this
-        ApiSpending.Cycle.WEEKS -> this.with(DayOfWeek.SUNDAY)
-        ApiSpending.Cycle.MONTHS -> this.with(lastDayOfMonth())
-        ApiSpending.Cycle.YEARS -> this.with(lastDayOfYear())
-    }.toLocalDate().atStartOfDay(this.zone).plusDays(1).minusNanos(1).toLocalDate()
+internal fun LocalDate.getProlepticMonth(): Long {
+    return this.year.toLong() * 12L + (this.monthValue - 1).toLong()
 }
+
+fun ApiSpending.Cycle.ordinal(date: LocalDate): Int = when (this) {
+    DAYS -> date.toEpochDay().toInt()
+    WEEKS -> (date.with(DayOfWeek.MONDAY).toEpochDay() / 7).toInt()
+    MONTHS -> date.year * 12 + date.monthValue
+    YEARS -> date.year
+}
+
+fun ZonedDateTime.lastCycleDay(cycle: ApiSpending.Cycle): LocalDate = when (cycle) {
+    DAYS -> this
+    WEEKS -> this.with(DayOfWeek.SUNDAY)
+    MONTHS -> this.with(lastDayOfMonth())
+    YEARS -> this.with(lastDayOfYear())
+}.toLocalDate().atStartOfDay(this.zone).plusDays(1).minusNanos(1).toLocalDate()

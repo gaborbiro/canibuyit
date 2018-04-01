@@ -7,6 +7,7 @@ import android.widget.DatePicker
 import org.threeten.bp.LocalDate
 import org.threeten.bp.ZoneId
 import org.threeten.bp.ZonedDateTime
+import org.threeten.bp.format.DateTimeFormatter
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -62,9 +63,7 @@ class DateUtils {
         @JvmStatic
         val FORMAT_ISO = SimpleDateFormat("yyyyMMdd'T'HHmmss")
         @JvmStatic
-        val FORMAT_RFC3339 = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
-        @JvmStatic
-        val FORMAT_DATE_TIME = SimpleDateFormat("yyyy/MMM/dd HH:mm")
+        val FORMAT_RFC3339 = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")
 
         /**
          * Only day. No hour, minute, second or millisecond.

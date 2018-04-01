@@ -71,7 +71,6 @@ constructor(private val monzoInteractor: MonzoInteractor,
     override fun onScreenSet() {
         disposeOnFinish(userPreferences.getBalanceReadingDataStream().subscribe { fetchBalance() })
         disposeOnFinish(userPreferences.getEstimateDateDataStream().subscribe { fetchBalance() })
-//        getScreen().showToast("Session expiry: " + DateUtils.FORMAT_DATE_TIME.format(credentialsProvider.accessTokenExpiry))
     }
 
     private fun fetchBalance() {
