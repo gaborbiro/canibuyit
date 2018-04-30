@@ -163,6 +163,7 @@
     <orderEntry type="library" name="Gradle: com.google.code.gson:gson:2.7@jar" level="project" />
     <orderEntry type="library" name="Gradle: com.android.support:support-v4-27.1.0" level="project" />
     <orderEntry type="library" name="Gradle: com.j256.ormlite:ormlite-android:4.48@jar" level="project" />
+    <orderEntry type="library" name="Gradle: com.idescout.sql:sqlscout-server:4.0@jar" level="project" />
     <orderEntry type="library" name="Gradle: com.android.support:recyclerview-v7-27.1.0" level="project" />
     <orderEntry type="library" name="Gradle: com.android.support:support-media-compat-27.1.0" level="project" />
     <orderEntry type="library" name="Gradle: com.github.PhilJay:MPAndroidChart:v2.2.4@jar" level="project" />

@@ -26,15 +26,9 @@ import com.gb.canibuythat.model.Spending
 import com.gb.canibuythat.model.add
 import com.gb.canibuythat.presenter.BasePresenter
 import com.gb.canibuythat.screen.Screen
-import com.gb.canibuythat.util.DateUtils
-import com.gb.canibuythat.util.DialogUtils
-import com.gb.canibuythat.util.TextChangeListener
-import com.gb.canibuythat.util.ValidationError
-import com.gb.canibuythat.util.clearLowerBits
-import com.gb.canibuythat.util.hideKeyboard
-import com.gb.canibuythat.util.orNull
-import com.gb.canibuythat.util.toLocalDate
+import com.gb.canibuythat.util.*
 import org.threeten.bp.LocalDate
+import java.text.NumberFormat
 import java.util.*
 import javax.inject.Inject
 
@@ -49,6 +43,8 @@ class SpendingEditorFragment : BaseFragment() {
     lateinit var spendingInteractor: SpendingInteractor
     @Inject
     lateinit var projectInteractor: ProjectInteractor
+    @Inject
+    lateinit var currencyUtils: CurrencyUtils
 
     private val nameInput: EditText by lazy { rootView.findViewById(R.id.name_input) as EditText }
     private val averageInput: EditText by lazy { rootView.findViewById(R.id.average_input) as EditText }
@@ -107,8 +103,7 @@ class SpendingEditorFragment : BaseFragment() {
                             ?: throw ValidationError(ValidationError.TYPE_INPUT_FIELD, nameInput, "Please specify a name"),
                     notes = notesInput.text.orNull()?.toString(),
                     type = if (categoryPicker.selectedItem is ApiSpending.Category) categoryPicker.selectedItem as ApiSpending.Category else throw ValidationError(ValidationError.TYPE_NON_INPUT_FIELD, null, "Please select a category"),
-                    value = averageInput.text.orNull()?.toString()?.toDouble()
-                            ?: throw ValidationError(ValidationError.TYPE_INPUT_FIELD, averageInput, "Please specify a value"),
+                    value = NumberFormat.getInstance().parse(averageInput.text.orNull().toString()).toDouble(),
                     fromStartDate = fromStartDate,
                     fromEndDate = fromEndDate,
                     occurrenceCount = occurrenceInput.text.orNull()?.toString()?.toInt(),
@@ -137,9 +132,9 @@ class SpendingEditorFragment : BaseFragment() {
         @SuppressLint("SetTextI18n")
         set(spending) {
             nameInput.setText(spending.name)
-            averageInput.setText(getString(R.string.detail_amount, spending.value))
+            averageInput.setText(currencyUtils.formatDecimal(spending.value, 20))
             spending.target?.let {
-                targetInput.setText(getString(R.string.detail_amount, it))
+                targetInput.setText(currencyUtils.formatDecimal(it, 20))
             } ?: let {
                 targetInput.text = null
             }
@@ -242,7 +237,7 @@ class SpendingEditorFragment : BaseFragment() {
     fun showSpending(spendingId: Int?) {
         if (spendingId != null) {
             spendingInteractor.get(spendingId)
-                    .subscribe({ spending -> onSpendingLoaded(spending) }, { this.onError(it) })
+                    .subscribe(this::onSpendingLoaded, this::onError)
             projectInteractor.getProject().subscribe({ project ->
                 this.projectSettings = project
                 applyProjectSettingsToScreen(project)
@@ -255,7 +250,7 @@ class SpendingEditorFragment : BaseFragment() {
         this.deleteBtn = menu.findItem(R.id.menu_delete)
 
         arguments?.let {
-            if (it.containsKey(EXTRA_SPENDING_ID)) {
+            if (!it.containsKey(EXTRA_SPENDING_ID)) {
                 deleteBtn?.isVisible = false
             }
         }
