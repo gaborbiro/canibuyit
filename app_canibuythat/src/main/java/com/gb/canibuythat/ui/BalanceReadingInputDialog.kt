@@ -14,7 +14,8 @@ import com.gb.canibuythat.R
 import com.gb.canibuythat.UserPreferences
 import com.gb.canibuythat.di.Injector
 import com.gb.canibuythat.ui.model.BalanceReading
-import com.gb.canibuythat.util.DateUtils
+import com.gb.canibuythat.util.formatDayMonthYear
+import com.gb.canibuythat.util.formatDayMonthYearWithPrefix
 import com.gb.canibuythat.util.showKeyboard
 import java.time.LocalDate
 import javax.inject.Inject
@@ -40,11 +41,11 @@ class BalanceReadingInputDialog : DialogFragment(), DialogInterface.OnClickListe
 
         lastUpdate?.let {
             amountInput.setText(lastUpdate!!.balance.toString())
-            whenBtn.text = DateUtils.formatDayMonthYear(it.date!!)
+            whenBtn.text = it.date!!.formatDayMonthYear()
             whenBtn.setDate(it.date)
         } ?: let {
             val today = LocalDate.now()
-            whenBtn.text = DateUtils.formatDayMonthYearWithPrefix(today)
+            whenBtn.text = today.formatDayMonthYearWithPrefix()
             whenBtn.setDate(today)
         }
 

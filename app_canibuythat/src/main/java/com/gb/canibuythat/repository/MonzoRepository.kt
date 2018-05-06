@@ -13,7 +13,7 @@ import com.gb.canibuythat.model.Login
 import com.gb.canibuythat.model.Spending
 import com.gb.canibuythat.model.Transaction
 import com.gb.canibuythat.model.Webhooks
-import com.gb.canibuythat.util.DateUtils
+import com.gb.canibuythat.util.FORMAT_RFC3339
 import com.gb.canibuythat.util.Logger
 import io.reactivex.Completable
 import io.reactivex.Observable
@@ -45,7 +45,7 @@ class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi,
             accountIds.forEach {
                 val t = monzoApi.transactions(
                         it,
-                        since?.let { DateUtils.FORMAT_RFC3339.format(it.atStartOfDay(ZoneId.systemDefault())) }
+                        since?.let { FORMAT_RFC3339.format(it.atStartOfDay(ZoneId.systemDefault())) }
                 ).blockingGet().transactions
                 t.forEach { emitter.onNext(it) }
             }

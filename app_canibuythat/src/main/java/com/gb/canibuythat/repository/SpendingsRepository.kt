@@ -7,7 +7,8 @@ import com.gb.canibuythat.exception.DomainException
 import com.gb.canibuythat.model.Balance
 import com.gb.canibuythat.model.Spending
 import com.gb.canibuythat.model.SpendingEvent
-import com.gb.canibuythat.util.DateUtils
+import com.gb.canibuythat.util.formatDayMonth
+import com.gb.canibuythat.util.formatDayMonthYear
 import com.gb.canibuythat.util.fromJson
 import com.google.gson.Gson
 import com.j256.ormlite.dao.Dao
@@ -39,11 +40,16 @@ constructor(private val dao: Dao<ApiSpending, Int>,
             }
         }
 
+    /**
+     * The specified spending will have it;s id updated after a successful insert
+     */
     fun createOrUpdate(spending: Spending): Completable {
         return Completable.create { emitter ->
             try {
-                dao.createOrUpdate(mapper.map(spending))
+                val apiSpending = mapper.map(spending)
+                dao.createOrUpdate(apiSpending)
                 emitter.onComplete()
+                spending.id = apiSpending.id
             } catch (e: SQLException) {
                 emitter.onError(e)
             }
@@ -298,9 +304,9 @@ constructor(private val dao: Dao<ApiSpending, Int>,
                 index++
                 val amount = if (it.definitely == it.maybe) "${it.definitely}" else "${it.definitely}/${it.maybe}"
                 if (endDate > it.end) {
-                    "$index. ${DateUtils.formatDayMonth(it.start)} - ${DateUtils.formatDayMonthYear(it.end)} ($amount)"
+                    "$index. ${it.start.formatDayMonth()} - ${it.end.formatDayMonthYear()} ($amount)"
                 } else {
-                    "$index. ${DateUtils.formatDayMonth(it.start)}( - ${DateUtils.formatDayMonthYear(it.end)}) ($amount)"
+                    "$index. ${it.start.formatDayMonth()}( - ${it.end.formatDayMonthYear()}) ($amount)"
                 }
             }).toString()
         }

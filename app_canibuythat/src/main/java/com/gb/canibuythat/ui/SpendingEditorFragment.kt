@@ -28,33 +28,29 @@ import javax.inject.Inject
  */
 class SpendingEditorFragment : BaseFragment() {
 
-    @Inject
-    lateinit var spendingInteractor: SpendingInteractor
-    @Inject
-    lateinit var projectInteractor: ProjectInteractor
-    @Inject
-    lateinit var currencyUtils: CurrencyUtils
+    @Inject lateinit var spendingInteractor: SpendingInteractor
+    @Inject lateinit var projectInteractor: ProjectInteractor
+    @Inject lateinit var currencyUtils: CurrencyUtils
 
-    private val nameInput: EditText by lazy { rootView.findViewById(R.id.name_input) as EditText }
-    private val averageInput: EditText by lazy { rootView.findViewById(R.id.average_input) as EditText }
-    private val averageLbl: TextView by lazy { rootView.findViewById(R.id.average_text) as TextView }
-    private val targetInput: EditText by lazy { rootView.findViewById(R.id.target_input) as EditText }
-    private val enabledCB: CompoundButton by lazy { rootView.findViewById(R.id.enabled_switch) as CompoundButton }
-    private val categoryPicker: Spinner by lazy { rootView.findViewById(R.id.category_picker) as Spinner }
-    private val occurrenceInput: EditText by lazy { rootView.findViewById(R.id.occurrence_count_input) as EditText }
-    private val cycleMultiplierInput: EditText by lazy { rootView.findViewById(R.id.cycle_multiplier_input) as EditText }
-    private val cyclePicker: Spinner by lazy { rootView.findViewById(R.id.cycle_picker) as Spinner }
-    private val fromDatePicker: DateRangePicker by lazy { rootView.findViewById(R.id.from_date_picker) as DateRangePicker }
-    private val notesInput: EditText by lazy { rootView.findViewById(R.id.notes_input) as EditText }
-    //    private val spendingEventsLbl: TextView by lazy { rootView.findViewById(R.id.spending_events_text) as TextView }
-    private val sourceCategoryLbl: TextView by lazy { rootView.findViewById(R.id.source_category_lbl) as TextView }
-    private val nameOverrideCB: CheckBox by lazy { rootView.findViewById(R.id.name_override_cb) as CheckBox }
-    private val categoryOverrideCB: CheckBox by lazy { rootView.findViewById(R.id.category_override_cb) as CheckBox }
-    private val averageOverrideCB: CheckBox by lazy { rootView.findViewById(R.id.average_override_cb) as CheckBox }
-    private val cycleOverrideCB: CheckBox by lazy { rootView.findViewById(R.id.cycle_override_cb) as CheckBox }
-    private val whenOverrideCB: CheckBox by lazy { rootView.findViewById(R.id.when_override_cb) as CheckBox }
-    private val averageCycleLbl: TextView by lazy { rootView.findViewById(R.id.average_cycle_lbl) as TextView }
-    private val targetCycleLbl: TextView by lazy { rootView.findViewById(R.id.target_cycle_lbl) as TextView }
+    private val nameInput by lazy { rootView.findViewById<EditText>(R.id.name_input) }
+    private val averageInput by lazy { rootView.findViewById<EditText>(R.id.average_input) }
+    private val averageLbl by lazy { rootView.findViewById<TextView>(R.id.average_text) }
+    private val targetInput by lazy { rootView.findViewById<EditText>(R.id.target_input) }
+    private val enabledCB by lazy { rootView.findViewById<CompoundButton>(R.id.enabled_switch) }
+    private val categoryPicker by lazy { rootView.findViewById<Spinner>(R.id.category_picker) }
+    private val occurrenceInput by lazy { rootView.findViewById<EditText>(R.id.occurrence_count_input) }
+    private val cycleMultiplierInput by lazy { rootView.findViewById<EditText>(R.id.cycle_multiplier_input) }
+    private val cyclePicker by lazy { rootView.findViewById<Spinner>(R.id.cycle_picker) }
+    private val fromDatePicker by lazy { rootView.findViewById<DateRangePicker>(R.id.from_date_picker) }
+    private val notesInput by lazy { rootView.findViewById<EditText>(R.id.notes_input) }
+    private val sourceCategoryLbl by lazy { rootView.findViewById<TextView>(R.id.source_category_lbl) }
+    private val nameOverrideCB by lazy { rootView.findViewById<CheckBox>(R.id.name_override_cb) }
+    private val categoryOverrideCB by lazy { rootView.findViewById<CheckBox>(R.id.category_override_cb) }
+    private val averageOverrideCB by lazy { rootView.findViewById<CheckBox>(R.id.average_override_cb) }
+    private val cycleOverrideCB by lazy { rootView.findViewById<CheckBox>(R.id.cycle_override_cb) }
+    private val whenOverrideCB by lazy { rootView.findViewById<CheckBox>(R.id.when_override_cb) }
+    private val averageCycleLbl by lazy { rootView.findViewById<TextView>(R.id.average_cycle_lbl) }
+    private val targetCycleLbl by lazy { rootView.findViewById<TextView>(R.id.target_cycle_lbl) }
 
     private var originalSpending: Spending? = null
     private var cycleMultiplierChanged: Boolean = false
@@ -76,10 +72,10 @@ class SpendingEditorFragment : BaseFragment() {
             if (fromStartDate > fromEndDate) {
                 throw ValidationError(ValidationError.TYPE_NON_INPUT_FIELD, null, "Start date must not be higher then end date")
             }
-            val lastValidDate = (LocalDate.now() + cycleMultiplierFromScreen * cycle).minusDays(1)
+            val lastValidDate = (fromStartDate + cycleMultiplierFromScreen * cycle).minusDays(1)
             if (fromEndDate > lastValidDate) {
                 throw ValidationError(ValidationError.TYPE_NON_INPUT_FIELD, null,
-                        "End date cannot be higher than " + DateUtils.formatDayMonthYearWithPrefix(lastValidDate))
+                        "End date cannot be higher than " + lastValidDate.formatDayMonthYearWithPrefix())
             }
             return Spending(
                     id = originalSpending?.id,
@@ -87,7 +83,8 @@ class SpendingEditorFragment : BaseFragment() {
                             ?: throw ValidationError(ValidationError.TYPE_INPUT_FIELD, nameInput, "Please specify a name"),
                     notes = notesInput.text.orNull()?.toString(),
                     type = if (categoryPicker.selectedItem is ApiSpending.Category) categoryPicker.selectedItem as ApiSpending.Category else throw ValidationError(ValidationError.TYPE_NON_INPUT_FIELD, null, "Please select a category"),
-                    value = NumberFormat.getInstance().parse(averageInput.text.orNull().toString()).toDouble(),
+                    value = NumberFormat.getInstance().parse((averageInput.text.orNull()
+                            ?: throw ValidationError(ValidationError.TYPE_INPUT_FIELD, averageInput, "Please specify an amount")).toString()).toDouble(),
                     fromStartDate = fromStartDate,
                     fromEndDate = fromEndDate,
                     occurrenceCount = occurrenceInput.text.orNull()?.toString()?.toInt(),
@@ -184,7 +181,7 @@ class SpendingEditorFragment : BaseFragment() {
                 cycleMultiplierChanged = true
             }
         })
-        fromDatePicker.setTouchInterceptor { _ ->
+        fromDatePicker.touchInterceptor = { _ ->
             keyboardDismisser.onTouch(fromDatePicker, MotionEvent.obtain(0, 0, MotionEvent.ACTION_DOWN, 0f, 0f, 0))
             false
         }
@@ -237,15 +234,21 @@ class SpendingEditorFragment : BaseFragment() {
             if (!it.containsKey(EXTRA_SPENDING_ID)) {
                 deleteBtn?.isVisible = false
             }
+        } ?: let {
+            deleteBtn?.isVisible = false
         }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.menu_save -> saveUserInputOrShowError()
-            R.id.menu_delete -> if (originalSpending != null && originalSpending!!.isPersisted) {
-                spendingInteractor.delete(originalSpending!!.id!!)
-                        .subscribe({ deleteBtn?.isVisible = false }, this::onError)
+            R.id.menu_delete -> {
+                originalSpending?.let {
+                    if (it.isPersisted) {
+                        spendingInteractor.delete(it.id!!)
+                                .subscribe({ deleteBtn?.isVisible = false }, this::onError)
+                    }
+                }
             }
         }
         return false

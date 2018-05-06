@@ -6,8 +6,8 @@ import android.support.v7.widget.AppCompatButton
 import android.util.AttributeSet
 import android.view.GestureDetector
 import android.view.MotionEvent
-import android.widget.DatePicker
-import com.gb.canibuythat.util.DateUtils
+import com.gb.canibuythat.util.createDatePickerDialog
+import com.gb.canibuythat.util.formatDayMonthYearWithPrefix
 import java.time.LocalDate
 
 class DatePickerButton : AppCompatButton {
@@ -15,9 +15,6 @@ class DatePickerButton : AppCompatButton {
     private lateinit var originalDate: LocalDate
     private var datePickerDialog: DatePickerDialog? = null
     private lateinit var detector: GestureDetector
-    private val onDateSetListener = { _: DatePicker, year: Int, monthOfYear: Int, dayOfMonth: Int ->
-        text = DateUtils.formatDayMonthYearWithPrefix(LocalDate.of(year, monthOfYear, dayOfMonth))
-    }
 
     val selectedDate: LocalDate
         get() {
@@ -57,7 +54,9 @@ class DatePickerButton : AppCompatButton {
 
     private fun getDatePickerDialog(): DatePickerDialog {
         if (datePickerDialog == null) {
-            datePickerDialog = DateUtils.getDatePickerDialog(context, onDateSetListener, originalDate)
+            datePickerDialog = createDatePickerDialog(context, originalDate) { _, date ->
+                text = date.formatDayMonthYearWithPrefix()
+            }
         }
         return datePickerDialog!!
     }

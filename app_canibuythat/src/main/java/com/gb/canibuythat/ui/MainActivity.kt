@@ -9,8 +9,6 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.DatePicker
-import android.widget.TextView
 import android.widget.Toast
 import com.gb.canibuythat.R
 import com.gb.canibuythat.UserPreferences
@@ -24,7 +22,7 @@ import com.gb.canibuythat.screen.MainScreen
 import com.gb.canibuythat.screen.Screen
 import com.gb.canibuythat.util.*
 import com.google.firebase.iid.FirebaseInstanceId
-import java.time.LocalDate
+import kotlinx.android.synthetic.main.statistics.*
 import javax.inject.Inject
 
 /**
@@ -43,16 +41,9 @@ import javax.inject.Inject
  */
 class MainActivity : BaseActivity(), MainScreen, SpendingListFragment.FragmentCallback, BalanceBreakdownDialog.Companion.Callback {
 
-    @Inject
-    internal lateinit var userPreferences: UserPreferences
-    @Inject
-    internal lateinit var mainPresenter: MainPresenter
-    @Inject
-    internal lateinit var monzoDispatchPresenter: MonzoDispatchPresenter
-
-    private val projectionLbl: TextView? by lazy { findViewById(R.id.projection_lbl) as TextView? }
-    private val referenceLbl: TextView? by lazy { findViewById(R.id.reference_lbl) as TextView? }
-    private val totalSavingLbl: TextView? by lazy { findViewById(R.id.saving_lbl) as TextView? }
+    @Inject internal lateinit var userPreferences: UserPreferences
+    @Inject internal lateinit var mainPresenter: MainPresenter
+    @Inject internal lateinit var monzoDispatchPresenter: MonzoDispatchPresenter
 
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet device.
@@ -62,8 +53,7 @@ class MainActivity : BaseActivity(), MainScreen, SpendingListFragment.FragmentCa
     private lateinit var permissionVerifier: PermissionVerifier
 
     private fun estimateDateUpdater() {
-        val listener = { _: DatePicker, year: Int, month: Int, dayOfMonth: Int ->
-            val date = LocalDate.of(year, month, dayOfMonth)
+        createDatePickerDialog(this@MainActivity, userPreferences.estimateDate) { _, date ->
             val balanceReading = userPreferences.balanceReading
 
             if (balanceReading != null && balanceReading.date?.isAfter(date) == true) {
@@ -72,9 +62,7 @@ class MainActivity : BaseActivity(), MainScreen, SpendingListFragment.FragmentCa
             } else {
                 userPreferences.estimateDate = date
             }
-        }
-        val datePickerDialog = DateUtils.getDatePickerDialog(this@MainActivity, listener, userPreferences.estimateDate)
-        datePickerDialog.show()
+        }.show()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -221,38 +209,35 @@ class MainActivity : BaseActivity(), MainScreen, SpendingListFragment.FragmentCa
     }
 
     override fun setBalanceInfo(balance: Balance?) {
-        referenceLbl?.let {
-            val text: String
-            val balanceReading = userPreferences.balanceReading
-            text = balanceReading?.date?.let {
-                getString(R.string.reading, balanceReading.balance, DateUtils.formatDayMonthYearWithPrefix(balanceReading.date))
-            } ?: getString(R.string.reading_none)
-            it.setTextWithLink(text, text.substring(6), this::showBalanceUpdateDialog)
-        }
-        projectionLbl?.let {
-            val estimateDate = userPreferences.estimateDate
-            val estimateDateStr = if (estimateDate.isToday()) getString(R.string.today) else DateUtils.formatDayMonthYearWithPrefix(estimateDate)
+        val text: String
+        val balanceReading = userPreferences.balanceReading
+        text = balanceReading?.date?.let {
+            getString(R.string.reading, balanceReading.balance, balanceReading.date.formatDayMonthYearWithPrefix())
+        } ?: getString(R.string.reading_none)
+        reference_lbl.setTextWithLink(text, text.substring(6), this::showBalanceUpdateDialog)
+        val estimateDate = userPreferences.estimateDate
+        val estimateDateStr = if (estimateDate.isToday()) getString(R.string.today) else estimateDate.formatDayMonthYearWithPrefix()
 
-            var defoMaybeStr = "?"
-            var targetDefoMaybeStr = "?"
-            if (balance != null) {
-                defoMaybeStr = getString(R.string.definitely_maybe, balance.definitely, balance.maybeEvenThisMuch)
-                targetDefoMaybeStr = getString(R.string.definitely_maybe, balance.targetDefinitely, balance.targetMaybeEvenThisMuch)
-            }
-            val estimateAtTime = getString(R.string.estimate_at_date, defoMaybeStr, estimateDateStr, targetDefoMaybeStr)
-            it.setTextWithLinks(
-                    estimateAtTime,
-                    arrayOf(defoMaybeStr, targetDefoMaybeStr, "behave", estimateDateStr),
-                    arrayOf(
-                            mainPresenter::getBalanceBreakdown,
-                            mainPresenter::getTargetBalanceBreakdown,
-                            mainPresenter::getTargetSavingBreakdown,
-                            this::estimateDateUpdater))
+        var defoMaybeStr = "?"
+        var targetDefoMaybeStr = "?"
+        if (balance != null) {
+            defoMaybeStr = getString(R.string.definitely_maybe, balance.definitely, balance.maybeEvenThisMuch)
+            targetDefoMaybeStr = getString(R.string.definitely_maybe, balance.targetDefinitely, balance.targetMaybeEvenThisMuch)
         }
+        val estimateAtTime = getString(R.string.estimate_at_date, defoMaybeStr, estimateDateStr, targetDefoMaybeStr)
+        projection_lbl.setTextWithLinks(
+                estimateAtTime,
+                arrayOf(defoMaybeStr, targetDefoMaybeStr, "behave", estimateDateStr),
+                arrayOf(
+                        mainPresenter::getBalanceBreakdown,
+                        mainPresenter::getTargetBalanceBreakdown,
+                        mainPresenter::getTargetSavingBreakdown,
+                        this::estimateDateUpdater))
+
     }
 
     override fun setTotalSaving(totalSaving: Double?) {
-        totalSavingLbl?.text = totalSaving?.let { getString(R.string.saving, it) }
+        saving_lbl.text = totalSaving?.let { getString(R.string.saving, it) }
     }
 
     override fun showLoginActivity() {

@@ -1,5 +1,6 @@
 package com.gb.canibuythat.util
 
+import android.app.DatePickerDialog
 import android.content.Context
 import android.text.Spannable
 import android.text.SpannableString
@@ -8,7 +9,9 @@ import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
 import android.view.View
 import android.view.inputmethod.InputMethodManager
+import android.widget.DatePicker
 import android.widget.TextView
+import java.time.LocalDate
 
 fun View.hideKeyboard() {
     this.post {
@@ -55,4 +58,10 @@ private fun applyLink(text: String, spannable: Spannable, linkPart: String, runO
             }
         }
     }, startIndex, startIndex + linkPart.length, Spanned.SPAN_INCLUSIVE_INCLUSIVE)
+}
+
+fun createDatePickerDialog(context: Context, date: LocalDate, listener: (DatePicker, LocalDate) -> Unit): DatePickerDialog {
+    return DatePickerDialog(context, { view, year, month, dayOfMonth ->
+        listener.invoke(view, LocalDate.of(year, month + 1, dayOfMonth))
+    }, date.year, date.monthValue - 1, date.dayOfMonth)
 }

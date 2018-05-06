@@ -117,7 +117,7 @@
                 android:layout_centerVertical="true"
                 android:layout_height="wrap_content"
                 android:layout_width="wrap_content"
-                android:text="Amount/Average:"/>
+                android:text="Amount/Average*:"/>
 
             <EditText
                 android:id="@+id/average_input"
