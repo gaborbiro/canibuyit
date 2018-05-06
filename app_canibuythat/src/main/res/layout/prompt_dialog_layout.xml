@@ -60,6 +60,7 @@
         android:layout_marginStart="@dimen/dialog_padding"
         android:layout_marginTop="@dimen/dialog_padding"
         android:visibility="gone"
+        android:fadeScrollbars="false"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/title"

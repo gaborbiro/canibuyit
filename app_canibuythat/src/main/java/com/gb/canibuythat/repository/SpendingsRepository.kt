@@ -7,6 +7,7 @@ import com.gb.canibuythat.exception.DomainException
 import com.gb.canibuythat.model.Balance
 import com.gb.canibuythat.model.Spending
 import com.gb.canibuythat.model.SpendingEvent
+import com.gb.canibuythat.ui.BalanceBreakdown
 import com.gb.canibuythat.util.formatDayMonth
 import com.gb.canibuythat.util.formatDayMonthYear
 import com.gb.canibuythat.util.fromJson
@@ -185,37 +186,43 @@ constructor(private val dao: Dao<ApiSpending, Int>,
     /**
      * Fetch breakdown of projection
      */
-    fun getBalanceBreakdown(): Array<Pair<ApiSpending.Category, String>> {
+    fun getBalanceBreakdown(): BalanceBreakdown {
+        var totalIncomeStr: String? = null
+        var totalExpenseStr: String? = null
         val result = mutableListOf<Pair<ApiSpending.Category, String>>()
         prefs.balanceReading?.let { reading ->
             val startDate = reading.date
             val endDate = prefs.estimateDate
-            val total = calculateTotalBalanceExceptForCategory(ApiSpending.Category.INCOME, startDate = startDate, endDate = endDate).definitely
+            val totalExpense = calculateTotalBalanceExceptForCategory(ApiSpending.Category.INCOME, startDate = startDate, endDate = endDate)
             try {
                 ApiSpending.Category.values()
                         .map { Pair(it, calculateBalanceForCategory(it, startDate, endDate)) }
                         .filter { it.second.definitely != 0f || it.second.maybeEvenThisMuch != 0f }
-                        .sortedBy { it.second.definitely }
+                        .sortedByDescending { Math.abs(it.second.definitely) }
                         .forEach {
                             val category = it.first
                             val balance = it.second
-                            val name = category.name.substring(0, Math.min(12, category.name.length)).toLowerCase().capitalize()
+                            val name = category.name.substring(0, Math.min(10, category.name.length)).toLowerCase().capitalize()
                             val definitely = balance.definitely
                             val maybe = balance.maybeEvenThisMuch
-                            val amount = if (definitely == maybe) "%1\$.0f".format(definitely) else "%1\$.0f/%2\$.0f".format(definitely, maybe)
+                            val amount: String = if (definitely == maybe) "%1\$.0f".format(definitely) else "%1\$.0f/%2\$.0f".format(definitely, maybe)
 
                             result.add(Pair(category, if (category != ApiSpending.Category.INCOME) {
-                                val percent = definitely / total * 100
+                                val percent = definitely / totalExpense.definitely * 100
                                 "%1\$s: %2\$s (%3\$.1f%%)".format(name, amount, percent)
                             } else {
                                 "%1\$s: %2\$s".format(name, amount)
                             }))
                         }
+                val totalIncome = calculateBalanceForCategory(ApiSpending.Category.INCOME, startDate = startDate, endDate = endDate)
+                totalIncomeStr = "Tots. in: ${totalIncome.definitely}/${totalIncome.maybeEvenThisMuch}"
+                totalExpenseStr = "Tots. out: ${totalExpense.definitely}/${totalExpense.maybeEvenThisMuch}"
             } catch (e: Throwable) {
                 throw DomainException("Error calculating balance breakdown", e)
             }
         }
-        return result.toTypedArray()
+
+        return BalanceBreakdown(result.toTypedArray(), totalIncomeStr, totalExpenseStr)
     }
 
     /**

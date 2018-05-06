@@ -2,6 +2,7 @@ package com.gb.canibuythat.screen
 
 import com.gb.canibuythat.model.Balance
 import com.gb.canibuythat.db.model.ApiSpending
+import com.gb.canibuythat.ui.BalanceBreakdown
 
 interface MainScreen : MonzoDispatchScreen {
 
@@ -31,7 +32,7 @@ interface MainScreen : MonzoDispatchScreen {
 
     fun setProjectName(currentName: String?)
 
-    fun setBalanceBreakdown(breakdown: Array<Pair<ApiSpending.Category, String>>)
+    fun showBalanceBreakdown(breakdown: BalanceBreakdown)
 
     fun sendFCMTokenToServer()
 }

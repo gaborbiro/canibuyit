@@ -7,6 +7,7 @@ import com.gb.canibuythat.model.Spending
 import com.gb.canibuythat.repository.SavingsRepository
 import com.gb.canibuythat.repository.SpendingsRepository
 import com.gb.canibuythat.rx.SchedulerProvider
+import com.gb.canibuythat.ui.BalanceBreakdown
 import io.reactivex.Completable
 import io.reactivex.Maybe
 import io.reactivex.Observable
@@ -112,7 +113,7 @@ constructor(private val spendingsRepository: SpendingsRepository,
                 .observeOn(schedulerProvider.mainThread())
     }
 
-    fun getBalanceBreakdown(): Array<Pair<ApiSpending.Category, String>> {
+    fun getBalanceBreakdown(): BalanceBreakdown {
         return spendingsRepository.getBalanceBreakdown()
     }
 

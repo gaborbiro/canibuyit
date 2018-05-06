@@ -273,13 +273,8 @@ class MainActivity : BaseActivity(), MainScreen, SpendingListFragment.FragmentCa
         mainPresenter.onBalanceBreakdownItemClicked(category)
     }
 
-    override fun setBalanceBreakdown(breakdown: Array<Pair<ApiSpending.Category, String>>) {
-        val promptDialog = BalanceBreakdownDialog()
-        val args = Bundle()
-        args.putString(PromptDialog.EXTRA_TITLE, "Balance breakdown")
-        args.putSerializable("breakdown", breakdown)
-        promptDialog.arguments = args
-        promptDialog.setPositiveButton(android.R.string.ok, null).show(supportFragmentManager, null)
+    override fun showBalanceBreakdown(breakdown: BalanceBreakdown) {
+        BalanceBreakdownDialog.show(breakdown, supportFragmentManager)
     }
 
     override fun sendFCMTokenToServer() {

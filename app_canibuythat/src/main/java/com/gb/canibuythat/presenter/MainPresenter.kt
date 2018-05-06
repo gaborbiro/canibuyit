@@ -77,7 +77,7 @@ constructor(private val monzoInteractor: MonzoInteractor,
     }
 
     fun getBalanceBreakdown() {
-        getScreen().setBalanceBreakdown(spendingInteractor.getBalanceBreakdown())
+        getScreen().showBalanceBreakdown(spendingInteractor.getBalanceBreakdown())
     }
 
     fun onBalanceBreakdownItemClicked(category: ApiSpending.Category) {
