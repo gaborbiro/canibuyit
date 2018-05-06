@@ -8,6 +8,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.gb.canibuythat.R
+import com.gb.canibuythat.util.hide
+import com.gb.canibuythat.util.show
 import kotlinx.android.synthetic.main.prompt_dialog_layout.*
 
 open class BaseDialogFragment : DialogFragment() {
@@ -22,7 +24,7 @@ open class BaseDialogFragment : DialogFragment() {
 
     fun setTitle(title: String): BaseDialogFragment {
         this.title.text = title
-        this.title.visibility = View.VISIBLE
+        this.title.show()
         return this
     }
 
@@ -36,21 +38,21 @@ open class BaseDialogFragment : DialogFragment() {
 
     fun setMessage(body: String): BaseDialogFragment {
         this.message.text = body
-        this.message.visibility = View.VISIBLE
+        this.message.show()
         return this
     }
 
     fun setBigMessage(body: String): BaseDialogFragment {
         this.big_message.text = body
-        this.big_message_container.visibility = View.VISIBLE
+        this.big_message_container.show()
         return this
     }
 
     open fun setPositiveButton(buttonTextId: Int, listener: ((View) -> Unit)?): BaseDialogFragment {
         listener?.let { button.setOnClickListener(it) }
         button.text = getString(buttonTextId)
-        button.visibility = View.VISIBLE
-        progress_bar.visibility = View.GONE
+        button.show()
+        progress_bar.hide()
         return this
     }
 

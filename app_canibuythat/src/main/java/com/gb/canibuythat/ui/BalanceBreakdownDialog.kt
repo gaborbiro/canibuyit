@@ -5,6 +5,7 @@ import android.support.v4.app.FragmentManager
 import android.view.View
 import com.gb.canibuythat.db.model.ApiSpending
 import com.gb.canibuythat.util.setTextWithLinks
+import com.gb.canibuythat.util.show
 import kotlinx.android.synthetic.main.prompt_dialog_layout.*
 import java.io.Serializable
 
@@ -44,10 +45,11 @@ class BalanceBreakdownDialog : PromptDialog() {
                 append(it)
                 appendln()
             }
+
             breakdown.spendings.joinTo(buffer = this, separator = "\n", transform = {
                 it.second
             })
-            big_message_container.visibility = View.VISIBLE
+            big_message_container.show()
             big_message.setTextWithLinks(
                     toString(),
                     breakdown.spendings.map { it.second }.toTypedArray(),

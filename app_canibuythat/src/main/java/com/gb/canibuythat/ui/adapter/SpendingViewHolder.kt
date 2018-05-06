@@ -42,15 +42,15 @@ class SpendingViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
             } ?: let {
                 spentView.text = context.getString(R.string.spending_no_target, spent, cycleStr) // 0.00 this month
             }
-            spentView.visibility = View.VISIBLE
+            spentView.show()
         } ?: let {
-            spentView.visibility = View.GONE
+            spentView.hide()
         }
         if (spending.sourceData?.containsKey(ApiSpending.SOURCE_MONZO_CATEGORY) == true) {
             iconView.setImageResource(R.drawable.monzo)
-            iconView.visibility = View.VISIBLE
+            iconView.show()
         } else {
-            iconView.visibility = View.GONE
+            iconView.hide()
         }
         spending.spent?.let { spent ->
             spending.target?.let {

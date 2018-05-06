@@ -3,6 +3,7 @@ package com.gb.canibuythat.ui
 import android.os.Bundle
 import android.support.annotation.StringRes
 import android.view.View
+import com.gb.canibuythat.util.show
 import kotlinx.android.synthetic.main.prompt_dialog_layout.*
 
 class InputDialog : BaseDialogFragment() {
@@ -15,7 +16,7 @@ class InputDialog : BaseDialogFragment() {
         super.onViewCreated(view, savedInstanceState)
         arguments?.getString(EXTRA_TITLE)?.let { setTitle(it) }
         arguments?.getString(EXTRA_CURRENT_INPUT)?.let { text_input.setText(it) }
-        text_input.visibility = View.VISIBLE
+        text_input.show()
 
         super.setPositiveButton(btnStringResId) {
             dismiss()
