@@ -18,7 +18,7 @@ android {
 
     defaultConfig {
         applicationId "com.gb.canibuythat"
-        minSdkVersion 21
+        minSdkVersion 26
         targetSdkVersion 27
         versionCode 1
         versionName "1.0"
@@ -56,7 +56,7 @@ final RETROFIT_RXJAVA2='2.3.0'
 final RXJAVA='2.1.0'
 final RXANDROID='2.0.2'
 final OK_HTTP='3.8.1'
-final CONSTRAINT_LAYOUT='1.0.2'
+final CONSTRAINT_LAYOUT='1.1.0-beta5'
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
@@ -90,9 +90,6 @@ dependencies {
     // RxJava2
     implementation "io.reactivex.rxjava2:rxjava:${RXJAVA}"
     implementation "io.reactivex.rxjava2:rxandroid:${RXANDROID}"
-
-    // threeten
-    implementation 'com.jakewharton.threetenabp:threetenabp:1.0.5'
 
     // apache commons-lang
     implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'

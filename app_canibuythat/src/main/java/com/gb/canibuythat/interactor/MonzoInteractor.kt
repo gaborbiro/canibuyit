@@ -12,7 +12,7 @@ import io.reactivex.Single
 import io.reactivex.disposables.Disposable
 import io.reactivex.subjects.PublishSubject
 import io.reactivex.subjects.Subject
-import org.threeten.bp.ZonedDateTime
+import java.time.LocalDate
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -44,7 +44,7 @@ constructor(private val schedulerProvider: SchedulerProvider,
 
     fun loadSpendings(accountIds: List<String>, lastXMonths: Long?): Disposable {
         val since = lastXMonths?.let {
-            ZonedDateTime.now().minusMonths(it).withHour(0).withMinute(0).withSecond(0).withNano(0)
+            LocalDate.now().minusMonths(it)
         }
         return onErrorPrep(monzoRepository.getSpendings(accountIds, since)
                 .subscribeOn(schedulerProvider.io())

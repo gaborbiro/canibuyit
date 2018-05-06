@@ -198,12 +198,9 @@ final class SecurePreferences implements SharedPreferences.OnSharedPreferenceCha
         return null;
     }
 
-
-    @SuppressWarnings("unused")
     public void clear() {
         preferences.edit().clear().apply();
     }
-
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
@@ -211,7 +208,6 @@ final class SecurePreferences implements SharedPreferences.OnSharedPreferenceCha
             listeners.get(key).onSharedPreferenceChanged(sharedPreferences, decryptKey(key));
         }
     }
-
 
     /**
      * Registers a callback to be invoked when a change happens to the specified
@@ -225,7 +221,6 @@ final class SecurePreferences implements SharedPreferences.OnSharedPreferenceCha
     void registerOnSharedPreferenceChangeListener(String key, SharedPreferences.OnSharedPreferenceChangeListener listener) {
         listeners.put(toKey(key), listener);
     }
-
 
     /**
      * Unregisters a previous callback.

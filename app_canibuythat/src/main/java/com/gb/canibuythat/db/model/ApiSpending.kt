@@ -3,10 +3,11 @@ package com.gb.canibuythat.db.model
 import com.gb.canibuythat.R
 import com.gb.canibuythat.db.Contract
 import com.j256.ormlite.dao.ForeignCollection
+import com.j256.ormlite.field.DataType
 import com.j256.ormlite.field.DatabaseField
 import com.j256.ormlite.field.ForeignCollectionField
 import com.j256.ormlite.table.DatabaseTable
-import java.util.*
+import java.time.LocalDate
 
 
 /**
@@ -25,10 +26,10 @@ class ApiSpending(
         var type: Category? = null,
         @DatabaseField(columnName = Contract.Spending.VALUE, canBeNull = false)
         var value: Double? = null,
-        @DatabaseField(columnName = Contract.Spending.FROM_START_DATE, canBeNull = false)
-        var fromStartDate: Date? = null,
-        @DatabaseField(columnName = Contract.Spending.FROM_END_DATE, canBeNull = false)
-        var fromEndDate: Date? = null,
+        @DatabaseField(columnName = Contract.Spending.FROM_START_DATE, canBeNull = false, dataType = DataType.SERIALIZABLE)
+        var fromStartDate: LocalDate? = null,
+        @DatabaseField(columnName = Contract.Spending.FROM_END_DATE, canBeNull = false, dataType = DataType.SERIALIZABLE)
+        var fromEndDate: LocalDate? = null,
         @DatabaseField(columnName = Contract.Spending.OCCURRENCE_COUNT, canBeNull = true)
         var occurrenceCount: Int? = null,
         @DatabaseField(columnName = Contract.Spending.CYCLE_MULTIPLIER, canBeNull = false)

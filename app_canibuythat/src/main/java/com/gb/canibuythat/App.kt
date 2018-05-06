@@ -7,7 +7,6 @@ import android.widget.Toast
 
 import com.gb.canibuythat.di.Injector
 import com.j256.ormlite.android.apptools.OpenHelperManager
-import com.jakewharton.threetenabp.AndroidThreeTen
 
 class App : Application() {
 
@@ -20,7 +19,6 @@ class App : Application() {
     override fun onCreate() {
         super.onCreate()
         registerActivityLifecycleCallbacks(ActivityWatcher())
-        AndroidThreeTen.init(this)
     }
 
     private inner class ActivityWatcher : ActivityLifecycleCallbacksAdapter() {

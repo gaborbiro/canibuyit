@@ -3,20 +3,20 @@ package com.gb.canibuythat.ui.model
 import android.os.Parcel
 import android.os.Parcelable
 import com.gb.canibuythat.util.createParcel
-import java.util.*
+import java.time.LocalDate
 
-class BalanceReading(val `when`: Date?,
+class BalanceReading(val date: LocalDate?,
                      val balance: Float) : Parcelable {
 
     constructor(parcelIn: Parcel) : this(
-            `when` = parcelIn.readSerializable() as Date,
+            date = parcelIn.readSerializable() as LocalDate,
             balance = parcelIn.readFloat()
     )
 
     override fun describeContents() = 0
 
     override fun writeToParcel(dest: Parcel, flags: Int) {
-        dest.writeSerializable(`when`)
+        dest.writeSerializable(date)
         dest.writeFloat(balance)
     }
 

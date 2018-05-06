@@ -1,12 +1,7 @@
 package com.gb.canibuythat.repository
 
-import com.gb.canibuythat.model.Balance
-import com.gb.canibuythat.model.Spending
-import com.gb.canibuythat.model.SpendingEvent
-import com.gb.canibuythat.model.add
-import com.gb.canibuythat.util.DateUtils
-import com.gb.canibuythat.util.clearLowerBits
-import java.util.*
+import com.gb.canibuythat.model.*
+import java.time.LocalDate
 
 object BalanceCalculator {
 
@@ -20,8 +15,8 @@ object BalanceCalculator {
      * @return two floating point values, the first is the minimum possible value, the second is
      * * the maximum possible value
      */
-    fun getEstimatedBalance(spending: Spending, start: Date?, end: Date?): Balance {
-        if (start != null && end != null && end.before(start)) {
+    fun getEstimatedBalance(spending: Spending, start: LocalDate?, end: LocalDate = LocalDate.now()): Balance {
+        if (start != null && end < start) {
             throw IllegalArgumentException("Start date must come before end date!")
         }
         var `break` = false
@@ -29,27 +24,28 @@ object BalanceCalculator {
         var maybe = 0f
         var targetDefinitely = 0f
         var targetMaybe = 0f
+        var balance = 0f
+        var targetBalance = 0f
         var occurrenceCount = 0
         val spendingEvents = mutableListOf<SpendingEvent>()
         var movingStart = spending.fromStartDate
         var movingEnd = spending.fromEndDate
-        val start = start?.clearLowerBits()
-        val end = end?.clearLowerBits() ?: Date().clearLowerBits()
         var counter = 0
         do {
-            if (start == null || movingEnd.time >= start.time) {
-                val r = DateUtils.compare(end, movingStart, movingEnd)
+            if (start == null || movingEnd >= start) {
                 val target = spending.target?.let { if (it > 0) -it.toFloat() else it.toFloat() }
                         ?: spending.value.toFloat()
-                if (r >= -1) { // >= start date
+                if (end >= movingStart) {
                     if (spending.enabled) {
                         maybe += spending.value.toFloat()
                         targetMaybe += target
                     }
-                    if (r > 1) { // > end date
+                    if (end > movingEnd) {
                         if (spending.enabled) {
                             definitely += spending.value.toFloat()
                             targetDefinitely += target
+                            balance += spending.value.toFloat()
+                            targetBalance += target
                         }
                     }
                     spendingEvents.add(SpendingEvent(movingStart, movingEnd, definitely, maybe))
@@ -58,14 +54,14 @@ object BalanceCalculator {
                 }
             }
             counter++
-            movingStart = spending.fromStartDate.add(spending.cycle, spending.cycleMultiplier * counter)
-            movingEnd = spending.fromEndDate.add(spending.cycle, spending.cycleMultiplier * counter)
+            movingStart = spending.fromStartDate + (spending.cycleMultiplier * counter * spending.cycle)
+            movingEnd = spending.fromEndDate + (spending.cycleMultiplier * counter * spending.cycle)
             spending.occurrenceCount?.let {
                 if (++occurrenceCount >= it) {
                     `break` = true
                 }
             }
         } while (!`break`)
-        return Balance(definitely, maybe, targetDefinitely, targetMaybe, spendingEvents.toTypedArray())
+        return Balance(definitely, maybe, balance, targetDefinitely, targetMaybe, targetBalance, spendingEvents.toTypedArray())
     }
 }

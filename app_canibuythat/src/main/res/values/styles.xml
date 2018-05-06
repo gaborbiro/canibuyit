@@ -22,11 +22,11 @@
     <style name="DialogButton" parent="Widget.AppCompat.Button.Borderless.Colored">
         <item name="android:textAppearance">@style/TextAppearance.AppCompat.Subhead</item>
         <item name="android:textAllCaps">true</item>
+        <item name="android:textStyle">bold</item>
         <item name="android:gravity">center</item>
         <item name="android:paddingStart">8dp</item>
         <item name="android:paddingEnd">8dp</item>
         <item name="android:minHeight">48dp</item>
-        <item name="android:lineSpacingExtra">6sp</item>
     </style>
 
     <style name="cloud">

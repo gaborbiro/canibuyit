@@ -1,7 +1,7 @@
 package com.gb.canibuythat.model
 
 import com.gb.canibuythat.db.model.ApiSpending
-import org.threeten.bp.ZonedDateTime
+import java.time.ZonedDateTime
 
 class Transaction(val amount: Int,
                   val created: ZonedDateTime,

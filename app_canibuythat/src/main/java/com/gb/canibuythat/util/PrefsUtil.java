@@ -163,6 +163,10 @@ public class PrefsUtil {
         getSecurePreferences().removeValue(key);
     }
 
+    public void clear() {
+        getSecurePreferences().clear();
+    }
+
     private SecurePreferences getSecurePreferences() {
         if (securePreferences == null) {
             securePreferences = new SecurePreferences(appContext, PREFS_NAME, generateUDID(), true);
@@ -200,7 +204,7 @@ public class PrefsUtil {
      */
     private String generateUDID() {
         String deviceId = null;
-        String androidId = null;
+        String androidId;
         UUID deviceUuid = null;
 
         // androidId changes with every factory reset (which is useful in our case)

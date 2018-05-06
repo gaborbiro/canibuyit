@@ -16,8 +16,7 @@ import android.widget.RadioGroup;
 import com.gb.canibuythat.R;
 import com.gb.canibuythat.util.DateUtils;
 
-import java.util.Calendar;
-import java.util.Date;
+import java.time.LocalDate;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -28,38 +27,39 @@ public class DateRangePicker extends LinearLayout {
         boolean onInterceptTouchEvent(MotionEvent ev);
     }
 
-    @BindView(R.id.start_date_btn) Button startDateBtn;
-    @BindView(R.id.end_date_btn) Button endDateBtn;
-    @BindView(R.id.reset_btn) ImageView resetBtn;
+    @BindView(R.id.start_date_btn)
+    Button startDateBtn;
+    @BindView(R.id.end_date_btn)
+    Button endDateBtn;
+    @BindView(R.id.reset_btn)
+    ImageView resetBtn;
 
-    private Date startDate;
-    private Date endDate;
+    private LocalDate startDate;
+    private LocalDate endDate;
 
     private TouchInterceptor touchInterceptor;
 
     private DatePickerDialog.OnDateSetListener dateSetListener = new DatePickerDialog.OnDateSetListener() {
         @Override
         public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-            Calendar newDate = DateUtils.compose(year, month, dayOfMonth);
+            LocalDate newDate = LocalDate.of(year, month, dayOfMonth);
 
             switch ((int) view.getTag()) {
                 case R.id.start_date_btn:
-                    startDate = newDate.getTime();
-                    startDateBtn.setText(DateUtils.formatDayMonthYearWithPrefix(newDate.getTime()));
-                    if (endDate.getTime() < newDate.getTime().getTime()) {
-                        endDatePickerDialog = new DatePickerDialog(getContext(),
-                                dateSetListener, DateUtils.decompose(newDate)[0], DateUtils.decompose(newDate)[1], DateUtils.decompose(newDate)[2]);
-                        setEndDate(newDate.getTime());
+                    startDate = newDate;
+                    startDateBtn.setText(DateUtils.formatDayMonthYearWithPrefix(newDate));
+                    if (endDate.isBefore(newDate)) {
+                        endDatePickerDialog = new DatePickerDialog(getContext(), dateSetListener, newDate.getYear(), newDate.getMonthValue(), newDate.getDayOfMonth());
+                        setEndDate(newDate);
                     }
                     startDateChanged = true;
                     break;
                 case R.id.end_date_btn:
-                    endDate = newDate.getTime();
-                    endDateBtn.setText(DateUtils.formatDayMonthYearWithPrefix(newDate.getTime()));
-                    if (startDate.getTime() > newDate.getTime().getTime()) {
-                        startDatePickerDialog = new DatePickerDialog(getContext(),
-                                dateSetListener, DateUtils.decompose(newDate)[0], DateUtils.decompose(newDate)[1], DateUtils.decompose(newDate)[2]);
-                        setStartDate(newDate.getTime());
+                    endDate = newDate;
+                    endDateBtn.setText(DateUtils.formatDayMonthYearWithPrefix(newDate));
+                    if (startDate.isAfter(newDate)) {
+                        startDatePickerDialog = new DatePickerDialog(getContext(), dateSetListener, newDate.getYear(), newDate.getMonthValue(), newDate.getDayOfMonth());
+                        setStartDate(newDate);
                     }
                     endDateChanged = true;
                     break;
@@ -111,23 +111,23 @@ public class DateRangePicker extends LinearLayout {
         setGravity(Gravity.CENTER_VERTICAL);
     }
 
-    public void setStartDate(Date startDate) {
+    public void setStartDate(LocalDate startDate) {
         this.startDate = startDate;
         updateButtons();
         startDatePickerDialog = null;
     }
 
-    public void setEndDate(Date endDate) {
+    public void setEndDate(LocalDate endDate) {
         this.endDate = endDate;
         updateButtons();
         endDatePickerDialog = null;
     }
 
-    public Date getStartDate() {
+    public LocalDate getStartDate() {
         return startDate;
     }
 
-    public Date getEndDate() {
+    public LocalDate getEndDate() {
         return endDate;
     }
 
@@ -140,10 +140,8 @@ public class DateRangePicker extends LinearLayout {
     }
 
     private void resetDates() {
-        Calendar c = Calendar.getInstance();
-        DateUtils.clearLowerBits(c);
-        startDate = c.getTime();
-        endDate = c.getTime();
+        startDate = LocalDate.now();
+        endDate = LocalDate.now();
         updateButtons();
     }
 
@@ -155,7 +153,7 @@ public class DateRangePicker extends LinearLayout {
     private DatePickerDialog getStartDatePickerDialog() {
         if (startDatePickerDialog == null) {
             startDatePickerDialog = new DatePickerDialog(getContext(), dateSetListener,
-                    DateUtils.decompose(startDate)[0], DateUtils.decompose(startDate)[1], DateUtils.decompose(startDate)[2]);
+                    startDate.getYear(), startDate.getMonthValue(), startDate.getDayOfMonth());
         }
         startDatePickerDialog.getDatePicker().setTag(R.id.start_date_btn);
         return startDatePickerDialog;
@@ -164,7 +162,7 @@ public class DateRangePicker extends LinearLayout {
     private DatePickerDialog getEndDatePickerDialog() {
         if (endDatePickerDialog == null) {
             endDatePickerDialog = new DatePickerDialog(getContext(), dateSetListener,
-                    DateUtils.decompose(endDate)[0], DateUtils.decompose(endDate)[1], DateUtils.decompose(endDate)[2]);
+                    endDate.getYear(), endDate.getMonthValue(), endDate.getDayOfMonth());
         }
         endDatePickerDialog.getDatePicker().setTag(R.id.end_date_btn);
         return endDatePickerDialog;

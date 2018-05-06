@@ -8,24 +8,24 @@ import android.view.GestureDetector
 import android.view.MotionEvent
 import android.widget.DatePicker
 import com.gb.canibuythat.util.DateUtils
-import java.util.*
+import java.time.LocalDate
 
 class DatePickerButton : AppCompatButton {
 
-    private lateinit var originalDate: Calendar
+    private lateinit var originalDate: LocalDate
     private var datePickerDialog: DatePickerDialog? = null
     private lateinit var detector: GestureDetector
     private val onDateSetListener = { _: DatePicker, year: Int, monthOfYear: Int, dayOfMonth: Int ->
-        text = DateUtils.formatDayMonthYearWithPrefix(GregorianCalendar(year, monthOfYear, dayOfMonth).time)
+        text = DateUtils.formatDayMonthYearWithPrefix(LocalDate.of(year, monthOfYear, dayOfMonth))
     }
 
-    val selectedDate: Date
+    val selectedDate: LocalDate
         get() {
             if (datePickerDialog != null) {
                 val datePicker = datePickerDialog!!.datePicker
-                return GregorianCalendar(datePicker.year, datePicker.month, datePicker.dayOfMonth).time
+                return LocalDate.of(datePicker.year, datePicker.month, datePicker.dayOfMonth)
             }
-            return originalDate.time
+            return originalDate
         }
 
     constructor(context: Context) : super(context) {
@@ -47,7 +47,7 @@ class DatePickerButton : AppCompatButton {
                 return false
             }
         })
-        originalDate = Calendar.getInstance()
+        originalDate = LocalDate.now()
     }
 
     override fun dispatchTouchEvent(e: MotionEvent): Boolean {
@@ -62,12 +62,10 @@ class DatePickerButton : AppCompatButton {
         return datePickerDialog!!
     }
 
-    fun setDate(date: Date) {
-        originalDate.time = date
+    fun setDate(date: LocalDate) {
+        originalDate = date
         if (datePickerDialog != null) {
-            getDatePickerDialog().updateDate(originalDate.get(Calendar.YEAR),
-                    originalDate.get(Calendar.MONTH),
-                    originalDate.get(Calendar.DAY_OF_MONTH))
+            getDatePickerDialog().updateDate(originalDate.year, originalDate.monthValue, originalDate.dayOfMonth)
         }
     }
 }

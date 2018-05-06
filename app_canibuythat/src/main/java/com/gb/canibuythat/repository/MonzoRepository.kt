@@ -18,7 +18,8 @@ import com.gb.canibuythat.util.Logger
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
-import org.threeten.bp.ZonedDateTime
+import java.time.LocalDate
+import java.time.ZoneId
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -39,12 +40,12 @@ class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi,
     }
 
     @Suppress("NAME_SHADOWING")
-    fun getSpendings(accountIds: List<String>, since: ZonedDateTime? = null): Single<List<Spending>> {
+    fun getSpendings(accountIds: List<String>, since: LocalDate? = null): Single<List<Spending>> {
         return Observable.create<ApiTransaction> { emitter ->
             accountIds.forEach {
                 val t = monzoApi.transactions(
                         it,
-                        since?.let { DateUtils.FORMAT_RFC3339.format(it) }
+                        since?.let { DateUtils.FORMAT_RFC3339.format(it.atStartOfDay(ZoneId.systemDefault())) }
                 ).blockingGet().transactions
                 t.forEach { emitter.onNext(it) }
             }

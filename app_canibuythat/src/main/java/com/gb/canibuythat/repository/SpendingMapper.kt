@@ -5,6 +5,7 @@ import com.gb.canibuythat.exception.MapperException
 import com.gb.canibuythat.model.Spending
 import com.gb.canibuythat.util.fromJson
 import com.google.gson.Gson
+import java.time.LocalDate
 import java.util.*
 import javax.inject.Inject
 
@@ -25,7 +26,7 @@ class SpendingMapper @Inject constructor(private val savingMapper: SavingMapper,
                 sourceData = apiSpending.sourceData?.let { gson.fromJson<MutableMap<String, String>>(it) },
                 enabled = apiSpending.enabled ?: throw MapperException("Missing enabled"),
                 spent = apiSpending.spent,
-                targets = apiSpending.targets?.let { gson.fromJson<MutableMap<Date, Double>>(it) },
+                targets = apiSpending.targets?.let { gson.fromJson<MutableMap<LocalDate, Double>>(it) },
                 savings = apiSpending.savings?.map(savingMapper::mapApiSaving)?.toTypedArray()
         ).apply {
             if (savings?.isEmpty() == true) {

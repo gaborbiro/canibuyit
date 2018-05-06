@@ -6,11 +6,9 @@ import android.content.Intent
 import android.os.Bundle
 import android.text.TextUtils
 import android.util.Log
-import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.view.ViewGroup
 import android.widget.DatePicker
 import android.widget.TextView
 import android.widget.Toast
@@ -24,11 +22,9 @@ import com.gb.canibuythat.presenter.MainPresenter
 import com.gb.canibuythat.presenter.MonzoDispatchPresenter
 import com.gb.canibuythat.screen.MainScreen
 import com.gb.canibuythat.screen.Screen
-import com.gb.canibuythat.util.DateUtils
-import com.gb.canibuythat.util.PermissionVerifier
-import com.gb.canibuythat.util.setTextWithLink
-import com.gb.canibuythat.util.setTextWithLinks
+import com.gb.canibuythat.util.*
 import com.google.firebase.iid.FirebaseInstanceId
+import java.time.LocalDate
 import javax.inject.Inject
 
 /**
@@ -47,9 +43,12 @@ import javax.inject.Inject
  */
 class MainActivity : BaseActivity(), MainScreen, SpendingListFragment.FragmentCallback, BalanceBreakdownDialog.Companion.Callback {
 
-    @Inject internal lateinit var userPreferences: UserPreferences
-    @Inject internal lateinit var mainPresenter: MainPresenter
-    @Inject internal lateinit var monzoDispatchPresenter: MonzoDispatchPresenter
+    @Inject
+    internal lateinit var userPreferences: UserPreferences
+    @Inject
+    internal lateinit var mainPresenter: MainPresenter
+    @Inject
+    internal lateinit var monzoDispatchPresenter: MonzoDispatchPresenter
 
     private val projectionLbl: TextView? by lazy { findViewById(R.id.projection_lbl) as TextView? }
     private val referenceLbl: TextView? by lazy { findViewById(R.id.reference_lbl) as TextView? }
@@ -64,14 +63,14 @@ class MainActivity : BaseActivity(), MainScreen, SpendingListFragment.FragmentCa
 
     private fun estimateDateUpdater() {
         val listener = { _: DatePicker, year: Int, month: Int, dayOfMonth: Int ->
-            val c = DateUtils.compose(year, month, dayOfMonth)
+            val date = LocalDate.of(year, month, dayOfMonth)
             val balanceReading = userPreferences.balanceReading
 
-            if (balanceReading != null && balanceReading.`when`?.after(c.time) == true) {
+            if (balanceReading != null && balanceReading.date?.isAfter(date) == true) {
                 Toast.makeText(this@MainActivity,
-                        "Please set a date after the last balance " + "reading! (" + balanceReading.`when` + ")", Toast.LENGTH_SHORT).show()
+                        "Please set a date after the last balance " + "reading! (" + balanceReading.date + ")", Toast.LENGTH_SHORT).show()
             } else {
-                userPreferences.estimateDate = c.time
+                userPreferences.estimateDate = date
             }
         }
         val datePickerDialog = DateUtils.getDatePickerDialog(this@MainActivity, listener, userPreferences.estimateDate)
@@ -225,14 +224,14 @@ class MainActivity : BaseActivity(), MainScreen, SpendingListFragment.FragmentCa
         referenceLbl?.let {
             val text: String
             val balanceReading = userPreferences.balanceReading
-            text = balanceReading?.`when`?.let {
-                getString(R.string.reading, balanceReading.balance, DateUtils.formatDayMonthYearWithPrefix(balanceReading.`when`))
+            text = balanceReading?.date?.let {
+                getString(R.string.reading, balanceReading.balance, DateUtils.formatDayMonthYearWithPrefix(balanceReading.date))
             } ?: getString(R.string.reading_none)
             it.setTextWithLink(text, text.substring(6), this::showBalanceUpdateDialog)
         }
         projectionLbl?.let {
             val estimateDate = userPreferences.estimateDate
-            val estimateDateStr = if (DateUtils.isToday(estimateDate)) getString(R.string.today) else DateUtils.formatDayMonthYearWithPrefix(estimateDate)
+            val estimateDateStr = if (estimateDate.isToday()) getString(R.string.today) else DateUtils.formatDayMonthYearWithPrefix(estimateDate)
 
             var defoMaybeStr = "?"
             var targetDefoMaybeStr = "?"
@@ -253,7 +252,7 @@ class MainActivity : BaseActivity(), MainScreen, SpendingListFragment.FragmentCa
     }
 
     override fun setTotalSaving(totalSaving: Double?) {
-        totalSavingLbl?.text = totalSaving?.let {getString(R.string.saving, it)}
+        totalSavingLbl?.text = totalSaving?.let { getString(R.string.saving, it) }
     }
 
     override fun showLoginActivity() {
@@ -282,7 +281,7 @@ class MainActivity : BaseActivity(), MainScreen, SpendingListFragment.FragmentCa
 
     override fun setProjectName(currentName: String?) {
         val inputDialog = InputDialog.newInstance("Project name", currentName)
-        inputDialog.setPositiveButton(R.string.save) { _ -> mainPresenter.setProjectName(inputDialog.getInput()) }.show(supportFragmentManager, null)
+        inputDialog.setPositiveButton(R.string.save) { _ -> mainPresenter.setProjectName(inputDialog.input) }.show(supportFragmentManager, null)
     }
 
     override fun onBalanceBreakdownItemClicked(category: ApiSpending.Category) {
@@ -310,35 +309,5 @@ class MainActivity : BaseActivity(), MainScreen, SpendingListFragment.FragmentCa
         private val REQUEST_CODE_CHOOSE_FILE_ALL = 3
         private val REQUEST_CODE_PERMISSIONS_FOR_DB_EXPORT = 4
         private val REQUEST_CODE_CHOOSE_FILE_EXPORT = 5
-    }
-}
-
-class BalanceBreakdownDialog : PromptDialog() {
-
-    companion object {
-        interface Callback {
-            fun onBalanceBreakdownItemClicked(category: ApiSpending.Category)
-        }
-    }
-
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        val view = super.onCreateView(inflater, container, savedInstanceState)
-        val bigMessageTV = view.findViewById(R.id.big_message) as TextView
-
-        val breakdown = arguments?.getSerializable("breakdown") as Array<Pair<ApiSpending.Category, String>>
-        val buffer = StringBuffer()
-        breakdown.joinTo(buffer = buffer, separator = "\n", transform = {
-            it.second
-        })
-        setBigMessage(buffer.toString())
-        bigMessageTV.setTextWithLinks(
-                buffer.toString(),
-                breakdown.map { it.second }.toTypedArray(),
-                breakdown.map { pair ->
-                    {
-                        (activity as Callback).onBalanceBreakdownItemClicked(pair.first)
-                    }
-                }.toTypedArray())
-        return view
     }
 }

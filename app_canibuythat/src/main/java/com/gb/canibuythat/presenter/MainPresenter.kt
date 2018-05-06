@@ -1,16 +1,7 @@
 package com.gb.canibuythat.presenter
 
 import android.content.Intent
-import com.gb.canibuythat.ACCOUNT_ID_PREPAID
-import com.gb.canibuythat.ACCOUNT_ID_RETAIL
-import com.gb.canibuythat.BACKUP_FOLDER
-import com.gb.canibuythat.CredentialsProvider
-import com.gb.canibuythat.MONZO_AUTH_AUTHORITY
-import com.gb.canibuythat.MONZO_AUTH_PATH_BASE
-import com.gb.canibuythat.MONZO_AUTH_PATH_CALLBACK
-import com.gb.canibuythat.MONZO_OAUTH_PARAM_AUTHORIZATION_CODE
-import com.gb.canibuythat.TRANSACTION_HISTORY_LENGTH_MONTHS
-import com.gb.canibuythat.UserPreferences
+import com.gb.canibuythat.*
 import com.gb.canibuythat.db.model.ApiSpending
 import com.gb.canibuythat.exception.DomainException
 import com.gb.canibuythat.interactor.BackupingInteractor
@@ -18,10 +9,9 @@ import com.gb.canibuythat.interactor.MonzoInteractor
 import com.gb.canibuythat.interactor.ProjectInteractor
 import com.gb.canibuythat.interactor.SpendingInteractor
 import com.gb.canibuythat.screen.MainScreen
-import com.gb.canibuythat.util.DateUtils
 import com.gb.canibuythat.util.Logger
 import io.reactivex.functions.Consumer
-import java.util.*
+import java.time.LocalDateTime
 import javax.inject.Inject
 
 class MainPresenter @Inject
@@ -36,8 +26,7 @@ constructor(private val monzoInteractor: MonzoInteractor,
         disposeOnFinish(spendingInteractor.getSpendingsDataStream().subscribe({
             if (it.loading) getScreen().showProgress() else getScreen().hideProgress()
             if (!it.loading && !it.hasError()) {
-                it.content?.mapNotNull { it.savings }?.toTypedArray()?.flatten()?.
-                        sumByDouble { it.amount }.let {
+                it.content?.mapNotNull { it.savings }?.toTypedArray()?.flatten()?.sumByDouble { it.amount }.let {
                     if (it != 0.0) {
                         getScreen().setTotalSaving(it)
                     } else {
@@ -135,6 +124,7 @@ constructor(private val monzoInteractor: MonzoInteractor,
 
     fun deleteAllSpendings() {
         spendingInteractor.clearSpendings()
+        userPreferences.clear()
     }
 
     fun exportDatabase() {
@@ -149,9 +139,9 @@ constructor(private val monzoInteractor: MonzoInteractor,
 
     private fun getSuggestedExportPath(projectName: String?): String {
         return if (projectName.isNullOrEmpty()) {
-            BACKUP_FOLDER + "/spendings-" + DateUtils.FORMAT_ISO.format(Date()) + ".sqlite"
+            BACKUP_FOLDER + "/spendings-" + LocalDateTime.now() + ".sqlite"
         } else {
-            BACKUP_FOLDER + "/spendings-" + DateUtils.FORMAT_ISO.format(Date()) + "-" + projectName + ".sqlite"
+            BACKUP_FOLDER + "/spendings-" + LocalDateTime.now() + "-" + projectName + ".sqlite"
         }
     }
 

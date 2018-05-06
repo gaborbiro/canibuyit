@@ -1,58 +1,11 @@
 package com.gb.canibuythat.util
 
-import android.annotation.SuppressLint
 import android.app.DatePickerDialog
 import android.content.Context
 import android.widget.DatePicker
-import org.threeten.bp.LocalDate
-import org.threeten.bp.ZoneId
-import org.threeten.bp.ZonedDateTime
-import org.threeten.bp.format.DateTimeFormatter
-import java.text.SimpleDateFormat
-import java.util.*
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
-/**
- * Only day. No hour, minute, second or millisecond.
- */
-fun Date.clearLowerBits(): Date {
-    val c = this.toCalendar()
-    c.clearLowerBits()
-    return c.time
-}
-
-/**
- * Only day. No hour, minute, second or millisecond.
- */
-fun Calendar.clearLowerBits(): Calendar {
-    this.set(Calendar.HOUR_OF_DAY, 0)
-    this.set(Calendar.MINUTE, 0)
-    this.set(Calendar.SECOND, 0)
-    this.set(Calendar.MILLISECOND, 0)
-    return this
-}
-
-fun Date.toCalendar(): Calendar {
-    val c = Calendar.getInstance()
-    c.time = this
-    return c
-}
-
-fun Date.toLocalDate() = this.toCalendar().let {
-    LocalDate.of(it[Calendar.YEAR], it[Calendar.MONTH] + 1, it[Calendar.DAY_OF_MONTH])
-}
-
-fun LocalDate.toDate() = Date(this.year - 1900, this.monthValue - 1, this.dayOfMonth)
-
-/**
- * Today. No hour, minute, second or millisecond.
- */
-fun clearLowerBits(): Calendar {
-    val c = Calendar.getInstance()
-    c.clearLowerBits()
-    return c
-}
-
-@SuppressLint("SimpleDateFormat")
 class DateUtils {
 
     companion object {
@@ -61,102 +14,39 @@ class DateUtils {
                 "21st", "22nd", "23rd", "24th", "25th", "26th", "27th", "28th", "29th", "30th", "31st")
 
         @JvmStatic
-        val FORMAT_ISO = SimpleDateFormat("yyyyMMdd'T'HHmmss")
+        val FORMAT_ISO = DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss")
         @JvmStatic
         val FORMAT_RFC3339 = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")
 
-        /**
-         * Only day. No hour, minute, second or millisecond.
-         */
         @JvmStatic
-        fun clearLowerBits(c: Calendar) {
-            c.clearLowerBits()
+        fun getDatePickerDialog(context: Context, listener: (DatePicker, Int, Int, Int) -> Unit, date: LocalDate): DatePickerDialog {
+            return DatePickerDialog(context, listener, date.year, date.monthValue, date.dayOfMonth)
         }
 
         @JvmStatic
-        fun clearLowerBits(date: Date): Date {
-            return date.clearLowerBits()
-        }
-
-        /**
-         * ... `start` ... `end` ...<br></br>
-         * <pre>|   |   |  |  |<br></br>-2 -1   0  1  2
-        </pre> *
-         */
-        @JvmStatic
-        fun compare(date: Date, start: Date, end: Date): Int {
-            if (start.after(end)) {
-                throw IllegalArgumentException("Start date must come before end date")
-            }
-            return when {
-                date.before(start) -> -2
-                date == start -> -1
-                date.time >= start.time && date.time <= end.time -> 0
-                date == end -> 1
-                else -> 2
-            }
-        }
-
-        @JvmStatic
-        fun getDatePickerDialog(context: Context, listener: (DatePicker, Int, Int, Int) -> Unit, date: Date?): DatePickerDialog {
-            return getDatePickerDialog(context, listener, date?.toCalendar() ?: Calendar.getInstance())
-        }
-
-        @JvmStatic
-        fun getDatePickerDialog(context: Context, listener: (DatePicker, Int, Int, Int) -> Unit, calendar: Calendar): DatePickerDialog {
-            return DatePickerDialog(context, listener, decompose(calendar)[0], decompose(calendar)[1], decompose(calendar)[2])
-        }
-
-        @JvmStatic
-        fun decompose(c: Calendar): IntArray {
-            return intArrayOf(c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DATE))
-        }
-
-        @JvmStatic
-        fun decompose(date: Date): IntArray {
-            val c = date.toCalendar()
-            return intArrayOf(c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DATE))
-        }
-
-        @JvmStatic
-        fun compose(year: Int, month: Int, dayOfMonth: Int): Calendar {
-            val c = Calendar.getInstance()
-            c.set(year, month, dayOfMonth)
-            c.clearLowerBits()
-            return c
-        }
-
-        @JvmStatic
-        fun isToday(d: Date): Boolean {
-            val now = Calendar.getInstance()
-            val c = d.toCalendar()
-            return c[Calendar.ERA] == now[Calendar.ERA] &&
-                    c[Calendar.YEAR] == now[Calendar.YEAR] &&
-                    c[Calendar.DAY_OF_YEAR] == now[Calendar.DAY_OF_YEAR]
-        }
-
-        @JvmStatic
-        fun formatDayMonthYearWithPrefix(date: Date): String {
-            val dayNumberSuffix = SUFFIXES[date.toCalendar()[Calendar.DAY_OF_MONTH]]
-            return if (date.year + 1900 == Calendar.getInstance()[Calendar.YEAR]) {
-                SimpleDateFormat("'the $dayNumberSuffix of' MMM")
+        fun formatDayMonthYearWithPrefix(date: LocalDate): String {
+            val dayNumberSuffix = SUFFIXES[date.dayOfMonth]
+            return if (date.year == LocalDate.now().year) {
+                DateTimeFormatter.ofPattern("'the $dayNumberSuffix of' MMM")
             } else {
-                SimpleDateFormat("'the $dayNumberSuffix of' MMM, yyyy")
+                DateTimeFormatter.ofPattern("'the $dayNumberSuffix of' MMM, yyyy")
             }.format(date)
         }
 
         @JvmStatic
-        fun formatDayMonthYear(date: Date): String {
-            return if (date.year + 1900 == Calendar.getInstance()[Calendar.YEAR]) {
-                SimpleDateFormat("dd.MMM")
+        fun formatDayMonthYear(date: LocalDate): String {
+            return if (date.year == LocalDate.now().year) {
+                DateTimeFormatter.ofPattern("dd.MMM")
             } else {
-                SimpleDateFormat("dd.MMM, '`'yy")
+                DateTimeFormatter.ofPattern("dd.MMM, '`'yy")
             }.format(date)
         }
 
         @JvmStatic
-        fun formatDayMonth(date: Date): String {
-            return SimpleDateFormat("dd.MMM").format(date)
+        fun formatDayMonth(date: LocalDate): String {
+            return DateTimeFormatter.ofPattern("dd.MMM").format(date)
         }
     }
 }
+
+fun LocalDate.isToday() = this == LocalDate.now()

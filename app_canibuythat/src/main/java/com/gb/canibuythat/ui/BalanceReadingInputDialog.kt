@@ -15,14 +15,14 @@ import com.gb.canibuythat.UserPreferences
 import com.gb.canibuythat.di.Injector
 import com.gb.canibuythat.ui.model.BalanceReading
 import com.gb.canibuythat.util.DateUtils
-import com.gb.canibuythat.util.clearLowerBits
 import com.gb.canibuythat.util.showKeyboard
-import java.util.*
+import java.time.LocalDate
 import javax.inject.Inject
 
 class BalanceReadingInputDialog : DialogFragment(), DialogInterface.OnClickListener {
 
-    @Inject lateinit var userPreferences: UserPreferences
+    @Inject
+    lateinit var userPreferences: UserPreferences
     private var lastUpdate: BalanceReading? = null
 
     lateinit var body: LinearLayout
@@ -39,11 +39,11 @@ class BalanceReadingInputDialog : DialogFragment(), DialogInterface.OnClickListe
         body = LayoutInflater.from(activity).inflate(R.layout.dialog_balance_reading, null) as LinearLayout
 
         lastUpdate?.let {
-            amountInput.setText(java.lang.Float.toString(lastUpdate!!.balance))
-            whenBtn.text = DateUtils.formatDayMonthYear(it.`when`!!)
-            whenBtn.setDate(it.`when`)
+            amountInput.setText(lastUpdate!!.balance.toString())
+            whenBtn.text = DateUtils.formatDayMonthYear(it.date!!)
+            whenBtn.setDate(it.date)
         } ?: let {
-            val today = Date()
+            val today = LocalDate.now()
             whenBtn.text = DateUtils.formatDayMonthYearWithPrefix(today)
             whenBtn.setDate(today)
         }
@@ -63,8 +63,7 @@ class BalanceReadingInputDialog : DialogFragment(), DialogInterface.OnClickListe
     override fun onClick(dialog: DialogInterface?, which: Int) {
         if (validate()) {
             val selectedDate = whenBtn.selectedDate
-            userPreferences.balanceReading = BalanceReading(selectedDate.clearLowerBits(),
-                    amountInput.text.toString().toFloat())
+            userPreferences.balanceReading = BalanceReading(selectedDate, amountInput.text.toString().toFloat())
             dismiss()
         }
     }
@@ -77,13 +76,13 @@ class BalanceReadingInputDialog : DialogFragment(), DialogInterface.OnClickListe
         }
 
         val selectedDate = whenBtn.selectedDate
-        if (!selectedDate.before(Date())) {
+        if (selectedDate > LocalDate.now()) {
             Toast.makeText(activity, "Please select a non-future date!", Toast.LENGTH_SHORT).show()
             return false
         }
 
         val estimateDate = userPreferences.estimateDate
-        if (selectedDate.after(estimateDate)) {
+        if (selectedDate > estimateDate) {
             Toast.makeText(activity, "Please select a date before the target date!", Toast.LENGTH_SHORT).show()
             return false
         }

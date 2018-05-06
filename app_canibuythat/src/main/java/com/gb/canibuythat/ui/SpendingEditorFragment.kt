@@ -3,19 +3,8 @@ package com.gb.canibuythat.ui
 import android.annotation.SuppressLint
 import android.database.sqlite.SQLiteConstraintException
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.Menu
-import android.view.MenuInflater
-import android.view.MenuItem
-import android.view.MotionEvent
-import android.view.View
-import android.view.ViewGroup
-import android.widget.ArrayAdapter
-import android.widget.CheckBox
-import android.widget.CompoundButton
-import android.widget.EditText
-import android.widget.Spinner
-import android.widget.TextView
+import android.view.*
+import android.widget.*
 import com.gb.canibuythat.R
 import com.gb.canibuythat.db.model.ApiSpending
 import com.gb.canibuythat.di.Injector
@@ -23,13 +12,13 @@ import com.gb.canibuythat.interactor.Project
 import com.gb.canibuythat.interactor.ProjectInteractor
 import com.gb.canibuythat.interactor.SpendingInteractor
 import com.gb.canibuythat.model.Spending
-import com.gb.canibuythat.model.add
+import com.gb.canibuythat.model.plus
+import com.gb.canibuythat.model.times
 import com.gb.canibuythat.presenter.BasePresenter
 import com.gb.canibuythat.screen.Screen
 import com.gb.canibuythat.util.*
-import org.threeten.bp.LocalDate
 import java.text.NumberFormat
-import java.util.*
+import java.time.LocalDate
 import javax.inject.Inject
 
 /**
@@ -84,18 +73,13 @@ class SpendingEditorFragment : BaseFragment() {
             val fromStartDate = fromDatePicker.startDate
             val fromEndDate = fromDatePicker.endDate
             val cycle = if (cyclePicker.selectedItem is ApiSpending.Cycle) cyclePicker.selectedItem as ApiSpending.Cycle else throw ValidationError(ValidationError.TYPE_NON_INPUT_FIELD, null, "Please select a cycle")
-            if (fromStartDate.after(fromEndDate)) {
+            if (fromStartDate > fromEndDate) {
                 throw ValidationError(ValidationError.TYPE_NON_INPUT_FIELD, null, "Start date must not be higher then end date")
             }
-            Calendar.getInstance().let {
-                it.time = fromStartDate
-                it.clearLowerBits()
-                it.add(cycle, cycleMultiplierFromScreen)
-                it.add(Calendar.DAY_OF_MONTH, -1)
-                if (fromEndDate.after(it.time)) {
-                    throw ValidationError(ValidationError.TYPE_NON_INPUT_FIELD, null,
-                            "End date cannot be higher than " + DateUtils.formatDayMonthYearWithPrefix(it.time))
-                }
+            val lastValidDate = (LocalDate.now() + cycleMultiplierFromScreen * cycle).minusDays(1)
+            if (fromEndDate > lastValidDate) {
+                throw ValidationError(ValidationError.TYPE_NON_INPUT_FIELD, null,
+                        "End date cannot be higher than " + DateUtils.formatDayMonthYearWithPrefix(lastValidDate))
             }
             return Spending(
                     id = originalSpending?.id,
@@ -114,11 +98,11 @@ class SpendingEditorFragment : BaseFragment() {
                     spent = originalSpending?.spent,
                     // delete target history if empty
                     targets = targetInput.text.orNull()?.toString()?.toDouble()?.let { target ->
-                        val now = Date()
+                        val now = LocalDate.now()
                         val targetHistory = originalSpending?.targets?.toMutableMap()
                         targetHistory?.maxBy { it.key }?.let {
                             if (it.value != target) {
-                                if (it.key.toLocalDate().isBefore(LocalDate.now())) {
+                                if (it.key < LocalDate.now()) {
                                     targetHistory[now] = target
                                 } else {
                                     targetHistory[it.key] = target

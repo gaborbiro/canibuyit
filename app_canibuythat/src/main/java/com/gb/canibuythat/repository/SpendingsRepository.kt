@@ -17,7 +17,7 @@ import io.reactivex.Maybe
 import io.reactivex.Observable
 import io.reactivex.Single
 import java.sql.SQLException
-import java.util.*
+import java.time.LocalDate
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -161,7 +161,7 @@ constructor(private val dao: Dao<ApiSpending, Int>,
      */
     fun getBalance(): Single<Balance> {
         try {
-            val balance = calculateBalanceForCategory(null, startDate = prefs.balanceReading?.`when`, endDate = prefs.estimateDate)
+            val balance = calculateBalanceForCategory(null, startDate = prefs.balanceReading?.date, endDate = prefs.estimateDate)
             prefs.balanceReading?.let { reading ->
                 balance.definitely += reading.balance
                 balance.maybeEvenThisMuch += reading.balance
@@ -182,7 +182,7 @@ constructor(private val dao: Dao<ApiSpending, Int>,
     fun getBalanceBreakdown(): Array<Pair<ApiSpending.Category, String>> {
         val result = mutableListOf<Pair<ApiSpending.Category, String>>()
         prefs.balanceReading?.let { reading ->
-            val startDate = reading.`when`
+            val startDate = reading.date
             val endDate = prefs.estimateDate
             val total = calculateTotalBalanceExceptForCategory(ApiSpending.Category.INCOME, startDate = startDate, endDate = endDate).definitely
             try {
@@ -218,7 +218,7 @@ constructor(private val dao: Dao<ApiSpending, Int>,
     fun getTargetBalanceBreakdown(): String {
         val buffer = StringBuffer()
         prefs.balanceReading?.let { balanceReading ->
-            val startDate = balanceReading.`when`
+            val startDate = balanceReading.date
             val endDate = prefs.estimateDate
             val total = calculateTotalBalanceExceptForCategory(ApiSpending.Category.INCOME, startDate = startDate, endDate = endDate).targetDefinitely
             try {
@@ -252,7 +252,7 @@ constructor(private val dao: Dao<ApiSpending, Int>,
     fun getSavingsBreakdown(): String {
         val buffer = StringBuffer()
         prefs.balanceReading?.let { balanceReading ->
-            val startDate = balanceReading.`when`
+            val startDate = balanceReading.date
             val endDate = prefs.estimateDate
             var hasNegAmounts = false
             try {
@@ -289,7 +289,7 @@ constructor(private val dao: Dao<ApiSpending, Int>,
 
     fun getBalanceBreakdownCategoryDetails(category: ApiSpending.Category): String? {
         return prefs.balanceReading?.let { reading ->
-            val startDate = reading.`when`
+            val startDate = reading.date
             val endDate = prefs.estimateDate
             val balance = calculateBalanceForCategory(category, startDate, endDate)
             val buffer = StringBuffer()
@@ -297,7 +297,7 @@ constructor(private val dao: Dao<ApiSpending, Int>,
             balance.spendingEvents?.joinTo(buffer = buffer, separator = "\n", transform = {
                 index++
                 val amount = if (it.definitely == it.maybe) "${it.definitely}" else "${it.definitely}/${it.maybe}"
-                if (endDate.after(it.end)) {
+                if (endDate > it.end) {
                     "$index. ${DateUtils.formatDayMonth(it.start)} - ${DateUtils.formatDayMonthYear(it.end)} ($amount)"
                 } else {
                     "$index. ${DateUtils.formatDayMonth(it.start)}( - ${DateUtils.formatDayMonthYear(it.end)}) ($amount)"
@@ -311,7 +311,7 @@ constructor(private val dao: Dao<ApiSpending, Int>,
      * @param startDate from which the calculation should start. If null, the individual spending start-dates will be used
      * @param endDate up until which the calculations should go. If null, `today` is used
      */
-    private fun calculateBalanceForCategory(category: ApiSpending.Category?, startDate: Date?, endDate: Date): Balance {
+    private fun calculateBalanceForCategory(category: ApiSpending.Category?, startDate: LocalDate?, endDate: LocalDate): Balance {
         val builder = dao.queryBuilder().where()
         category?.let { builder.`in`(Contract.Spending.TYPE, it).and() }
         builder.eq(Contract.Spending.ENABLED, true)
@@ -323,17 +323,17 @@ constructor(private val dao: Dao<ApiSpending, Int>,
      * @param startDate from which the calculation should start. If null, the start-dates of the spendings will be used
      * @param endDate up until which the calculations should go. If null, `today` is used
      */
-    private fun calculateTotalBalanceExceptForCategory(omittedCategory: ApiSpending.Category, startDate: Date?, endDate: Date): Balance {
+    private fun calculateTotalBalanceExceptForCategory(omittedCategory: ApiSpending.Category, startDate: LocalDate?, endDate: LocalDate): Balance {
         val builder: Where<ApiSpending, Int> = dao.queryBuilder().where()
                 .notIn(Contract.Spending.TYPE, omittedCategory)
         return calculateBalance(builder, startDate, endDate)
     }
 
-    private fun calculateBalance(builder: Where<ApiSpending, Int>, startDate: Date?, endDate: Date): Balance {
+    private fun calculateBalance(builder: Where<ApiSpending, Int>, startDate: LocalDate?, endDate: LocalDate): Balance {
         val spendingEvents = mutableListOf<SpendingEvent>()
-        val balance = Balance(0f, 0f, 0f, 0f, null)
+        val balance = Balance(0f, 0f, 0f, 0f, 0f, 0f, null)
         dao.query(builder.prepare()).forEach { spending ->
-            val (definitely, maybeEvenThisMuch, targetDefinitely, targetMaybeEvenThisMuch, spendingEventsOut)
+            val (definitely, maybeEvenThisMuch, _, targetDefinitely, targetMaybeEvenThisMuch, _, spendingEventsOut)
                     = BalanceCalculator.getEstimatedBalance(mapper.map(spending), startDate, endDate)
             balance.definitely += definitely
             balance.maybeEvenThisMuch += maybeEvenThisMuch

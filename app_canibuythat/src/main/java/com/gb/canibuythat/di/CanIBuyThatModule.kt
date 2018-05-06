@@ -8,7 +8,6 @@ import com.gb.canibuythat.db.model.ApiSaving
 import com.gb.canibuythat.db.model.ApiSpending
 import com.gb.canibuythat.rx.SchedulerProvider
 import com.gb.canibuythat.rx.SchedulerProviderImpl
-import com.google.gson.Gson
 import com.j256.ormlite.dao.Dao
 import dagger.Module
 import dagger.Provides

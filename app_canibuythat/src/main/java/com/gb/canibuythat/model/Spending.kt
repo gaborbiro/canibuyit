@@ -2,11 +2,10 @@ package com.gb.canibuythat.model
 
 import com.gb.canibuythat.db.model.ApiSpending
 import com.gb.canibuythat.db.model.ApiSpending.Cycle.*
-import org.threeten.bp.DayOfWeek
-import org.threeten.bp.LocalDate
-import org.threeten.bp.ZonedDateTime
-import org.threeten.bp.temporal.TemporalAdjusters.lastDayOfMonth
-import org.threeten.bp.temporal.TemporalAdjusters.lastDayOfYear
+import java.time.DayOfWeek
+import java.time.LocalDate
+import java.time.temporal.TemporalAdjusters.lastDayOfMonth
+import java.time.temporal.TemporalAdjusters.lastDayOfYear
 import java.util.*
 
 class Spending(var id: Int? = null,
@@ -18,8 +17,8 @@ class Spending(var id: Int? = null,
                 * Date before witch the transaction certainly won't happen. The repetition cycle
                 * is added to this date.
                 */
-               var fromStartDate: Date,
-               var fromEndDate: Date,
+               var fromStartDate: LocalDate,
+               var fromEndDate: LocalDate,
                var occurrenceCount: Int?,
                /**
                 * For cycles like every 2 days or 2 weeks...
@@ -36,7 +35,7 @@ class Spending(var id: Int? = null,
                var enabled: Boolean,
                var sourceData: MutableMap<String, String>?,
                var spent: Double?,
-               var targets: Map<Date, Double>?,
+               var targets: Map<LocalDate, Double>?,
                var savings: Array<Saving>?) {
 
     val target = targets?.maxBy { it.key }?.value
@@ -125,24 +124,14 @@ class Spending(var id: Int? = null,
         get() = id != null
 }
 
-fun Date.add(cycle: ApiSpending.Cycle, increment: Int): Date {
-    val cal = Calendar.getInstance()
-    cal.time = this
-    when (cycle) {
-        DAYS -> cal.add(Calendar.DAY_OF_MONTH, increment)
-        WEEKS -> cal.add(Calendar.WEEK_OF_MONTH, increment)
-        MONTHS -> cal.add(Calendar.MONTH, increment)
-        YEARS -> cal.add(Calendar.YEAR, increment)
-    }
-    return cal.time
-}
+operator fun Int.times(cycle: ApiSpending.Cycle) = Pair(this, cycle)
 
-fun Calendar.add(cycle: ApiSpending.Cycle, increment: Int) {
-    when (cycle) {
-        DAYS -> this.add(Calendar.DAY_OF_MONTH, increment)
-        WEEKS -> this.add(Calendar.WEEK_OF_MONTH, increment)
-        MONTHS -> this.add(Calendar.MONTH, increment)
-        YEARS -> this.add(Calendar.YEAR, increment)
+operator fun LocalDate.plus(cycle: Pair<Int, ApiSpending.Cycle>): LocalDate {
+    return when (cycle.second) {
+        DAYS -> this.plusDays(cycle.first.toLong())
+        WEEKS -> this.plusWeeks(cycle.first.toLong())
+        MONTHS -> this.plusMonths(cycle.first.toLong())
+        YEARS -> this.plusYears(cycle.first.toLong())
     }
 }
 
@@ -153,20 +142,18 @@ fun ApiSpending.Cycle.toMonths(): Double = when (this) {
     YEARS -> 12.0
 }
 
-fun Pair<ZonedDateTime, ZonedDateTime>.span(cycle: ApiSpending.Cycle): Float = when (cycle) {
-    DAYS -> (this.second.toLocalDate().toEpochDay() - this.first.toLocalDate().toEpochDay()).toFloat()
-    WEEKS -> this.span(DAYS) / 7f
+fun Pair<LocalDate, LocalDate>.span(cycle: ApiSpending.Cycle): Float = when (cycle) {
+    DAYS -> (second.toEpochDay() - first.toEpochDay()).toFloat()
+    WEEKS -> span(DAYS) / 7f
     MONTHS -> {
-        val packed1 = this.first.toLocalDate().let { it.getProlepticMonth() * 32f + it.dayOfMonth.toLong() }
-        val packed2 = this.second.toLocalDate().let { it.getProlepticMonth() * 32f + it.dayOfMonth.toLong() }
+        val packed1 = first.getProlepticMonth() * 32f + first.dayOfMonth
+        val packed2 = second.getProlepticMonth() * 32f + second.dayOfMonth
         (packed2 - packed1) / 32f
     }
-    YEARS -> this.span(MONTHS) / 12f
+    YEARS -> span(MONTHS) / 12f
 }
 
-internal fun LocalDate.getProlepticMonth(): Long {
-    return this.year.toLong() * 12L + (this.monthValue - 1).toLong()
-}
+internal fun LocalDate.getProlepticMonth() = this.year * 12 + (this.monthValue - 1)
 
 fun ApiSpending.Cycle.ordinal(date: LocalDate): Int = when (this) {
     DAYS -> date.toEpochDay().toInt()
@@ -175,9 +162,9 @@ fun ApiSpending.Cycle.ordinal(date: LocalDate): Int = when (this) {
     YEARS -> date.year
 }
 
-fun ZonedDateTime.lastCycleDay(cycle: ApiSpending.Cycle): LocalDate = when (cycle) {
+fun LocalDate.lastCycleDay(cycle: ApiSpending.Cycle): LocalDate = when (cycle) {
     DAYS -> this
     WEEKS -> this.with(DayOfWeek.SUNDAY)
     MONTHS -> this.with(lastDayOfMonth())
     YEARS -> this.with(lastDayOfYear())
-}.toLocalDate().atStartOfDay(this.zone).plusDays(1).minusNanos(1).toLocalDate()
+}.atStartOfDay().plusDays(1).minusNanos(1).toLocalDate()
