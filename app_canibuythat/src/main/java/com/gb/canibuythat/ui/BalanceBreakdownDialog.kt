@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.support.v4.app.FragmentManager
 import android.view.View
 import com.gb.canibuythat.db.model.ApiSpending
+import com.gb.canibuythat.util.eitherOrNull
 import com.gb.canibuythat.util.setTextWithLinks
 import com.gb.canibuythat.util.show
 import kotlinx.android.synthetic.main.prompt_dialog_layout.*
@@ -45,7 +46,9 @@ class BalanceBreakdownDialog : PromptDialog() {
                 append(it)
                 appendln()
             }
-
+            Pair(breakdown.totalIncome, breakdown.totalExpense).eitherOrNull {
+                appendln()
+            }
             breakdown.spendings.joinTo(buffer = this, separator = "\n", transform = {
                 it.second
             })

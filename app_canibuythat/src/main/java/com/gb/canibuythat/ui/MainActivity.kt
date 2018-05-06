@@ -52,19 +52,6 @@ class MainActivity : BaseActivity(), MainScreen, SpendingListFragment.FragmentCa
 
     private lateinit var permissionVerifier: PermissionVerifier
 
-    private fun estimateDateUpdater() {
-        createDatePickerDialog(this@MainActivity, userPreferences.estimateDate) { _, date ->
-            val balanceReading = userPreferences.balanceReading
-
-            if (balanceReading != null && balanceReading.date?.isAfter(date) == true) {
-                Toast.makeText(this@MainActivity,
-                        "Please set a date after the last balance " + "reading! (" + balanceReading.date + ")", Toast.LENGTH_SHORT).show()
-            } else {
-                userPreferences.estimateDate = date
-            }
-        }.show()
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         monzoDispatchPresenter.setScreen(this)
@@ -229,11 +216,24 @@ class MainActivity : BaseActivity(), MainScreen, SpendingListFragment.FragmentCa
                 estimateAtTime,
                 arrayOf(defoMaybeStr, targetDefoMaybeStr, "behave", estimateDateStr),
                 arrayOf(
-                        mainPresenter::getBalanceBreakdown,
-                        mainPresenter::getTargetBalanceBreakdown,
-                        mainPresenter::getTargetSavingBreakdown,
-                        this::estimateDateUpdater))
+                        mainPresenter::showBalanceBreakdown,
+                        mainPresenter::showTargetBalanceBreakdown,
+                        mainPresenter::showTargetSavingBreakdown,
+                        this::showEstimateDateUpdater))
 
+    }
+
+    private fun showEstimateDateUpdater() {
+        createDatePickerDialog(this@MainActivity, userPreferences.estimateDate) { _, date ->
+            val balanceReading = userPreferences.balanceReading
+
+            if (balanceReading != null && balanceReading.date?.isAfter(date) == true) {
+                Toast.makeText(this@MainActivity,
+                        "Please set a date after the last balance " + "reading! (" + balanceReading.date + ")", Toast.LENGTH_SHORT).show()
+            } else {
+                userPreferences.estimateDate = date
+            }
+        }.show()
     }
 
     override fun setTotalSaving(totalSaving: Double?) {

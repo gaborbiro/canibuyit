@@ -76,7 +76,7 @@ constructor(private val monzoInteractor: MonzoInteractor,
         })
     }
 
-    fun getBalanceBreakdown() {
+    fun showBalanceBreakdown() {
         getScreen().showBalanceBreakdown(spendingInteractor.getBalanceBreakdown())
     }
 
@@ -87,11 +87,11 @@ constructor(private val monzoInteractor: MonzoInteractor,
         } ?: let { getScreen().showToast("Unavailable") }
     }
 
-    fun getTargetBalanceBreakdown() {
+    fun showTargetBalanceBreakdown() {
         getScreen().showDialog("Target balance breakdown", spendingInteractor.getTargetBalanceBreakdown())
     }
 
-    fun getTargetSavingBreakdown() {
+    fun showTargetSavingBreakdown() {
         getScreen().showDialog("Saved by keeping targets", spendingInteractor.getTargetSavingBreakdown())
     }
 

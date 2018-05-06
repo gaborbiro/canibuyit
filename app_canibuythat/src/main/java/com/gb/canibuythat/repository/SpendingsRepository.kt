@@ -272,7 +272,7 @@ constructor(private val dao: Dao<ApiSpending, Int>,
                 ApiSpending.Category.values()
                         .map { Pair(it, calculateBalanceForCategory(it, startDate, endDate)) }
                         .filter { (it.second.targetDefinitely - it.second.definitely) != 0f || (it.second.targetMaybeEvenThisMuch - it.second.maybeEvenThisMuch) != 0f }
-                        .sortedBy { it.second.targetDefinitely }
+                        .sortedByDescending { Math.abs(it.second.targetDefinitely) }
                         .joinTo(buffer = buffer, separator = "\n", transform = {
                             val name = it.first.name.substring(0, Math.min(12, it.first.name.length)).toLowerCase().capitalize()
                             val definitely = it.second.targetDefinitely - it.second.definitely
