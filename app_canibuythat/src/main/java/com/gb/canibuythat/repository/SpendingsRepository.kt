@@ -167,19 +167,17 @@ constructor(private val dao: Dao<ApiSpending, Int>,
      * Fetch projection and target projection
      */
     fun getBalance(): Single<Balance> {
-        try {
+        return try {
             val balance = calculateBalanceForCategory(null, startDate = prefs.balanceReading?.date, endDate = prefs.estimateDate)
             prefs.balanceReading?.let { reading ->
-                balance.definitely += reading.balance
-                balance.maybeEvenThisMuch += reading.balance
-                balance.targetDefinitely += reading.balance
-                balance.targetMaybeEvenThisMuch += reading.balance
+                balance.amount += reading.balance
+                balance.target += reading.balance
             }
-            return Single.just(balance)
+            Single.just(balance)
         } catch (e: IllegalArgumentException) {
-            return Single.error(DomainException("Date of balance reading must not come after date of target estimate", e))
+            Single.error(DomainException("Date of balance reading must not come after date of target estimate", e))
         } catch (e: Throwable) {
-            return Single.error(e)
+            Single.error(e)
         }
     }
 
@@ -197,26 +195,24 @@ constructor(private val dao: Dao<ApiSpending, Int>,
             try {
                 ApiSpending.Category.values()
                         .map { Pair(it, calculateBalanceForCategory(it, startDate, endDate)) }
-                        .filter { it.second.definitely != 0f || it.second.maybeEvenThisMuch != 0f }
-                        .sortedByDescending { Math.abs(it.second.definitely) }
+                        .filter { it.second.amount != 0f }
+                        .sortedByDescending { Math.abs(it.second.amount) }
                         .forEach {
                             val category = it.first
-                            val balance = it.second
+                            val balance = it.second.amount
                             val name = category.name.substring(0, Math.min(10, category.name.length)).toLowerCase().capitalize()
-                            val definitely = balance.definitely
-                            val maybe = balance.maybeEvenThisMuch
-                            val amount: String = if (definitely == maybe) "%1\$.0f".format(definitely) else "%1\$.0f/%2\$.0f".format(definitely, maybe)
+                            val amount: String = "%1\$.0f".format(balance)
 
                             result.add(Pair(category, if (category != ApiSpending.Category.INCOME) {
-                                val percent = definitely / totalExpense.definitely * 100
+                                val percent = balance / totalExpense.amount * 100
                                 "%1\$s: %2\$s (%3\$.1f%%)".format(name, amount, percent)
                             } else {
                                 "%1\$s: %2\$s".format(name, amount)
                             }))
                         }
                 val totalIncome = calculateBalanceForCategory(ApiSpending.Category.INCOME, startDate = startDate, endDate = endDate)
-                totalIncomeStr = "Tots. in: ${totalIncome.definitely}/${totalIncome.maybeEvenThisMuch}"
-                totalExpenseStr = "Tots. out: ${totalExpense.definitely}/${totalExpense.maybeEvenThisMuch}"
+                totalIncomeStr = "Tots. in: ${totalIncome.amount}"
+                totalExpenseStr = "Tots. out: ${totalExpense.amount}"
             } catch (e: Throwable) {
                 throw DomainException("Error calculating balance breakdown", e)
             }
@@ -233,20 +229,18 @@ constructor(private val dao: Dao<ApiSpending, Int>,
         prefs.balanceReading?.let { balanceReading ->
             val startDate = balanceReading.date
             val endDate = prefs.estimateDate
-            val total = calculateTotalBalanceExceptForCategory(ApiSpending.Category.INCOME, startDate = startDate, endDate = endDate).targetDefinitely
+            val total = calculateTotalBalanceExceptForCategory(ApiSpending.Category.INCOME, startDate = startDate, endDate = endDate).target
             try {
                 ApiSpending.Category.values()
                         .map { Pair(it, calculateBalanceForCategory(it, startDate, endDate)) }
-                        .filter { it.second.targetDefinitely != 0f || it.second.targetMaybeEvenThisMuch != 0f }
-                        .sortedBy { it.second.targetDefinitely }
+                        .filter { it.second.target != 0f }
+                        .sortedBy { it.second.target }
                         .joinTo(buffer = buffer, separator = "\n", transform = {
                             val name = it.first.name.substring(0, Math.min(12, it.first.name.length)).toLowerCase().capitalize()
-                            val definitely = it.second.targetDefinitely
-                            val maybe = it.second.targetMaybeEvenThisMuch
-                            val amount = if (definitely == maybe) "%1\$.0f".format(definitely) else "%1\$.0f/%2\$.0f".format(definitely, maybe)
+                            val amount = "%1\$.0f".format(it.second.target)
 
                             if (it.first != ApiSpending.Category.INCOME) {
-                                val percent = definitely.div(total).times(100)
+                                val percent = it.second.target.div(total).times(100)
                                 "%1\$s: %2\$s (%3\$.1f%%)".format(name, amount, percent)
                             } else {
                                 "%1\$s: %2\$s".format(name, amount)
@@ -271,28 +265,26 @@ constructor(private val dao: Dao<ApiSpending, Int>,
             try {
                 ApiSpending.Category.values()
                         .map { Pair(it, calculateBalanceForCategory(it, startDate, endDate)) }
-                        .filter { (it.second.targetDefinitely - it.second.definitely) != 0f || (it.second.targetMaybeEvenThisMuch - it.second.maybeEvenThisMuch) != 0f }
-                        .sortedByDescending { Math.abs(it.second.targetDefinitely) }
+                        .filter { (it.second.target - it.second.amount) != 0f }
+                        .sortedByDescending { Math.abs(it.second.target) }
                         .joinTo(buffer = buffer, separator = "\n", transform = {
                             val name = it.first.name.substring(0, Math.min(12, it.first.name.length)).toLowerCase().capitalize()
-                            val definitely = it.second.targetDefinitely - it.second.definitely
-                            val maybe = it.second.targetMaybeEvenThisMuch - it.second.maybeEvenThisMuch
-                            val amount = if (definitely == maybe) "%1\$.0f".format(definitely) else "%1\$.0f/%2\$.0f".format(definitely, maybe)
-                            if (definitely > 0 && maybe > 0) {
-                                "%1\$s: %2\$s".format(name, amount)
+                            val amount = it.second.target - it.second.amount
+                            val amountStr = "%1\$.0f".format(amount)
+                            if (amount > 0) {
+                                "%1\$s: %2\$s".format(name, amountStr)
                             } else {
                                 hasNegAmounts = true
-                                "%1\$s: %2\$s*".format(name, amount)
+                                "%1\$s: %2\$s*".format(name, amountStr)
                             }
                         })
             } catch (e: IllegalArgumentException) {
                 throw DomainException("Date of balance reading must not come after date of target estimate", e)
             }
             val balance = calculateTotalBalanceExceptForCategory(ApiSpending.Category.INCOME, startDate = startDate, endDate = endDate)
-            val definitely = balance.targetDefinitely - balance.definitely
-            val maybe = balance.targetMaybeEvenThisMuch - balance.maybeEvenThisMuch
+            val amount = balance.target - balance.amount
             buffer.append("\n-----------------\nTotal: ")
-            buffer.append("%1\$.0f/%2\$.0f".format(definitely, maybe))
+            buffer.append("%1\$.0f".format(amount))
             if (hasNegAmounts) {
                 buffer.append("\n\n*Negative value means the average has fallen below the target. Time to adjust the target?")
             }
@@ -309,11 +301,10 @@ constructor(private val dao: Dao<ApiSpending, Int>,
             var index = 0
             balance.spendingEvents?.joinTo(buffer = buffer, separator = "\n", transform = {
                 index++
-                val amount = if (it.definitely == it.maybe) "${it.definitely}" else "${it.definitely}/${it.maybe}"
                 if (endDate > it.end) {
-                    "$index. ${it.start.formatDayMonth()} - ${it.end.formatDayMonthYear()} ($amount)"
+                    "$index. ${it.start.formatDayMonth()} - ${it.end.formatDayMonthYear()} (${it.amount})"
                 } else {
-                    "$index. ${it.start.formatDayMonth()}( - ${it.end.formatDayMonthYear()}) ($amount)"
+                    "$index. ${it.start.formatDayMonth()}( - ${it.end.formatDayMonthYear()}) (${it.amount})"
                 }
             }).toString()
         }
@@ -344,14 +335,12 @@ constructor(private val dao: Dao<ApiSpending, Int>,
 
     private fun calculateBalance(builder: Where<ApiSpending, Int>, startDate: LocalDate?, endDate: LocalDate): Balance {
         val spendingEvents = mutableListOf<SpendingEvent>()
-        val balance = Balance(0f, 0f, 0f, 0f, 0f, 0f, null)
+        val balance = Balance(0f, 0f, null)
         dao.query(builder.prepare()).forEach { spending ->
-            val (definitely, maybeEvenThisMuch, _, targetDefinitely, targetMaybeEvenThisMuch, _, spendingEventsOut)
+            val (amount, target, spendingEventsOut)
                     = BalanceCalculator.getEstimatedBalance(mapper.map(spending), startDate, endDate)
-            balance.definitely += definitely
-            balance.maybeEvenThisMuch += maybeEvenThisMuch
-            balance.targetDefinitely += targetDefinitely
-            balance.targetMaybeEvenThisMuch += targetMaybeEvenThisMuch
+            balance.amount += amount
+            balance.target += target
             spendingEventsOut?.forEach {
                 spendingEvents.add(it)
             }

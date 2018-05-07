@@ -1,6 +1,8 @@
 package com.gb.canibuythat.repository
 
+import com.gb.canibuythat.db.model.ApiSpending
 import com.gb.canibuythat.model.*
+import com.gb.canibuythat.util.overlap
 import java.time.LocalDate
 
 object BalanceCalculator {
@@ -19,13 +21,12 @@ object BalanceCalculator {
         if (start != null && end < start) {
             throw IllegalArgumentException("Start date must come before end date!")
         }
+        if (!spending.enabled) {
+            return Balance(0f, 0f, emptyArray())
+        }
         var `break` = false
-        var definitely = 0f
-        var maybe = 0f
-        var targetDefinitely = 0f
-        var targetMaybe = 0f
-        var balance = 0f
-        var targetBalance = 0f
+        var target = 0f
+        var total = 0f
         var occurrenceCount = 0
         val spendingEvents = mutableListOf<SpendingEvent>()
         var movingStart = spending.fromStartDate
@@ -33,22 +34,14 @@ object BalanceCalculator {
         var counter = 0
         do {
             if (start == null || movingEnd >= start) {
-                val target = spending.target?.let { if (it > 0) -it.toFloat() else it.toFloat() }
+                val targetIncrement = spending.target?.let { -Math.abs(it).toFloat() }
                         ?: spending.value.toFloat()
                 if (end >= movingStart) {
-                    if (spending.enabled) {
-                        maybe += spending.value.toFloat()
-                        targetMaybe += target
-                    }
-                    if (end > movingEnd) {
-                        if (spending.enabled) {
-                            definitely += spending.value.toFloat()
-                            targetDefinitely += target
-                            balance += spending.value.toFloat()
-                            targetBalance += target
-                        }
-                    }
-                    spendingEvents.add(SpendingEvent(movingStart, movingEnd, definitely, maybe))
+                    val overlap = Pair(Pair(start ?: spending.fromStartDate, end.plusDays(1)), Pair(movingStart, movingEnd.plusDays(1))).overlap(ApiSpending.Cycle.DAYS)
+                    val fraction = overlap / Pair(movingStart, movingEnd.plusDays(1)).span(ApiSpending.Cycle.DAYS)
+                    target += fraction * targetIncrement
+                    total += fraction * spending.value.toFloat()
+                    spendingEvents.add(SpendingEvent(movingStart, movingEnd, total))
                 } else {
                     `break` = true
                 }
@@ -62,6 +55,6 @@ object BalanceCalculator {
                 }
             }
         } while (!`break`)
-        return Balance(definitely, maybe, balance, targetDefinitely, targetMaybe, targetBalance, spendingEvents.toTypedArray())
+        return Balance(total, target, spendingEvents.toTypedArray())
     }
 }

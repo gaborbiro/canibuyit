@@ -155,7 +155,8 @@ fun Pair<LocalDate, LocalDate>.span(cycle: ApiSpending.Cycle): Float = when (cyc
 
 internal fun LocalDate.getProlepticMonth() = this.year * 12 + (this.monthValue - 1)
 
-fun ApiSpending.Cycle.ordinal(date: LocalDate): Int = when (this) {
+fun ApiSpending.Cycle.ordinal(date: LocalDate)
+        : Int = when (this) {
     DAYS -> date.toEpochDay().toInt()
     WEEKS -> (date.with(DayOfWeek.MONDAY).toEpochDay() / 7).toInt()
     MONTHS -> date.year * 12 + date.monthValue

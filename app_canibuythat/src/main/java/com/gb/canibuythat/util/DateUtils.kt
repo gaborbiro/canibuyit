@@ -1,5 +1,7 @@
 package com.gb.canibuythat.util
 
+import com.gb.canibuythat.db.model.ApiSpending
+import com.gb.canibuythat.model.span
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -27,3 +29,9 @@ fun LocalDate.formatDayMonthYearWithPrefix(): String {
 }
 
 fun LocalDate.formatDayMonth(): String = DateTimeFormatter.ofPattern("dd.MMM").format(this)
+
+fun min(date1: LocalDate, date2: LocalDate) = if (date1 < date2) date1 else date2
+fun max(date1: LocalDate, date2: LocalDate) = if (date1 > date2) date1 else date2
+
+fun Pair<Pair<LocalDate, LocalDate>, Pair<LocalDate, LocalDate>>.overlap(cycle: ApiSpending.Cycle) =
+        Pair(max(this.first.first, this.second.first), min(this.first.second, this.second.second)).span(cycle)

@@ -208,8 +208,8 @@ class MainActivity : BaseActivity(), MainScreen, SpendingListFragment.FragmentCa
         var defoMaybeStr = "?"
         var targetDefoMaybeStr = "?"
         if (balance != null) {
-            defoMaybeStr = getString(R.string.definitely_maybe, balance.definitely, balance.maybeEvenThisMuch)
-            targetDefoMaybeStr = getString(R.string.definitely_maybe, balance.targetDefinitely, balance.targetMaybeEvenThisMuch)
+            defoMaybeStr = getString(R.string.amount_formatted, balance.amount)
+            targetDefoMaybeStr = getString(R.string.amount_formatted, balance.target)
         }
         val estimateAtTime = getString(R.string.estimate_at_date, defoMaybeStr, estimateDateStr, targetDefoMaybeStr)
         projection_lbl.setTextWithLinks(
