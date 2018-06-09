@@ -1,107 +1,66 @@
 package com.gb.canibuythat.fcm
 
-import android.app.NotificationManager
-import android.app.PendingIntent
-import android.content.Context
-import android.content.Intent
-import android.media.RingtoneManager
-import android.support.v4.app.NotificationCompat
 import android.util.Log
 import com.gb.canibuythat.ACCOUNT_ID_PREPAID
 import com.gb.canibuythat.ACCOUNT_ID_RETAIL
-import com.gb.canibuythat.R
 import com.gb.canibuythat.TRANSACTION_HISTORY_LENGTH_MONTHS
 import com.gb.canibuythat.di.Injector
 import com.gb.canibuythat.fcm.model.FcmMonzoData
 import com.gb.canibuythat.interactor.MonzoInteractor
-import com.gb.canibuythat.interactor.SpendingInteractor
+import com.gb.canibuythat.notification.LocalNotificationManager
 import com.gb.canibuythat.repository.MonzoMapper
-import com.gb.canibuythat.ui.MainActivity
+import com.gb.canibuythat.util.formatEventTime
+import com.gb.canibuythat.util.midnight
+import com.gb.canibuythat.util.millisUntil
+import com.gb.canibuythat.util.parseEventDateTime
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.google.gson.Gson
-import io.reactivex.disposables.Disposable
+import java.time.LocalDateTime
+import java.time.LocalTime
 import javax.inject.Inject
 
 class MonzoDispatchMessagingService : FirebaseMessagingService() {
 
     @field:[Inject] lateinit var monzoInteractor: MonzoInteractor
-    @field:[Inject] lateinit var spendingInteractor: SpendingInteractor
     @field:[Inject] lateinit var monzoMapper: MonzoMapper
-
-    private var disposable: Disposable? = null
+    @field:[Inject] lateinit var localNotificationManager: LocalNotificationManager
 
     init {
         Injector.INSTANCE.graph.inject(this)
     }
 
-    override fun onMessageReceived(remoteMessage: RemoteMessage?) {
-        Log.d(TAG, "From: " + remoteMessage!!.from)
-        remoteMessage.notification?.let { Log.d(TAG, "Message notification payload: " + it.body) }
+    override fun onMessageReceived(remoteMessage: RemoteMessage) {
+        Log.d(TAG, "From: " + remoteMessage.from)
+        remoteMessage.notification?.let { Log.d(TAG, "Notification: ${it.title} ${it.body}") }
         remoteMessage.data?.let {
-            Log.d(TAG, "Message data payload: " + it)
+            Log.d(TAG, "Data: $it")
             if (it.containsKey("monzo_data")) {
-                val category =  Gson().fromJson(it["monzo_data"], FcmMonzoData::class.java)?.data?.let {
+                val category = Gson().fromJson(it["monzo_data"], FcmMonzoData::class.java)?.data?.let {
                     monzoMapper.mapToTransaction(it).category
                 }
-                category?.let { showSpendingInNotification(it.toString()) }
+                category?.let { localNotificationManager.showSpendingInNotification(it.toString()) }
+                monzoInteractor.loadSpendings(listOf(ACCOUNT_ID_PREPAID, ACCOUNT_ID_RETAIL), TRANSACTION_HISTORY_LENGTH_MONTHS)
             }
-            if (it.containsKey("notification")) {
-                val notification = Gson().fromJson(it["notification"], Notification::class.java)
-                sendNotification(notification.title, notification.body)
-                showSpendingInNotification(notification.body)
+            if (it.containsKey("event")) {
+                val event = Gson().fromJson(it["event"], Event::class.java)
+                val eventDateTime = parseEventDateTime(event.start)
+
+                if (eventDateTime.isAfter(midnight()) && eventDateTime.hour < 10) {
+                    val alarmTime = LocalDateTime.of(eventDateTime.toLocalDate(), LocalTime.MIDNIGHT).minusHours(3)
+                    localNotificationManager.scheduleEventNotification(alarmTime.millisUntil(), "Event: " + event.title, eventDateTime.formatEventTime(), event.url)
+                }
             }
-            monzoInteractor.loadSpendings(listOf(ACCOUNT_ID_PREPAID, ACCOUNT_ID_RETAIL), TRANSACTION_HISTORY_LENGTH_MONTHS)
         }
-    }
-
-    private fun showSpendingInNotification(category: String) {
-        disposable?.dispose()
-        disposable = spendingInteractor.getSpendingsDataStream().subscribe({
-            if (!it.loading && !it.hasError()) {
-                spendingInteractor.getByMonzoCategory(category).subscribe({ spending ->
-                    val spent = Math.abs(spending.spent ?: 0.0)
-                    spending.target?.let {
-                        val progress: Float = (spent / Math.abs(it)).toFloat() * 100
-                        sendNotification(spending.name, ("%.0f%%(%.0f/%.0f)").format(progress, spent, it))
-                    } ?: let {
-//                        sendNotification(spending.name!!, "£%.0f".format(spent))
-                    }
-                }, {})
-                disposable?.dispose()
-            }
-        }, {
-            disposable?.dispose()
-        })
-    }
-
-    /**
-     * Create and show a simple notification containing the received FCM message.
-
-     * @param messageBody FCM message body received.
-     */
-    private fun sendNotification(title: String, messageBody: String) {
-        val intent = Intent(this, MainActivity::class.java)
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-        val pendingIntent = PendingIntent.getActivity(this, 0 /* Request code */, intent,
-                PendingIntent.FLAG_ONE_SHOT)
-
-        val defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
-        val notificationBuilder = NotificationCompat.Builder(this)
-                .setSmallIcon(R.drawable.piggybank)
-                .setContentTitle(title)
-                .setContentText(messageBody)
-                .setAutoCancel(true)
-                .setSound(defaultSoundUri)
-                .setContentIntent(pendingIntent)
-
-        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.notify("Monzo", 0, notificationBuilder.build())
     }
 
     companion object {
         private val TAG = "MonzoDispatch"
     }
 
-    data class Notification(val title: String, val body: String)
+    data class Event(val title: String,
+                     val start: String,
+                     val description: String,
+                     val where: String,
+                     val url: String)
 }
