@@ -20,7 +20,7 @@ class DatePickerButton : AppCompatButton {
         get() {
             if (datePickerDialog != null) {
                 val datePicker = datePickerDialog!!.datePicker
-                return LocalDate.of(datePicker.year, datePicker.month, datePicker.dayOfMonth)
+                return LocalDate.of(datePicker.year, datePicker.month + 1, datePicker.dayOfMonth)
             }
             return originalDate
         }

@@ -10,7 +10,7 @@ const val TRANSACTION_HISTORY_LENGTH_MONTHS = 6L
 
 // Auth
 
-const val MONZO_OAUTH_URL = "https://auth.getmondo.co.uk"
+const val MONZO_OAUTH_URL = "https://auth.monzo.com"
 const val MONZO_OAUTH_PARAM_AUTHORIZATION_CODE = "code"
 
 // Callbacks
