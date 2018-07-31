@@ -33,6 +33,15 @@ fun LocalDate.formatDayMonthYearWithPrefix(): String {
     }.format(this)
 }
 
+fun LocalDateTime.formatEventTimePrefix(): String {
+    val dayNumberSuffix = SUFFIXES[dayOfMonth]
+    return if (year == LocalDate.now().year) {
+        DateTimeFormatter.ofPattern("'$dayNumberSuffix of' MMM, HH:mm")
+    } else {
+        DateTimeFormatter.ofPattern("'$dayNumberSuffix of' MMM, yyyy, HH:mm")
+    }.format(this)
+}
+
 fun parseEventDateTime(dateTime: String) = LocalDateTime.parse(dateTime, FORMAT_SERVER_EVENT_TIME)
 
 fun LocalDateTime.formatEventTime() = this.format(FORMAT_EVENT_TIME)

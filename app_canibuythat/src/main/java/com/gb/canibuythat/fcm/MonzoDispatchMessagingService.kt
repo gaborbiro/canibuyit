@@ -9,10 +9,7 @@ import com.gb.canibuythat.fcm.model.FcmMonzoData
 import com.gb.canibuythat.interactor.MonzoInteractor
 import com.gb.canibuythat.notification.LocalNotificationManager
 import com.gb.canibuythat.repository.MonzoMapper
-import com.gb.canibuythat.util.formatEventTime
-import com.gb.canibuythat.util.midnight
-import com.gb.canibuythat.util.millisUntil
-import com.gb.canibuythat.util.parseEventDateTime
+import com.gb.canibuythat.util.*
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.google.gson.Gson
@@ -49,6 +46,7 @@ class MonzoDispatchMessagingService : FirebaseMessagingService() {
                 if (eventDateTime.isAfter(midnight()) && eventDateTime.hour < 10) {
                     val alarmTime = LocalDateTime.of(eventDateTime.toLocalDate(), LocalTime.MIDNIGHT).minusHours(3)
                     localNotificationManager.scheduleEventNotification(alarmTime.millisUntil(), "Event: " + event.title, eventDateTime.formatEventTime(), event.url)
+                    localNotificationManager.showSimpleNotification("Event notification scheduled: " + event.title, eventDateTime.formatEventTimePrefix())
                 }
             }
         }
