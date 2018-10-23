@@ -119,7 +119,6 @@ class Spending(var id: Int? = null,
         return true
     }
 
-
     val isPersisted
         get() = id != null
 }
@@ -155,8 +154,11 @@ fun Pair<LocalDate, LocalDate>.span(cycle: ApiSpending.Cycle): Float = when (cyc
 
 internal fun LocalDate.getProlepticMonth() = this.year * 12 + (this.monthValue - 1)
 
+/**
+ * Determines the number of cycles between epoch and the specified date
+ */
 fun ApiSpending.Cycle.ordinal(date: LocalDate)
-        : Int = when (this) {
+    : Int = when (this) {
     DAYS -> date.toEpochDay().toInt()
     WEEKS -> (date.with(DayOfWeek.MONDAY).toEpochDay() / 7).toInt()
     MONTHS -> date.year * 12 + date.monthValue

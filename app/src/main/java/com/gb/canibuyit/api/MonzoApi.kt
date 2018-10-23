@@ -20,12 +20,12 @@ interface MonzoApi {
 
     @FormUrlEncoded
     @POST("/webhooks")
-    fun registerWebhook(@Field("account_id") accountId: String,
+    fun registerWebHook(@Field("account_id") accountId: String,
                         @Field("url") url: String): Completable
 
     @GET("/webhooks")
-    fun getWebhooks(@Query("account_id") accountId: String): Single<ApiWebhooks>
+    fun getWebHooks(@Query("account_id") accountId: String): Single<ApiWebhooks>
 
     @DELETE("/webhooks/{id}")
-    fun deleteWebhook(@Path("id") webhookId: String): Completable
+    fun deleteWebHook(@Path("id") webHookId: String): Completable
 }

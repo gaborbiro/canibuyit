@@ -16,7 +16,7 @@ class ProgressDialog : BaseDialogFragment() {
     }
 
     companion object {
-        const val EXTRA_MESSAGE = "message"
+        private const val EXTRA_MESSAGE = "message"
 
         fun newInstance(message: String) = ProgressDialog().apply {
             arguments = Bundle().apply {

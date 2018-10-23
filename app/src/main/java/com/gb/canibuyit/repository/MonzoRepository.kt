@@ -6,7 +6,6 @@ import com.gb.canibuyit.MONZO_URI_AUTH_CALLBACK
 import com.gb.canibuyit.api.BaseFormDataApi
 import com.gb.canibuyit.api.MonzoApi
 import com.gb.canibuyit.api.MonzoAuthApi
-import com.gb.canibuyit.api.model.ApiTransaction
 import com.gb.canibuyit.db.model.ApiSpending
 import com.gb.canibuyit.interactor.ProjectInteractor
 import com.gb.canibuyit.model.Login
@@ -32,65 +31,68 @@ class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi,
 
     fun login(authorizationCode: String): Single<Login> {
         return monzoAuthApi.login("authorization_code",
-                code = authorizationCode,
-                redirectUri = MONZO_URI_AUTH_CALLBACK,
-                clientId = CLIENT_ID,
-                clientSecret = CLIENT_SECRET)
-                .map(mapper::mapToLogin)
+            code = authorizationCode,
+            redirectUri = MONZO_URI_AUTH_CALLBACK,
+            clientId = CLIENT_ID,
+            clientSecret = CLIENT_SECRET)
+            .map(mapper::mapToLogin)
     }
 
     @Suppress("NAME_SHADOWING")
     fun getSpendings(accountIds: List<String>, since: LocalDate? = null): Single<List<Spending>> {
-        return Observable.create<ApiTransaction> { emitter ->
-            accountIds.forEach {
-                val t = monzoApi.transactions(
-                        it,
-                        since?.let { FORMAT_RFC3339.format(it.atStartOfDay(ZoneId.systemDefault())) }
-                ).blockingGet().transactions
-                t.forEach { emitter.onNext(it) }
-            }
-            emitter.onComplete()
-        }.filter {
-            it.amount != 0
-        }.map {
-            mapper.mapToTransaction(it)
-        }.toList().map { transactions ->
-            Logger.d("MonzoRepository", "${transactions.size} transactions loaded")
-            val projectSettings = projectInteractor.getProject().blockingGet()
-            val savedSpendings = spendingsRepository.all.blockingGet().groupBy { it.sourceData?.get(ApiSpending.SOURCE_MONZO_CATEGORY) }
-            transactions.groupBy(Transaction::category).mapNotNull { (category, transactionsForThatCategory) ->
-                val savedSpending = savedSpendings[category.toString()]?.get(0)
-//                var transactionsForThatCategory = transactionsForThatCategory
-//                savedSpending?.let {
-//                    transactionsForThatCategory = transactionsForThatCategory.filter { !it.created.isBefore(savedSpending.fromStartDate.toZDT()) }
-//                }
-                if (transactionsForThatCategory.isEmpty()) {
-                    savedSpending?.let {
-                        it.value = 0.0
-                        it.enabled = false
-                        it
-                    } ?: let { null }
-                } else {
-                    savedSpending?.let {
-                        if (it.value == 0.0 && !it.enabled) {
-                            it.enabled = true
-                        }
+        val sinceStr = since?.let { FORMAT_RFC3339.format(it.atStartOfDay(ZoneId.systemDefault())) }
+
+        return Observable.just(accountIds) // -> Observable<List<String>>
+            .flatMapIterable { x -> x } // -> Observable<String>
+            .map { accountId ->
+                monzoApi.transactions(accountId = accountId, since = sinceStr) // -> Single<ApiTransactions>
+                    .map { apiTransactions -> apiTransactions.transactions.toList() } // -> Single<List<ApiTransaction>>
+            } // -> Observable<Single<Array<ApiTransaction>>>
+            .flatMapSingle { x -> x } // -> Observable<List<ApiTransaction>>
+            .flatMapIterable { x -> x } // -> Observable<ApiTransaction>
+            .filter { it.amount != 0 && it.decline_reason.isNullOrEmpty() }
+            .map { mapper.mapToTransaction(it) } // -> Observable<Transaction>
+            .toList() // -> Single<MutableList<Transaction>>
+            .map { transactions ->
+                Logger.d("MonzoRepository", "${transactions.size} valid transactions loaded")
+
+                return@map transactions
+                    .groupBy(Transaction::category)
+                    .mapNotNull { (category, transactionsForThatCategory) ->
+                        val projectSettings = projectInteractor.getProject().blockingGet()
+                        val savedSpendings = spendingsRepository.all.blockingGet().groupBy { it.sourceData?.get(ApiSpending.SOURCE_MONZO_CATEGORY) }
+
+                        val savedSpending = savedSpendings[category.toString()]?.get(0)
+                        checkForMissingSpending(savedSpending, !transactionsForThatCategory.isEmpty())
+                        return@mapNotNull mapper.mapToSpending(category, transactionsForThatCategory, savedSpending, projectSettings, since)
                     }
-                    mapper.mapToSpending(category, transactionsForThatCategory, savedSpending, projectSettings, since)
+            }
+    }
+
+    private fun checkForMissingSpending(savedSpending: Spending?, hasTransactions: Boolean) {
+        if (hasTransactions) {
+            savedSpending?.apply {
+                if (value == 0.0 && !enabled) {
+                    enabled = true
                 }
             }
+        } else {
+            savedSpending?.apply {
+                value = 0.0
+                enabled = false
+            } ?: let { null }
         }
     }
 
-    fun registerWebhook(accountId: String, url: String): Completable {
-        return monzoApi.registerWebhook(accountId, url)
+    fun registerWebHook(accountId: String, url: String): Completable {
+        return monzoApi.registerWebHook(accountId, url)
     }
 
-    fun getWebhooks(accountId: String): Single<Webhooks> {
-        return monzoApi.getWebhooks(accountId).map(mapper::mapToWebhooks)
+    fun getWebHooks(accountId: String): Single<Webhooks> {
+        return monzoApi.getWebHooks(accountId).map(mapper::mapToWebhooks)
     }
 
-    fun deleteWebhook(webhookId: String): Completable {
-        return monzoApi.deleteWebhook(webhookId)
+    fun deleteWebHook(webHookId: String): Completable {
+        return monzoApi.deleteWebHook(webHookId)
     }
 }

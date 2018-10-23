@@ -61,19 +61,19 @@ constructor(private val schedulerProvider: SchedulerProvider,
     }
 
     fun registerWebhook(accountId: String, url: String): Completable {
-        return onErrorPrep(monzoRepository.registerWebhook(accountId, url)
+        return onErrorPrep(monzoRepository.registerWebHook(accountId, url)
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread()))
     }
 
     fun getWebhooks(accountId: String): Single<Webhooks> {
-        return onErrorPrep(monzoRepository.getWebhooks(accountId)
+        return onErrorPrep(monzoRepository.getWebHooks(accountId)
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread()))
     }
 
     fun deleteWebhook(webhook: Webhook): Completable {
-        return onErrorPrep(monzoRepository.deleteWebhook(webhook.id)
+        return onErrorPrep(monzoRepository.deleteWebHook(webhook.id)
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread()))
     }
