@@ -57,6 +57,7 @@ class BalanceBreakdownDialog : PromptDialog() {
                     toString(),
                     breakdown.spendings.map { it.second }.toTypedArray(),
                     breakdown.spendings.map { { (activity as Callback).onBalanceBreakdownItemClicked(it.first) } }.toTypedArray())
+            updateTitleVisibility()
         }
     }
 }

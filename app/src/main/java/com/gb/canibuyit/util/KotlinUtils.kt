@@ -23,6 +23,8 @@ fun View.hide() {
     this.visibility = View.GONE
 }
 
+fun View.visible() = this.visibility != View.GONE
+
 inline fun <reified T> Gson.fromJson(json: String): T = this.fromJson<T>(json, object: TypeToken<T>() {}.type)
 
 fun <A, B> Pair<A?, B?>.eitherOrNull(action: (Pair<A, B>) -> Unit) =

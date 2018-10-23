@@ -17,6 +17,7 @@ class InputDialog : BaseDialogFragment() {
         arguments?.getString(EXTRA_TITLE)?.let { setTitle(it) }
         arguments?.getString(EXTRA_CURRENT_INPUT)?.let { text_input.setText(it) }
         text_input.show()
+        updateTitleVisibility()
 
         super.setPositiveButton(btnStringResId) {
             dismiss()

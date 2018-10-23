@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import com.gb.canibuyit.R
 import com.gb.canibuyit.util.hide
 import com.gb.canibuyit.util.show
+import com.gb.canibuyit.util.visible
 import kotlinx.android.synthetic.main.prompt_dialog_layout.*
 
 open class BaseDialogFragment : DialogFragment() {
@@ -23,8 +24,8 @@ open class BaseDialogFragment : DialogFragment() {
     }
 
     fun setTitle(title: String): BaseDialogFragment {
-        this.title.text = title
-        this.title.show()
+        dialog_title.text = title
+        updateTitleVisibility()
         return this
     }
 
@@ -39,12 +40,14 @@ open class BaseDialogFragment : DialogFragment() {
     fun setMessage(body: String): BaseDialogFragment {
         this.message.text = body
         this.message.show()
+        updateTitleVisibility()
         return this
     }
 
     fun setBigMessage(body: String): BaseDialogFragment {
         this.big_message.text = body
         this.big_message_container.show()
+        updateTitleVisibility()
         return this
     }
 
@@ -54,6 +57,21 @@ open class BaseDialogFragment : DialogFragment() {
         button.show()
         progress_bar.hide()
         return this
+    }
+
+    protected fun updateTitleVisibility() {
+        if (!dialog_title.text.isNullOrBlank()) {
+            dialog_title.show()
+
+            if (message.visible() || big_message_container.visible() || text_input.visible()) {
+                title_bottom_divider.show()
+            } else {
+                title_bottom_divider.hide()
+            }
+        } else {
+            dialog_title.hide()
+            title_bottom_divider.hide()
+        }
     }
 
     override fun show(manager: FragmentManager, tag: String?) {
