@@ -24,11 +24,30 @@ class MonzoMapper @Inject constructor() {
 
     fun mapToTransaction(apiTransaction: ApiTransaction): Transaction {
         val noteCategory = if (!apiTransaction.notes.isEmpty())
-            ApiSpending.Category.values().firstOrNull { apiTransaction.notes.replace("-", "_").contains(it.toString(), ignoreCase = true) }
+            ApiSpending.Category.values().firstOrNull {
+                val noteCategoryStr = apiTransaction.notes.replace("-", "_")
+                noteCategoryStr.equals(it.toString(), ignoreCase = true)
+                    || noteCategoryStr.contains(it.toString() + " ", ignoreCase = true)
+                    || noteCategoryStr.contains(it.toString() + "_", ignoreCase = true)
+            }
         else
             null
-        val category = mapApiCategory(noteCategory?.toString()?.toLowerCase()
+        var category = mapApiCategory(noteCategory?.toString()?.toLowerCase()
             ?: apiTransaction.category)
+
+        if (category == ApiSpending.Category.OTHER) {
+            if (!apiTransaction.description.isEmpty()) {
+                ApiSpending.Category.values().firstOrNull {
+                    val noteCategoryStr = apiTransaction.description.replace("-", "_")
+                    noteCategoryStr.equals(it.toString(), ignoreCase = true)
+                        || noteCategoryStr.contains(it.toString() + " ", ignoreCase = true)
+                        || noteCategoryStr.contains(it.toString() + "_", ignoreCase = true)
+                }?.let {
+                    category = mapApiCategory(it.toString())
+                }
+            }
+        }
+
         val description = apiTransaction.description + if (apiTransaction.notes.isNotEmpty()) "\n" + apiTransaction.notes else ""
         return Transaction(apiTransaction.amount,
             ZonedDateTime.parse(apiTransaction.created),
@@ -124,6 +143,7 @@ class MonzoMapper @Inject constructor() {
             "shopping" -> ApiSpending.Category.LUXURY
             "holidays" -> ApiSpending.Category.VACATION
             "groceries" -> ApiSpending.Category.GROCERIES
+            "pot" -> ApiSpending.Category.SAVINGS
             else -> {
                 try {
                     ApiSpending.Category.valueOf(apiCategory.replace("-", "_").toUpperCase())

@@ -56,32 +56,16 @@ class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi,
             .map { transactions ->
                 Logger.d("MonzoRepository", "${transactions.size} valid transactions loaded")
 
-                return@map transactions
+                val map = transactions
                     .groupBy(Transaction::category)
-                    .mapNotNull { (category, transactionsForThatCategory) ->
-                        val projectSettings = projectInteractor.getProject().blockingGet()
-                        val savedSpendings = spendingsRepository.all.blockingGet().groupBy { it.sourceData?.get(ApiSpending.SOURCE_MONZO_CATEGORY) }
+                return@map map.mapNotNull { (category, transactionsForThatCategory) ->
+                    val projectSettings = projectInteractor.getProject().blockingGet()
+                    val savedSpendings = spendingsRepository.all.blockingGet().groupBy { it.sourceData?.get(ApiSpending.SOURCE_MONZO_CATEGORY) }
 
-                        val savedSpending = savedSpendings[category.toString()]?.get(0)
-                        checkForMissingSpending(savedSpending, !transactionsForThatCategory.isEmpty())
-                        return@mapNotNull mapper.mapToSpending(category, transactionsForThatCategory, savedSpending, projectSettings, since)
-                    }
-            }
-    }
-
-    private fun checkForMissingSpending(savedSpending: Spending?, hasTransactions: Boolean) {
-        if (hasTransactions) {
-            savedSpending?.apply {
-                if (value == 0.0 && !enabled) {
-                    enabled = true
+                    val savedSpending = savedSpendings[category.toString()]?.get(0)
+                    return@mapNotNull mapper.mapToSpending(category, transactionsForThatCategory, savedSpending, projectSettings, since)
                 }
             }
-        } else {
-            savedSpending?.apply {
-                value = 0.0
-                enabled = false
-            } ?: let { null }
-        }
     }
 
     fun registerWebHook(accountId: String, url: String): Completable {

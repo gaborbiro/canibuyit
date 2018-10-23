@@ -61,7 +61,7 @@ class ApiSpending(
         SELF_IMPROVEMENT, SPORTS_RECREATION, TAX, TRANSPORTATION, UTILITIES, VACATION,
         GIFTS_RECEIVED, INCOME(defaultEnabled = false), FINES,
         ONLINE_SERVICES, LUXURY, CASH, SAVINGS, EXPENSES(defaultEnabled = false), OTHER,
-        TOP_UP;
+        TOP_UP, POT;
 
         override fun toString(): String {
             return name.toLowerCase()

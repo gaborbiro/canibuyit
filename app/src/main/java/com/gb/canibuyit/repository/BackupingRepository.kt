@@ -32,12 +32,12 @@ constructor(private val spendingDBHelper: SpendingDBHelper) {
         try {
             db = spendingDBHelper.getDatabaseFromFile(file)
         } catch (e: SQLiteException) {
-            return Completable.error(Exception("Cannot open database from " + file, e))
+            return Completable.error(Exception("Cannot open database from $file", e))
         }
         try {
             cursor = spendingDBHelper.getAllSpendings(db)
         } catch (e: SQLException) {
-            return Completable.error(Exception("Error reading " + file, e))
+            return Completable.error(Exception("Error reading $file", e))
         }
         try {
             spendingDBHelper.insertSpendings(cursor, filter)
