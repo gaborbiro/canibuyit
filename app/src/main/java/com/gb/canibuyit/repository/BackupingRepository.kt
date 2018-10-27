@@ -26,7 +26,7 @@ constructor(private val spendingDBHelper: SpendingDBHelper) {
         return importSpendings(file, SpendingDBHelper.FILTER_NON_MONZO)
     }
 
-    fun importSpendings(file: String, filter: Map<String, Any?>?): Completable {
+    private fun importSpendings(file: String, filter: Map<String, Any?>?): Completable {
         val db: SQLiteDatabase
         val cursor: Cursor
         try {

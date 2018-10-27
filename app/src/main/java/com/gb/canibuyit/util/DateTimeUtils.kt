@@ -48,6 +48,8 @@ fun LocalDateTime.formatEventTime() = this.format(FORMAT_EVENT_TIME)
 
 fun LocalDate.formatDayMonth(): String = DateTimeFormatter.ofPattern("dd.MMM").format(this)
 
+fun LocalDateTime.formatSimpleDateTime() = DateTimeFormatter.ofPattern("dd.MMM HH:mm").format(this)
+
 fun min(date1: LocalDate, date2: LocalDate) = if (date1 < date2) date1 else date2
 fun max(date1: LocalDate, date2: LocalDate) = if (date1 > date2) date1 else date2
 

@@ -15,8 +15,6 @@ interface MainScreen : MonzoDispatchScreen {
 
     fun setBalanceInfo(balance: Balance?)
 
-    fun setTotalSaving(totalSaving: Double?)
-
     fun showPickerForImport(directory: String, spendingsImportType: SpendingsImportType)
 
     fun showBalanceUpdateDialog()
@@ -34,4 +32,6 @@ interface MainScreen : MonzoDispatchScreen {
     fun showBalanceBreakdown(breakdown: BalanceBreakdown)
 
     fun sendFCMTokenToServer()
+
+    fun setLastUpdate(lastUpdate: String)
 }

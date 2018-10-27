@@ -1,7 +1,16 @@
 package com.gb.canibuyit.presenter
 
 import android.content.Intent
-import com.gb.canibuyit.*
+import com.gb.canibuyit.ACCOUNT_ID_PREPAID
+import com.gb.canibuyit.ACCOUNT_ID_RETAIL
+import com.gb.canibuyit.BACKUP_FOLDER
+import com.gb.canibuyit.CredentialsProvider
+import com.gb.canibuyit.MONZO_AUTH_AUTHORITY
+import com.gb.canibuyit.MONZO_AUTH_PATH_BASE
+import com.gb.canibuyit.MONZO_AUTH_PATH_CALLBACK
+import com.gb.canibuyit.MONZO_OAUTH_PARAM_AUTHORIZATION_CODE
+import com.gb.canibuyit.TRANSACTION_HISTORY_LENGTH_MONTHS
+import com.gb.canibuyit.UserPreferences
 import com.gb.canibuyit.db.model.ApiSpending
 import com.gb.canibuyit.exception.DomainException
 import com.gb.canibuyit.interactor.BackupingInteractor
@@ -10,6 +19,7 @@ import com.gb.canibuyit.interactor.ProjectInteractor
 import com.gb.canibuyit.interactor.SpendingInteractor
 import com.gb.canibuyit.screen.MainScreen
 import com.gb.canibuyit.util.Logger
+import com.gb.canibuyit.util.formatSimpleDateTime
 import io.reactivex.functions.Consumer
 import java.time.LocalDateTime
 import javax.inject.Inject
@@ -26,13 +36,6 @@ constructor(private val monzoInteractor: MonzoInteractor,
         disposeOnFinish(spendingInteractor.getSpendingsDataStream().subscribe({
             if (it.loading) getScreen().showProgress() else getScreen().hideProgress()
             if (!it.loading && !it.hasError()) {
-                it.content?.mapNotNull { it.savings }?.toTypedArray()?.flatten()?.sumByDouble { it.amount }.let {
-                    if (it != 0.0) {
-                        getScreen().setTotalSaving(it)
-                    } else {
-                        getScreen().setTotalSaving(null)
-                    }
-                }
                 fetchBalance()
             }
         }, this::onError))
@@ -64,13 +67,17 @@ constructor(private val monzoInteractor: MonzoInteractor,
 
     private fun fetchBalance() {
         disposeOnFinish(spendingInteractor.getBalance()
-                .doOnSubscribe { getScreen().showProgress() }
-                .doAfterTerminate { getScreen().hideProgress() }
-                .subscribe(getScreen()::setBalanceInfo,
-                        {
-                            getScreen().setBalanceInfo(null)
-                            this.onError(DomainException("Cannot calculate balance. See logs", it))
-                        }))
+            .doOnSubscribe { getScreen().showProgress() }
+            .doAfterTerminate {
+                getScreen().hideProgress()
+                getScreen().setLastUpdate(userPreferences.lastUpdate?.formatSimpleDateTime()
+                    ?: "never")
+            }
+            .subscribe(getScreen()::setBalanceInfo,
+                {
+                    getScreen().setBalanceInfo(null)
+                    this.onError(DomainException("Cannot calculate balance. See logs", it))
+                }))
         projectInteractor.getProject().subscribe(Consumer {
             getScreen().setTitle(it.projectName)
         })

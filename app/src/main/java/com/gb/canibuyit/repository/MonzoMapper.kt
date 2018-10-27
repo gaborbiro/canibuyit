@@ -6,8 +6,16 @@ import com.gb.canibuyit.api.model.ApiWebhook
 import com.gb.canibuyit.api.model.ApiWebhooks
 import com.gb.canibuyit.db.model.ApiSpending
 import com.gb.canibuyit.interactor.Project
-import com.gb.canibuyit.model.*
-import com.gb.canibuyit.util.nonNullAndTrue
+import com.gb.canibuyit.model.Login
+import com.gb.canibuyit.model.Saving
+import com.gb.canibuyit.model.SerializableMap
+import com.gb.canibuyit.model.Spending
+import com.gb.canibuyit.model.Transaction
+import com.gb.canibuyit.model.Webhook
+import com.gb.canibuyit.model.Webhooks
+import com.gb.canibuyit.model.lastCycleDay
+import com.gb.canibuyit.model.ordinal
+import com.gb.canibuyit.model.span
 import org.apache.commons.lang3.text.WordUtils
 import java.time.LocalDate
 import java.time.ZonedDateTime
@@ -56,59 +64,46 @@ class MonzoMapper @Inject constructor() {
             category)
     }
 
-    fun mapToSpending(category: ApiSpending.Category, transactions: List<Transaction>, savedSpending: Spending?, projectSettings: Project, since: LocalDate? = null): Spending? {
-        val cycle: ApiSpending.Cycle = nonNullAndTrue(savedSpending?.cycle, projectSettings.cyclePinned)
-            ?: getOptimalCycle(transactions)
+    fun mapToSpending(category: ApiSpending.Category, sortedTransactions: List<Transaction>, savedSpending: Spending?, projectSettings: Project): Spending? {
+        val categoryStr = WordUtils.capitalizeFully(category.toString().replace("\\_".toRegex(), " "))
+        val name: String = if (projectSettings.namePinned) (savedSpending?.name ?: categoryStr) else categoryStr
 
-        val transactionsGroupedByCycle: Map<Int, List<Transaction>> = transactions.groupBy { cycle.ordinal(it.created.toLocalDate()) }
-        var savings: List<Saving>? = transactionsGroupedByCycle.mapNotNull saving@{
-            val transactionsForCycle = it.value
-            val lastCycleDay = transactionsForCycle.maxBy(Transaction::created)?.created!!.toLocalDate().lastCycleDay(cycle)
+        val type: ApiSpending.Category = if (projectSettings.categoryPinned) (savedSpending?.type ?: category) else category
 
-            if (lastCycleDay <= LocalDate.now()) { // a cycle must end before its savings can be recorded
-                val target = getTarget(lastCycleDay, savedSpending?.targets)
-                val saving = target?.let { transactionsForCycle.sumBy(Transaction::amount).div(100.0).minus(target) }
-                if (saving != null) {
-                    return@saving Saving(null, savedSpending?.id, saving, lastCycleDay, target)
-                } else {
-                    return@saving null
-                }
-            } else {
-                return@saving null
+        val cycle: ApiSpending.Cycle = getCycle(sortedTransactions, savedSpending, projectSettings)
+
+        val cycleMultiplier: Int = if (projectSettings.cyclePinned) (savedSpending?.cycleMultiplier ?: 1) else 1
+
+        val average: Double = getAverage(sortedTransactions, cycle, cycleMultiplier, savedSpending, projectSettings)
+
+        val firstOccurrence: LocalDate = sortedTransactions[0].created.toLocalDate()
+
+        val fromEndDate: LocalDate = firstOccurrence.add(cycle, cycleMultiplier.toLong()).minusDays(1)
+
+        val (spent: Double, savings: List<Saving>?) = sortedTransactions.groupBy { cycle.ordinal(it.created.toLocalDate()) }
+            .let { transactionsGroupedByCycle: Map<Int, List<Transaction>> ->
+                val spent = transactionsGroupedByCycle[cycle.ordinal(LocalDate.now())]
+                    ?.sumBy(Transaction::amount)
+                    ?.div(100.0)
+                    ?: 0.0 // cents to pounds
+                val savings: List<Saving>? = getSavings(transactionsGroupedByCycle, cycle, savedSpending)
+                return@let Pair(spent, savings)
             }
-        }
-        if (savings?.isNotEmpty() == false) {
-            savings = null
-        }
 
-        val type = nonNullAndTrue(savedSpending?.type, projectSettings.categoryPinned) ?: category
-        val firstOccurrence: LocalDate = transactions.minBy { it.created }!!.created.toLocalDate()
-        val cycleMultiplier = nonNullAndTrue(savedSpending?.cycleMultiplier, projectSettings.cyclePinned)
-            ?: 1
-        val average = nonNullAndTrue(savedSpending?.value, projectSettings.averagePinned)
-            ?: transactions
-                .sumBy { it.amount }
-                .div(Pair(since
-                    ?: transactions.minBy { it.created }!!.created.toLocalDate(), LocalDate.now()).span(cycle) / cycleMultiplier)
-                .div(100.0) // cents to pounds
         return Spending(
             id = savedSpending?.id,
-            targets = nonNullAndTrue(savedSpending?.targets),
-            name = nonNullAndTrue(savedSpending?.name, projectSettings.namePinned)
-                ?: WordUtils.capitalizeFully(category.toString().replace("\\_".toRegex(), " ")),
-            notes = nonNullAndTrue(savedSpending?.notes),
+            targets = savedSpending?.targets,
+            name = name,
+            notes = savedSpending?.notes,
             type = type,
             value = average,
-            fromStartDate = nonNullAndTrue(savedSpending?.fromStartDate, projectSettings.whenPinned)
-                ?: firstOccurrence,
-            fromEndDate = nonNullAndTrue(savedSpending?.fromEndDate, projectSettings.whenPinned)
-                ?: firstOccurrence.add(cycle, cycleMultiplier.toLong()).minusDays(1),
-            occurrenceCount = nonNullAndTrue(savedSpending?.occurrenceCount),
+            fromStartDate = if (projectSettings.whenPinned) (savedSpending?.fromStartDate ?: firstOccurrence) else firstOccurrence,
+            fromEndDate = if (projectSettings.whenPinned) (savedSpending?.fromEndDate ?: fromEndDate) else fromEndDate,
+            occurrenceCount = savedSpending?.occurrenceCount,
             cycleMultiplier = cycleMultiplier,
             cycle = cycle,
-            enabled = nonNullAndTrue(savedSpending?.enabled) ?: type.defaultEnabled,
-            spent = transactionsGroupedByCycle[cycle.ordinal(LocalDate.now())]?.sumBy { it.amount }?.div(100.0)
-                ?: 0.0, // cents to pounds
+            enabled = savedSpending?.enabled ?: type.defaultEnabled,
+            spent = spent,
             savings = savings?.toTypedArray(),
             sourceData = SerializableMap<String, String>().apply { put(ApiSpending.SOURCE_MONZO_CATEGORY, category.name.toLowerCase()) })
     }
@@ -154,13 +149,51 @@ class MonzoMapper @Inject constructor() {
         }
     }
 
-    private fun getOptimalCycle(transactions: List<Transaction>): ApiSpending.Cycle {
+    private fun getCycle(sortedTransactions: List<Transaction>, savedSpending: Spending?, projectSettings: Project): ApiSpending.Cycle {
+        val optimalCycle = getOptimalCycle(sortedTransactions)
+        return if (projectSettings.cyclePinned) (savedSpending?.cycle
+            ?: optimalCycle) else optimalCycle
+    }
+
+    private fun getSavings(transactionsGroupedByCycle: Map<Int, List<Transaction>>, cycle: ApiSpending.Cycle, savedSpending: Spending?): List<Saving>? {
+        val savings = transactionsGroupedByCycle.mapNotNull saving@{
+            val transactionsForCycle = it.value
+            val lastCycleDay = transactionsForCycle.maxBy(Transaction::created)?.created!!.toLocalDate().lastCycleDay(cycle)
+
+            if (lastCycleDay <= LocalDate.now()) { // a cycle must end before its savings can be recorded
+                val target = getTarget(lastCycleDay, savedSpending?.targets)
+                val saving = target?.let { transactionsForCycle.sumBy(Transaction::amount).div(100.0).minus(target) }
+                if (saving != null) {
+                    return@saving Saving(null, savedSpending?.id, saving, lastCycleDay, target)
+                } else {
+                    return@saving null
+                }
+            } else {
+                return@saving null
+            }
+        }
+        return if (savings.isNotEmpty()) {
+            savings
+        } else {
+            null
+        }
+    }
+
+    private fun getAverage(sortedTransactions: List<Transaction>, cycle: ApiSpending.Cycle, cycleMultiplier: Int, savedSpending: Spending?, projectSettings: Project): Double {
+        val savedAverage = if (projectSettings.averagePinned) savedSpending?.value else null
+        return savedAverage ?: sortedTransactions
+            .sumBy(Transaction::amount)
+            .div(Pair(sortedTransactions[0].created.toLocalDate(), LocalDate.now()).span(cycle) / cycleMultiplier)
+            .div(100.0) // cents to pounds
+    }
+
+    private fun getOptimalCycle(sortedTransactions: List<Transaction>): ApiSpending.Cycle {
         var highestDistanceDays = 0L
-        val sortedDates = transactions.sortedBy { it.created }.map { it.created.toLocalDate() }
+        val sortedDates = sortedTransactions.map { it.created.toLocalDate().toEpochDay() }
         var distance: Long = 0
 
         sortedDates.indices.forEach { i ->
-            if (i > 0 && { distance = sortedDates[i].toEpochDay() - sortedDates[i - 1].toEpochDay(); distance }() > highestDistanceDays) {
+            if (i > 0 && { distance = sortedDates[i] - sortedDates[i - 1]; distance }() > highestDistanceDays) {
                 highestDistanceDays = distance
             }
         }

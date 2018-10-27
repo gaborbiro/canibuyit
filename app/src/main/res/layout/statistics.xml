@@ -1,39 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                                             xmlns:app="http://schemas.android.com/apk/res-auto"
-                                             xmlns:tools="http://schemas.android.com/tools"
-                                             android:layout_height="wrap_content"
-                                             android:layout_width="match_parent"
-                                             android:padding="@dimen/padding">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_height="wrap_content"
+    android:layout_width="match_parent"
+    android:paddingBottom="@dimen/double_padding"
+    android:paddingEnd="@dimen/padding"
+    android:paddingStart="@dimen/padding"
+    android:paddingTop="@dimen/padding">
 
     <TextView
         android:id="@+id/reference_lbl"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="@dimen/half_padding"
         android:layout_width="wrap_content"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:text="I had 1800 on 9th of Nov, 2017"/>
+        tools:text="I had 1800 on the 9th of Nov, 2017" />
 
     <TextView
-        android:id="@+id/saving_lbl"
+        android:id="@+id/last_update"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="@dimen/half_padding"
         android:layout_width="wrap_content"
-        android:lines="1"
+        android:text="Last update:"
+        android:textColor="@color/soba80"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:text="Saving: 445.88"/>
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/projection_lbl"
         android:layout_height="wrap_content"
-        android:layout_width="match_parent"
+        android:layout_marginTop="@dimen/double_padding"
+        android:layout_width="wrap_content"
         android:lineSpacingExtra="6dp"
-        android:gravity="end"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/reference_lbl"
-        tools:text="I'm going to have 9336/8471 on 9th of Nov, 2018"/>
+        app:layout_constraintTop_toBottomOf="@id/last_update"
+        tools:text="I'm going to have 9336/8471 on 9th of Nov, 2018" />
 </android.support.constraint.ConstraintLayout>

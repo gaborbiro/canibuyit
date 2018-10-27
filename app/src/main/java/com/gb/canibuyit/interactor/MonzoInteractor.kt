@@ -1,5 +1,6 @@
 package com.gb.canibuyit.interactor
 
+import com.gb.canibuyit.UserPreferences
 import com.gb.canibuyit.exception.DomainException
 import com.gb.canibuyit.exception.MonzoException
 import com.gb.canibuyit.model.Login
@@ -13,6 +14,7 @@ import io.reactivex.disposables.Disposable
 import io.reactivex.subjects.PublishSubject
 import io.reactivex.subjects.Subject
 import java.time.LocalDate
+import java.time.LocalDateTime
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -20,7 +22,8 @@ import javax.inject.Singleton
 class MonzoInteractor @Inject
 constructor(private val schedulerProvider: SchedulerProvider,
             private val monzoRepository: MonzoRepository,
-            private val spendingInteractor: SpendingInteractor) {
+            private val spendingInteractor: SpendingInteractor,
+            private val userPreferences: UserPreferences) {
 
     private val loginSubject: Subject<Lce<Login>> = PublishSubject.create<Lce<Login>>()
 
@@ -51,7 +54,10 @@ constructor(private val schedulerProvider: SchedulerProvider,
                 .doOnSubscribe {
                     spendingInteractor.getSpendingsDataStream().onNext(Lce.loading())
                 })
-                .subscribe(spendingInteractor::createOrUpdateMonzoCategories, { throwable ->
+                .subscribe({
+                    spendingInteractor.createOrUpdateMonzoCategories(it)
+                    userPreferences.lastUpdate = LocalDateTime.now()
+                }, { throwable ->
                     if (throwable is MonzoException && throwable.action == DomainException.Action.LOGIN) {
                         loginSubject.onNext(Lce.error(throwable))
                     } else {

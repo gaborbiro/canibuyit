@@ -20,7 +20,12 @@ import com.gb.canibuyit.presenter.MainPresenter
 import com.gb.canibuyit.presenter.MonzoDispatchPresenter
 import com.gb.canibuyit.screen.MainScreen
 import com.gb.canibuyit.screen.Screen
-import com.gb.canibuyit.util.*
+import com.gb.canibuyit.util.PermissionVerifier
+import com.gb.canibuyit.util.createDatePickerDialog
+import com.gb.canibuyit.util.formatDayMonthYearWithPrefix
+import com.gb.canibuyit.util.isToday
+import com.gb.canibuyit.util.setTextWithLink
+import com.gb.canibuyit.util.setTextWithLinks
 import com.google.firebase.iid.FirebaseInstanceId
 import kotlinx.android.synthetic.main.statistics.*
 import javax.inject.Inject
@@ -236,10 +241,6 @@ class MainActivity : BaseActivity(), MainScreen, SpendingListFragment.FragmentCa
         }.show()
     }
 
-    override fun setTotalSaving(totalSaving: Double?) {
-        saving_lbl.text = totalSaving?.let { getString(R.string.saving, it) }
-    }
-
     override fun showLoginActivity() {
         LoginActivity.show(this)
     }
@@ -283,11 +284,13 @@ class MainActivity : BaseActivity(), MainScreen, SpendingListFragment.FragmentCa
         monzoDispatchPresenter.sendFCMTokenToServer(token!!)
     }
 
-    companion object {
-        private val REQUEST_CODE_CHOOSE_FILE_MONZO = 1
-        private val REQUEST_CODE_CHOOSE_FILE_NON_MONZO = 2
-        private val REQUEST_CODE_CHOOSE_FILE_ALL = 3
-        private val REQUEST_CODE_PERMISSIONS_FOR_DB_EXPORT = 4
-        private val REQUEST_CODE_CHOOSE_FILE_EXPORT = 5
+    override fun setLastUpdate(lastUpdate: String) {
+        last_update?.text = "Last update: $lastUpdate"
     }
 }
+
+private const val REQUEST_CODE_CHOOSE_FILE_MONZO = 1
+private const val REQUEST_CODE_CHOOSE_FILE_NON_MONZO = 2
+private const val REQUEST_CODE_CHOOSE_FILE_ALL = 3
+private const val REQUEST_CODE_PERMISSIONS_FOR_DB_EXPORT = 4
+private const val REQUEST_CODE_CHOOSE_FILE_EXPORT = 5

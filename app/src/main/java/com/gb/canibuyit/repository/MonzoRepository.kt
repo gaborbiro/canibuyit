@@ -55,15 +55,13 @@ class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi,
             .toList() // -> Single<MutableList<Transaction>>
             .map { transactions ->
                 Logger.d("MonzoRepository", "${transactions.size} valid transactions loaded")
+                val projectSettings = projectInteractor.getProject().blockingGet()
+                val savedSpendings = spendingsRepository.all.blockingGet().groupBy { it.sourceData?.get(ApiSpending.SOURCE_MONZO_CATEGORY) }
 
-                val map = transactions
-                    .groupBy(Transaction::category)
-                return@map map.mapNotNull { (category, transactionsForThatCategory) ->
-                    val projectSettings = projectInteractor.getProject().blockingGet()
-                    val savedSpendings = spendingsRepository.all.blockingGet().groupBy { it.sourceData?.get(ApiSpending.SOURCE_MONZO_CATEGORY) }
+                return@map transactions.groupBy(Transaction::category).mapNotNull { (category, transactionsForThatCategory) ->
 
                     val savedSpending = savedSpendings[category.toString()]?.get(0)
-                    return@mapNotNull mapper.mapToSpending(category, transactionsForThatCategory, savedSpending, projectSettings, since)
+                    return@mapNotNull mapper.mapToSpending(category, transactionsForThatCategory, savedSpending, projectSettings)
                 }
             }
     }

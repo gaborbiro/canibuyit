@@ -6,6 +6,7 @@ import com.gb.canibuyit.util.PrefsUtil
 import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
 import java.time.LocalDate
+import java.time.LocalDateTime
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -50,6 +51,12 @@ constructor(private val prefsUtil: PrefsUtil) : SharedPreferences.OnSharedPrefer
         }
     }
 
+    var lastUpdate: LocalDateTime?
+        get() = prefsUtil.get(PREF_LAST_UPDATE, "").let {
+            if (it.isNotEmpty()) LocalDateTime.parse(it) else null
+        }
+        set(date) = prefsUtil.put(PREF_LAST_UPDATE, date.toString())
+
     fun clear() {
         prefsUtil.clear()
     }
@@ -57,5 +64,6 @@ constructor(private val prefsUtil: PrefsUtil) : SharedPreferences.OnSharedPrefer
     companion object {
         private const val PREF_ESTIMATE_DATE = "PREF_ESTIMATE_DATE"
         private const val PREF_READING = "PREF_READING"
+        private const val PREF_LAST_UPDATE = "PREF_LAST_UPDATE"
     }
 }

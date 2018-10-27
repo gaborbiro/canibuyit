@@ -4,10 +4,6 @@ import android.view.View
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
-fun <T> nonNullAndTrue(data: T?, flag: Boolean? = true): T? {
-    return if (data != null && flag == true) data else null
-}
-
 fun CharSequence.orNull(): CharSequence? = if (this.isEmpty()) null else this
 
 fun <A, B> Pair<A?, B?>.let(action: (pair: Pair<A?, B?>) -> Unit) {
