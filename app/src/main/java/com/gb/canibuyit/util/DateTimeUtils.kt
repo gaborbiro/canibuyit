@@ -56,6 +56,6 @@ fun max(date1: LocalDate, date2: LocalDate) = if (date1 > date2) date1 else date
 fun Pair<Pair<LocalDate, LocalDate>, Pair<LocalDate, LocalDate>>.overlap(cycle: ApiSpending.Cycle) =
         Pair(max(this.first.first, this.second.first), min(this.first.second, this.second.second)).span(cycle)
 
-fun midnight() = LocalDateTime.of(LocalDate.now(), LocalTime.MIDNIGHT)
+fun midnightOfToday() = LocalDateTime.of(LocalDate.now(), LocalTime.MIDNIGHT)
 
 fun LocalDateTime.millisUntil() = LocalDateTime.now().until(this, ChronoUnit.MILLIS)
