@@ -13,13 +13,12 @@ android {
         }
     }
 
-    compileSdkVersion 27
-    buildToolsVersion '27.0.3'
+    compileSdkVersion 28
 
     defaultConfig {
         applicationId "com.gb.canibuyit"
         minSdkVersion 26
-        targetSdkVersion 27
+        targetSdkVersion 28
         versionCode 1
         versionName "1.0"
         multiDexEnabled true
@@ -48,15 +47,15 @@ kapt {
     useBuildCache = true
 }
 
-final SUPPORT_LIBRARY = '27.1.0'
-final DAGGER = '2.10'
+final SUPPORT_LIBRARY = '28.0.0'
+final DAGGER = '2.19'
 final BUTTERKNIFE='8.8.1'
-final RETROFIT='2.3.0'
-final RETROFIT_RXJAVA2='2.3.0'
-final RXJAVA='2.1.0'
-final RXANDROID='2.0.2'
-final OK_HTTP='3.8.1'
-final CONSTRAINT_LAYOUT='1.1.0-beta5'
+final RETROFIT='2.5.0'
+final RETROFIT_RXJAVA2='2.5.0'
+final RXJAVA='2.2.4'
+final RXANDROID='2.1.0'
+final OK_HTTP='3.12.0'
+final CONSTRAINT_LAYOUT='2.0.0-alpha3'
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
@@ -92,10 +91,10 @@ dependencies {
     implementation "io.reactivex.rxjava2:rxandroid:${RXANDROID}"
 
     // apache commons-lang
-    implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'
+    implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.7'
 
     // kotlin
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 
     // Firebase Cloud Messaging
     implementation 'com.google.firebase:firebase-messaging:12.0.1'

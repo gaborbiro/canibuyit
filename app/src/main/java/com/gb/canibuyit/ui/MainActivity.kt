@@ -139,23 +139,25 @@ class MainActivity : BaseActivity(), MainScreen, SpendingListFragment.FragmentCa
         }
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
-        when (requestCode) {
-            REQUEST_CODE_CHOOSE_FILE_ALL -> if (resultCode == Activity.RESULT_OK) {
-                val path = data.getStringExtra(FileDialogActivity.EXTRA_RESULT_PATH)
-                mainPresenter.onImportSpendings(path, MainScreen.SpendingsImportType.ALL)
-            }
-            REQUEST_CODE_CHOOSE_FILE_MONZO -> if (resultCode == Activity.RESULT_OK) {
-                val path = data.getStringExtra(FileDialogActivity.EXTRA_RESULT_PATH)
-                mainPresenter.onImportSpendings(path, MainScreen.SpendingsImportType.MONZO)
-            }
-            REQUEST_CODE_CHOOSE_FILE_NON_MONZO -> if (resultCode == Activity.RESULT_OK) {
-                val path = data.getStringExtra(FileDialogActivity.EXTRA_RESULT_PATH)
-                mainPresenter.onImportSpendings(path, MainScreen.SpendingsImportType.NON_MONZO)
-            }
-            REQUEST_CODE_CHOOSE_FILE_EXPORT -> if (resultCode == Activity.RESULT_OK) {
-                val path = data.getStringExtra(FileDialogActivity.EXTRA_RESULT_PATH)
-                mainPresenter.onExportSpendings(path)
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (data != null) {
+            when (requestCode) {
+                REQUEST_CODE_CHOOSE_FILE_ALL -> if (resultCode == Activity.RESULT_OK) {
+                    val path = data.getStringExtra(FileDialogActivity.EXTRA_RESULT_PATH)
+                    mainPresenter.onImportSpendings(path, MainScreen.SpendingsImportType.ALL)
+                }
+                REQUEST_CODE_CHOOSE_FILE_MONZO -> if (resultCode == Activity.RESULT_OK) {
+                    val path = data.getStringExtra(FileDialogActivity.EXTRA_RESULT_PATH)
+                    mainPresenter.onImportSpendings(path, MainScreen.SpendingsImportType.MONZO)
+                }
+                REQUEST_CODE_CHOOSE_FILE_NON_MONZO -> if (resultCode == Activity.RESULT_OK) {
+                    val path = data.getStringExtra(FileDialogActivity.EXTRA_RESULT_PATH)
+                    mainPresenter.onImportSpendings(path, MainScreen.SpendingsImportType.NON_MONZO)
+                }
+                REQUEST_CODE_CHOOSE_FILE_EXPORT -> if (resultCode == Activity.RESULT_OK) {
+                    val path = data.getStringExtra(FileDialogActivity.EXTRA_RESULT_PATH)
+                    mainPresenter.onExportSpendings(path)
+                }
             }
         }
         super.onActivityResult(requestCode, resultCode, data)
@@ -186,7 +188,8 @@ class MainActivity : BaseActivity(), MainScreen, SpendingListFragment.FragmentCa
                     arguments.putInt(SpendingEditorFragment.EXTRA_SPENDING_ID, spendingId)
                     detailFragment.arguments = arguments
                 }
-                supportFragmentManager.beginTransaction().replace(R.id.spending_editor_container, detailFragment).commit()
+                supportFragmentManager.beginTransaction()
+                        .replace(R.id.spending_editor_container, detailFragment).commit()
             } else {
                 // if a detail fragment is already visible
                 spendingEditorFragment.saveAndRun(Runnable { spendingEditorFragment.showSpending(spendingId) })
@@ -234,7 +237,8 @@ class MainActivity : BaseActivity(), MainScreen, SpendingListFragment.FragmentCa
 
             if (balanceReading != null && balanceReading.date?.isAfter(date) == true) {
                 Toast.makeText(this@MainActivity,
-                        "Please set a date after the last balance " + "reading! (" + balanceReading.date + ")", Toast.LENGTH_SHORT).show()
+                        "Please set a date after the last balance " + "reading! (" + balanceReading.date + ")", Toast.LENGTH_SHORT)
+                        .show()
             } else {
                 userPreferences.estimateDate = date
             }
@@ -253,7 +257,8 @@ class MainActivity : BaseActivity(), MainScreen, SpendingListFragment.FragmentCa
         if (TextUtils.isEmpty(text)) {
             Toast.makeText(this@MainActivity, "Add some spendings", Toast.LENGTH_SHORT).show()
         } else {
-            PromptDialog.bigMessageDialog(title, text).setPositiveButton(android.R.string.ok, null).show(supportFragmentManager, null)
+            PromptDialog.bigMessageDialog(title, text).setPositiveButton(android.R.string.ok, null)
+                    .show(supportFragmentManager, null)
         }
     }
 
@@ -267,7 +272,8 @@ class MainActivity : BaseActivity(), MainScreen, SpendingListFragment.FragmentCa
 
     override fun setProjectName(currentName: String?) {
         val inputDialog = InputDialog.newInstance("Project name", currentName)
-        inputDialog.setPositiveButton(R.string.save) { _ -> mainPresenter.setProjectName(inputDialog.input) }.show(supportFragmentManager, null)
+        inputDialog.setPositiveButton(R.string.save) { _ -> mainPresenter.setProjectName(inputDialog.input) }
+                .show(supportFragmentManager, null)
     }
 
     override fun onBalanceBreakdownItemClicked(category: ApiSpending.Category) {
