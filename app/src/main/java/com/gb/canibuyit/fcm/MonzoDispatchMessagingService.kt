@@ -54,7 +54,8 @@ class MonzoDispatchMessagingService : FirebaseMessagingService() {
         val eventEndTime = parseEventDateTime(event.end)
 
         if (isEarlyEvent(eventStartTime, eventEndTime)) {
-            val alarmTime = LocalDateTime.of(eventStartTime.toLocalDate(), LocalTime.MIDNIGHT).minusHours(3)
+            val alarmTime = LocalDateTime.of(eventStartTime.toLocalDate(), LocalTime.MIDNIGHT)
+                    .minusHours(3)
             localNotificationManager.scheduleEventNotification(alarmTime.millisUntil(), "Event: " + event.title, eventStartTime.formatEventTime(), event.url)
 //            localNotificationManager.showSimpleNotification("Event notification scheduled: " + event.title, eventStartTime.formatEventTimePrefix())
         }

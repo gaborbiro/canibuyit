@@ -31,11 +31,11 @@ class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi,
 
     fun login(authorizationCode: String): Single<Login> {
         return monzoAuthApi.login("authorization_code",
-            code = authorizationCode,
-            redirectUri = MONZO_URI_AUTH_CALLBACK,
-            clientId = CLIENT_ID,
-            clientSecret = CLIENT_SECRET)
-            .map(mapper::mapToLogin)
+                code = authorizationCode,
+                redirectUri = MONZO_URI_AUTH_CALLBACK,
+                clientId = CLIENT_ID,
+                clientSecret = CLIENT_SECRET)
+                .map(mapper::mapToLogin)
     }
 
     @Suppress("NAME_SHADOWING")
@@ -43,27 +43,29 @@ class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi,
         val sinceStr = since?.let { FORMAT_RFC3339.format(it.atStartOfDay(ZoneId.systemDefault())) }
 
         return Observable.just(accountIds) // -> Observable<List<String>>
-            .flatMapIterable { x -> x } // -> Observable<String>
-            .map { accountId ->
-                monzoApi.transactions(accountId = accountId, since = sinceStr) // -> Single<ApiTransactions>
-                    .map { apiTransactions -> apiTransactions.transactions.toList() } // -> Single<List<ApiTransaction>>
-            } // -> Observable<Single<Array<ApiTransaction>>>
-            .flatMapSingle { x -> x } // -> Observable<List<ApiTransaction>>
-            .flatMapIterable { x -> x } // -> Observable<ApiTransaction>
-            .filter { it.amount != 0 && it.decline_reason.isNullOrEmpty() }
-            .map { mapper.mapToTransaction(it) } // -> Observable<Transaction>
-            .toList() // -> Single<MutableList<Transaction>>
-            .map { transactions ->
-                Logger.d("MonzoRepository", "${transactions.size} valid transactions loaded")
-                val projectSettings = projectInteractor.getProject().blockingGet()
-                val savedSpendings = spendingsRepository.all.blockingGet().groupBy { it.sourceData?.get(ApiSpending.SOURCE_MONZO_CATEGORY) }
+                .flatMapIterable { x -> x } // -> Observable<String>
+                .map { accountId ->
+                    monzoApi.transactions(accountId = accountId, since = sinceStr) // -> Single<ApiTransactions>
+                            .map { apiTransactions -> apiTransactions.transactions.toList() } // -> Single<List<ApiTransaction>>
+                } // -> Observable<Single<Array<ApiTransaction>>>
+                .flatMapSingle { x -> x } // -> Observable<List<ApiTransaction>>
+                .flatMapIterable { x -> x } // -> Observable<ApiTransaction>
+                .filter { it.amount != 0 && it.decline_reason.isNullOrEmpty() }
+                .map { mapper.mapToTransaction(it) } // -> Observable<Transaction>
+                .toList() // -> Single<MutableList<Transaction>>
+                .map { transactions ->
+                    Logger.d("MonzoRepository", "${transactions.size} valid transactions loaded")
+                    val projectSettings = projectInteractor.getProject().blockingGet()
+                    val savedSpendings = spendingsRepository.all.blockingGet()
+                            .groupBy { it.sourceData?.get(ApiSpending.SOURCE_MONZO_CATEGORY) }
 
-                return@map transactions.groupBy(Transaction::category).mapNotNull { (category, transactionsForThatCategory) ->
+                    return@map transactions.groupBy(Transaction::category)
+                            .mapNotNull { (category, transactionsForThatCategory) ->
 
-                    val savedSpending = savedSpendings[category.toString()]?.get(0)
-                    return@mapNotNull mapper.mapToSpending(category, transactionsForThatCategory, savedSpending, projectSettings)
+                                val savedSpending = savedSpendings[category.toString()]?.get(0)
+                                return@mapNotNull mapper.mapToSpending(category, transactionsForThatCategory, savedSpending, projectSettings)
+                            }
                 }
-            }
     }
 
     fun registerWebHook(accountId: String, url: String): Completable {

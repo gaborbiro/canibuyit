@@ -1,8 +1,7 @@
 package com.gb.canibuyit.model
 
 import java.io.Serializable
-import java.util.*
-
+import java.util.HashMap
 
 class SerializableMap<K, V> : HashMap<K, V>(), Serializable {
     companion object {

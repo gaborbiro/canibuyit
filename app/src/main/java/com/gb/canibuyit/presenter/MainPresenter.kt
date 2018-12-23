@@ -67,17 +67,17 @@ constructor(private val monzoInteractor: MonzoInteractor,
 
     private fun fetchBalance() {
         disposeOnFinish(spendingInteractor.getBalance()
-            .doOnSubscribe { getScreen().showProgress() }
-            .doAfterTerminate {
-                getScreen().hideProgress()
-                getScreen().setLastUpdate(userPreferences.lastUpdate?.formatSimpleDateTime()
-                    ?: "never")
-            }
-            .subscribe(getScreen()::setBalanceInfo,
-                {
-                    getScreen().setBalanceInfo(null)
-                    this.onError(DomainException("Cannot calculate balance. See logs", it))
-                }))
+                .doOnSubscribe { getScreen().showProgress() }
+                .doAfterTerminate {
+                    getScreen().hideProgress()
+                    getScreen().setLastUpdate(userPreferences.lastUpdate?.formatSimpleDateTime()
+                            ?: "never")
+                }
+                .subscribe(getScreen()::setBalanceInfo,
+                        {
+                            getScreen().setBalanceInfo(null)
+                            this.onError(DomainException("Cannot calculate balance. See logs", it))
+                        }))
         projectInteractor.getProject().subscribe(Consumer {
             getScreen().setTitle(it.projectName)
         })
@@ -141,7 +141,8 @@ constructor(private val monzoInteractor: MonzoInteractor,
     }
 
     fun onExportSpendings(path: String) {
-        backupingInteractor.exportSpendings(path).subscribe({ getScreen().showToast("Database exported") }, this::onError)
+        backupingInteractor.exportSpendings(path)
+                .subscribe({ getScreen().showToast("Database exported") }, this::onError)
     }
 
     private fun getSuggestedExportPath(projectName: String?): String {

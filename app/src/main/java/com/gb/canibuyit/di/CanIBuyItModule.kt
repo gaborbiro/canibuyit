@@ -19,10 +19,10 @@ class CanIBuyItModule {
     @Provides
     fun provideContext(application: Application): Context = application.applicationContext
 
-
     @Provides
     @Singleton
-    fun provideSchedulerProvider(schedulerProvider: SchedulerProviderImpl): SchedulerProvider = schedulerProvider
+    fun provideSchedulerProvider(schedulerProvider: SchedulerProviderImpl): SchedulerProvider =
+        schedulerProvider
 
     @Provides
     fun provideProjectDao(spendingDBHelper: SpendingDBHelper): Dao<ApiProject, Int> {

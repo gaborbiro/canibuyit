@@ -1,6 +1,10 @@
 package com.gb.canibuyit.notification
 
-import android.app.*
+import android.app.AlarmManager
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.media.RingtoneManager
@@ -18,10 +22,9 @@ import com.gb.canibuyit.ui.MainActivity
 import io.reactivex.disposables.Disposable
 import javax.inject.Inject
 
-
 class LocalNotificationManager @Inject constructor(
-        private val applicationContext: Context,
-        private val spendingInteractor: SpendingInteractor) {
+    private val applicationContext: Context,
+    private val spendingInteractor: SpendingInteractor) {
 
     private val notificationManager: NotificationManager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     private val notificationColor: Int = ContextCompat.getColor(applicationContext, R.color.primary)

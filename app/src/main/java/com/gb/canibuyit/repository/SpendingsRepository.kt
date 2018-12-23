@@ -71,11 +71,11 @@ constructor(private val dao: Dao<ApiSpending, Int>,
         return Completable.create { emitter ->
             val savedMonzoSpendings = dao.queryForAll().map(mapper::map)
             val savedCategories: MutableList<String?> = savedMonzoSpendings
-                .mapNotNull { it.sourceData }
-                .filter { it.containsKey(ApiSpending.SOURCE_MONZO_CATEGORY) }
-                .sortedBy { it[ApiSpending.SOURCE_MONZO_CATEGORY] }
-                .map { it[ApiSpending.SOURCE_MONZO_CATEGORY] }
-                .toMutableList()
+                    .mapNotNull { it.sourceData }
+                    .filter { it.containsKey(ApiSpending.SOURCE_MONZO_CATEGORY) }
+                    .sortedBy { it[ApiSpending.SOURCE_MONZO_CATEGORY] }
+                    .map { it[ApiSpending.SOURCE_MONZO_CATEGORY] }
+                    .toMutableList()
             try {
                 remoteSpendings.forEach {
                     val remoteMonzoCategory = it.sourceData!![ApiSpending.SOURCE_MONZO_CATEGORY]
@@ -91,11 +91,12 @@ constructor(private val dao: Dao<ApiSpending, Int>,
                         dao.create(apiSpending)
                     }
                 }
-                savedMonzoSpendings.filter { savedCategories.contains(it.type.toString()) && it.enabled }.forEach {
-                    it.enabled = false
-                    it.value = 0.0
-                    dao.update(mapper.map(it))
-                }
+                savedMonzoSpendings.filter { savedCategories.contains(it.type.toString()) && it.enabled }
+                        .forEach {
+                            it.enabled = false
+                            it.value = 0.0
+                            dao.update(mapper.map(it))
+                        }
                 emitter.onComplete()
             } catch (e: SQLException) {
                 emitter.onError(Exception("Error creating/updating monzo spendings", e))
@@ -151,18 +152,18 @@ constructor(private val dao: Dao<ApiSpending, Int>,
         return Observable.create<Spending> { emitter ->
             try {
                 dao.queryForAll()
-                    .map {
-                        Pair<ApiSpending, Map<String, String>?>(
-                            it,
-                            it.sourceData?.let {
-                                gson.fromJson<Map<String, String>>(it)
-                            })
-                    }
-                    .filter {
-                        it.second?.get(ApiSpending.SOURCE_MONZO_CATEGORY)?.equals(category)
-                            ?: false
-                    }
-                    .forEach { emitter.onNext(mapper.map(it.first)) }
+                        .map {
+                            Pair<ApiSpending, Map<String, String>?>(
+                                    it,
+                                    it.sourceData?.let {
+                                        gson.fromJson<Map<String, String>>(it)
+                                    })
+                        }
+                        .filter {
+                            it.second?.get(ApiSpending.SOURCE_MONZO_CATEGORY)?.equals(category)
+                                    ?: false
+                        }
+                        .forEach { emitter.onNext(mapper.map(it.first)) }
                 emitter.onComplete()
             } catch (e: SQLException) {
                 emitter.onError(e)
@@ -201,22 +202,23 @@ constructor(private val dao: Dao<ApiSpending, Int>,
             val totalExpense = calculateTotalBalanceExceptForCategory(ApiSpending.Category.INCOME, startDate = startDate, endDate = endDate)
             try {
                 ApiSpending.Category.values()
-                    .map { Pair(it, calculateBalanceForCategory(it, startDate, endDate)) }
-                    .filter { it.second.amount != 0f }
-                    .sortedByDescending { Math.abs(it.second.amount) }
-                    .forEach {
-                        val category = it.first
-                        val balance = it.second.amount
-                        val name = category.name.substring(0, Math.min(10, category.name.length)).toLowerCase().capitalize()
-                        val amount: String = "%1\$.0f".format(balance)
+                        .map { Pair(it, calculateBalanceForCategory(it, startDate, endDate)) }
+                        .filter { it.second.amount != 0f }
+                        .sortedByDescending { Math.abs(it.second.amount) }
+                        .forEach {
+                            val category = it.first
+                            val balance = it.second.amount
+                            val name = category.name.substring(0, Math.min(10, category.name.length))
+                                    .toLowerCase().capitalize()
+                            val amount: String = "%1\$.0f".format(balance)
 
-                        result.add(Pair(category, if (category != ApiSpending.Category.INCOME) {
-                            val percent = balance / totalExpense.amount * 100
-                            "%1\$s: %2\$s (%3\$.1f%%)".format(name, amount, percent)
-                        } else {
-                            "%1\$s: %2\$s".format(name, amount)
-                        }))
-                    }
+                            result.add(Pair(category, if (category != ApiSpending.Category.INCOME) {
+                                val percent = balance / totalExpense.amount * 100
+                                "%1\$s: %2\$s (%3\$.1f%%)".format(name, amount, percent)
+                            } else {
+                                "%1\$s: %2\$s".format(name, amount)
+                            }))
+                        }
                 val totalIncome = calculateBalanceForCategory(ApiSpending.Category.INCOME, startDate = startDate, endDate = endDate)
                 totalIncomeStr = "Tots. in: ${totalIncome.amount}"
                 totalExpenseStr = "Tots. out: ${totalExpense.amount}"
@@ -239,20 +241,21 @@ constructor(private val dao: Dao<ApiSpending, Int>,
             val total = calculateTotalBalanceExceptForCategory(ApiSpending.Category.INCOME, startDate = startDate, endDate = endDate).target
             try {
                 ApiSpending.Category.values()
-                    .map { Pair(it, calculateBalanceForCategory(it, startDate, endDate)) }
-                    .filter { it.second.target != 0f }
-                    .sortedBy { it.second.target }
-                    .joinTo(buffer = buffer, separator = "\n", transform = {
-                        val name = it.first.name.substring(0, Math.min(12, it.first.name.length)).toLowerCase().capitalize()
-                        val amount = "%1\$.0f".format(it.second.target)
+                        .map { Pair(it, calculateBalanceForCategory(it, startDate, endDate)) }
+                        .filter { it.second.target != 0f }
+                        .sortedBy { it.second.target }
+                        .joinTo(buffer = buffer, separator = "\n", transform = {
+                            val name = it.first.name.substring(0, Math.min(12, it.first.name.length))
+                                    .toLowerCase().capitalize()
+                            val amount = "%1\$.0f".format(it.second.target)
 
-                        if (it.first != ApiSpending.Category.INCOME) {
-                            val percent = it.second.target.div(total).times(100)
-                            "%1\$s: %2\$s (%3\$.1f%%)".format(name, amount, percent)
-                        } else {
-                            "%1\$s: %2\$s".format(name, amount)
-                        }
-                    })
+                            if (it.first != ApiSpending.Category.INCOME) {
+                                val percent = it.second.target.div(total).times(100)
+                                "%1\$s: %2\$s (%3\$.1f%%)".format(name, amount, percent)
+                            } else {
+                                "%1\$s: %2\$s".format(name, amount)
+                            }
+                        })
             } catch (e: IllegalArgumentException) {
                 throw DomainException("Date of balance reading must not come after date of target estimate", e)
             }
@@ -271,20 +274,21 @@ constructor(private val dao: Dao<ApiSpending, Int>,
             var hasNegAmounts = false
             try {
                 ApiSpending.Category.values()
-                    .map { Pair(it, calculateBalanceForCategory(it, startDate, endDate)) }
-                    .filter { (it.second.target - it.second.amount) != 0f }
-                    .sortedByDescending { Math.abs(it.second.target) }
-                    .joinTo(buffer = buffer, separator = "\n", transform = {
-                        val name = it.first.name.substring(0, Math.min(12, it.first.name.length)).toLowerCase().capitalize()
-                        val amount = it.second.target - it.second.amount
-                        val amountStr = "%1\$.0f".format(amount)
-                        if (amount > 0) {
-                            "%1\$s: %2\$s".format(name, amountStr)
-                        } else {
-                            hasNegAmounts = true
-                            "%1\$s: %2\$s*".format(name, amountStr)
-                        }
-                    })
+                        .map { Pair(it, calculateBalanceForCategory(it, startDate, endDate)) }
+                        .filter { (it.second.target - it.second.amount) != 0f }
+                        .sortedByDescending { Math.abs(it.second.target) }
+                        .joinTo(buffer = buffer, separator = "\n", transform = {
+                            val name = it.first.name.substring(0, Math.min(12, it.first.name.length))
+                                    .toLowerCase().capitalize()
+                            val amount = it.second.target - it.second.amount
+                            val amountStr = "%1\$.0f".format(amount)
+                            if (amount > 0) {
+                                "%1\$s: %2\$s".format(name, amountStr)
+                            } else {
+                                hasNegAmounts = true
+                                "%1\$s: %2\$s*".format(name, amountStr)
+                            }
+                        })
             } catch (e: IllegalArgumentException) {
                 throw DomainException("Date of balance reading must not come after date of target estimate", e)
             }
@@ -336,7 +340,7 @@ constructor(private val dao: Dao<ApiSpending, Int>,
      */
     private fun calculateTotalBalanceExceptForCategory(omittedCategory: ApiSpending.Category, startDate: LocalDate?, endDate: LocalDate): Balance {
         val builder: Where<ApiSpending, Int> = dao.queryBuilder().where()
-            .notIn(Contract.Spending.TYPE, omittedCategory)
+                .notIn(Contract.Spending.TYPE, omittedCategory)
         return calculateBalance(builder, startDate, endDate)
     }
 
@@ -345,7 +349,7 @@ constructor(private val dao: Dao<ApiSpending, Int>,
         val balance = Balance(0f, 0f, null)
         dao.query(builder.prepare()).forEach { spending ->
             val (amount, target, spendingEventsOut)
-                = BalanceCalculator.getEstimatedBalance(mapper.map(spending), startDate, endDate)
+                    = BalanceCalculator.getEstimatedBalance(mapper.map(spending), startDate, endDate)
             balance.amount += amount
             balance.target += target
             spendingEventsOut?.forEach {

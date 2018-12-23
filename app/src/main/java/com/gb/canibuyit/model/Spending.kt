@@ -1,12 +1,15 @@
 package com.gb.canibuyit.model
 
 import com.gb.canibuyit.db.model.ApiSpending
-import com.gb.canibuyit.db.model.ApiSpending.Cycle.*
+import com.gb.canibuyit.db.model.ApiSpending.Cycle.DAYS
+import com.gb.canibuyit.db.model.ApiSpending.Cycle.MONTHS
+import com.gb.canibuyit.db.model.ApiSpending.Cycle.WEEKS
+import com.gb.canibuyit.db.model.ApiSpending.Cycle.YEARS
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.temporal.TemporalAdjusters.lastDayOfMonth
 import java.time.temporal.TemporalAdjusters.lastDayOfYear
-import java.util.*
+import java.util.Arrays
 
 class Spending(var id: Int? = null,
                var name: String,
@@ -158,7 +161,7 @@ internal fun LocalDate.getProlepticMonth() = this.year * 12 + (this.monthValue -
  * Determines the number of cycles between epoch and the specified date
  */
 fun ApiSpending.Cycle.ordinal(date: LocalDate)
-    : Int = when (this) {
+        : Int = when (this) {
     DAYS -> date.toEpochDay().toInt()
     WEEKS -> (date.with(DayOfWeek.MONDAY).toEpochDay() / 7).toInt()
     MONTHS -> date.year * 12 + date.monthValue

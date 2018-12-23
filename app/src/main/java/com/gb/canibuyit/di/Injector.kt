@@ -4,7 +4,7 @@ import android.app.Application
 import android.content.Context
 import android.support.v4.app.FragmentManager
 import com.gb.canibuyit.exception.ContextSource
-import java.util.*
+import java.util.ArrayList
 
 enum class Injector {
 

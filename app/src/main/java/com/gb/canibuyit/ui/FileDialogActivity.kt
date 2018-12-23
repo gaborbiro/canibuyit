@@ -17,10 +17,15 @@ import android.widget.ListView
 import android.widget.TextView
 import android.widget.Toast
 import com.gb.canibuyit.R
-import com.gb.canibuyit.util.*
+import com.gb.canibuyit.util.DirReadException
+import com.gb.canibuyit.util.DirUtils
+import com.gb.canibuyit.util.PermissionVerifier
+import com.gb.canibuyit.util.hide
+import com.gb.canibuyit.util.hideKeyboard
+import com.gb.canibuyit.util.show
 import kotlinx.android.synthetic.main.activity_file_picker.*
 import java.io.File
-import java.util.*
+import java.util.HashMap
 
 class FileDialogActivity : ListActivity() {
 
@@ -109,7 +114,8 @@ class FileDialogActivity : ListActivity() {
                 path = parent
             } catch (e2: DirReadException) {
                 e.printStackTrace()
-                Toast.makeText(this@FileDialogActivity, "Unable to read folder $path", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@FileDialogActivity, "Unable to read folder $path", Toast.LENGTH_SHORT)
+                        .show()
                 try {
                     path = ROOT
                     files = DirUtils.getDirInfo(path, formatFilters)
@@ -155,7 +161,8 @@ class FileDialogActivity : ListActivity() {
             val holder: ViewHolder
 
             if (convertView == null) {
-                view = LayoutInflater.from(context).inflate(R.layout.list_item_file_picker, parent, false)
+                view = LayoutInflater.from(context)
+                        .inflate(R.layout.list_item_file_picker, parent, false)
                 holder = ViewHolder()
                 holder.icon = view.findViewById(R.id.icon) as ImageView
                 holder.filename = view.findViewById(R.id.file_name_input) as TextView

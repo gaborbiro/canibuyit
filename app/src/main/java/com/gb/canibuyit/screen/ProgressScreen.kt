@@ -1,6 +1,6 @@
 package com.gb.canibuyit.screen
 
-interface ProgressScreen: Screen {
+interface ProgressScreen : Screen {
 
     fun showProgress()
 

@@ -1,7 +1,12 @@
 package com.gb.canibuyit.repository
 
 import com.gb.canibuyit.db.model.ApiSpending
-import com.gb.canibuyit.model.*
+import com.gb.canibuyit.model.Balance
+import com.gb.canibuyit.model.Spending
+import com.gb.canibuyit.model.SpendingEvent
+import com.gb.canibuyit.model.plus
+import com.gb.canibuyit.model.span
+import com.gb.canibuyit.model.times
 import com.gb.canibuyit.util.overlap
 import java.time.LocalDate
 

@@ -48,8 +48,8 @@ class MonzoApiModule {
     @Provides
     @Singleton
     internal fun provideMonzoApi(
-            gsonConverterFactory: GsonConverterFactory,
-            monzoAuthenticator: MonzoAuthenticator): MonzoApi {
+        gsonConverterFactory: GsonConverterFactory,
+        monzoAuthenticator: MonzoAuthenticator): MonzoApi {
 
         val okHttpClientBuilder = OkHttpClient.Builder()
                 .readTimeout(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
@@ -103,5 +103,6 @@ class MonzoApiModule {
 
     @Provides
     @Singleton
-    internal fun provideGsonConverterFactory(gson: Gson): GsonConverterFactory = GsonConverterFactory.create(gson)
+    internal fun provideGsonConverterFactory(gson: Gson): GsonConverterFactory =
+        GsonConverterFactory.create(gson)
 }

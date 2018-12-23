@@ -5,7 +5,6 @@ import com.gb.canibuyit.model.DispatchRegistration
 import javax.inject.Inject
 import javax.inject.Singleton
 
-
 @Singleton
 class MonzoDispatchMapper @Inject constructor() {
 

@@ -14,7 +14,7 @@ import java.lang.annotation.RetentionPolicy
  * field (with [TextView.setError] and the ones tha are shown
  * as a Toast or Dialog instead (DatePicker, etc...).
  */
-class ValidationError(@param:ValidationErrorType internal val type: Int, internal val target: View?, internal val errorMessage: String): Exception() {
+class ValidationError(@param:ValidationErrorType internal val type: Int, internal val target: View?, internal val errorMessage: String) : Exception() {
 
     @IntDef(TYPE_INPUT_FIELD, TYPE_NON_INPUT_FIELD)
     @Retention(RetentionPolicy.SOURCE)

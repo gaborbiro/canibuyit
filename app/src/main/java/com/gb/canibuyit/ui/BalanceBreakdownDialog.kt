@@ -19,14 +19,14 @@ class BalanceBreakdownDialog : PromptDialog() {
     companion object {
         private const val EXTRA_BREAKDOWN_KEY = "EXTRA_BREAKDOWN_KEY"
 
-        fun show(breakdown: BalanceBreakdown, gm: FragmentManager) = BalanceBreakdownDialog().apply {
-            arguments = Bundle().apply {
-                putString(PromptDialog.EXTRA_TITLE, "Balance breakdown")
-                putSerializable(EXTRA_BREAKDOWN_KEY, breakdown)
+        fun show(breakdown: BalanceBreakdown, gm: FragmentManager) =
+            BalanceBreakdownDialog().apply {
+                arguments = Bundle().apply {
+                    putString(PromptDialog.EXTRA_TITLE, "Balance breakdown")
+                    putSerializable(EXTRA_BREAKDOWN_KEY, breakdown)
+                }
+                setPositiveButton(android.R.string.ok, null).show(gm, null)
             }
-            setPositiveButton(android.R.string.ok, null).show(gm, null)
-        }
-
 
         interface Callback {
             fun onBalanceBreakdownItemClicked(category: ApiSpending.Category)

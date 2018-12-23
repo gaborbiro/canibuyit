@@ -1,7 +1,8 @@
 package com.gb.canibuyit.util
 
 import java.text.NumberFormat
-import java.util.*
+import java.util.Currency
+import java.util.Locale
 import javax.inject.Inject
 
 class CurrencyUtils @Inject constructor() {

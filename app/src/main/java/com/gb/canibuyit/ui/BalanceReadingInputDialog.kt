@@ -84,7 +84,8 @@ class BalanceReadingInputDialog : DialogFragment(), DialogInterface.OnClickListe
 
         val estimateDate = userPreferences.estimateDate
         if (selectedDate > estimateDate) {
-            Toast.makeText(activity, "Please select a date before the target date!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(activity, "Please select a date before the target date!", Toast.LENGTH_SHORT)
+                    .show()
             return false
         }
         return true

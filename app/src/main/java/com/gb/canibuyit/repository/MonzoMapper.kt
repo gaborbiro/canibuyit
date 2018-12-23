@@ -35,21 +35,21 @@ class MonzoMapper @Inject constructor() {
             ApiSpending.Category.values().firstOrNull {
                 val noteCategoryStr = apiTransaction.notes.replace("-", "_")
                 noteCategoryStr.equals(it.toString(), ignoreCase = true)
-                    || noteCategoryStr.contains(it.toString() + " ", ignoreCase = true)
-                    || noteCategoryStr.contains(it.toString() + "_", ignoreCase = true)
+                        || noteCategoryStr.contains(it.toString() + " ", ignoreCase = true)
+                        || noteCategoryStr.contains(it.toString() + "_", ignoreCase = true)
             }
         else
             null
         var category = mapApiCategory(noteCategory?.toString()?.toLowerCase()
-            ?: apiTransaction.category)
+                ?: apiTransaction.category)
 
         if (category == ApiSpending.Category.OTHER) {
             if (!apiTransaction.description.isEmpty()) {
                 ApiSpending.Category.values().firstOrNull {
                     val noteCategoryStr = apiTransaction.description.replace("-", "_")
                     noteCategoryStr.equals(it.toString(), ignoreCase = true)
-                        || noteCategoryStr.contains(it.toString() + " ", ignoreCase = true)
-                        || noteCategoryStr.contains(it.toString() + "_", ignoreCase = true)
+                            || noteCategoryStr.contains(it.toString() + " ", ignoreCase = true)
+                            || noteCategoryStr.contains(it.toString() + "_", ignoreCase = true)
                 }?.let {
                     category = mapApiCategory(it.toString())
                 }
@@ -58,10 +58,10 @@ class MonzoMapper @Inject constructor() {
 
         val description = apiTransaction.description + if (apiTransaction.notes.isNotEmpty()) "\n" + apiTransaction.notes else ""
         return Transaction(apiTransaction.amount,
-            ZonedDateTime.parse(apiTransaction.created),
-            description,
-            apiTransaction.id,
-            category)
+                ZonedDateTime.parse(apiTransaction.created),
+                description,
+                apiTransaction.id,
+                category)
     }
 
     fun mapToSpending(category: ApiSpending.Category, sortedTransactions: List<Transaction>, savedSpending: Spending?, projectSettings: Project): Spending? {
@@ -78,34 +78,35 @@ class MonzoMapper @Inject constructor() {
 
         val firstOccurrence: LocalDate = sortedTransactions[0].created.toLocalDate()
 
-        val fromEndDate: LocalDate = firstOccurrence.add(cycle, cycleMultiplier.toLong()).minusDays(1)
+        val fromEndDate: LocalDate = firstOccurrence.add(cycle, cycleMultiplier.toLong())
+                .minusDays(1)
 
         val (spent: Double, savings: List<Saving>?) = sortedTransactions.groupBy { cycle.ordinal(it.created.toLocalDate()) }
-            .let { transactionsGroupedByCycle: Map<Int, List<Transaction>> ->
-                val spent = transactionsGroupedByCycle[cycle.ordinal(LocalDate.now())]
-                    ?.sumBy(Transaction::amount)
-                    ?.div(100.0)
-                    ?: 0.0 // cents to pounds
-                val savings: List<Saving>? = getSavings(transactionsGroupedByCycle, cycle, savedSpending)
-                return@let Pair(spent, savings)
-            }
+                .let { transactionsGroupedByCycle: Map<Int, List<Transaction>> ->
+                    val spent = transactionsGroupedByCycle[cycle.ordinal(LocalDate.now())]
+                            ?.sumBy(Transaction::amount)
+                            ?.div(100.0)
+                            ?: 0.0 // cents to pounds
+                    val savings: List<Saving>? = getSavings(transactionsGroupedByCycle, cycle, savedSpending)
+                    return@let Pair(spent, savings)
+                }
 
         return Spending(
-            id = savedSpending?.id,
-            targets = savedSpending?.targets,
-            name = name,
-            notes = savedSpending?.notes,
-            type = type,
-            value = average,
-            fromStartDate = if (projectSettings.whenPinned) (savedSpending?.fromStartDate ?: firstOccurrence) else firstOccurrence,
-            fromEndDate = if (projectSettings.whenPinned) (savedSpending?.fromEndDate ?: fromEndDate) else fromEndDate,
-            occurrenceCount = savedSpending?.occurrenceCount,
-            cycleMultiplier = cycleMultiplier,
-            cycle = cycle,
-            enabled = savedSpending?.enabled ?: type.defaultEnabled,
-            spent = spent,
-            savings = savings?.toTypedArray(),
-            sourceData = SerializableMap<String, String>().apply { put(ApiSpending.SOURCE_MONZO_CATEGORY, category.name.toLowerCase()) })
+                id = savedSpending?.id,
+                targets = savedSpending?.targets,
+                name = name,
+                notes = savedSpending?.notes,
+                type = type,
+                value = average,
+                fromStartDate = if (projectSettings.whenPinned) (savedSpending?.fromStartDate ?: firstOccurrence) else firstOccurrence,
+                fromEndDate = if (projectSettings.whenPinned) (savedSpending?.fromEndDate ?: fromEndDate) else fromEndDate,
+                occurrenceCount = savedSpending?.occurrenceCount,
+                cycleMultiplier = cycleMultiplier,
+                cycle = cycle,
+                enabled = savedSpending?.enabled ?: type.defaultEnabled,
+                spent = spent,
+                savings = savings?.toTypedArray(),
+                sourceData = SerializableMap<String, String>().apply { put(ApiSpending.SOURCE_MONZO_CATEGORY, category.name.toLowerCase()) })
     }
 
     fun mapToWebhooks(apiWebhooks: ApiWebhooks): Webhooks {
@@ -152,17 +153,20 @@ class MonzoMapper @Inject constructor() {
     private fun getCycle(sortedTransactions: List<Transaction>, savedSpending: Spending?, projectSettings: Project): ApiSpending.Cycle {
         val optimalCycle = getOptimalCycle(sortedTransactions)
         return if (projectSettings.cyclePinned) (savedSpending?.cycle
-            ?: optimalCycle) else optimalCycle
+                ?: optimalCycle) else optimalCycle
     }
 
     private fun getSavings(transactionsGroupedByCycle: Map<Int, List<Transaction>>, cycle: ApiSpending.Cycle, savedSpending: Spending?): List<Saving>? {
         val savings = transactionsGroupedByCycle.mapNotNull saving@{
             val transactionsForCycle = it.value
-            val lastCycleDay = transactionsForCycle.maxBy(Transaction::created)?.created!!.toLocalDate().lastCycleDay(cycle)
+            val lastCycleDay = transactionsForCycle.maxBy(Transaction::created)?.created!!.toLocalDate()
+                    .lastCycleDay(cycle)
 
             if (lastCycleDay <= LocalDate.now()) { // a cycle must end before its savings can be recorded
                 val target = getTarget(lastCycleDay, savedSpending?.targets)
-                val saving = target?.let { transactionsForCycle.sumBy(Transaction::amount).div(100.0).minus(target) }
+                val saving = target?.let {
+                    transactionsForCycle.sumBy(Transaction::amount).div(100.0).minus(target)
+                }
                 if (saving != null) {
                     return@saving Saving(null, savedSpending?.id, saving, lastCycleDay, target)
                 } else {
@@ -182,9 +186,9 @@ class MonzoMapper @Inject constructor() {
     private fun getAverage(sortedTransactions: List<Transaction>, cycle: ApiSpending.Cycle, cycleMultiplier: Int, savedSpending: Spending?, projectSettings: Project): Double {
         val savedAverage = if (projectSettings.averagePinned) savedSpending?.value else null
         return savedAverage ?: sortedTransactions
-            .sumBy(Transaction::amount)
-            .div(Pair(sortedTransactions[0].created.toLocalDate(), LocalDate.now()).span(cycle) / cycleMultiplier)
-            .div(100.0) // cents to pounds
+                .sumBy(Transaction::amount)
+                .div(Pair(sortedTransactions[0].created.toLocalDate(), LocalDate.now()).span(cycle) / cycleMultiplier)
+                .div(100.0) // cents to pounds
     }
 
     private fun getOptimalCycle(sortedTransactions: List<Transaction>): ApiSpending.Cycle {
