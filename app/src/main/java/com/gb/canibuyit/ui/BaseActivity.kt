@@ -53,18 +53,22 @@ abstract class BaseActivity : AppCompatActivity(), ProgressScreen, ContextSource
     }
 
     override fun showProgress() {
-        if (progressDialog == null) {
-            progressDialog = ProgressDialog.newInstance("Please wait")
-            progressDialog!!.show(supportFragmentManager, "progress")
+        progressDialog ?: let {
+            progressDialog = ProgressDialog.newInstance("Please wait").apply {
+                show(supportFragmentManager, "progress")
+            }
         }
     }
 
     override fun hideProgress() {
-        if (progressDialog != null && progressDialog!!.isAdded && !progressDialog!!.isRemoving) {
-            progressDialog!!.dismissAllowingStateLoss()
-            progressDialog = null
+        progressDialog?.run {
+            if (isAdded && !isRemoving) {
+                dismissAllowingStateLoss()
+            }
         }
+        progressDialog = null
     }
 
-    @Nullable protected abstract fun inject(): BasePresenter<Screen>
+    @Nullable
+    protected abstract fun inject(): BasePresenter<Screen>
 }

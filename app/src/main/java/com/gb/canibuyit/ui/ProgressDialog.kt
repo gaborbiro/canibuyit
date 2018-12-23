@@ -13,6 +13,7 @@ class ProgressDialog : BaseDialogFragment() {
         arguments?.getString(EXTRA_MESSAGE)?.let { setMessage(it) }
         button.hide()
         progress_bar.show()
+        isCancelable = false
     }
 
     companion object {
