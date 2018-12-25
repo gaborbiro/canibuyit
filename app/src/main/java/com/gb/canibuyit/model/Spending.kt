@@ -180,7 +180,7 @@ operator fun Pair<LocalDate, LocalDate>.div(cycle: ApiSpending.Cycle): Float {
 }
 
 private fun LocalDate.monthsSinceYear0() =
-    this.year * 12 + (this.monthValue - 1) + this.dayOfMonth.toFloat() / this.month.maxLength()
+    this.year * 12 + (this.monthValue - 1) + this.dayOfMonth.toFloat() / 32
 
 fun Pair<Pair<LocalDate, LocalDate>, Pair<LocalDate, LocalDate>>.overlap(cycle: ApiSpending.Cycle) =
     Pair(max(this.first.first, this.second.first), min(this.first.second, this.second.second)) / cycle
