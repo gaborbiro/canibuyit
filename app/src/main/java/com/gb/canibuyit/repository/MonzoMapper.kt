@@ -213,6 +213,7 @@ class MonzoMapper @Inject constructor() {
         return savedAverage ?: sortedTransactions
                 .sumBy(Transaction::amount)
                 .div(Pair(startDate, endDate) / cycle / cycleMultiplier)
+                .toInt()
                 .div(100.0) // cents to pounds
     }
 

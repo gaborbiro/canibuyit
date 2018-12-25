@@ -68,7 +68,7 @@ class Spending(var id: Int? = null,
         if (!ignoreCycleMultiplier) {
             if (cycleMultiplier != other.cycleMultiplier) return false
         }
-        if (cycle != other.cycle) return false
+        if (cycle.apiCycle != other.cycle.apiCycle) return false
         if (enabled != other.enabled) return false
         if (spent != other.spent) return false
         if (targets != other.targets) return false
