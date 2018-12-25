@@ -24,9 +24,22 @@ class Contract {
             const val ENABLED = "enabled"
             const val SOURCE_DATA = "source_data"
             const val SPENT = "spent"
+            const val CYCLE_SPENT = "cycle_spent"
             const val TARGETS = "targets"
 
             val COLUMNS = arrayOf(_ID, NAME, NOTES, VALUE, TYPE, FROM_START_DATE, FROM_END_DATE, OCCURRENCE_COUNT, CYCLE_MULTIPLIER, CYCLE, ENABLED, SOURCE_DATA, SPENT, TARGETS)
+        }
+    }
+
+    class SpentByCycle {
+        companion object {
+            const val TABLE = "spent_by_cycle"
+
+            const val _ID = BaseColumns._ID
+            const val SPENDING = "spending"
+            const val FROM = "from"
+            const val TO = "to"
+            const val AMOUNT = "amount"
         }
     }
 

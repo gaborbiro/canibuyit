@@ -78,6 +78,10 @@ class MainActivity : BaseActivity(), MainScreen, SpendingListFragment.FragmentCa
         return mainPresenter as BasePresenter<Screen>
     }
 
+    override fun close() {
+        finish()
+    }
+
     /**
      * Callback method from [SpendingListFragment.FragmentCallback] indicating
      * that the spending with the given database ID was selected.
@@ -263,7 +267,7 @@ class MainActivity : BaseActivity(), MainScreen, SpendingListFragment.FragmentCa
     }
 
     override fun setTitle(projectName: String?) {
-        if (projectName == null) {
+        if (projectName.isNullOrBlank()) {
             super.setTitle(getString(R.string.app_name))
         } else {
             super.setTitle(getString(R.string.app_name_project, projectName))

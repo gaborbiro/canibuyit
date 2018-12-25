@@ -41,8 +41,9 @@ class Spending(var id: Int? = null,
                var enabled: Boolean,
                var sourceData: MutableMap<String, String>?,
                var spent: BigDecimal,
+               var spentByCycle: List<CycleSpent>?,
                var targets: Map<LocalDate, Int>?,
-               var savings: Array<Saving>?) {
+               var savings: Array<Saving>? = null) {
 
     val target = targets?.maxBy { it.key }?.value
 
@@ -172,7 +173,7 @@ fun ApiSpending.Cycle.toMonths(): Double = when (this) {
  */
 operator fun Pair<LocalDate, LocalDate>.div(cycle: ApiSpending.Cycle): Float {
     return when (cycle) {
-        DAYS -> (second.toEpochDay() - first.toEpochDay()).toFloat()
+        DAYS -> (second.toEpochDay() - first.toEpochDay() ).toFloat()
         WEEKS -> this / DAYS / 7f
         MONTHS -> second.monthsSinceYear0() - first.monthsSinceYear0()
         YEARS -> this / MONTHS / 12f
@@ -185,9 +186,6 @@ private fun LocalDate.monthsSinceYear0() =
 fun Pair<Pair<LocalDate, LocalDate>, Pair<LocalDate, LocalDate>>.overlap(cycle: ApiSpending.Cycle) =
     Pair(max(this.first.first, this.second.first), min(this.first.second, this.second.second)) / cycle
 
-/**
- * Determines the number of cycles between epoch and the specified date
- */
 fun ApiSpending.Cycle.ordinal(date: LocalDate)
         : Int = when (this) {
     DAYS -> date.toEpochDay().toInt()
@@ -196,9 +194,25 @@ fun ApiSpending.Cycle.ordinal(date: LocalDate)
     YEARS -> date.year
 }
 
+fun LocalDate.firstCycleDay(cycle: ApiSpending.Cycle): LocalDate = when (cycle) {
+    DAYS -> this
+    WEEKS -> this.with(DayOfWeek.MONDAY)
+    MONTHS -> this.withDayOfMonth(1)
+    YEARS -> this.withMonth(1).withDayOfMonth(1)
+}.atStartOfDay().plusDays(1).minusNanos(1).toLocalDate()
+
 fun LocalDate.lastCycleDay(cycle: ApiSpending.Cycle): LocalDate = when (cycle) {
     DAYS -> this
     WEEKS -> this.with(DayOfWeek.SUNDAY)
     MONTHS -> this.with(lastDayOfMonth())
     YEARS -> this.with(lastDayOfYear())
 }.atStartOfDay().plusDays(1).minusNanos(1).toLocalDate()
+
+class CycleSpent(
+    val id: Int?,
+    val spendingId: Int?,
+    val from: LocalDate,
+    val to: LocalDate,
+    val amount: BigDecimal) {
+    override fun toString() = "$from $to: $amount"
+}

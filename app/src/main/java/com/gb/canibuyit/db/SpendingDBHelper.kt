@@ -5,6 +5,7 @@ import android.content.Context
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteException
+import com.gb.canibuyit.db.model.ApiSpentByCycle
 import com.gb.canibuyit.db.model.ApiProject
 import com.gb.canibuyit.db.model.ApiSaving
 import com.gb.canibuyit.db.model.ApiSpending
@@ -26,6 +27,7 @@ constructor(appContext: Context) : OrmLiteSqliteOpenHelper(appContext, DATABASE_
             TableUtils.createTable(connectionSource, ApiSpending::class.java)
             TableUtils.createTable(connectionSource, ApiProject::class.java)
             TableUtils.createTable(connectionSource, ApiSaving::class.java)
+            TableUtils.createTable(connectionSource, ApiSpentByCycle::class.java)
         } catch (e: SQLException) {
             e.printStackTrace()
         }

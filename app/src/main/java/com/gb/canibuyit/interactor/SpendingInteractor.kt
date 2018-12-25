@@ -6,6 +6,7 @@ import com.gb.canibuyit.model.Balance
 import com.gb.canibuyit.model.Spending
 import com.gb.canibuyit.repository.SavingsRepository
 import com.gb.canibuyit.repository.SpendingsRepository
+import com.gb.canibuyit.repository.SpentByCycleRepository
 import com.gb.canibuyit.rx.SchedulerProvider
 import com.gb.canibuyit.ui.BalanceBreakdown
 import io.reactivex.Completable
@@ -22,6 +23,7 @@ import javax.inject.Singleton
 class SpendingInteractor @Inject
 constructor(private val spendingsRepository: SpendingsRepository,
             private val savingsRepository: SavingsRepository,
+            private val spentByCycleRepository: SpentByCycleRepository,
             private val schedulerProvider: SchedulerProvider) {
 
     private val spendingsSubject: Subject<Lce<List<Spending>>> = PublishSubject.create<Lce<List<Spending>>>()
@@ -66,6 +68,8 @@ constructor(private val spendingsRepository: SpendingsRepository,
         spendingsRepository.createOrUpdateMonzoSpendings(spendings)
                 .andThen(savingsRepository.clearAll())
                 .andThen(savingsRepository.create(spendings))
+                .andThen(spentByCycleRepository.clearAll())
+                .andThen(spentByCycleRepository.create(spendings))
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())
                 .subscribe({
@@ -81,6 +85,8 @@ constructor(private val spendingsRepository: SpendingsRepository,
         return spendingsRepository.createOrUpdate(spending)
                 .andThen(savingsRepository.clearAll())
                 .andThen(savingsRepository.create(listOf(spending)))
+                .andThen(spentByCycleRepository.clearAll())
+                .andThen(spentByCycleRepository.create(listOf(spending)))
                 .onErrorResumeNext { throwable -> Completable.error(DomainException("Error updating spending in database. See logs.", throwable)) }
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())

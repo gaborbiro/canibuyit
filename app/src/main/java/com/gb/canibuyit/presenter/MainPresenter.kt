@@ -114,6 +114,9 @@ constructor(private val monzoInteractor: MonzoInteractor,
                     login(authorizationCode)
                 }
             }
+        } else if (!credentialsProvider.isRefresh()) {
+            getScreen().close()
+            getScreen().showLoginActivity()
         }
     }
 

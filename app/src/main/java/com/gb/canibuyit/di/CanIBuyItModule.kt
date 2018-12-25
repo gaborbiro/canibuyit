@@ -6,6 +6,7 @@ import com.gb.canibuyit.db.SpendingDBHelper
 import com.gb.canibuyit.db.model.ApiProject
 import com.gb.canibuyit.db.model.ApiSaving
 import com.gb.canibuyit.db.model.ApiSpending
+import com.gb.canibuyit.db.model.ApiSpentByCycle
 import com.gb.canibuyit.rx.SchedulerProvider
 import com.gb.canibuyit.rx.SchedulerProviderImpl
 import com.j256.ormlite.dao.Dao
@@ -37,5 +38,10 @@ class CanIBuyItModule {
     @Provides
     fun provideSavingsDao(spendingDBHelper: SpendingDBHelper): Dao<ApiSaving, Int> {
         return spendingDBHelper.getDao<Dao<ApiSaving, Int>, ApiSaving>(ApiSaving::class.java)
+    }
+
+    @Provides
+    fun provideSpentByCycleDao(spendingDBHelper: SpendingDBHelper): Dao<ApiSpentByCycle, Int> {
+        return spendingDBHelper.getDao<Dao<ApiSpentByCycle, Int>, ApiSpentByCycle>(ApiSpentByCycle::class.java)
     }
 }

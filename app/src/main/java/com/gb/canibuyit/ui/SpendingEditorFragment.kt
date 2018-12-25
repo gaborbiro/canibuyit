@@ -23,7 +23,6 @@ import com.gb.canibuyit.model.times
 import com.gb.canibuyit.model.toDomainCycle
 import com.gb.canibuyit.presenter.BasePresenter
 import com.gb.canibuyit.screen.Screen
-import com.gb.canibuyit.util.CurrencyUtils
 import com.gb.canibuyit.util.DialogUtils
 import com.gb.canibuyit.util.TextChangeListener
 import com.gb.canibuyit.util.ValidationError
@@ -44,7 +43,6 @@ class SpendingEditorFragment : BaseFragment() {
 
     @Inject lateinit var spendingInteractor: SpendingInteractor
     @Inject lateinit var projectInteractor: ProjectInteractor
-    @Inject lateinit var currencyUtils: CurrencyUtils
 
     private var originalSpending: Spending? = null
     private var cycleMultiplierChanged: Boolean = false
@@ -88,6 +86,7 @@ class SpendingEditorFragment : BaseFragment() {
                     enabled = enabled_switch.isChecked,
                     sourceData = originalSpending?.sourceData,
                     spent = originalSpending?.spent ?: BigDecimal.ZERO,
+                    spentByCycle = originalSpending?.spentByCycle,
                     // delete target history if empty
                     targets = target_input.text.orNull()?.toString()?.toInt()?.let { target ->
                         val now = LocalDate.now()
@@ -108,7 +107,7 @@ class SpendingEditorFragment : BaseFragment() {
         @SuppressLint("SetTextI18n")
         set(spending) {
             name_input.setText(spending.name)
-            average_input.setText(currencyUtils.formatDecimal(spending.value, 20))
+            average_input.setText(spending.value.toPlainString())
             spending.target?.let {
                 target_input.setText(it)
             } ?: let {
@@ -137,6 +136,8 @@ class SpendingEditorFragment : BaseFragment() {
             spending.sourceData?.get(ApiSpending.SOURCE_MONZO_CATEGORY)?.let {
                 source_category_lbl.text = "(original Monzo category: $it)"
             }
+            details.text = "Spent by cycle:\n\n" +
+                    spending.spentByCycle?.joinTo(StringBuffer(), separator = "\n", transform = { it -> "${it.from} ${it.to}: ${it.amount}" })
         }
 
     private val cycleMultiplierFromScreen: Int

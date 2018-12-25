@@ -18,32 +18,49 @@ import java.time.LocalDate
 class ApiSpending(
     @DatabaseField(generatedId = true, columnName = Contract.Spending._ID, canBeNull = false)
     var id: Int? = null,
+
     @DatabaseField(index = true, columnName = Contract.Spending.NAME, unique = true, canBeNull = false)
     var name: String? = null,
+
     @DatabaseField(columnName = Contract.Spending.NOTES, canBeNull = true)
     var notes: String? = null,
+
     @DatabaseField(columnName = Contract.Spending.TYPE, canBeNull = false)
     var type: Category? = null,
+
     @DatabaseField(columnName = Contract.Spending.VALUE, canBeNull = false)
     var value: BigDecimal? = null,
+
     @DatabaseField(columnName = Contract.Spending.FROM_START_DATE, canBeNull = false, dataType = DataType.SERIALIZABLE)
     var fromStartDate: LocalDate? = null,
+
     @DatabaseField(columnName = Contract.Spending.FROM_END_DATE, canBeNull = false, dataType = DataType.SERIALIZABLE)
     var fromEndDate: LocalDate? = null,
+
     @DatabaseField(columnName = Contract.Spending.OCCURRENCE_COUNT, canBeNull = true)
     var occurrenceCount: Int? = null,
+
     @DatabaseField(columnName = Contract.Spending.CYCLE_MULTIPLIER, canBeNull = false)
     var cycleMultiplier: Int? = null,
+
     @DatabaseField(columnName = Contract.Spending.CYCLE, canBeNull = false)
     var cycle: Cycle? = null,
+
     @DatabaseField(columnName = Contract.Spending.ENABLED, canBeNull = false)
     var enabled: Boolean? = null,
+
     @DatabaseField(columnName = Contract.Spending.SOURCE_DATA, canBeNull = true)
     var sourceData: String? = null,
+
     @DatabaseField(columnName = Contract.Spending.SPENT, canBeNull = true)
     var spent: BigDecimal? = null,
+
+    @ForeignCollectionField(eager = true, columnName = Contract.Spending.CYCLE_SPENT)
+    var spentByByCycle: ForeignCollection<ApiSpentByCycle>? = null,
+
     @DatabaseField(columnName = Contract.Spending.TARGETS, canBeNull = true)
     var targets: String? = null,
+
     @ForeignCollectionField(eager = true)
     var savings: ForeignCollection<ApiSaving>? = null) {
 
