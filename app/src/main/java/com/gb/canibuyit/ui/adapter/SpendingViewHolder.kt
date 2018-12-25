@@ -11,6 +11,7 @@ import com.gb.canibuyit.model.Spending
 import com.gb.canibuyit.ui.ProgressRelativeLayout
 import com.gb.canibuyit.util.hide
 import com.gb.canibuyit.util.show
+import java.math.BigDecimal
 
 class SpendingViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
@@ -31,7 +32,7 @@ class SpendingViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         }
         nameView.text = context.getString(R.string.average, spending.name, perCycleAmount) // Rent (875.0)
         spending.spent.let { spent ->
-            if (spent != 0.0) {
+            if (spent != BigDecimal.ZERO) {
                 var cycleStr = ""
                 spending.occurrenceCount?.let {
                     cycleStr = context.resources.getQuantityString(R.plurals.times, it, it) // (10 times)
@@ -56,12 +57,12 @@ class SpendingViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
             iconView.hide()
         }
         spending.spent.let { spent ->
-            if (spent != 0.0) {
+            if (spent != BigDecimal.ZERO) {
                 spending.target?.let {
-                    progressView.progress = Math.abs(spent / it).toFloat()
+                    progressView.progress = (spent / it.toBigDecimal()).abs().toFloat()
                     progressView.mode = if (it < 0.0) ProgressRelativeLayout.Mode.MIN_LIMIT else ProgressRelativeLayout.Mode.MAX_LIMIT
                 } ?: let {
-                    progressView.progress = Math.abs(spent / spending.value).toFloat()
+                    progressView.progress = (spent / spending.value).abs().toFloat()
                     progressView.mode = ProgressRelativeLayout.Mode.DEFAULT
                 }
             } else {

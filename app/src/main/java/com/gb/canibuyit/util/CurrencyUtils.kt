@@ -1,5 +1,6 @@
 package com.gb.canibuyit.util
 
+import java.math.BigDecimal
 import java.text.NumberFormat
 import java.util.Currency
 import java.util.Locale
@@ -7,7 +8,7 @@ import javax.inject.Inject
 
 class CurrencyUtils @Inject constructor() {
 
-    fun formatDecimal(amount: Double, maxDecimals: Int = -1): String {
+    fun formatDecimal(amount: BigDecimal, maxDecimals: Int = -1): String {
         val moneyFormatter = NumberFormat.getInstance()
 
         if (maxDecimals >= 0) {

@@ -18,8 +18,8 @@ import com.gb.canibuyit.interactor.Project
 import com.gb.canibuyit.interactor.ProjectInteractor
 import com.gb.canibuyit.interactor.SpendingInteractor
 import com.gb.canibuyit.model.Spending
-import com.gb.canibuyit.model.times
 import com.gb.canibuyit.model.plus
+import com.gb.canibuyit.model.times
 import com.gb.canibuyit.model.toDomainCycle
 import com.gb.canibuyit.presenter.BasePresenter
 import com.gb.canibuyit.screen.Screen
@@ -31,7 +31,7 @@ import com.gb.canibuyit.util.formatDayMonthYearWithPrefix
 import com.gb.canibuyit.util.hideKeyboard
 import com.gb.canibuyit.util.orNull
 import kotlinx.android.synthetic.main.fragment_spending_editor.*
-import java.text.NumberFormat
+import java.math.BigDecimal
 import java.time.LocalDate
 import javax.inject.Inject
 
@@ -71,14 +71,15 @@ class SpendingEditorFragment : BaseFragment() {
                 throw ValidationError(ValidationError.TYPE_NON_INPUT_FIELD, null,
                         "End date cannot be higher than " + lastValidDate.formatDayMonthYearWithPrefix())
             }
+            val valueStr = average_input.text.orNull()?.toString()
+                    ?: throw ValidationError(ValidationError.TYPE_INPUT_FIELD, average_input, "Please specify an amount")
             return Spending(
                     id = originalSpending?.id,
                     name = name_input.text.orNull()?.toString()
                             ?: throw ValidationError(ValidationError.TYPE_INPUT_FIELD, name_input, "Please specify a name"),
                     notes = notes_input.text.orNull()?.toString(),
                     type = if (category_picker.selectedItem is ApiSpending.Category) category_picker.selectedItem as ApiSpending.Category else throw ValidationError(ValidationError.TYPE_NON_INPUT_FIELD, null, "Please select a category"),
-                    value = NumberFormat.getInstance().parse((average_input.text.orNull()
-                            ?: throw ValidationError(ValidationError.TYPE_INPUT_FIELD, average_input, "Please specify an amount")).toString()).toDouble(),
+                    value = valueStr.toBigDecimal(),
                     fromStartDate = fromStartDate,
                     fromEndDate = fromEndDate,
                     occurrenceCount = occurrence_count_input.text.orNull()?.toString()?.toInt(),
@@ -86,9 +87,9 @@ class SpendingEditorFragment : BaseFragment() {
                     cycle = cycle.toDomainCycle(),
                     enabled = enabled_switch.isChecked,
                     sourceData = originalSpending?.sourceData,
-                    spent = originalSpending?.spent ?: 0.0,
+                    spent = originalSpending?.spent ?: BigDecimal.ZERO,
                     // delete target history if empty
-                    targets = target_input.text.orNull()?.toString()?.toDouble()?.let { target ->
+                    targets = target_input.text.orNull()?.toString()?.toInt()?.let { target ->
                         val now = LocalDate.now()
                         val targetHistory = originalSpending?.targets?.toMutableMap()
                         targetHistory?.maxBy { it.key }?.let {
@@ -109,7 +110,7 @@ class SpendingEditorFragment : BaseFragment() {
             name_input.setText(spending.name)
             average_input.setText(currencyUtils.formatDecimal(spending.value, 20))
             spending.target?.let {
-                target_input.setText(currencyUtils.formatDecimal(it, 20))
+                target_input.setText(it)
             } ?: let {
                 target_input.text = null
             }

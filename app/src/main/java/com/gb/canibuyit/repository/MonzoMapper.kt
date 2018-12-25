@@ -19,6 +19,9 @@ import com.gb.canibuyit.model.lastCycleDay
 import com.gb.canibuyit.model.ordinal
 import com.gb.canibuyit.util.doIfBoth
 import org.apache.commons.lang3.text.WordUtils
+import java.math.BigDecimal
+import java.math.MathContext
+import java.math.RoundingMode
 import java.time.LocalDate
 import java.time.ZonedDateTime
 import javax.inject.Inject
@@ -87,7 +90,7 @@ class MonzoMapper @Inject constructor() {
 
         val cycleMultiplier: Int = if (projectSettings.cyclePinned) (savedSpending?.cycleMultiplier ?: 1) else 1
 
-        val average: Double = getAverage(
+        val average: BigDecimal = getAverage(
                 sortedTransactions,
                 cycle.apiCycle,
                 cycleMultiplier,
@@ -101,13 +104,13 @@ class MonzoMapper @Inject constructor() {
         val fromEndDate: LocalDate = firstOccurrence.add(cycle.apiCycle, cycleMultiplier.toLong())
                 .minusDays(1)
 
-        val (spent: Double, savings: List<Saving>?) = sortedTransactions.groupBy { cycle.apiCycle.ordinal(it.created) }
-                .let { transactionsGroupedByCycle: Map<Int, List<Transaction>> ->
-                    val spent = transactionsGroupedByCycle[cycle.apiCycle.ordinal(endDate)]
-                            ?.sumBy(Transaction::amount)
-                            ?.div(100.0)
-                            ?: 0.0 // cents to pounds
-                    val savings: List<Saving>? = getSavings(transactionsGroupedByCycle, cycle.apiCycle, savedSpending)
+        val (spent: BigDecimal, savings: List<Saving>?) = sortedTransactions.groupBy { cycle.apiCycle.ordinal(it.created) }
+                .let { transactionsByCycle: Map<Int, List<Transaction>> ->
+                    val spent: BigDecimal = transactionsByCycle[cycle.apiCycle.ordinal(endDate)]
+                            ?.sumBy(Transaction::amount)?.toBigDecimal()
+                            ?.divide(100.toBigDecimal()) // cents to pounds
+                            ?: BigDecimal.ZERO
+                    val savings: List<Saving>? = getSavings(transactionsByCycle, cycle.apiCycle, savedSpending)
                     return@let Pair(spent, savings)
                 }
 
@@ -208,13 +211,12 @@ class MonzoMapper @Inject constructor() {
                            savedSpending: Spending?,
                            projectSettings: Project,
                            startDate: LocalDate,
-                           endDate: LocalDate): Double {
+                           endDate: LocalDate): BigDecimal {
         val savedAverage = if (projectSettings.averagePinned) savedSpending?.value else null
         return savedAverage ?: sortedTransactions
-                .sumBy(Transaction::amount)
-                .div(Pair(startDate, endDate) / cycle / cycleMultiplier)
-                .toInt()
-                .div(100.0) // cents to pounds
+                .sumBy(Transaction::amount).toBigDecimal()
+                .divide((Pair(startDate, endDate) / cycle / cycleMultiplier).toBigDecimal(), RoundingMode.DOWN)
+                .divide(100.toBigDecimal()) // cents to pounds
     }
 
     fun getOptimalCycle(sortedTransactions: List<Transaction>): Cycle {
@@ -234,7 +236,7 @@ class MonzoMapper @Inject constructor() {
         }
     }
 
-    private fun getTarget(endDate: LocalDate, targets: Map<LocalDate, Double>?): Double? {
+    private fun getTarget(endDate: LocalDate, targets: Map<LocalDate, Int>?): Int? {
         val lastTargetDate = targets?.keys?.filter { it < endDate }?.max()
         return lastTargetDate?.let { targets[it] }
     }

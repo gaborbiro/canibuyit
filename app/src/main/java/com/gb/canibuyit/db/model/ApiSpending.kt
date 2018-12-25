@@ -7,6 +7,7 @@ import com.j256.ormlite.field.DataType
 import com.j256.ormlite.field.DatabaseField
 import com.j256.ormlite.field.ForeignCollectionField
 import com.j256.ormlite.table.DatabaseTable
+import java.math.BigDecimal
 import java.time.LocalDate
 
 /**
@@ -24,7 +25,7 @@ class ApiSpending(
     @DatabaseField(columnName = Contract.Spending.TYPE, canBeNull = false)
     var type: Category? = null,
     @DatabaseField(columnName = Contract.Spending.VALUE, canBeNull = false)
-    var value: Double? = null,
+    var value: BigDecimal? = null,
     @DatabaseField(columnName = Contract.Spending.FROM_START_DATE, canBeNull = false, dataType = DataType.SERIALIZABLE)
     var fromStartDate: LocalDate? = null,
     @DatabaseField(columnName = Contract.Spending.FROM_END_DATE, canBeNull = false, dataType = DataType.SERIALIZABLE)
@@ -40,7 +41,7 @@ class ApiSpending(
     @DatabaseField(columnName = Contract.Spending.SOURCE_DATA, canBeNull = true)
     var sourceData: String? = null,
     @DatabaseField(columnName = Contract.Spending.SPENT, canBeNull = true)
-    var spent: Double? = null,
+    var spent: BigDecimal? = null,
     @DatabaseField(columnName = Contract.Spending.TARGETS, canBeNull = true)
     var targets: String? = null,
     @ForeignCollectionField(eager = true)

@@ -9,7 +9,6 @@ import com.gb.canibuyit.api.MonzoAuthApi
 import com.gb.canibuyit.db.model.ApiSpending
 import com.gb.canibuyit.interactor.ProjectInteractor
 import com.gb.canibuyit.model.Login
-import com.gb.canibuyit.model.SerializableMap
 import com.gb.canibuyit.model.Spending
 import com.gb.canibuyit.model.Transaction
 import com.gb.canibuyit.model.Webhooks
@@ -66,55 +65,55 @@ class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi,
                 }
     }
 
-    private fun getSpending(category: ApiSpending.Category, transactionsForThatCategory: List<Transaction>, startDate: LocalDate, endDate: LocalDate): Spending {
+    private fun getSpending(category: ApiSpending.Category, transactionsByCategory: List<Transaction>, startDate: LocalDate, endDate: LocalDate): Spending {
         val projectSettings = projectInteractor.getProject().blockingGet()
         val savedSpendings = spendingsRepository.all.blockingGet()
                 .groupBy { it.sourceData?.get(ApiSpending.SOURCE_MONZO_CATEGORY) }
 
         val savedSpending = savedSpendings[category.toString()]?.get(0)
-        val size = transactionsForThatCategory.size
-        return if (size > 1) {
-            val firstHalf = transactionsForThatCategory.subList(0, size / 2)
-            val secondHalf = transactionsForThatCategory.subList(size / 2, size)
-            val spending1 = mapper.mapToSpending(
+//        val size = transactionsByCategory.size
+//        return if (size > 1) {
+//            val firstHalf = transactionsByCategory.subList(0, size / 2)
+//            val secondHalf = transactionsByCategory.subList(size / 2, size)
+//            val spending1 = mapper.mapToSpending(
+//                    category,
+//                    firstHalf,
+//                    savedSpending,
+//                    projectSettings,
+//                    startDate,
+//                    secondHalf.first().created)
+//            val spending2 = mapper.mapToSpending(
+//                    category,
+//                    secondHalf,
+//                    savedSpending,
+//                    projectSettings,
+//                    secondHalf.first().created,
+//                    endDate)
+//            Spending(
+//                    id = spending1.id,
+//                    targets = spending1.targets,
+//                    name = spending1.name,
+//                    notes = spending1.notes,
+//                    type = spending1.type,
+//                    value = (spending1.value + spending2.value) / 2.toBigDecimal(),
+//                    fromStartDate = least(spending1.fromStartDate, spending2.fromStartDate),
+//                    fromEndDate = most(spending1.fromEndDate, spending2.fromEndDate),
+//                    occurrenceCount = savedSpending?.occurrenceCount,
+//                    cycleMultiplier = spending1.cycleMultiplier,
+//                    cycle = most(spending1.cycle, spending2.cycle),
+//                    enabled = spending1.enabled,
+//                    spent = spending1.spent + spending2.spent,
+//                    savings = spending1.savings + spending2.savings,
+//                    sourceData = SerializableMap<String, String>().apply { put(ApiSpending.SOURCE_MONZO_CATEGORY, category.name.toLowerCase()) })
+//        } else {
+            return mapper.mapToSpending(
                     category,
-                    firstHalf,
+                    transactionsByCategory,
                     savedSpending,
                     projectSettings,
                     startDate,
-                    secondHalf.first().created)
-            val spending2 = mapper.mapToSpending(
-                    category,
-                    secondHalf,
-                    savedSpending,
-                    projectSettings,
-                    secondHalf.first().created,
                     endDate)
-            Spending(
-                    id = spending1.id,
-                    targets = spending1.targets,
-                    name = spending1.name,
-                    notes = spending1.notes,
-                    type = spending1.type,
-                    value = (spending1.value + spending2.value) / 2,
-                    fromStartDate = least(spending1.fromStartDate, spending2.fromStartDate),
-                    fromEndDate = most(spending1.fromEndDate, spending2.fromEndDate),
-                    occurrenceCount = savedSpending?.occurrenceCount,
-                    cycleMultiplier = spending1.cycleMultiplier,
-                    cycle = most(spending1.cycle, spending2.cycle),
-                    enabled = spending1.enabled,
-                    spent = spending1.spent + spending2.spent,
-                    savings = spending1.savings + spending2.savings,
-                    sourceData = SerializableMap<String, String>().apply { put(ApiSpending.SOURCE_MONZO_CATEGORY, category.name.toLowerCase()) })
-        } else {
-            mapper.mapToSpending(
-                    category,
-                    transactionsForThatCategory,
-                    savedSpending,
-                    projectSettings,
-                    startDate,
-                    endDate)
-        }
+//        }
     }
 
     fun registerWebHook(accountId: String, url: String): Completable {

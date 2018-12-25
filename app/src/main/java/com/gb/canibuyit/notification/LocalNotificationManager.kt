@@ -40,9 +40,9 @@ class LocalNotificationManager @Inject constructor(
         disposable = spendingInteractor.getSpendingsDataStream().subscribe({
             if (!it.loading && !it.hasError()) {
                 spendingInteractor.getByMonzoCategory(category).subscribe({ spending ->
-                    val spent = Math.abs(spending.spent ?: 0.0)
+                    val spent = spending.spent.abs()
                     spending.target?.let {
-                        val progress: Float = (spent / Math.abs(it)).toFloat() * 100
+                        val progress: Float = (spent / Math.abs(it).toBigDecimal()).toFloat() * 100
                         showSimpleNotification(spending.name, ("%.0f%%(%.0f/%.0f)").format(progress, spent, it))
                     } ?: let {
                         //                        showSimpleNotification(spending.name, "£%.0f".format(spent))

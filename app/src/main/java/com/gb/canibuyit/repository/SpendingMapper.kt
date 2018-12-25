@@ -6,6 +6,7 @@ import com.gb.canibuyit.model.Spending
 import com.gb.canibuyit.model.toDomainCycle
 import com.gb.canibuyit.util.fromJson
 import com.google.gson.Gson
+import java.math.BigDecimal
 import java.time.LocalDate
 import javax.inject.Inject
 
@@ -25,8 +26,8 @@ class SpendingMapper @Inject constructor(private val savingMapper: SavingMapper,
                 cycle = apiSpending.cycle?.toDomainCycle() ?: throw MapperException("cycle"),
                 sourceData = apiSpending.sourceData?.let { gson.fromJson<MutableMap<String, String>>(it) },
                 enabled = apiSpending.enabled ?: throw MapperException("Missing enabled"),
-                spent = apiSpending.spent ?: 0.0,
-                targets = apiSpending.targets?.let { gson.fromJson<MutableMap<LocalDate, Double>>(it) },
+                spent = apiSpending.spent ?: BigDecimal.ZERO,
+                targets = apiSpending.targets?.let { gson.fromJson<MutableMap<LocalDate, Int>>(it) },
                 savings = apiSpending.savings?.map(savingMapper::mapApiSaving)?.toTypedArray()
         ).apply {
             if (savings?.isEmpty() == true) {

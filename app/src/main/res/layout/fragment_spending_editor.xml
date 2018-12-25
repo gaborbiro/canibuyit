@@ -214,7 +214,7 @@
         <EditText
             android:id="@+id/target_input"
             android:imeOptions="actionNext"
-            android:inputType="numberDecimal|numberSigned"
+            android:inputType="number|numberSigned"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/padding"
             android:layout_marginTop="@dimen/double_padding"

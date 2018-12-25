@@ -7,6 +7,7 @@ import com.gb.canibuyit.db.model.ApiSpending.Cycle.WEEKS
 import com.gb.canibuyit.db.model.ApiSpending.Cycle.YEARS
 import com.gb.canibuyit.util.max
 import com.gb.canibuyit.util.min
+import java.math.BigDecimal
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.temporal.TemporalAdjusters.lastDayOfMonth
@@ -17,7 +18,7 @@ class Spending(var id: Int? = null,
                var name: String,
                var notes: String? = null,
                var type: ApiSpending.Category,
-               var value: Double,
+               var value: BigDecimal,
                /**
                 * Date before witch the transaction certainly won't happen. The repetition cycle
                 * is added to this date.
@@ -39,15 +40,15 @@ class Spending(var id: Int? = null,
                var cycle: Cycle,
                var enabled: Boolean,
                var sourceData: MutableMap<String, String>?,
-               var spent: Double,
-               var targets: Map<LocalDate, Double>?,
+               var spent: BigDecimal,
+               var targets: Map<LocalDate, Int>?,
                var savings: Array<Saving>?) {
 
     val target = targets?.maxBy { it.key }?.value
 
-    val valuePerMonth: Double
+    val valuePerMonth: BigDecimal
         get() {
-            return value / cycle.apiCycle.toMonths() * cycleMultiplier
+            return value / cycle.apiCycle.toMonths().toBigDecimal() * cycleMultiplier.toBigDecimal()
         }
 
     fun compareForEditing(other: Any?, ignoreDates: Boolean, ignoreCycleMultiplier: Boolean): Boolean {

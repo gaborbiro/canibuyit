@@ -4,7 +4,7 @@ import android.view.View
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
-fun CharSequence.orNull(): CharSequence? = if (this.isEmpty()) null else this
+fun CharSequence.orNull(): CharSequence? = if (this.isBlank()) null else this
 
 fun <A, B> Pair<A?, B?>.let(action: (pair: Pair<A?, B?>) -> Unit) {
     if (this.first != null && this.second != null)

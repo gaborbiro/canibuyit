@@ -18,6 +18,7 @@ import io.reactivex.Completable
 import io.reactivex.Maybe
 import io.reactivex.Observable
 import io.reactivex.Single
+import java.math.BigDecimal
 import java.sql.SQLException
 import java.time.LocalDate
 import javax.inject.Inject
@@ -94,7 +95,7 @@ constructor(private val dao: Dao<ApiSpending, Int>,
                 savedMonzoSpendings.filter { savedCategories.contains(it.type.toString()) && it.enabled }
                         .forEach {
                             it.enabled = false
-                            it.value = 0.0
+                            it.value = BigDecimal.ZERO
                             dao.update(mapper.map(it))
                         }
                 emitter.onComplete()

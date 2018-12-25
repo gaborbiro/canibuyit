@@ -17,5 +17,5 @@ class ApiSaving(
     @DatabaseField(columnName = Contract.Savings.CREATED, canBeNull = false, dataType = DataType.SERIALIZABLE)
     var created: LocalDate? = null,
     @DatabaseField(columnName = Contract.Savings.TARGET, canBeNull = false)
-    var target: Double? = null
+    var target: Int? = null
 )
