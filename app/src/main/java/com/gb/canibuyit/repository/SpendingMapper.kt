@@ -3,6 +3,7 @@ package com.gb.canibuyit.repository
 import com.gb.canibuyit.db.model.ApiSpending
 import com.gb.canibuyit.exception.MapperException
 import com.gb.canibuyit.model.Spending
+import com.gb.canibuyit.model.toDomainCycle
 import com.gb.canibuyit.util.fromJson
 import com.google.gson.Gson
 import java.time.LocalDate
@@ -21,10 +22,10 @@ class SpendingMapper @Inject constructor(private val savingMapper: SavingMapper,
                 fromEndDate = apiSpending.fromEndDate ?: throw MapperException("Missing fromEndDate"),
                 occurrenceCount = apiSpending.occurrenceCount,
                 cycleMultiplier = apiSpending.cycleMultiplier ?: throw MapperException("Missing cycleMultiplier"),
-                cycle = apiSpending.cycle ?: throw MapperException("cycle"),
+                cycle = apiSpending.cycle?.toDomainCycle() ?: throw MapperException("cycle"),
                 sourceData = apiSpending.sourceData?.let { gson.fromJson<MutableMap<String, String>>(it) },
                 enabled = apiSpending.enabled ?: throw MapperException("Missing enabled"),
-                spent = apiSpending.spent,
+                spent = apiSpending.spent ?: 0.0,
                 targets = apiSpending.targets?.let { gson.fromJson<MutableMap<LocalDate, Double>>(it) },
                 savings = apiSpending.savings?.map(savingMapper::mapApiSaving)?.toTypedArray()
         ).apply {
@@ -48,7 +49,7 @@ class SpendingMapper @Inject constructor(private val savingMapper: SavingMapper,
                 fromEndDate = spending.fromEndDate,
                 occurrenceCount = spending.occurrenceCount,
                 cycleMultiplier = spending.cycleMultiplier,
-                cycle = spending.cycle,
+                cycle = spending.cycle.apiCycle,
                 sourceData = spending.sourceData?.let { gson.toJson(it) },
                 enabled = spending.enabled,
                 spent = spending.spent,

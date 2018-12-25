@@ -1,10 +1,11 @@
 package com.gb.canibuyit.model
 
 import com.gb.canibuyit.db.model.ApiSpending
+import java.time.LocalDate
 import java.time.ZonedDateTime
 
 class Transaction(val amount: Int,
-                  val created: ZonedDateTime,
+                  val created: LocalDate,
                   val description: String?,
                   val id: String,
                   val category: ApiSpending.Category) {

@@ -5,6 +5,8 @@ import com.gb.canibuyit.db.model.ApiSpending.Cycle.DAYS
 import com.gb.canibuyit.db.model.ApiSpending.Cycle.MONTHS
 import com.gb.canibuyit.db.model.ApiSpending.Cycle.WEEKS
 import com.gb.canibuyit.db.model.ApiSpending.Cycle.YEARS
+import com.gb.canibuyit.util.max
+import com.gb.canibuyit.util.min
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.temporal.TemporalAdjusters.lastDayOfMonth
@@ -34,10 +36,10 @@ class Spending(var id: Int? = null,
                 * Ex: The first week of every month, cold months of the year, every weekend, every
                 * semester
                 */
-               var cycle: ApiSpending.Cycle,
+               var cycle: Cycle,
                var enabled: Boolean,
                var sourceData: MutableMap<String, String>?,
-               var spent: Double?,
+               var spent: Double,
                var targets: Map<LocalDate, Double>?,
                var savings: Array<Saving>?) {
 
@@ -45,7 +47,7 @@ class Spending(var id: Int? = null,
 
     val valuePerMonth: Double
         get() {
-            return value / cycle.toMonths() * cycleMultiplier
+            return value / cycle.apiCycle.toMonths() * cycleMultiplier
         }
 
     fun compareForEditing(other: Any?, ignoreDates: Boolean, ignoreCycleMultiplier: Boolean): Boolean {
@@ -86,7 +88,7 @@ class Spending(var id: Int? = null,
         result = 31 * result + cycle.hashCode()
         result = 31 * result + enabled.hashCode()
         result = 31 * result + (sourceData?.hashCode() ?: 0)
-        result = 31 * result + (spent?.hashCode() ?: 0)
+        result = 31 * result + (spent.hashCode())
         result = 31 * result + (targets?.hashCode() ?: 0)
         result = 31 * result + (savings?.hashCode() ?: 0)
         return result
@@ -126,6 +128,26 @@ class Spending(var id: Int? = null,
         get() = id != null
 }
 
+sealed class Cycle(val apiCycle: ApiSpending.Cycle, private val strength: Int) : Comparable<Cycle> {
+    class Days(strength: Int) : Cycle(DAYS, strength)
+    class Weeks(strength: Int) : Cycle(WEEKS, strength)
+    class Months(strength: Int) : Cycle(MONTHS, strength)
+    class Years(strength: Int) : Cycle(YEARS, strength)
+
+    override fun compareTo(other: Cycle): Int {
+        return strength.compareTo(other.strength)
+    }
+}
+
+fun ApiSpending.Cycle.toDomainCycle(): Cycle {
+    return when (this) {
+        ApiSpending.Cycle.DAYS -> Cycle.Days(Int.MAX_VALUE)
+        ApiSpending.Cycle.WEEKS -> Cycle.Weeks(Int.MAX_VALUE)
+        ApiSpending.Cycle.MONTHS -> Cycle.Months(Int.MAX_VALUE)
+        ApiSpending.Cycle.YEARS -> Cycle.Years(Int.MAX_VALUE)
+    }
+}
+
 operator fun Int.times(cycle: ApiSpending.Cycle) = Pair(this, cycle)
 
 operator fun LocalDate.plus(cycle: Pair<Int, ApiSpending.Cycle>): LocalDate {
@@ -144,18 +166,23 @@ fun ApiSpending.Cycle.toMonths(): Double = when (this) {
     YEARS -> 12.0
 }
 
-fun Pair<LocalDate, LocalDate>.span(cycle: ApiSpending.Cycle): Float = when (cycle) {
-    DAYS -> (second.toEpochDay() - first.toEpochDay()).toFloat()
-    WEEKS -> span(DAYS) / 7f
-    MONTHS -> {
-        val packed1 = first.getProlepticMonth() * 32f + first.dayOfMonth
-        val packed2 = second.getProlepticMonth() * 32f + second.dayOfMonth
-        (packed2 - packed1) / 32f
+/**
+ * How many times the specified cycle fits between the specified start and end dates.
+ */
+operator fun Pair<LocalDate, LocalDate>.div(cycle: ApiSpending.Cycle): Float {
+    return when (cycle) {
+        DAYS -> (second.toEpochDay() - first.toEpochDay()).toFloat()
+        WEEKS -> this / DAYS / 7f
+        MONTHS -> second.monthsSinceYear0() - first.monthsSinceYear0()
+        YEARS -> this / MONTHS / 12f
     }
-    YEARS -> span(MONTHS) / 12f
 }
 
-internal fun LocalDate.getProlepticMonth() = this.year * 12 + (this.monthValue - 1)
+private fun LocalDate.monthsSinceYear0() =
+    this.year * 12 + (this.monthValue - 1) + this.dayOfMonth.toFloat() / this.month.maxLength()
+
+fun Pair<Pair<LocalDate, LocalDate>, Pair<LocalDate, LocalDate>>.overlap(cycle: ApiSpending.Cycle) =
+    Pair(max(this.first.first, this.second.first), min(this.first.second, this.second.second)) / cycle
 
 /**
  * Determines the number of cycles between epoch and the specified date

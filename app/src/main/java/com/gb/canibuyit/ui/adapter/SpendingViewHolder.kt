@@ -6,6 +6,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import com.gb.canibuyit.R
 import com.gb.canibuyit.db.model.ApiSpending
+import com.gb.canibuyit.model.Saving
 import com.gb.canibuyit.model.Spending
 import com.gb.canibuyit.ui.ProgressRelativeLayout
 import com.gb.canibuyit.util.hide
@@ -26,25 +27,27 @@ class SpendingViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
             context.getString(R.string.spending_no_target, spending.value, context.resources.getQuantityString(R.plurals.times, it, it)) // -875.00 (once)
         } ?: let {
             context.resources.getQuantityString(R.plurals.amount_cycle, spending.cycleMultiplier,
-                    spending.value, spending.cycleMultiplier, context.resources.getQuantityText(spending.cycle.strRes, spending.cycleMultiplier)) // 3045.00 per month
+                    spending.value, spending.cycleMultiplier, context.resources.getQuantityText(spending.cycle.apiCycle.strRes, spending.cycleMultiplier)) // 3045.00 per month
         }
         nameView.text = context.getString(R.string.average, spending.name, perCycleAmount) // Rent (875.0)
-        spending.spent?.let { spent ->
-            var cycleStr = ""
-            spending.occurrenceCount?.let {
-                cycleStr = context.resources.getQuantityString(R.plurals.times, it, it) // (10 times)
-            } ?: let {
-                cycleStr = context.resources.getQuantityString(R.plurals.period, spending.cycleMultiplier,
-                        spending.cycleMultiplier, context.resources.getQuantityText(spending.cycle.strRes, spending.cycleMultiplier)) // this week
+        spending.spent.let { spent ->
+            if (spent != 0.0) {
+                var cycleStr = ""
+                spending.occurrenceCount?.let {
+                    cycleStr = context.resources.getQuantityString(R.plurals.times, it, it) // (10 times)
+                } ?: let {
+                    cycleStr = context.resources.getQuantityString(R.plurals.period, spending.cycleMultiplier,
+                            spending.cycleMultiplier, context.resources.getQuantityText(spending.cycle.apiCycle.strRes, spending.cycleMultiplier)) // this week
+                }
+                spending.target?.let {
+                    spentView.text = context.getString(R.string.spending, spent, it, cycleStr) // 82.79/90 this week
+                } ?: let {
+                    spentView.text = context.getString(R.string.spending_no_target, spent, cycleStr) // 0.00 this month
+                }
+                spentView.show()
+            } else {
+                spentView.hide()
             }
-            spending.target?.let {
-                spentView.text = context.getString(R.string.spending, spent, it, cycleStr) // 82.79/90 this week
-            } ?: let {
-                spentView.text = context.getString(R.string.spending_no_target, spent, cycleStr) // 0.00 this month
-            }
-            spentView.show()
-        } ?: let {
-            spentView.hide()
         }
         if (spending.sourceData?.containsKey(ApiSpending.SOURCE_MONZO_CATEGORY) == true) {
             iconView.setImageResource(R.drawable.monzo)
@@ -52,20 +55,22 @@ class SpendingViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         } else {
             iconView.hide()
         }
-        spending.spent?.let { spent ->
-            spending.target?.let {
-                progressView.progress = Math.abs(spent / it).toFloat()
-                progressView.mode = if (it < 0.0) ProgressRelativeLayout.Mode.MIN_LIMIT else ProgressRelativeLayout.Mode.MAX_LIMIT
-            } ?: let {
-                progressView.progress = Math.abs(spent / spending.value).toFloat()
-                progressView.mode = ProgressRelativeLayout.Mode.DEFAULT
+        spending.spent.let { spent ->
+            if (spent != 0.0) {
+                spending.target?.let {
+                    progressView.progress = Math.abs(spent / it).toFloat()
+                    progressView.mode = if (it < 0.0) ProgressRelativeLayout.Mode.MIN_LIMIT else ProgressRelativeLayout.Mode.MAX_LIMIT
+                } ?: let {
+                    progressView.progress = Math.abs(spent / spending.value).toFloat()
+                    progressView.mode = ProgressRelativeLayout.Mode.DEFAULT
+                }
+            } else {
+                progressView.mode = ProgressRelativeLayout.Mode.OFF
             }
-        } ?: let {
-            progressView.mode = ProgressRelativeLayout.Mode.OFF
         }
         spending.savings?.let {
-            it.sumByDouble { it.amount }.let {
-                savingView.text = context.getString(R.string.saving, it)
+            it.sumByDouble(Saving::amount).let { saving ->
+                savingView.text = context.getString(R.string.saving, saving)
                 savingView.show()
             }
         } ?: savingView.hide()

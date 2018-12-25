@@ -20,15 +20,8 @@ public class SpendingAdapter extends RecyclerView.Adapter<SpendingViewHolder> {
     }
 
     public void setData(List<Spending> spendings) {
-//        if (this.spendings == null || this.spendings.size() == 0) {
         this.spendings = spendings;
         notifyDataSetChanged();
-//        } else {
-//            this.spendings = spendings;
-//            callback.setNewSpendings(spendings);
-//            DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(callback);
-//            diffResult.dispatchUpdatesTo(this);
-//        }
     }
 
     @Override
@@ -52,35 +45,4 @@ public class SpendingAdapter extends RecyclerView.Adapter<SpendingViewHolder> {
     public interface OnSpendingClickedListener {
         void onSpendingClicked(Spending spending);
     }
-
-//    private class SpendingListDiffCallback extends DiffUtil.Callback {
-//
-//        private List<ApiSpending> oldSpendings = new ArrayList<>();
-//        private List<ApiSpending> newSpendings;
-//
-//        void setNewSpendings(List<ApiSpending> newSpendings) {
-//            this.oldSpendings = this.newSpendings;
-//            this.newSpendings = newSpendings;
-//        }
-//
-//        @Override
-//        public int getOldListSize() {
-//            return oldSpendings != null ? oldSpendings.size() : 0;
-//        }
-//
-//        @Override
-//        public int getNewListSize() {
-//            return newSpendings.size();
-//        }
-//
-//        @Override
-//        public boolean areItemsTheSame(int oldItemPosition, int newItemPosition) {
-//            return oldSpendings.get(oldItemPosition).getId() == newSpendings.get(newItemPosition).getId();
-//        }
-//
-//        @Override
-//        public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
-//            return oldSpendings.get(oldItemPosition).equals(newSpendings.get(newItemPosition));
-//        }
-//    }
 }

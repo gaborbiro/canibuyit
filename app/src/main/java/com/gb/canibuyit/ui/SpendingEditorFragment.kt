@@ -11,11 +11,6 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
-import android.widget.CheckBox
-import android.widget.CompoundButton
-import android.widget.EditText
-import android.widget.Spinner
-import android.widget.TextView
 import com.gb.canibuyit.R
 import com.gb.canibuyit.db.model.ApiSpending
 import com.gb.canibuyit.di.Injector
@@ -23,8 +18,9 @@ import com.gb.canibuyit.interactor.Project
 import com.gb.canibuyit.interactor.ProjectInteractor
 import com.gb.canibuyit.interactor.SpendingInteractor
 import com.gb.canibuyit.model.Spending
-import com.gb.canibuyit.model.plus
 import com.gb.canibuyit.model.times
+import com.gb.canibuyit.model.plus
+import com.gb.canibuyit.model.toDomainCycle
 import com.gb.canibuyit.presenter.BasePresenter
 import com.gb.canibuyit.screen.Screen
 import com.gb.canibuyit.util.CurrencyUtils
@@ -34,6 +30,7 @@ import com.gb.canibuyit.util.ValidationError
 import com.gb.canibuyit.util.formatDayMonthYearWithPrefix
 import com.gb.canibuyit.util.hideKeyboard
 import com.gb.canibuyit.util.orNull
+import kotlinx.android.synthetic.main.fragment_spending_editor.*
 import java.text.NumberFormat
 import java.time.LocalDate
 import javax.inject.Inject
@@ -49,26 +46,6 @@ class SpendingEditorFragment : BaseFragment() {
     @Inject lateinit var projectInteractor: ProjectInteractor
     @Inject lateinit var currencyUtils: CurrencyUtils
 
-    private val nameInput by lazy { rootView.findViewById<EditText>(R.id.name_input) }
-    private val averageInput by lazy { rootView.findViewById<EditText>(R.id.average_input) }
-    private val averageLbl by lazy { rootView.findViewById<TextView>(R.id.average_text) }
-    private val targetInput by lazy { rootView.findViewById<EditText>(R.id.target_input) }
-    private val enabledCB by lazy { rootView.findViewById<CompoundButton>(R.id.enabled_switch) }
-    private val categoryPicker by lazy { rootView.findViewById<Spinner>(R.id.category_picker) }
-    private val occurrenceInput by lazy { rootView.findViewById<EditText>(R.id.occurrence_count_input) }
-    private val cycleMultiplierInput by lazy { rootView.findViewById<EditText>(R.id.cycle_multiplier_input) }
-    private val cyclePicker by lazy { rootView.findViewById<Spinner>(R.id.cycle_picker) }
-    private val fromDatePicker by lazy { rootView.findViewById<DateRangePicker>(R.id.from_date_picker) }
-    private val notesInput by lazy { rootView.findViewById<EditText>(R.id.notes_input) }
-    private val sourceCategoryLbl by lazy { rootView.findViewById<TextView>(R.id.source_category_lbl) }
-    private val nameOverrideCB by lazy { rootView.findViewById<CheckBox>(R.id.name_override_cb) }
-    private val categoryOverrideCB by lazy { rootView.findViewById<CheckBox>(R.id.category_override_cb) }
-    private val averageOverrideCB by lazy { rootView.findViewById<CheckBox>(R.id.average_override_cb) }
-    private val cycleOverrideCB by lazy { rootView.findViewById<CheckBox>(R.id.cycle_override_cb) }
-    private val whenOverrideCB by lazy { rootView.findViewById<CheckBox>(R.id.when_override_cb) }
-    private val averageCycleLbl by lazy { rootView.findViewById<TextView>(R.id.average_cycle_lbl) }
-    private val targetCycleLbl by lazy { rootView.findViewById<TextView>(R.id.target_cycle_lbl) }
-
     private var originalSpending: Spending? = null
     private var cycleMultiplierChanged: Boolean = false
     private var deleteBtn: MenuItem? = null
@@ -83,9 +60,9 @@ class SpendingEditorFragment : BaseFragment() {
 
     private var displayedSpending: Spending
         get() {
-            val fromStartDate = fromDatePicker.startDate
-            val fromEndDate = fromDatePicker.endDate
-            val cycle = if (cyclePicker.selectedItem is ApiSpending.Cycle) cyclePicker.selectedItem as ApiSpending.Cycle else throw ValidationError(ValidationError.TYPE_NON_INPUT_FIELD, null, "Please select a cycle")
+            val fromStartDate = period_date_picker.startDate
+            val fromEndDate = period_date_picker.endDate
+            val cycle = if (cycle_picker.selectedItem is ApiSpending.Cycle) cycle_picker.selectedItem as ApiSpending.Cycle else throw ValidationError(ValidationError.TYPE_NON_INPUT_FIELD, null, "Please select a cycle")
             if (fromStartDate > fromEndDate) {
                 throw ValidationError(ValidationError.TYPE_NON_INPUT_FIELD, null, "Start date must not be higher then end date")
             }
@@ -96,22 +73,22 @@ class SpendingEditorFragment : BaseFragment() {
             }
             return Spending(
                     id = originalSpending?.id,
-                    name = nameInput.text.orNull()?.toString()
-                            ?: throw ValidationError(ValidationError.TYPE_INPUT_FIELD, nameInput, "Please specify a name"),
-                    notes = notesInput.text.orNull()?.toString(),
-                    type = if (categoryPicker.selectedItem is ApiSpending.Category) categoryPicker.selectedItem as ApiSpending.Category else throw ValidationError(ValidationError.TYPE_NON_INPUT_FIELD, null, "Please select a category"),
-                    value = NumberFormat.getInstance().parse((averageInput.text.orNull()
-                            ?: throw ValidationError(ValidationError.TYPE_INPUT_FIELD, averageInput, "Please specify an amount")).toString()).toDouble(),
+                    name = name_input.text.orNull()?.toString()
+                            ?: throw ValidationError(ValidationError.TYPE_INPUT_FIELD, name_input, "Please specify a name"),
+                    notes = notes_input.text.orNull()?.toString(),
+                    type = if (category_picker.selectedItem is ApiSpending.Category) category_picker.selectedItem as ApiSpending.Category else throw ValidationError(ValidationError.TYPE_NON_INPUT_FIELD, null, "Please select a category"),
+                    value = NumberFormat.getInstance().parse((average_input.text.orNull()
+                            ?: throw ValidationError(ValidationError.TYPE_INPUT_FIELD, average_input, "Please specify an amount")).toString()).toDouble(),
                     fromStartDate = fromStartDate,
                     fromEndDate = fromEndDate,
-                    occurrenceCount = occurrenceInput.text.orNull()?.toString()?.toInt(),
+                    occurrenceCount = occurrence_count_input.text.orNull()?.toString()?.toInt(),
                     cycleMultiplier = cycleMultiplierFromScreen,
-                    cycle = cycle,
-                    enabled = enabledCB.isChecked,
+                    cycle = cycle.toDomainCycle(),
+                    enabled = enabled_switch.isChecked,
                     sourceData = originalSpending?.sourceData,
-                    spent = originalSpending?.spent,
+                    spent = originalSpending?.spent ?: 0.0,
                     // delete target history if empty
-                    targets = targetInput.text.orNull()?.toString()?.toDouble()?.let { target ->
+                    targets = target_input.text.orNull()?.toString()?.toDouble()?.let { target ->
                         val now = LocalDate.now()
                         val targetHistory = originalSpending?.targets?.toMutableMap()
                         targetHistory?.maxBy { it.key }?.let {
@@ -129,42 +106,42 @@ class SpendingEditorFragment : BaseFragment() {
         }
         @SuppressLint("SetTextI18n")
         set(spending) {
-            nameInput.setText(spending.name)
-            averageInput.setText(currencyUtils.formatDecimal(spending.value, 20))
+            name_input.setText(spending.name)
+            average_input.setText(currencyUtils.formatDecimal(spending.value, 20))
             spending.target?.let {
-                targetInput.setText(currencyUtils.formatDecimal(it, 20))
+                target_input.setText(currencyUtils.formatDecimal(it, 20))
             } ?: let {
-                targetInput.text = null
+                target_input.text = null
             }
-            enabledCB.isChecked = spending.enabled
-            categoryPicker.setSelection(spending.type.ordinal + 1)
-            fromDatePicker.startDate = spending.fromStartDate
-            fromDatePicker.endDate = spending.fromEndDate
+            enabled_switch.isChecked = spending.enabled
+            category_picker.setSelection(spending.type.ordinal + 1)
+            period_date_picker.startDate = spending.fromStartDate
+            period_date_picker.endDate = spending.fromEndDate
             spending.occurrenceCount?.let {
-                occurrenceInput.setText(it.toString())
-                averageLbl.text = "Value*: "
+                occurrence_count_input.setText(it.toString())
+                average_lbl.text = "Value*: "
             } ?: let {
-                occurrenceInput.text = null
-                averageLbl.text = "Average*: "
+                occurrence_count_input.text = null
+                average_lbl.text = "Average*: "
             }
             spending.cycleMultiplier.let { cycleMultiplier ->
-                cycleMultiplierInput.setText(cycleMultiplier.toString())
+                cycle_multiplier_input.setText(cycleMultiplier.toString())
                 context?.resources?.apply {
-                    averageCycleLbl.text = " per $cycleMultiplier ${getQuantityString(spending.cycle.strRes, cycleMultiplier)}"
-                    targetCycleLbl.text = " per $cycleMultiplier ${getQuantityString(spending.cycle.strRes, cycleMultiplier)}"
+                    average_cycle_lbl.text = " per $cycleMultiplier ${getQuantityString(spending.cycle.apiCycle.strRes, cycleMultiplier)}"
+                    target_cycle_lbl.text = " per $cycleMultiplier ${getQuantityString(spending.cycle.apiCycle.strRes, cycleMultiplier)}"
                 }
             }
-            cyclePicker.setSelection(spending.cycle.ordinal + 1)
-            notesInput.setText(spending.notes)
+            cycle_picker.setSelection(spending.cycle.apiCycle.ordinal + 1)
+            notes_input.setText(spending.notes)
             spending.sourceData?.get(ApiSpending.SOURCE_MONZO_CATEGORY)?.let {
-                sourceCategoryLbl.text = "\t(monzo: $it)"
+                source_category_lbl.text = "(original Monzo category: $it)"
             }
         }
 
     private val cycleMultiplierFromScreen: Int
-        get() = cycleMultiplierInput.text.orNull()?.toString()?.toInt()
+        get() = cycle_multiplier_input.text.orNull()?.toString()?.toInt()
                 ?: originalSpending?.cycleMultiplier
-                ?: throw ValidationError(ValidationError.TYPE_INPUT_FIELD, cycleMultiplierInput, "Please fill in")
+                ?: throw ValidationError(ValidationError.TYPE_INPUT_FIELD, cycle_multiplier_input, "Please fill in")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -179,11 +156,11 @@ class SpendingEditorFragment : BaseFragment() {
         super.onViewCreated(view, savedInstanceState)
         rootView = view as ViewGroup
 
-        categoryPicker.adapter = PlusOneAdapter(ApiSpending.Category.values())
-        categoryPicker.setOnTouchListener(keyboardDismisser)
+        category_picker.adapter = PlusOneAdapter(ApiSpending.Category.values())
+        category_picker.setOnTouchListener(keyboardDismisser)
 
-        cyclePicker.adapter = PlusOneAdapter(ApiSpending.Cycle.values())
-        cyclePicker.setOnTouchListener(keyboardDismisser)
+        cycle_picker.adapter = PlusOneAdapter(ApiSpending.Cycle.values())
+        cycle_picker.setOnTouchListener(keyboardDismisser)
 
         arguments?.let {
             if (originalSpending == null && it.containsKey(EXTRA_SPENDING_ID)) {
@@ -193,20 +170,20 @@ class SpendingEditorFragment : BaseFragment() {
             }
         }
 
-        cycleMultiplierInput.addTextChangedListener(object : TextChangeListener() {
+        cycle_multiplier_input.addTextChangedListener(object : TextChangeListener() {
             override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
                 cycleMultiplierChanged = true
             }
         })
-        fromDatePicker.touchInterceptor = { _ ->
-            keyboardDismisser.onTouch(fromDatePicker, MotionEvent.obtain(0, 0, MotionEvent.ACTION_DOWN, 0f, 0f, 0))
+        period_date_picker.touchInterceptor = { _ ->
+            keyboardDismisser.onTouch(period_date_picker, MotionEvent.obtain(0, 0, MotionEvent.ACTION_DOWN, 0f, 0f, 0))
             false
         }
-        nameOverrideCB.setOnCheckedChangeListener { _, isChecked -> projectSettings?.namePinned = isChecked }
-        categoryOverrideCB.setOnCheckedChangeListener { _, isChecked -> projectSettings?.categoryPinned = isChecked }
-        averageOverrideCB.setOnCheckedChangeListener { _, isChecked -> projectSettings?.averagePinned = isChecked }
-        cycleOverrideCB.setOnCheckedChangeListener { _, isChecked -> projectSettings?.cyclePinned = isChecked }
-        whenOverrideCB.setOnCheckedChangeListener { _, isChecked -> projectSettings?.whenPinned = isChecked }
+        name_override_cb.setOnCheckedChangeListener { _, isChecked -> projectSettings?.namePinned = isChecked }
+        category_override_cb.setOnCheckedChangeListener { _, isChecked -> projectSettings?.categoryPinned = isChecked }
+        average_override_cb.setOnCheckedChangeListener { _, isChecked -> projectSettings?.averagePinned = isChecked }
+        cycle_override_cb.setOnCheckedChangeListener { _, isChecked -> projectSettings?.cyclePinned = isChecked }
+        period_override_cb.setOnCheckedChangeListener { _, isChecked -> projectSettings?.whenPinned = isChecked }
     }
 
     override fun inject(): BasePresenter<Screen>? {
@@ -320,25 +297,25 @@ class SpendingEditorFragment : BaseFragment() {
     }
 
     private fun applyProjectSettingsToScreen(project: Project) {
-        nameOverrideCB.isChecked = project.namePinned
-        categoryOverrideCB.isChecked = project.categoryPinned
-        averageOverrideCB.isChecked = project.averagePinned
-        cycleOverrideCB.isChecked = project.cyclePinned
-        whenOverrideCB.isChecked = project.whenPinned
+        name_override_cb.isChecked = project.namePinned
+        category_override_cb.isChecked = project.categoryPinned
+        average_override_cb.isChecked = project.averagePinned
+        cycle_override_cb.isChecked = project.cyclePinned
+        period_override_cb.isChecked = project.whenPinned
     }
 
     private fun isEmpty(): Boolean {
-        return nameInput.text.isEmpty() &&
-                notesInput.text.isEmpty() &&
-                categoryPicker.selectedItem !is ApiSpending.Category &&
-                averageInput.text.isEmpty() &&
-                !fromDatePicker.isStartDateChanged &&
-                !fromDatePicker.isEndDateChanged &&
-                occurrenceInput.text.isEmpty() &&
-                cycleMultiplierInput.text.toString() == "1" &&
-                cyclePicker.selectedItem !is ApiSpending.Cycle &&
-                !enabledCB.isChecked &&
-                targetInput.text.isEmpty()
+        return name_input.text.isEmpty() &&
+                notes_input.text.isEmpty() &&
+                category_picker.selectedItem !is ApiSpending.Category &&
+                average_input.text.isEmpty() &&
+                !period_date_picker.isStartDateChanged &&
+                !period_date_picker.isEndDateChanged &&
+                occurrence_count_input.text.isEmpty() &&
+                cycle_multiplier_input.text.toString() == "1" &&
+                cycle_picker.selectedItem !is ApiSpending.Cycle &&
+                !enabled_switch.isChecked &&
+                target_input.text.isEmpty()
     }
 
     /**

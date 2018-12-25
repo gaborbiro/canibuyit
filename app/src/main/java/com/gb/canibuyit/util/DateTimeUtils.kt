@@ -1,7 +1,5 @@
 package com.gb.canibuyit.util
 
-import com.gb.canibuyit.db.model.ApiSpending
-import com.gb.canibuyit.model.span
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -52,9 +50,6 @@ fun LocalDateTime.formatSimpleDateTime() = DateTimeFormatter.ofPattern("dd.MMM H
 
 fun min(date1: LocalDate, date2: LocalDate) = if (date1 < date2) date1 else date2
 fun max(date1: LocalDate, date2: LocalDate) = if (date1 > date2) date1 else date2
-
-fun Pair<Pair<LocalDate, LocalDate>, Pair<LocalDate, LocalDate>>.overlap(cycle: ApiSpending.Cycle) =
-    Pair(max(this.first.first, this.second.first), min(this.first.second, this.second.second)).span(cycle)
 
 fun midnightOfToday() = LocalDateTime.of(LocalDate.now(), LocalTime.MIDNIGHT)
 

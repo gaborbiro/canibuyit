@@ -4,10 +4,10 @@ import com.gb.canibuyit.db.model.ApiSpending
 import com.gb.canibuyit.model.Balance
 import com.gb.canibuyit.model.Spending
 import com.gb.canibuyit.model.SpendingEvent
+import com.gb.canibuyit.model.div
+import com.gb.canibuyit.model.overlap
 import com.gb.canibuyit.model.plus
-import com.gb.canibuyit.model.span
 import com.gb.canibuyit.model.times
-import com.gb.canibuyit.util.overlap
 import java.time.LocalDate
 
 object BalanceCalculator {
@@ -43,7 +43,7 @@ object BalanceCalculator {
                         ?: spending.value.toFloat()
                 if (end >= movingStart) {
                     val overlap = Pair(Pair(start ?: spending.fromStartDate, end.plusDays(1)), Pair(movingStart, movingEnd.plusDays(1))).overlap(ApiSpending.Cycle.DAYS)
-                    val fraction = overlap / Pair(movingStart, movingEnd.plusDays(1)).span(ApiSpending.Cycle.DAYS)
+                    val fraction = overlap / (Pair(movingStart, movingEnd.plusDays(1)) / ApiSpending.Cycle.DAYS)
                     target += fraction * targetIncrement
                     total += fraction * spending.value.toFloat()
                     spendingEvents.add(SpendingEvent(movingStart, movingEnd, total))
@@ -52,8 +52,8 @@ object BalanceCalculator {
                 }
             }
             counter++
-            movingStart = spending.fromStartDate + (spending.cycleMultiplier * counter * spending.cycle)
-            movingEnd = spending.fromEndDate + (spending.cycleMultiplier * counter * spending.cycle)
+            movingStart = spending.fromStartDate + (spending.cycleMultiplier * counter * spending.cycle.apiCycle)
+            movingEnd = spending.fromEndDate + (spending.cycleMultiplier * counter * spending.cycle.apiCycle)
             spending.occurrenceCount?.let {
                 if (++occurrenceCount >= it) {
                     `break` = true
