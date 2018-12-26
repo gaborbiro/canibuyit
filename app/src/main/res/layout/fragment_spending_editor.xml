@@ -100,10 +100,12 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="@dimen/double_padding"
             android:layout_width="0dp"
+            android:visibility="gone"
             app:layout_constraintEnd_toStartOf="@id/category_override_cb"
             app:layout_constraintStart_toStartOf="@id/category_picker"
             app:layout_constraintTop_toBottomOf="@id/category_picker"
-            tools:text="monzo: eating_out" />
+            tools:text="monzo: eating_out"
+            tools:visibility="visible" />
 
         <TextView
             android:id="@+id/cycle_multiplier_lbl"
@@ -313,13 +315,38 @@
             app:layout_constraintTop_toBottomOf="@id/occurrence_count_input" />
 
         <TextView
-            android:id="@+id/details"
+            android:id="@+id/spent_by_cycle_lbl"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/double_padding"
             android:layout_width="0dp"
-            android:paddingBottom="@dimen/padding"
+            android:text="Spent by cycle:"
+            android:visibility="gone"
             app:layout_constraintEnd_toStartOf="@id/right_guideline"
             app:layout_constraintStart_toEndOf="@id/left_guideline"
-            app:layout_constraintTop_toBottomOf="@id/notes_input" />
+            app:layout_constraintTop_toBottomOf="@id/notes_input"
+            tools:visibility="visible" />
+
+        <include
+            layout="@layout/list_item_spent_by_cycle"
+            android:id="@+id/spent_by_cycle_toggle_all"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/double_padding"
+            android:layout_width="0dp"
+            app:layout_constraintEnd_toStartOf="@id/right_guideline"
+            app:layout_constraintStart_toEndOf="@id/left_guideline"
+            app:layout_constraintTop_toBottomOf="@id/spent_by_cycle_lbl" />
+
+        <LinearLayout
+            android:id="@+id/spent_by_cycle_list"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/padding"
+            android:layout_width="0dp"
+            android:orientation="vertical"
+            android:visibility="gone"
+            app:layout_constraintEnd_toStartOf="@id/right_guideline"
+            app:layout_constraintStart_toEndOf="@id/left_guideline"
+            app:layout_constraintTop_toBottomOf="@id/spent_by_cycle_toggle_all"
+            tools:listitem="@layout/list_item_spent_by_cycle"
+            tools:visibility="visible" />
     </android.support.constraint.ConstraintLayout>
 </ScrollView>

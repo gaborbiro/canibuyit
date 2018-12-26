@@ -28,10 +28,10 @@ enum class Injector {
 
     val fragmentManager: FragmentManager?
         get() {
-            if (contextSources.size > 0) {
-                return contextSources[contextSources.size - 1].supportFragmentManager
+            return if (contextSources.size > 0) {
+                contextSources[contextSources.size - 1].supportFragmentManager
             } else {
-                return null
+                null
             }
         }
 

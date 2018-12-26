@@ -19,6 +19,10 @@ fun View.hide() {
     this.visibility = View.GONE
 }
 
+fun View.invisible() {
+    this.visibility = View.INVISIBLE
+}
+
 fun View.visible() = this.visibility != View.GONE
 
 inline fun <reified T> Gson.fromJson(json: String): T =

@@ -3,6 +3,7 @@ package com.gb.canibuyit.interactor
 import com.gb.canibuyit.UserPreferences
 import com.gb.canibuyit.exception.DomainException
 import com.gb.canibuyit.exception.MonzoException
+import com.gb.canibuyit.model.Lce
 import com.gb.canibuyit.model.Login
 import com.gb.canibuyit.model.Webhook
 import com.gb.canibuyit.model.Webhooks

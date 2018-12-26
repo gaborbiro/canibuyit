@@ -13,14 +13,11 @@ import android.view.ViewGroup;
 import com.gb.canibuyit.R;
 import com.gb.canibuyit.di.Injector;
 import com.gb.canibuyit.model.Spending;
-import com.gb.canibuyit.presenter.BasePresenter;
 import com.gb.canibuyit.presenter.SpendingListPresenter;
 import com.gb.canibuyit.screen.SpendingListScreen;
 import com.gb.canibuyit.ui.adapter.SpendingAdapter;
 
 import java.util.List;
-
-import javax.inject.Inject;
 
 import butterknife.BindView;
 
@@ -31,7 +28,7 @@ import butterknife.BindView;
  * <p/>
  * Activities containing this fragment MUST implement the {@link FragmentCallback} interface.
  */
-public class SpendingListFragment extends BaseFragment implements SpendingListScreen, SpendingAdapter.OnSpendingClickedListener, SwipeRefreshLayout.OnRefreshListener {
+public class SpendingListFragment extends BaseFragment<SpendingListScreen, SpendingListPresenter> implements SpendingListScreen, SpendingAdapter.OnSpendingClickedListener, SwipeRefreshLayout.OnRefreshListener {
 
     /**
      * A dummy implementation of the {@link FragmentCallback} interface that does
@@ -58,8 +55,6 @@ public class SpendingListFragment extends BaseFragment implements SpendingListSc
 
     private SpendingAdapter adapter;
 
-    @Inject SpendingListPresenter presenter;
-
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the fragment
      * (e.g. upon screen orientation changes).
@@ -85,13 +80,12 @@ public class SpendingListFragment extends BaseFragment implements SpendingListSc
     @Override
     public void onResume() {
         super.onResume();
-        presenter.fetchSpendings();
+        getPresenter().fetchSpendings();
     }
 
     @Override
-    protected BasePresenter inject() {
+    protected void inject() {
         Injector.INSTANCE.getGraph().inject(this);
-        return presenter;
     }
 
     @Override

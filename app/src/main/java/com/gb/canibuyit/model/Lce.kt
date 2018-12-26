@@ -1,4 +1,4 @@
-package com.gb.canibuyit.interactor
+package com.gb.canibuyit.model
 
 open class Lce<T> {
 

@@ -9,23 +9,20 @@ import butterknife.ButterKnife
 import butterknife.Unbinder
 import com.gb.canibuyit.di.Injector
 import com.gb.canibuyit.exception.ContextSource
-import com.gb.canibuyit.exception.ErrorHandler
 import com.gb.canibuyit.presenter.BasePresenter
 import com.gb.canibuyit.screen.Screen
 import org.jetbrains.annotations.Nullable
 import javax.inject.Inject
 
-abstract class BaseFragment : Fragment(), ContextSource, Screen {
-
-    lateinit @Inject internal var errorHandler: ErrorHandler
+abstract class BaseFragment<S : Screen, P : BasePresenter<S>> : Fragment(), ContextSource, Screen {
 
     private lateinit var unbinder: Unbinder
-    var presenter: BasePresenter<Screen>? = null
+    @Inject protected lateinit var presenter: P
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        presenter = inject()
-        presenter?.setScreen(this)
+        inject()
+        presenter.setScreen(this as S)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -50,11 +47,7 @@ abstract class BaseFragment : Fragment(), ContextSource, Screen {
 
     override fun onDestroy() {
         super.onDestroy()
-        presenter?.onPresenterDestroyed()
-    }
-
-    protected fun onError(throwable: Throwable) {
-        errorHandler.onError(throwable)
+        presenter.onPresenterDestroyed()
     }
 
     override fun getSupportFragmentManager(): FragmentManager? {
@@ -66,5 +59,5 @@ abstract class BaseFragment : Fragment(), ContextSource, Screen {
     }
 
     @Nullable
-    protected abstract fun inject(): BasePresenter<Screen>?
+    protected abstract fun inject()
 }

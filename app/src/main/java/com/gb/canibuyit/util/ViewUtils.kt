@@ -2,12 +2,15 @@ package com.gb.canibuyit.util
 
 import android.app.DatePickerDialog
 import android.content.Context
+import android.support.annotation.LayoutRes
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.Spanned
 import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.widget.DatePicker
 import android.widget.TextView
@@ -65,3 +68,10 @@ fun createDatePickerDialog(context: Context, date: LocalDate, listener: (DatePic
         listener.invoke(view, LocalDate.of(year, month + 1, dayOfMonth))
     }, date.year, date.monthValue - 1, date.dayOfMonth)
 }
+
+fun ViewGroup.inflate(@LayoutRes resource: Int, attachToRoot: Boolean = false) =
+    LayoutInflater.from(this.context).inflate(resource, this, attachToRoot)
+
+@Suppress("UNCHECKED_CAST")
+fun <T : View> ViewGroup.add(@LayoutRes resource: Int): T =
+    (LayoutInflater.from(this.context).inflate(resource, this, false) as T).also { addView(it) }

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:addStatesFromChildren="true"
+    android:background="?android:attr/selectableItemBackground"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="@dimen/double_padding"
+    android:layout_width="match_parent">
+
+    <CheckBox
+        android:id="@+id/toggle"
+        android:layout_height="match_parent"
+        android:layout_marginStart="4dp"
+        android:layout_width="wrap_content"
+        android:padding="12dp"
+        android:text="2018-06-20 2018-06-27: -456 (6)"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ProgressBar
+        android:id="@+id/progress_indicator"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toBottomOf="@id/toggle"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/toggle"
+        tools:visibility="visible" />
+</android.support.constraint.ConstraintLayout>

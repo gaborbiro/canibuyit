@@ -110,8 +110,14 @@ class MonzoMapper @Inject constructor() {
         val spentByCycle = transactionsByCycle.map { (pair, list) ->
             val firstDay = list[0].created.firstCycleDay(cycle.apiCycle)
             val lastDay = least(list[0].created.lastCycleDay(cycle.apiCycle), LocalDate.now())
-            CycleSpent(null, savedSpending?.id, firstDay, lastDay,
-                    list.sumBy { it.amount }.toBigDecimal().divide(100.toBigDecimal()))
+            CycleSpent(
+                    id = null,
+                    spendingId = savedSpending?.id,
+                    from = firstDay,
+                    to = lastDay,
+                    amount = list.sumBy { it.amount }.toBigDecimal().divide(100.toBigDecimal()),
+                    count = list.size,
+                    enabled = true)
         }
         val spent: BigDecimal = spentByCycle.last().amount
         val savings: List<Saving>? = getSavings(transactionsByCycle, cycle.apiCycle, savedSpending)

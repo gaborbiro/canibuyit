@@ -1,7 +1,6 @@
 package com.gb.canibuyit.ui
 
 import android.annotation.SuppressLint
-import android.database.sqlite.SQLiteConstraintException
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
@@ -15,34 +14,33 @@ import com.gb.canibuyit.R
 import com.gb.canibuyit.db.model.ApiSpending
 import com.gb.canibuyit.di.Injector
 import com.gb.canibuyit.interactor.Project
-import com.gb.canibuyit.interactor.ProjectInteractor
-import com.gb.canibuyit.interactor.SpendingInteractor
 import com.gb.canibuyit.model.Spending
+import com.gb.canibuyit.model.SpentByCycleUpdateUiModel
 import com.gb.canibuyit.model.plus
 import com.gb.canibuyit.model.times
 import com.gb.canibuyit.model.toDomainCycle
-import com.gb.canibuyit.presenter.BasePresenter
-import com.gb.canibuyit.screen.Screen
+import com.gb.canibuyit.presenter.SpendingEditorPresenter
+import com.gb.canibuyit.screen.SpendingEditorScreen
 import com.gb.canibuyit.util.DialogUtils
 import com.gb.canibuyit.util.TextChangeListener
 import com.gb.canibuyit.util.ValidationError
+import com.gb.canibuyit.util.add
 import com.gb.canibuyit.util.formatDayMonthYearWithPrefix
 import com.gb.canibuyit.util.hideKeyboard
+import com.gb.canibuyit.util.invisible
 import com.gb.canibuyit.util.orNull
+import com.gb.canibuyit.util.show
 import kotlinx.android.synthetic.main.fragment_spending_editor.*
+import kotlinx.android.synthetic.main.list_item_spent_by_cycle.view.*
 import java.math.BigDecimal
 import java.time.LocalDate
-import javax.inject.Inject
 
 /**
  * A fragment representing a single Spending detail screen. This fragment is either
  * contained in a [MainActivity] in two-pane mode (on tablets) or a
  * [SpendingEditorActivity] on handsets.
  */
-class SpendingEditorFragment : BaseFragment() {
-
-    @Inject lateinit var spendingInteractor: SpendingInteractor
-    @Inject lateinit var projectInteractor: ProjectInteractor
+class SpendingEditorFragment : BaseFragment<SpendingEditorScreen, SpendingEditorPresenter>(), SpendingEditorScreen {
 
     private var originalSpending: Spending? = null
     private var cycleMultiplierChanged: Boolean = false
@@ -54,7 +52,6 @@ class SpendingEditorFragment : BaseFragment() {
         }
         false
     }
-    private var projectSettings: Project? = null
 
     private var displayedSpending: Spending
         get() {
@@ -135,9 +132,28 @@ class SpendingEditorFragment : BaseFragment() {
             notes_input.setText(spending.notes)
             spending.sourceData?.get(ApiSpending.SOURCE_MONZO_CATEGORY)?.let {
                 source_category_lbl.text = "(original Monzo category: $it)"
+                source_category_lbl.show()
             }
-            details.text = "Spent by cycle:\n\n" +
-                    spending.spentByCycle?.joinTo(StringBuffer(), separator = "\n", transform = { it -> "${it.from} ${it.to}: ${it.amount}" })
+            spending.spentByCycle?.let { list ->
+                spent_by_cycle_list.show()
+                spent_by_cycle_lbl.show()
+                list.forEach { cycleSpent ->
+                    spent_by_cycle_list.add<ViewGroup>(R.layout.list_item_spent_by_cycle).apply {
+                        tag = cycleSpent.id!!
+                        toggle.isChecked = cycleSpent.enabled
+                        toggle.text = "${cycleSpent.from} ${cycleSpent.to}: ${cycleSpent.amount} (${cycleSpent.count})"
+                        toggle.setOnCheckedChangeListener { _, isChecked ->
+                            presenter.onSpentByCycleChecked(cycleSpent, isChecked)
+                        }
+                    }
+                }
+                spent_by_cycle_toggle_all.apply {
+                    show()
+                    toggle.text = "Enable/disable all"
+                    toggle.isChecked = list.any { it.enabled }
+                    toggle.setOnCheckedChangeListener { _, isChecked -> presenter.onAllSpentByCycleChecked(spending, isChecked) }
+                }
+            }
         }
 
     private val cycleMultiplierFromScreen: Int
@@ -152,6 +168,42 @@ class SpendingEditorFragment : BaseFragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_spending_editor, container, false)
+    }
+
+    override fun setSpentByCycleEnabled(uiModel: SpentByCycleUpdateUiModel) {
+        when (uiModel) {
+            is SpentByCycleUpdateUiModel.AllLoading -> {
+                spent_by_cycle_list.forEachChild {
+                    it.toggle.isEnabled = false
+                    it.progress_indicator.show()
+                }
+            }
+            is SpentByCycleUpdateUiModel.AllFinished -> {
+                spent_by_cycle_list.forEachChild {
+                    it.toggle.isEnabled = true
+                    it.progress_indicator.invisible()
+                }
+            }
+            is SpentByCycleUpdateUiModel.Loading -> {
+                spent_by_cycle_list.findViewWithTag<ViewGroup>(uiModel.cycleSpent?.id).apply {
+                    toggle.isEnabled = false
+                    progress_indicator.show()
+                }
+            }
+            is SpentByCycleUpdateUiModel.Success, is SpentByCycleUpdateUiModel.Error -> {
+                spent_by_cycle_list.findViewWithTag<ViewGroup>(uiModel.cycleSpent?.id).apply {
+                    toggle.isEnabled = true
+                    toggle.isChecked = uiModel.cycleSpent?.enabled ?: throw IllegalArgumentException("cycleSpent missing")
+                    progress_indicator.invisible()
+                }
+            }
+        }
+    }
+
+    private fun ViewGroup.forEachChild(apply: (View) -> Unit) {
+        for (i in 0 until childCount) {
+            apply(getChildAt(i))
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -181,16 +233,10 @@ class SpendingEditorFragment : BaseFragment() {
             keyboardDismisser.onTouch(period_date_picker, MotionEvent.obtain(0, 0, MotionEvent.ACTION_DOWN, 0f, 0f, 0))
             false
         }
-        name_override_cb.setOnCheckedChangeListener { _, isChecked -> projectSettings?.namePinned = isChecked }
-        category_override_cb.setOnCheckedChangeListener { _, isChecked -> projectSettings?.categoryPinned = isChecked }
-        average_override_cb.setOnCheckedChangeListener { _, isChecked -> projectSettings?.averagePinned = isChecked }
-        cycle_override_cb.setOnCheckedChangeListener { _, isChecked -> projectSettings?.cyclePinned = isChecked }
-        period_override_cb.setOnCheckedChangeListener { _, isChecked -> projectSettings?.whenPinned = isChecked }
     }
 
-    override fun inject(): BasePresenter<Screen>? {
+    override fun inject() {
         Injector.INSTANCE.graph.inject(this)
-        return null
     }
 
     private inner class PlusOneAdapter internal constructor(items: Array<*>) : ArrayAdapter<Any>(activity, android.R.layout.simple_list_item_1, items) {
@@ -213,12 +259,7 @@ class SpendingEditorFragment : BaseFragment() {
      */
     fun showSpending(spendingId: Int?) {
         if (spendingId != null) {
-            spendingInteractor.get(spendingId)
-                    .subscribe(this::onSpendingLoaded, this::onError)
-            projectInteractor.getProject().subscribe({ project ->
-                this.projectSettings = project
-                applyProjectSettingsToScreen(project)
-            }, this::onError)
+            presenter.showSpending(spendingId)
         }
     }
 
@@ -241,13 +282,16 @@ class SpendingEditorFragment : BaseFragment() {
             R.id.menu_delete -> {
                 originalSpending?.let {
                     if (it.isPersisted) {
-                        spendingInteractor.delete(it.id!!)
-                                .subscribe({ deleteBtn?.isVisible = false }, this::onError)
+                        presenter.deleteSpending(it)
                     }
                 }
             }
         }
         return false
+    }
+
+    override fun onSpendingDeleted() {
+        deleteBtn?.isVisible = false
     }
 
     fun saveAndRun(onFinish: Runnable) {
@@ -267,43 +311,40 @@ class SpendingEditorFragment : BaseFragment() {
      */
     @Synchronized
     private fun saveUserInputOrShowError(): Boolean {
-        try {
+        return try {
             val newSpending = displayedSpending
-            spendingInteractor.createOrUpdate(newSpending)
-                    .subscribe({
-                        this@SpendingEditorFragment.originalSpending = newSpending
-                        deleteBtn?.isVisible = true
-                    }) {
-                        var throwable: Throwable = it
-                        onError(throwable)
-                        do {
-                            if (throwable.cause == null || throwable is SQLiteConstraintException) {
-                                break
-                            } else {
-                                throwable = throwable.cause as Throwable
-                            }
-                        } while (true)
-                        onError(throwable)
-                    }
-            return true
+            presenter.saveSpending(newSpending)
+            true
         } catch (error: ValidationError) {
             context?.let(error::showError)
-            return false
+            false
         }
     }
 
-    private fun onSpendingLoaded(spending: Spending) {
+    override fun onSpendingSaved(spending: Spending) {
+        this@SpendingEditorFragment.originalSpending = spending
+        deleteBtn?.isVisible = true
+    }
+
+    override fun onSpendingLoaded(spending: Spending) {
         this.originalSpending = spending
         displayedSpending = spending
         deleteBtn?.isVisible = true
     }
 
-    private fun applyProjectSettingsToScreen(project: Project) {
+    override fun applyProjectSettingsToScreen(project: Project) {
         name_override_cb.isChecked = project.namePinned
         category_override_cb.isChecked = project.categoryPinned
         average_override_cb.isChecked = project.averagePinned
         cycle_override_cb.isChecked = project.cyclePinned
         period_override_cb.isChecked = project.whenPinned
+
+        name_override_cb.setOnCheckedChangeListener { _, isChecked -> project.namePinned = isChecked }
+        category_override_cb.setOnCheckedChangeListener { _, isChecked -> project.categoryPinned = isChecked }
+        average_override_cb.setOnCheckedChangeListener { _, isChecked -> project.averagePinned = isChecked }
+        cycle_override_cb.setOnCheckedChangeListener { _, isChecked -> project.cyclePinned = isChecked }
+        period_override_cb.setOnCheckedChangeListener { _, isChecked -> project.whenPinned = isChecked }
+
     }
 
     private fun isEmpty(): Boolean {
@@ -325,14 +366,14 @@ class SpendingEditorFragment : BaseFragment() {
      * this fragment contains unsaved user input
      */
     private fun shouldSave(): Boolean {
-        try {
+        return try {
             val newSpending = displayedSpending
             val isNew = originalSpending == null && !isEmpty()
             val changed = originalSpending?.let { !it.compareForEditing(newSpending, false, false) }
                     ?: false
-            return isNew || changed
+            isNew || changed
         } catch (ve: ValidationError) {
-            return true
+            true
         }
     }
 

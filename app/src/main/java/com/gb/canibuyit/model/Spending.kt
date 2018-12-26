@@ -208,11 +208,13 @@ fun LocalDate.lastCycleDay(cycle: ApiSpending.Cycle): LocalDate = when (cycle) {
     YEARS -> this.with(lastDayOfYear())
 }.atStartOfDay().plusDays(1).minusNanos(1).toLocalDate()
 
-class CycleSpent(
+data class CycleSpent(
     val id: Int?,
     val spendingId: Int?,
     val from: LocalDate,
     val to: LocalDate,
-    val amount: BigDecimal) {
-    override fun toString() = "$from $to: $amount"
+    val amount: BigDecimal,
+    val count: Int,
+    val enabled: Boolean) {
+    override fun toString() = "$from $to: $amount ($count)"
 }

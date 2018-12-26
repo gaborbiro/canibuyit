@@ -62,11 +62,14 @@ class SpendingMapper @Inject constructor(private val gson: Gson) {
     }
 
     fun map(apiSpentByCycle: ApiSpentByCycle): CycleSpent = CycleSpent(
-            apiSpentByCycle.id ?: throw MapperException("Missing  when mapping ApiSpentByCycle"),
-            apiSpentByCycle.spending?.id ?: throw MapperException("Missing  when mapping ApiSpentByCycle"),
-            apiSpentByCycle.from ?: throw MapperException("Missing  when mapping ApiSpentByCycle"),
-            apiSpentByCycle.to ?: throw MapperException("Missing to when mapping ApiSpentByCycle"),
-            apiSpentByCycle.amount ?: throw MapperException("Missing amount when mapping ApiSpentByCycle"))
+            id =apiSpentByCycle.id ?: throw MapperException("Missing `id` when mapping ApiSpentByCycle"),
+            spendingId = apiSpentByCycle.spending?.id ?: throw MapperException("Missing `spendingId` when mapping ApiSpentByCycle"),
+            from = apiSpentByCycle.from ?: throw MapperException("Missing `from` when mapping ApiSpentByCycle"),
+            to = apiSpentByCycle.to ?: throw MapperException("Missing `to` when mapping ApiSpentByCycle"),
+            amount = apiSpentByCycle.amount ?: throw MapperException("Missing `amount` when mapping ApiSpentByCycle"),
+            count = apiSpentByCycle.count ?: throw MapperException("Missing `count` when mapping ApiSpentByCycle"),
+            enabled = apiSpentByCycle.enabled ?: throw MapperException("Missing `enabled` when mapping ApiSpentByCycle")
+    )
 
     fun map(apiSaving: ApiSaving): Saving {
         return Saving(

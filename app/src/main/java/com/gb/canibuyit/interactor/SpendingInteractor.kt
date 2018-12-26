@@ -3,7 +3,10 @@ package com.gb.canibuyit.interactor
 import com.gb.canibuyit.db.model.ApiSpending
 import com.gb.canibuyit.exception.DomainException
 import com.gb.canibuyit.model.Balance
+import com.gb.canibuyit.model.CycleSpent
+import com.gb.canibuyit.model.Lce
 import com.gb.canibuyit.model.Spending
+import com.gb.canibuyit.model.SpentByCycleUpdateUiModel
 import com.gb.canibuyit.repository.SavingsRepository
 import com.gb.canibuyit.repository.SpendingsRepository
 import com.gb.canibuyit.repository.SpentByCycleRepository
@@ -75,8 +78,52 @@ constructor(private val spendingsRepository: SpendingsRepository,
                 .subscribe({
                     loadSpendings()
                 }, { throwable ->
-                    spendingsSubject.onNext(Lce.error(DomainException("Error updating monzo cache. See logs.", throwable)))
+                    spendingsSubject.onNext(Lce.error(DomainException("Error saving monzo spendings. See logs.", throwable)))
                 })
+    }
+
+    fun setSpentByCycleEnabled(cycleSpent: CycleSpent, enabled: Boolean): Observable<SpentByCycleUpdateUiModel> {
+        return spentByCycleRepository.setSpentByCycleEnabled(cycleSpent, enabled)
+                .map { result -> this.mapSpentByCycleEnabledResult(cycleSpent, result) }
+                .toObservable()
+                .startWith(SpentByCycleUpdateUiModel.Loading(cycleSpent))
+                .onErrorResumeNext { throwable: Throwable ->
+                    Observable.just<SpentByCycleUpdateUiModel>(
+                            SpentByCycleUpdateUiModel.Error(
+                                    cycleSpent = cycleSpent,
+                                    error = throwable.message ?: "Error updating SpentByCycle ($cycleSpent).")
+                    )
+                }
+                .subscribeOn(schedulerProvider.io())
+                .observeOn(schedulerProvider.mainThread())
+    }
+
+    fun setAllSpentByCycleEnabled(spending: Spending, enabled: Boolean): Observable<SpentByCycleUpdateUiModel> {
+        return Observable.create<SpentByCycleUpdateUiModel> { emitter ->
+            spending.spentByCycle?.let { list ->
+                emitter.onNext(SpentByCycleUpdateUiModel.AllLoading)
+                list.forEach { cycleSpent ->
+                    val single = spentByCycleRepository.setSpentByCycleEnabled(cycleSpent, enabled)
+                            .map { result -> this.mapSpentByCycleEnabledResult(cycleSpent, result) }
+                            .onErrorResumeNext { throwable: Throwable ->
+                                Single.just<SpentByCycleUpdateUiModel>(
+                                        SpentByCycleUpdateUiModel.Error(
+                                                cycleSpent = cycleSpent,
+                                                error = throwable.message ?: "Error updating SpentByCycle ($cycleSpent).")
+                                )
+                            }
+                    emitter.onNext(single.blockingGet())
+                }
+                emitter.onNext(SpentByCycleUpdateUiModel.AllFinished)
+                emitter.onComplete()
+            } ?: emitter.onComplete()
+        }
+                .subscribeOn(schedulerProvider.io())
+                .observeOn(schedulerProvider.mainThread())
+    }
+
+    private fun mapSpentByCycleEnabledResult(cycleSpent: CycleSpent, enabled: Boolean): SpentByCycleUpdateUiModel {
+        return SpentByCycleUpdateUiModel.Success(cycleSpent.copy(enabled = enabled))
     }
 
     // NON-REACTIVE METHODS

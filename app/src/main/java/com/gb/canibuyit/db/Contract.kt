@@ -40,6 +40,8 @@ class Contract {
             const val FROM = "from"
             const val TO = "to"
             const val AMOUNT = "amount"
+            const val COUNT = "count"
+            const val ENABLED = "enabled"
         }
     }
 

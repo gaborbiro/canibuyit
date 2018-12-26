@@ -8,7 +8,7 @@ import javax.inject.Inject
 
 abstract class BasePresenter<S : Screen> {
 
-    lateinit @Inject var errorHandler: ErrorHandler
+    @Inject lateinit var errorHandler: ErrorHandler
 
     private val currentDisposables: CompositeDisposable = CompositeDisposable()
     private var screen: S? = null
