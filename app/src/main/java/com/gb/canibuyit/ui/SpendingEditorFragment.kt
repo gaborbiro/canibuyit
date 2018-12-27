@@ -32,7 +32,6 @@ import com.gb.canibuyit.util.invisible
 import com.gb.canibuyit.util.orNull
 import com.gb.canibuyit.util.show
 import kotlinx.android.synthetic.main.fragment_spending_editor.*
-import kotlinx.android.synthetic.main.fragment_spending_editor.view.*
 import kotlinx.android.synthetic.main.list_item_spent_by_cycle.view.*
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -284,27 +283,27 @@ class SpendingEditorFragment : BaseFragment<SpendingEditorScreen, SpendingEditor
         deleteBtn?.isVisible = false
     }
 
-    fun saveContent(onFinish: Runnable?) {
+    fun saveContent(onFinish: (() -> Unit)?) {
         val contentSaveStatus = shouldContentBeSaved()
         when (contentSaveStatus) {
             is ContentStatus.ContentWasChanged -> {
-                DialogUtils.getSaveOrDiscardDialog(activity, null, object : DialogUtils.Executable() {
+                DialogUtils.getSaveOrDiscardDialog(context, null, object : DialogUtils.Executable() {
                     override fun run(): Boolean {
                         presenter.saveSpending(contentSaveStatus.spending)
                         return true
                     }
-                }, onFinish).show()
+                }, onFinish ?: {}).show()
             }
             is ContentStatus.ContentWasChangedInSensitiveWays -> {
-                DialogUtils.getSaveOrDiscardDialog(activity, "Your modification will cause the \"Spent by cycle\" data to be recalculated.", object : DialogUtils.Executable() {
+                DialogUtils.getSaveOrDiscardDialog(context, "Your modification will cause the \"Spent by cycle\" data to be recalculated.", object : DialogUtils.Executable() {
                     override fun run(): Boolean {
                         presenter.saveSpending(contentSaveStatus.spending)
                         presenter.deleteSpentByCycle(contentSaveStatus.spending)
                         return true
                     }
-                }, onFinish).show()
+                }, onFinish ?: {}).show()
             }
-            is ContentStatus.ContentUnchanged -> onFinish?.run()
+            is ContentStatus.ContentUnchanged -> onFinish?.invoke()
             is ContentStatus.ContentInvalid -> context?.let(contentSaveStatus.validationError::showError)
         }
     }

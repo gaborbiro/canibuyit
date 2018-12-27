@@ -48,7 +48,10 @@ public class SpendingEditorActivity extends AppCompatActivity {
         int id = item.getItemId();
         if (id == android.R.id.home) {
             if (spendingEditorFragment != null) {
-                spendingEditorFragment.saveContent(this::finish);
+                spendingEditorFragment.saveContent(() -> {
+                    finish();
+                    return null;
+                });
             } else {
                 finish();
             }
@@ -60,7 +63,10 @@ public class SpendingEditorActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         if (spendingEditorFragment != null) {
-            spendingEditorFragment.saveContent(SpendingEditorActivity.super::onBackPressed);
+            spendingEditorFragment.saveContent(() -> {
+                onBackPressed();
+                return null;
+            });
         } else {
             SpendingEditorActivity.super.onBackPressed();
         }
