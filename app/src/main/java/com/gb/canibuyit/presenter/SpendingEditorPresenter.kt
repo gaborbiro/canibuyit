@@ -36,9 +36,8 @@ class SpendingEditorPresenter @Inject constructor(
 
     fun deleteSpentByCycle(spending: Spending) {
         spending.id?.let {
-            spendingInteractor.deleteSpentByCycleData(it).subscribe({
-                showSpending(it)
-            }, this::onError)
+            spendingInteractor.deleteSpentByCycleData(it)
+                    .subscribe({ showSpending(it) }, this::onError)
         }
     }
 

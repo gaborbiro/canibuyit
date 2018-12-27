@@ -267,7 +267,24 @@ class SpendingEditorFragment : BaseFragment<SpendingEditorScreen, SpendingEditor
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
-            R.id.menu_save -> saveContent(null)
+            R.id.menu_save -> {
+                val contentSaveStatus = shouldContentBeSaved()
+                when (contentSaveStatus) {
+                    is ContentStatus.ContentWasChanged -> {
+                        presenter.saveSpending(contentSaveStatus.spending)
+                    }
+                    is ContentStatus.ContentWasChangedInSensitiveWays -> {
+                        DialogUtils.getSaveOrDiscardDialog(context, "Your modification will cause the \"Spent by cycle\" data to be recalculated.", object : DialogUtils.Executable() {
+                            override fun run(): Boolean {
+                                presenter.saveSpending(contentSaveStatus.spending)
+                                presenter.deleteSpentByCycle(contentSaveStatus.spending)
+                                return true
+                            }
+                        }).show()
+                    }
+                    is ContentStatus.ContentInvalid -> context?.let(contentSaveStatus.validationError::showError)
+                }
+            }
             R.id.menu_delete -> {
                 originalSpending?.let {
                     if (it.isPersisted) {
@@ -283,7 +300,7 @@ class SpendingEditorFragment : BaseFragment<SpendingEditorScreen, SpendingEditor
         deleteBtn?.isVisible = false
     }
 
-    fun saveContent(onFinish: (() -> Unit)?) {
+    fun saveContent(onFinish: () -> Unit) {
         val contentSaveStatus = shouldContentBeSaved()
         when (contentSaveStatus) {
             is ContentStatus.ContentWasChanged -> {
@@ -292,7 +309,7 @@ class SpendingEditorFragment : BaseFragment<SpendingEditorScreen, SpendingEditor
                         presenter.saveSpending(contentSaveStatus.spending)
                         return true
                     }
-                }, onFinish ?: {}).show()
+                }, onFinish).show()
             }
             is ContentStatus.ContentWasChangedInSensitiveWays -> {
                 DialogUtils.getSaveOrDiscardDialog(context, "Your modification will cause the \"Spent by cycle\" data to be recalculated.", object : DialogUtils.Executable() {
@@ -301,9 +318,9 @@ class SpendingEditorFragment : BaseFragment<SpendingEditorScreen, SpendingEditor
                         presenter.deleteSpentByCycle(contentSaveStatus.spending)
                         return true
                     }
-                }, onFinish ?: {}).show()
+                }, onFinish).show()
             }
-            is ContentStatus.ContentUnchanged -> onFinish?.invoke()
+            is ContentStatus.ContentUnchanged -> onFinish.invoke()
             is ContentStatus.ContentInvalid -> context?.let(contentSaveStatus.validationError::showError)
         }
     }
