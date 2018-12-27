@@ -101,13 +101,22 @@ class MonzoMapper @Inject constructor() {
                 endDate)
 
         val firstOccurrence: LocalDate = sortedTransactions[0].created
-
-        val fromEndDate: LocalDate = firstOccurrence.add(cycle.apiCycle, cycleMultiplier.toLong())
-                .minusDays(1)
+        val fromStartDate = if (projectSettings.whenPinned) (savedSpending?.fromStartDate ?: firstOccurrence) else firstOccurrence
+        val fromEndDate = firstOccurrence.add(cycle.apiCycle, cycleMultiplier.toLong()).minusDays(1)
+                .let { date ->
+                    if (projectSettings.whenPinned) (savedSpending?.fromEndDate ?: date) else date
+                }
 
         val transactionsByCycle: Map<Int, List<Transaction>> = sortedTransactions.groupBy { cycle.apiCycle.ordinal(it.created) }
 
-        val spentByCycle = transactionsByCycle.map { (pair, list) ->
+        val shouldRecalculateSpentByCycle = savedSpending?.spentByCycle == null
+                || savedSpending.spentByCycle!!.isEmpty()
+                || cycle != savedSpending.cycle
+                || cycleMultiplier != savedSpending.cycleMultiplier
+                || fromStartDate != savedSpending.fromStartDate
+                || fromEndDate != savedSpending.fromEndDate
+
+        val spentByCycle = transactionsByCycle.map { (_, list) ->
             val firstDay = list[0].created.firstCycleDay(cycle.apiCycle)
             val lastDay = least(list[0].created.lastCycleDay(cycle.apiCycle), LocalDate.now())
             CycleSpent(
@@ -129,14 +138,14 @@ class MonzoMapper @Inject constructor() {
                 notes = savedSpending?.notes,
                 type = type,
                 value = average,
-                fromStartDate = if (projectSettings.whenPinned) (savedSpending?.fromStartDate ?: firstOccurrence) else firstOccurrence,
-                fromEndDate = if (projectSettings.whenPinned) (savedSpending?.fromEndDate ?: fromEndDate) else fromEndDate,
+                fromStartDate = fromStartDate,
+                fromEndDate = fromEndDate,
                 occurrenceCount = savedSpending?.occurrenceCount,
                 cycleMultiplier = cycleMultiplier,
                 cycle = cycle,
                 enabled = savedSpending?.enabled ?: type.defaultEnabled,
                 spent = spent,
-                spentByCycle = spentByCycle,
+                spentByCycle = if (shouldRecalculateSpentByCycle) spentByCycle else savedSpending?.spentByCycle,
                 savings = savings?.toTypedArray(),
                 sourceData = SerializableMap<String, String>().apply { put(ApiSpending.SOURCE_MONZO_CATEGORY, category.name.toLowerCase()) })
     }

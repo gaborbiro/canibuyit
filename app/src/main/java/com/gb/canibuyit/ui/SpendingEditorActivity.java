@@ -8,13 +8,15 @@ import android.view.MenuItem;
 
 import com.gb.canibuyit.R;
 
+import static com.gb.canibuyit.ui.SpendingEditorFragmentKt.EXTRA_SPENDING_ID;
+
 public class SpendingEditorActivity extends AppCompatActivity {
 
     private SpendingEditorFragment spendingEditorFragment;
 
     public static Intent getIntentForUpdate(Context context, int spendingId) {
         Intent i = getIntentForCreate(context);
-        i.putExtra(SpendingEditorFragment.EXTRA_SPENDING_ID, spendingId);
+        i.putExtra(EXTRA_SPENDING_ID, spendingId);
         return i;
     }
 
@@ -30,9 +32,9 @@ public class SpendingEditorActivity extends AppCompatActivity {
 
         if (savedInstanceState == null) {
             spendingEditorFragment = new SpendingEditorFragment();
-            if (getIntent().hasExtra(SpendingEditorFragment.EXTRA_SPENDING_ID)) {
+            if (getIntent().hasExtra(EXTRA_SPENDING_ID)) {
                 Bundle arguments = new Bundle();
-                arguments.putInt(SpendingEditorFragment.EXTRA_SPENDING_ID, getIntent().getIntExtra(SpendingEditorFragment.EXTRA_SPENDING_ID, 0));
+                arguments.putInt(EXTRA_SPENDING_ID, getIntent().getIntExtra(EXTRA_SPENDING_ID, 0));
                 spendingEditorFragment.setArguments(arguments);
             }
             getSupportFragmentManager().beginTransaction().add(R.id.spending_editor_container, spendingEditorFragment).commit();
@@ -46,7 +48,7 @@ public class SpendingEditorActivity extends AppCompatActivity {
         int id = item.getItemId();
         if (id == android.R.id.home) {
             if (spendingEditorFragment != null) {
-                spendingEditorFragment.saveAndRun(this::finish);
+                spendingEditorFragment.saveContent(this::finish);
             } else {
                 finish();
             }
@@ -58,7 +60,7 @@ public class SpendingEditorActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         if (spendingEditorFragment != null) {
-            spendingEditorFragment.saveAndRun(SpendingEditorActivity.super::onBackPressed);
+            spendingEditorFragment.saveContent(SpendingEditorActivity.super::onBackPressed);
         } else {
             SpendingEditorActivity.super.onBackPressed();
         }

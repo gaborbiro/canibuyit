@@ -122,6 +122,12 @@ constructor(private val spendingsRepository: SpendingsRepository,
                 .observeOn(schedulerProvider.mainThread())
     }
 
+    fun deleteSpentByCycleData(id: Int): Completable {
+        return spentByCycleRepository.deleteSpendByCycleBySpendingId(id)
+                .subscribeOn(schedulerProvider.io())
+                .observeOn(schedulerProvider.mainThread())
+    }
+
     private fun mapSpentByCycleEnabledResult(cycleSpent: CycleSpent, enabled: Boolean): SpentByCycleUpdateUiModel {
         return SpentByCycleUpdateUiModel.Success(cycleSpent.copy(enabled = enabled))
     }

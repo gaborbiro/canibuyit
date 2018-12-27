@@ -52,29 +52,35 @@ class Spending(var id: Int? = null,
             return value / cycle.apiCycle.toMonths().toBigDecimal() * cycleMultiplier.toBigDecimal()
         }
 
-    fun compareForEditing(other: Any?, ignoreDates: Boolean, ignoreCycleMultiplier: Boolean): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
+    fun compareForEditing(other: Any?, ignoreDates: Boolean, ignoreCycleMultiplier: Boolean): ComparisonResult {
+        if (this === other) return ComparisonResult.Different
+        if (javaClass != other?.javaClass) return return ComparisonResult.Different
 
         other as Spending
 
-        if (name != other.name) return false
-        if (notes != other.notes) return false
-        if (type != other.type) return false
-        if (value != other.value) return false
+        if (name != other.name) return ComparisonResult.Different
+        if (notes != other.notes) return ComparisonResult.Different
+        if (type != other.type) return ComparisonResult.Different
+        if (value != other.value) return ComparisonResult.Different
         if (!ignoreDates) {
-            if (fromStartDate != other.fromStartDate) return false
-            if (fromEndDate != other.fromEndDate) return false
+            if (fromStartDate != other.fromStartDate) return ComparisonResult.DifferentSensitive
+            if (fromEndDate != other.fromEndDate) return ComparisonResult.DifferentSensitive
         }
-        if (occurrenceCount != other.occurrenceCount) return false
+        if (occurrenceCount != other.occurrenceCount) return ComparisonResult.DifferentSensitive
         if (!ignoreCycleMultiplier) {
-            if (cycleMultiplier != other.cycleMultiplier) return false
+            if (cycleMultiplier != other.cycleMultiplier) return ComparisonResult.DifferentSensitive
         }
-        if (cycle.apiCycle != other.cycle.apiCycle) return false
-        if (enabled != other.enabled) return false
-        if (spent != other.spent) return false
-        if (targets != other.targets) return false
-        return true
+        if (cycle.apiCycle != other.cycle.apiCycle) return ComparisonResult.DifferentSensitive
+        if (enabled != other.enabled) return ComparisonResult.Different
+        if (spent != other.spent) return ComparisonResult.Different
+        if (targets != other.targets) return ComparisonResult.Different
+        return ComparisonResult.Same
+    }
+
+    sealed class ComparisonResult {
+        object Same: ComparisonResult()
+        object Different: ComparisonResult()
+        object DifferentSensitive: ComparisonResult()
     }
 
     override fun hashCode(): Int {

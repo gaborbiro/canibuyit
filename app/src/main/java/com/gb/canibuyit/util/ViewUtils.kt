@@ -75,3 +75,9 @@ fun ViewGroup.inflate(@LayoutRes resource: Int, attachToRoot: Boolean = false) =
 @Suppress("UNCHECKED_CAST")
 fun <T : View> ViewGroup.add(@LayoutRes resource: Int): T =
     (LayoutInflater.from(this.context).inflate(resource, this, false) as T).also { addView(it) }
+
+fun ViewGroup.forEachChild(apply: (View) -> Unit) {
+    for (i in 0 until childCount) {
+        apply(getChildAt(i))
+    }
+}

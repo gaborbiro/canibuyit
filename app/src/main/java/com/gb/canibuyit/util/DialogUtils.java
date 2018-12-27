@@ -11,8 +11,8 @@ public class DialogUtils {
      * @param onFinish will be run if user selects Yes and onSave returns true OR if
      *                 user selects Discard (in which case onSave is ignored)
      */
-    public static AlertDialog getSaveOrDiscardDialog(Context context, final Executable onSave, final Runnable onFinish) {
-        return getDialog(context, "Save changes?", "Save",
+    public static AlertDialog getSaveOrDiscardDialog(Context context, final String message, final Executable onSave, final Runnable onFinish) {
+        return getDialog(context, "Save changes?", message,"Save",
                 new ClickRunner.TaskBuilder(onSave).onSuccess(onFinish).build(), "Discard",
                 new ClickRunner.Builder().setOnDiscard(onFinish).build(), android.R.string.cancel, null);
     }
@@ -33,7 +33,7 @@ public class DialogUtils {
      * @param fuckOffButton           CharSequence or resource id
      * @param onFuckOffButtonClicked
      */
-    public static AlertDialog getDialog(Context context, Object title, Object positiveButton, ClickRunner onPositiveButtonClicked,
+    public static AlertDialog getDialog(Context context, Object title, Object message, Object positiveButton, ClickRunner onPositiveButtonClicked,
                                         Object negativeButton, ClickRunner onNegativeButtonClicked, Object fuckOffButton, ClickRunner onFuckOffButtonClicked) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         if (title != null) {
@@ -41,6 +41,15 @@ public class DialogUtils {
                 builder.setTitle((CharSequence) title);
             } else if (title instanceof Integer) {
                 builder.setTitle((int) title);
+            } else {
+                throw new IllegalArgumentException("Wrong title type in DialogUtils.getDialog(...)");
+            }
+        }
+        if (message != null) {
+            if (message instanceof CharSequence) {
+                builder.setMessage((CharSequence) message);
+            } else if (title instanceof Integer) {
+                builder.setMessage((int) message);
             } else {
                 throw new IllegalArgumentException("Wrong title type in DialogUtils.getDialog(...)");
             }
