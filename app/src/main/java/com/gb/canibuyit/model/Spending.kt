@@ -34,13 +34,13 @@ class Spending(var id: Int? = null,
                /**
                 * Does this modifier repeat every day/week/month/year. The first affected time-span
                 * (specified by {@link Spending#fromStartDate} and {@link Spending#fromEndDate}) must not be larger
-                * the this cycle.<br></br>
+                * the this cycle.
                 * Ex: The first week of every month, cold months of the year, every weekend, every
                 * semester
                 */
                var cycle: ApiSpending.Cycle,
                var enabled: Boolean,
-               var sourceData: MutableMap<String, String>? = null,
+               var sourceData: Map<String, String>? = null,
                var spent: BigDecimal,
                var spentByCycle: List<CycleSpent>? = null,
                var targets: Map<LocalDate, Int>? = null,

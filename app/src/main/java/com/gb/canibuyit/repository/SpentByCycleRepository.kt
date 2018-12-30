@@ -22,7 +22,7 @@ constructor(private val spentByCycleDao: Dao<ApiSpentByCycle, Int>,
             try {
                 spendings.forEach { newSpending ->
                     val apiSpending = spendingDao.queryForId(newSpending.id)
-                    val foreignCollection = apiSpending.spentByByCycle
+                    val foreignCollection = apiSpending.spentByCycle
                     val items = newSpending.spentByCycle
                     Pair(foreignCollection, items).doIfBoth { (foreignCollection, items) ->
                         foreignCollection.clear()
@@ -52,7 +52,7 @@ constructor(private val spentByCycleDao: Dao<ApiSpentByCycle, Int>,
                 builder.where()
                         .eq(Contract.SpentByCycle.SPENDING, spendingId)
                 spentByCycleDao.delete(builder.prepare())
-                spendingDao.queryForId(spendingId).spentByByCycle?.refreshCollection()
+                spendingDao.queryForId(spendingId).spentByCycle?.refreshCollection()
                 emitter.onComplete()
             } catch (e: SQLException) {
                 emitter.onError(e)
@@ -64,9 +64,9 @@ constructor(private val spentByCycleDao: Dao<ApiSpentByCycle, Int>,
         return Single.create {
             try {
                 val spending = spendingDao.queryForId(cycleSpent.spendingId)
-                spending.spentByByCycle?.find { it.id == cycleSpent.id }?.copy(enabled = enabled)
+                spending.spentByCycle?.find { it.id == cycleSpent.id }?.copy(enabled = enabled)
                         .run {
-                            spending.spentByByCycle?.update(this)
+                            spending.spentByCycle?.update(this)
                         }
                 it.onSuccess(spentByCycleDao.queryForId(cycleSpent.id).enabled!!)
             } catch (e: SQLException) {

@@ -56,12 +56,12 @@ class ApiSpending(
     var spent: BigDecimal? = null,
 
     @ForeignCollectionField(eager = true, columnName = Contract.Spending.CYCLE_SPENT)
-    var spentByByCycle: ForeignCollection<ApiSpentByCycle>? = null,
+    var spentByCycle: ForeignCollection<ApiSpentByCycle>? = null,
 
     @DatabaseField(columnName = Contract.Spending.TARGETS, canBeNull = true)
     var targets: String? = null,
 
-    @ForeignCollectionField(eager = true)
+    @ForeignCollectionField(eager = true, columnName = Contract.Spending.SAVINGS)
     var savings: ForeignCollection<ApiSaving>? = null) {
 
     companion object {

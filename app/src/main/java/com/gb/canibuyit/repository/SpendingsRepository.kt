@@ -42,7 +42,7 @@ constructor(private val dao: Dao<ApiSpending, Int>,
     }
 
     /**
-     * The specified spending will have it;s id updated after a successful insert
+     * The specified spending will have it's id updated after a successful insert
      */
     fun createOrUpdate(spending: Spending): Completable {
         return Completable.create { emitter ->
@@ -59,7 +59,7 @@ constructor(private val dao: Dao<ApiSpending, Int>,
 
     /**
      * Every spending has a local category and a monzo category.
-     * This method used the monzo category to identify the spendings
+     * This method uses the monzo category to identify the spendings
      *
      * For each spending:
      *     - if it does not yet exist in the database, create it
@@ -69,34 +69,37 @@ constructor(private val dao: Dao<ApiSpending, Int>,
      */
     fun createOrUpdateMonzoSpendings(remoteSpendings: List<Spending>): Completable {
         return Completable.create { emitter ->
-            val savedMonzoSpendings = dao.queryForAll().map(mapper::map)
-            val savedCategories: MutableList<String?> = savedMonzoSpendings
-                    .mapNotNull { it.sourceData }
-                    .filter { it.containsKey(ApiSpending.SOURCE_MONZO_CATEGORY) }
-                    .sortedBy { it[ApiSpending.SOURCE_MONZO_CATEGORY] }
-                    .map { it[ApiSpending.SOURCE_MONZO_CATEGORY] }
+            val savedSpendings = dao.queryForAll()
+            val savedMonzoCategories: MutableList<String?> = savedSpendings
+                    .mapNotNull {
+                        mapper.mapSourceData(it.sourceData)?.get(ApiSpending.SOURCE_MONZO_CATEGORY)
+                    }
+                    .sortedBy { it }
                     .toMutableList()
             try {
-                remoteSpendings.forEach {
-                    val remoteMonzoCategory = it.sourceData!![ApiSpending.SOURCE_MONZO_CATEGORY]
+                remoteSpendings.forEach { spending ->
+                    val remoteMonzoCategory = spending.sourceData!![ApiSpending.SOURCE_MONZO_CATEGORY]
 
                     // find the saved spending that has the same monzo category as the current remote spending
                     // Note: at the moment no two monzo spending will have the same monzo category, so there will only be one match
-                    val present = savedCategories.remove(remoteMonzoCategory)
+                    val exists = savedMonzoCategories.remove(remoteMonzoCategory)
 
-                    val apiSpending = mapper.map(it)
-                    if (present) {
+                    val apiSpending = mapper.map(spending)
+                    if (exists) {
                         dao.update(apiSpending)
                     } else {
                         dao.create(apiSpending)
-                        it.id = apiSpending.id
+                        spending.id = apiSpending.id
                     }
                 }
-                savedMonzoSpendings.filter { savedCategories.contains(it.type.toString()) && it.enabled }
+                // Disable leftovers (spendings that are no longer sent from Monzo)
+                // This can happen when the user retroactively re-categorizes some spendings,
+                // causing one or more of the categories to disappear
+                savedSpendings.filter { savedMonzoCategories.contains(it.type.toString()) && it.enabled!! }
                         .forEach {
                             it.enabled = false
                             it.value = BigDecimal.ZERO
-                            dao.update(mapper.map(it))
+                            dao.update(it)
                         }
                 emitter.onComplete()
             } catch (e: SQLException) {

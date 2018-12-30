@@ -26,8 +26,9 @@ class Contract {
             const val SPENT = "spent"
             const val CYCLE_SPENT = "cycle_spent"
             const val TARGETS = "targets"
+            const val SAVINGS = "savings"
 
-            val COLUMNS = arrayOf(_ID, NAME, NOTES, VALUE, TYPE, FROM_START_DATE, FROM_END_DATE, OCCURRENCE_COUNT, CYCLE_MULTIPLIER, CYCLE, ENABLED, SOURCE_DATA, SPENT, TARGETS)
+            val COLUMNS = arrayOf(_ID, NAME, NOTES, VALUE, TYPE, FROM_START_DATE, FROM_END_DATE, OCCURRENCE_COUNT, CYCLE_MULTIPLIER, CYCLE, ENABLED, SOURCE_DATA, SPENT, TARGETS, SAVINGS, CYCLE_SPENT)
         }
     }
 

@@ -14,6 +14,7 @@ import java.time.LocalDate
 import javax.inject.Inject
 
 class SpendingMapper @Inject constructor(private val gson: Gson) {
+
     fun map(apiSpending: ApiSpending): Spending {
         return Spending(
                 id = apiSpending.id,
@@ -27,10 +28,10 @@ class SpendingMapper @Inject constructor(private val gson: Gson) {
                 occurrenceCount = apiSpending.occurrenceCount,
                 cycleMultiplier = apiSpending.cycleMultiplier ?: throw MapperException("Missing cycleMultiplier"),
                 cycle = apiSpending.cycle ?: throw MapperException("cycle"),
-                sourceData = apiSpending.sourceData?.let { gson.fromJson<MutableMap<String, String>>(it) },
+                sourceData = mapSourceData(apiSpending.sourceData),
                 enabled = apiSpending.enabled ?: throw MapperException("Missing enabled"),
                 spent = apiSpending.spent ?: BigDecimal.ZERO,
-                spentByCycle = apiSpending.spentByByCycle?.map(this::map),
+                spentByCycle = apiSpending.spentByCycle?.map(this::map),
                 targets = apiSpending.targets?.let { gson.fromJson<MutableMap<LocalDate, Int>>(it) },
                 savings = apiSpending.savings?.map(this::map)?.toTypedArray()
         ).apply {
@@ -78,5 +79,9 @@ class SpendingMapper @Inject constructor(private val gson: Gson) {
                 amount = apiSaving.amount ?: throw MapperException("Missing amount when mapping ApiSaving"),
                 created = apiSaving.created ?: throw MapperException("Missing created when mapping ApiSaving"),
                 target = apiSaving.target ?: throw MapperException("Missing target when mapping ApiSaving"))
+    }
+
+    fun mapSourceData(sourceData: String?): Map<String, String>? {
+        return sourceData?.let { gson.fromJson<Map<String, String>>(it) }
     }
 }

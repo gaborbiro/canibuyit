@@ -122,7 +122,7 @@ class SpendingEditorFragment : BaseFragment<SpendingEditorScreen, SpendingEditor
         name_input.setText(spending.name)
         average_input.setText(spending.value.toPlainString())
         spending.target?.let {
-            target_input.setText(it)
+            target_input.setText(it.toString())
         } ?: let {
             target_input.text = null
         }
