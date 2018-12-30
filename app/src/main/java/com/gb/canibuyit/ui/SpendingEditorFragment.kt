@@ -16,7 +16,6 @@ import com.gb.canibuyit.model.Spending
 import com.gb.canibuyit.model.SpentByCycleUpdateUiModel
 import com.gb.canibuyit.model.plus
 import com.gb.canibuyit.model.times
-import com.gb.canibuyit.model.toDomainCycle
 import com.gb.canibuyit.presenter.SpendingEditorPresenter
 import com.gb.canibuyit.screen.SpendingEditorScreen
 import com.gb.canibuyit.ui.adapter.PlusOneAdapter
@@ -89,11 +88,12 @@ class SpendingEditorFragment : BaseFragment<SpendingEditorScreen, SpendingEditor
                 notes = notes_input.text.orNull()?.toString(),
                 type = if (category_picker.selectedItem is ApiSpending.Category) category_picker.selectedItem as ApiSpending.Category else throw ValidationError(ValidationError.TYPE_NON_INPUT_FIELD, null, "Please select a category"),
                 value = valueStr.toBigDecimal(),
+                total = BigDecimal.ZERO,
                 fromStartDate = fromStartDate,
                 fromEndDate = fromEndDate,
                 occurrenceCount = occurrence_count_input.text.orNull()?.toString()?.toInt(),
                 cycleMultiplier = cycleMultiplier,
-                cycle = cycle.toDomainCycle(),
+                cycle = cycle,
                 enabled = enabled_switch.isChecked,
                 sourceData = originalSpending?.sourceData,
                 spent = originalSpending?.spent ?: BigDecimal.ZERO,
@@ -118,6 +118,7 @@ class SpendingEditorFragment : BaseFragment<SpendingEditorScreen, SpendingEditor
     }
 
     private fun setDisplayedSpending(spending: Spending) {
+        activity?.title = getString(R.string.title_spending_modifier_detail, spending.name, spending.id)
         name_input.setText(spending.name)
         average_input.setText(spending.value.toPlainString())
         spending.target?.let {
@@ -139,11 +140,11 @@ class SpendingEditorFragment : BaseFragment<SpendingEditorScreen, SpendingEditor
         spending.cycleMultiplier.let { cycleMultiplier ->
             cycle_multiplier_input.setText(cycleMultiplier.toString())
             context?.resources?.apply {
-                average_cycle_lbl.text = " per $cycleMultiplier ${getQuantityString(spending.cycle.apiCycle.strRes, cycleMultiplier)}"
-                target_cycle_lbl.text = " per $cycleMultiplier ${getQuantityString(spending.cycle.apiCycle.strRes, cycleMultiplier)}"
+                average_cycle_lbl.text = " per $cycleMultiplier ${getQuantityString(spending.cycle.strRes, cycleMultiplier)}"
+                target_cycle_lbl.text = " per $cycleMultiplier ${getQuantityString(spending.cycle.strRes, cycleMultiplier)}"
             }
         }
-        cycle_picker.setSelection(spending.cycle.apiCycle.ordinal + 1)
+        cycle_picker.setSelection(spending.cycle.ordinal + 1)
         notes_input.setText(spending.notes)
         spending.sourceData?.get(ApiSpending.SOURCE_MONZO_CATEGORY)?.let {
             source_category_lbl.text = "(original Monzo category: $it)"
@@ -274,13 +275,10 @@ class SpendingEditorFragment : BaseFragment<SpendingEditorScreen, SpendingEditor
                         presenter.saveSpending(contentSaveStatus.spending)
                     }
                     is ContentStatus.ContentWasChangedInSensitiveWays -> {
-                        DialogUtils.getSaveOrDiscardDialog(context, "Your modification will cause the \"Spent by cycle\" data to be recalculated.", object : DialogUtils.Executable() {
-                            override fun run(): Boolean {
-                                presenter.saveSpending(contentSaveStatus.spending)
-                                presenter.deleteSpentByCycle(contentSaveStatus.spending)
-                                return true
-                            }
-                        }).show()
+                        DialogUtils.getSaveDialog(context!!, "Your modification will cause the \"Spent by cycle\" data to be recalculated.") {
+                            presenter.saveSpending(contentSaveStatus.spending)
+                            presenter.deleteSpentByCycle(contentSaveStatus.spending)
+                        }.show()
                     }
                     is ContentStatus.ContentInvalid -> context?.let(contentSaveStatus.validationError::showError)
                 }
@@ -300,28 +298,27 @@ class SpendingEditorFragment : BaseFragment<SpendingEditorScreen, SpendingEditor
         deleteBtn?.isVisible = false
     }
 
-    fun saveContent(onFinish: () -> Unit) {
+    fun onFragmentClose(onFinish: () -> Unit) {
         val contentSaveStatus = shouldContentBeSaved()
         when (contentSaveStatus) {
             is ContentStatus.ContentWasChanged -> {
-                DialogUtils.getSaveOrDiscardDialog(context, null, object : DialogUtils.Executable() {
-                    override fun run(): Boolean {
-                        presenter.saveSpending(contentSaveStatus.spending)
-                        return true
-                    }
+                DialogUtils.getSaveOrDiscardDialog(context!!, null, {
+                    presenter.saveSpending(contentSaveStatus.spending)
+                    true
                 }, onFinish).show()
             }
             is ContentStatus.ContentWasChangedInSensitiveWays -> {
-                DialogUtils.getSaveOrDiscardDialog(context, "Your modification will cause the \"Spent by cycle\" data to be recalculated.", object : DialogUtils.Executable() {
-                    override fun run(): Boolean {
-                        presenter.saveSpending(contentSaveStatus.spending)
-                        presenter.deleteSpentByCycle(contentSaveStatus.spending)
-                        return true
-                    }
+                DialogUtils.getSaveOrDiscardDialog(context!!, "Your modification will cause the \"Spent by cycle\" data to be recalculated.", {
+                    presenter.saveSpending(contentSaveStatus.spending)
+                    presenter.deleteSpentByCycle(contentSaveStatus.spending)
+                    true
                 }, onFinish).show()
             }
             is ContentStatus.ContentUnchanged -> onFinish.invoke()
-            is ContentStatus.ContentInvalid -> context?.let(contentSaveStatus.validationError::showError)
+            is ContentStatus.ContentInvalid -> {
+                DialogUtils.getDiscardDialog(context!!, contentSaveStatus.validationError.errorMessage, onFinish)
+                        .show()
+            }
         }
     }
 

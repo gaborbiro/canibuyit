@@ -19,13 +19,14 @@ class Spending(var id: Int? = null,
                var notes: String? = null,
                var type: ApiSpending.Category,
                var value: BigDecimal,
+               var total: BigDecimal,
                /**
                 * Date before witch the transaction certainly won't happen. The repetition cycle
                 * is added to this date.
                 */
                var fromStartDate: LocalDate,
                var fromEndDate: LocalDate,
-               var occurrenceCount: Int?,
+               var occurrenceCount: Int? = null,
                /**
                 * For cycles like every 2 days or 2 weeks...
                 */
@@ -37,19 +38,19 @@ class Spending(var id: Int? = null,
                 * Ex: The first week of every month, cold months of the year, every weekend, every
                 * semester
                 */
-               var cycle: Cycle,
+               var cycle: ApiSpending.Cycle,
                var enabled: Boolean,
-               var sourceData: MutableMap<String, String>?,
+               var sourceData: MutableMap<String, String>? = null,
                var spent: BigDecimal,
-               var spentByCycle: List<CycleSpent>?,
-               var targets: Map<LocalDate, Int>?,
-               var savings: Array<Saving>? = null) {
+               var spentByCycle: List<CycleSpent>? = null,
+               var targets: Map<LocalDate, Int>? = null,
+               var savings: Array<out Saving>? = null) {
 
     val target = targets?.maxBy { it.key }?.value
 
     val valuePerMonth: BigDecimal
         get() {
-            return value / cycle.apiCycle.toMonths().toBigDecimal() * cycleMultiplier.toBigDecimal()
+            return value / cycle.toMonths().toBigDecimal() * cycleMultiplier.toBigDecimal()
         }
 
     fun compareForEditing(other: Any?, ignoreDates: Boolean, ignoreCycleMultiplier: Boolean): ComparisonResult {
@@ -70,7 +71,7 @@ class Spending(var id: Int? = null,
         if (!ignoreCycleMultiplier) {
             if (cycleMultiplier != other.cycleMultiplier) return ComparisonResult.DifferentSensitive
         }
-        if (cycle.apiCycle != other.cycle.apiCycle) return ComparisonResult.DifferentSensitive
+        if (cycle != other.cycle) return ComparisonResult.DifferentSensitive
         if (enabled != other.enabled) return ComparisonResult.Different
         if (spent != other.spent) return ComparisonResult.Different
         if (targets != other.targets) return ComparisonResult.Different
@@ -78,9 +79,9 @@ class Spending(var id: Int? = null,
     }
 
     sealed class ComparisonResult {
-        object Same: ComparisonResult()
-        object Different: ComparisonResult()
-        object DifferentSensitive: ComparisonResult()
+        object Same : ComparisonResult()
+        object Different : ComparisonResult()
+        object DifferentSensitive : ComparisonResult()
     }
 
     override fun hashCode(): Int {
@@ -134,25 +135,24 @@ class Spending(var id: Int? = null,
 
     val isPersisted
         get() = id != null
-}
 
-sealed class Cycle(val apiCycle: ApiSpending.Cycle, private val strength: Int) : Comparable<Cycle> {
-    class Days(strength: Int) : Cycle(DAYS, strength)
-    class Weeks(strength: Int) : Cycle(WEEKS, strength)
-    class Months(strength: Int) : Cycle(MONTHS, strength)
-    class Years(strength: Int) : Cycle(YEARS, strength)
-
-    override fun compareTo(other: Cycle): Int {
-        return strength.compareTo(other.strength)
-    }
-}
-
-fun ApiSpending.Cycle.toDomainCycle(): Cycle {
-    return when (this) {
-        ApiSpending.Cycle.DAYS -> Cycle.Days(Int.MAX_VALUE)
-        ApiSpending.Cycle.WEEKS -> Cycle.Weeks(Int.MAX_VALUE)
-        ApiSpending.Cycle.MONTHS -> Cycle.Months(Int.MAX_VALUE)
-        ApiSpending.Cycle.YEARS -> Cycle.Years(Int.MAX_VALUE)
+    fun merge(other: Spending, isCurrentCycle: Boolean): Spending {
+        id = other.id
+        name = other.name
+        notes = other.notes
+        type = other.type
+        value = BigDecimal.ZERO
+        total += other.total
+        occurrenceCount = other.occurrenceCount
+        cycleMultiplier = other.cycleMultiplier
+        cycle = other.cycle
+        enabled = other.enabled
+        sourceData = other.sourceData
+        spent = if (isCurrentCycle) other.spent else BigDecimal.ZERO
+        spentByCycle = spentByCycle?.union(other.spentByCycle ?: emptyList())?.toList() ?: other.spentByCycle
+        targets = other.targets
+        savings = savings?.let { s1 -> other.savings?.let { s2 -> arrayOf(*s1, *s2) } ?: let { s1 } } ?: other.savings
+        return this
     }
 }
 
@@ -179,7 +179,7 @@ fun ApiSpending.Cycle.toMonths(): Double = when (this) {
  */
 operator fun Pair<LocalDate, LocalDate>.div(cycle: ApiSpending.Cycle): Float {
     return when (cycle) {
-        DAYS -> (second.toEpochDay() - first.toEpochDay() ).toFloat()
+        DAYS -> (second.toEpochDay() - first.toEpochDay()).toFloat()
         WEEKS -> this / DAYS / 7f
         MONTHS -> second.monthsSinceYear0() - first.monthsSinceYear0()
         YEARS -> this / MONTHS / 12f
@@ -214,6 +214,42 @@ fun LocalDate.lastCycleDay(cycle: ApiSpending.Cycle): LocalDate = when (cycle) {
     YEARS -> this.with(lastDayOfYear())
 }.atStartOfDay().plusDays(1).minusNanos(1).toLocalDate()
 
+fun Spending.copy(id: Int? = null,
+                  name: String? = null,
+                  notes: String? = null,
+                  type: ApiSpending.Category? = null,
+                  value: BigDecimal? = null,
+                  total: BigDecimal? = null,
+                  fromStartDate: LocalDate? = null,
+                  fromEndDate: LocalDate? = null,
+                  occurrenceCount: Int? = null,
+                  cycleMultiplier: Int? = null,
+                  cycle: ApiSpending.Cycle? = null,
+                  enabled: Boolean? = null,
+                  sourceData: MutableMap<String, String>? = null,
+                  spent: BigDecimal? = null,
+                  spentByCycle: List<CycleSpent>? = null,
+                  targets: Map<LocalDate, Int>? = null,
+                  savings: Array<out Saving>? = null): Spending {
+    return Spending(id = id ?: this.id,
+            name = name ?: this.name,
+            notes = notes ?: this.notes,
+            type = type ?: this.type,
+            value = value ?: this.value,
+            total = total ?: this.total,
+            fromStartDate = fromStartDate ?: this.fromStartDate,
+            fromEndDate = fromEndDate ?: this.fromEndDate,
+            occurrenceCount = occurrenceCount ?: this.occurrenceCount,
+            cycleMultiplier = cycleMultiplier ?: this.cycleMultiplier,
+            cycle = cycle ?: this.cycle,
+            enabled = enabled ?: this.enabled,
+            sourceData = sourceData ?: this.sourceData,
+            spent = spent ?: this.spent,
+            spentByCycle = spentByCycle ?: this.spentByCycle,
+            targets = targets ?: this.targets,
+            savings = savings ?: this.savings)
+}
+
 data class CycleSpent(
     val id: Int?,
     val spendingId: Int?,
@@ -222,5 +258,5 @@ data class CycleSpent(
     val amount: BigDecimal,
     val count: Int,
     val enabled: Boolean) {
-    override fun toString() = "$from $to: $amount ($count)"
+    override fun toString() = "$from $to: $amount ($count)" + (if (!enabled) "!" else "")
 }

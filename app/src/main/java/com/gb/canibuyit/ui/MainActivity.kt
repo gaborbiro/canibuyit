@@ -121,7 +121,7 @@ class MainActivity : BaseActivity(), MainScreen, SpendingListFragment.FragmentCa
 
     override fun onBackPressed() {
         val detailFragment = supportFragmentManager.findFragmentById(R.id.spending_editor_container) as SpendingEditorFragment?
-        detailFragment?.saveContent { super@MainActivity.onBackPressed() }
+        detailFragment?.onFragmentClose { super@MainActivity.onBackPressed() }
                 ?: super@MainActivity.onBackPressed()
     }
 
@@ -196,7 +196,7 @@ class MainActivity : BaseActivity(), MainScreen, SpendingListFragment.FragmentCa
                         .replace(R.id.spending_editor_container, detailFragment).commit()
             } else {
                 // if a detail fragment is already visible
-                spendingEditorFragment.saveContent { spendingEditorFragment.showSpending(spendingId) }
+                spendingEditorFragment.onFragmentClose { spendingEditorFragment.showSpending(spendingId) }
             }
         } else {
             if (spendingId != null) {

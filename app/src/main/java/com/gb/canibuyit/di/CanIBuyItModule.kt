@@ -25,21 +25,25 @@ class CanIBuyItModule {
     fun provideSchedulerProvider(schedulerProvider: SchedulerProviderImpl): SchedulerProvider =
         schedulerProvider
 
+    @Singleton
     @Provides
     fun provideProjectDao(spendingDBHelper: SpendingDBHelper): Dao<ApiProject, Int> {
         return spendingDBHelper.getDao<Dao<ApiProject, Int>, ApiProject>(ApiProject::class.java)
     }
 
+    @Singleton
     @Provides
     fun provideSpendingDao(spendingDBHelper: SpendingDBHelper): Dao<ApiSpending, Int> {
         return spendingDBHelper.getDao<Dao<ApiSpending, Int>, ApiSpending>(ApiSpending::class.java)
     }
 
+    @Singleton
     @Provides
     fun provideSavingsDao(spendingDBHelper: SpendingDBHelper): Dao<ApiSaving, Int> {
         return spendingDBHelper.getDao<Dao<ApiSaving, Int>, ApiSaving>(ApiSaving::class.java)
     }
 
+    @Singleton
     @Provides
     fun provideSpentByCycleDao(spendingDBHelper: SpendingDBHelper): Dao<ApiSpentByCycle, Int> {
         return spendingDBHelper.getDao<Dao<ApiSpentByCycle, Int>, ApiSpentByCycle>(ApiSpentByCycle::class.java)

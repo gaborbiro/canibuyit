@@ -6,7 +6,6 @@ import com.gb.canibuyit.api.model.ApiWebhook
 import com.gb.canibuyit.api.model.ApiWebhooks
 import com.gb.canibuyit.db.model.ApiSpending
 import com.gb.canibuyit.interactor.Project
-import com.gb.canibuyit.model.Cycle
 import com.gb.canibuyit.model.CycleSpent
 import com.gb.canibuyit.model.Login
 import com.gb.canibuyit.model.Saving
@@ -87,13 +86,13 @@ class MonzoMapper @Inject constructor() {
 
         val type: ApiSpending.Category = if (projectSettings.categoryPinned) (savedSpending?.type ?: category) else category
 
-        val cycle: Cycle = getCycle(sortedTransactions, savedSpending, projectSettings)
+        val cycle: ApiSpending.Cycle = getCycle(sortedTransactions, savedSpending, projectSettings)
 
         val cycleMultiplier: Int = if (projectSettings.cyclePinned) (savedSpending?.cycleMultiplier ?: 1) else 1
 
         val average: BigDecimal = getAverage(
                 sortedTransactions,
-                cycle.apiCycle,
+                cycle,
                 cycleMultiplier,
                 savedSpending,
                 projectSettings,
@@ -102,12 +101,12 @@ class MonzoMapper @Inject constructor() {
 
         val firstOccurrence: LocalDate = sortedTransactions[0].created
         val fromStartDate = if (projectSettings.whenPinned) (savedSpending?.fromStartDate ?: firstOccurrence) else firstOccurrence
-        val fromEndDate = firstOccurrence.add(cycle.apiCycle, cycleMultiplier.toLong()).minusDays(1)
+        val fromEndDate = firstOccurrence.add(cycle, cycleMultiplier.toLong()).minusDays(1)
                 .let { date ->
                     if (projectSettings.whenPinned) (savedSpending?.fromEndDate ?: date) else date
                 }
 
-        val transactionsByCycle: Map<Int, List<Transaction>> = sortedTransactions.groupBy { cycle.apiCycle.ordinal(it.created) }
+        val transactionsByCycle: Map<Int, List<Transaction>> = sortedTransactions.groupBy { cycle.ordinal(it.created) }
 
         val shouldRecalculateSpentByCycle = savedSpending?.spentByCycle == null
                 || savedSpending.spentByCycle!!.isEmpty()
@@ -117,8 +116,8 @@ class MonzoMapper @Inject constructor() {
                 || fromEndDate != savedSpending.fromEndDate
 
         val spentByCycle = transactionsByCycle.map { (_, list) ->
-            val firstDay = list[0].created.firstCycleDay(cycle.apiCycle)
-            val lastDay = least(list[0].created.lastCycleDay(cycle.apiCycle), LocalDate.now())
+            val firstDay = list[0].created.firstCycleDay(cycle)
+            val lastDay = least(list[0].created.lastCycleDay(cycle), LocalDate.now())
             CycleSpent(
                     id = null,
                     spendingId = savedSpending?.id,
@@ -129,7 +128,7 @@ class MonzoMapper @Inject constructor() {
                     enabled = true)
         }
         val spent: BigDecimal = spentByCycle.last().amount
-        val savings: List<Saving>? = getSavings(transactionsByCycle, cycle.apiCycle, savedSpending)
+        val savings: List<Saving>? = getSavings(transactionsByCycle, cycle, savedSpending)
 
         return Spending(
                 id = savedSpending?.id,
@@ -138,6 +137,7 @@ class MonzoMapper @Inject constructor() {
                 notes = savedSpending?.notes,
                 type = type,
                 value = average,
+                total = sortedTransactions.sumBy(Transaction::amount).toBigDecimal(),
                 fromStartDate = fromStartDate,
                 fromEndDate = fromEndDate,
                 occurrenceCount = savedSpending?.occurrenceCount,
@@ -191,7 +191,7 @@ class MonzoMapper @Inject constructor() {
         }
     }
 
-    private fun getCycle(sortedTransactions: List<Transaction>, savedSpending: Spending?, projectSettings: Project): Cycle {
+    private fun getCycle(sortedTransactions: List<Transaction>, savedSpending: Spending?, projectSettings: Project): ApiSpending.Cycle {
         val optimalCycle = getOptimalCycle(sortedTransactions)
         return if (projectSettings.cyclePinned) (savedSpending?.cycle ?: optimalCycle) else optimalCycle
     }
@@ -237,7 +237,7 @@ class MonzoMapper @Inject constructor() {
                 .divide(100.toBigDecimal()) // cents to pounds
     }
 
-    private fun getOptimalCycle(sortedTransactions: List<Transaction>): Cycle {
+    private fun getOptimalCycle(sortedTransactions: List<Transaction>): ApiSpending.Cycle {
         var highestDistanceDays = 0L
         var distance: Long = 0
 
@@ -247,9 +247,9 @@ class MonzoMapper @Inject constructor() {
             }
         }
         return when {
-            highestDistanceDays <= 7 -> Cycle.Weeks(sortedTransactions.size)
-            highestDistanceDays <= 365 -> Cycle.Months(sortedTransactions.size)
-            else -> Cycle.Years(sortedTransactions.size)
+            highestDistanceDays <= 7 -> ApiSpending.Cycle.WEEKS
+            highestDistanceDays <= 365 -> ApiSpending.Cycle.MONTHS
+            else -> ApiSpending.Cycle.YEARS
         }
     }
 

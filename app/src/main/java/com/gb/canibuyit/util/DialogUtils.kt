@@ -7,39 +7,49 @@ import android.content.DialogInterface
 object DialogUtils {
 
     /**
-     * @param onSave   will be run if user selects Yes
-     * @param onFinish will be run if user selects Yes and onSave returns true OR if
-     * user selects Discard (in which case onSave is ignored)
+     * @param negativeTask will be run if user taps the Discard button
      */
-    fun getSaveOrDiscardDialog(context: Context?, message: String?, onSave: Executable): AlertDialog {
+    fun getDiscardDialog(context: Context, message: String, negativeTask: () -> Unit): AlertDialog {
         return getDialog(
                 context,
-                title = "Save changes?",
+                title = "Cannot save changes",
                 message = message,
-                positiveButton = "Save",
-                onPositiveButtonClicked = ClickRunner.ConditionalTaskBuilder(onSave).build(),
                 negativeButton = "Discard",
-                onNegativeButtonClicked = ClickRunner.Builder().build(),
-                fuckOffButton = android.R.string.cancel,
-                onFuckOffButtonClicked = null)
+                onNegativeButtonClicked = ClickRunner(negativeTask),
+                neutralButton = android.R.string.cancel,
+                onNeutralButtonClicked = null)
     }
 
     /**
-     * @param onSave   will be run if user selects Yes
-     * @param onFinish will be run if user selects Yes and onSave returns true OR if
-     * user selects Discard (in which case onSave is ignored)
+     * @param positiveTask   will be run if user taps Save
      */
-    fun getSaveOrDiscardDialog(context: Context?, message: String?, onSave: Executable, onFinish: () -> Unit): AlertDialog {
+    fun getSaveDialog(context: Context, message: String?, positiveTask: () -> Unit): AlertDialog {
         return getDialog(
                 context,
                 title = "Save changes?",
                 message = message,
                 positiveButton = "Save",
-                onPositiveButtonClicked = ClickRunner.ConditionalTaskBuilder(onSave).onSuccess(onFinish).build(),
+                onPositiveButtonClicked = ClickRunner(positiveTask),
+                neutralButton = android.R.string.cancel,
+                onNeutralButtonClicked = null)
+    }
+
+    /**
+     * @param positiveConditionalTask   will be run if user taps Save
+     * @param onFinish will be run if user selects Save and positiveConditionalTask returns true OR if
+     * user selects Discard (in which case positiveConditionalTask is ignored)
+     */
+    fun getSaveOrDiscardDialog(context: Context, message: String?, positiveConditionalTask: () -> Boolean, onFinish: () -> Unit): AlertDialog {
+        return getDialog(
+                context,
+                title = "Save changes?",
+                message = message,
+                positiveButton = "Save",
+                onPositiveButtonClicked = ClickRunner(onFinish, positiveConditionalTask),
                 negativeButton = "Discard",
-                onNegativeButtonClicked = ClickRunner.Builder().setOnDiscard(onFinish).build(),
-                fuckOffButton = android.R.string.cancel,
-                onFuckOffButtonClicked = null)
+                onNegativeButtonClicked = ClickRunner(onFinish),
+                neutralButton = android.R.string.cancel,
+                onNeutralButtonClicked = null)
     }
 
     /**
@@ -48,11 +58,11 @@ object DialogUtils {
      * @param onPositiveButtonClicked
      * @param negativeButton          CharSequence or resource id
      * @param onNegativeButtonClicked
-     * @param fuckOffButton           CharSequence or resource id
-     * @param onFuckOffButtonClicked
+     * @param neutralButton           CharSequence or resource id
+     * @param onNeutralButtonClicked
      */
-    fun getDialog(context: Context?, title: Any?, message: Any?, positiveButton: Any?, onPositiveButtonClicked: ClickRunner,
-                  negativeButton: Any?, onNegativeButtonClicked: ClickRunner, fuckOffButton: Any?, onFuckOffButtonClicked: ClickRunner?): AlertDialog {
+    fun getDialog(context: Context, title: Any?, message: Any?, positiveButton: Any? = null, onPositiveButtonClicked: ClickRunner? = null,
+                  negativeButton: Any? = null, onNegativeButtonClicked: ClickRunner? = null, neutralButton: Any?, onNeutralButtonClicked: ClickRunner?): AlertDialog {
         val builder = AlertDialog.Builder(context)
         if (title != null) {
             if (title is CharSequence) {
@@ -90,11 +100,11 @@ object DialogUtils {
                 throw IllegalArgumentException("Wrong negative button text type in DialogUtils.getDialog(...)")
             }
         }
-        if (fuckOffButton != null) {
-            if (fuckOffButton is CharSequence) {
-                builder.setNeutralButton(fuckOffButton as CharSequence?, onFuckOffButtonClicked)
-            } else if (fuckOffButton is Int) {
-                builder.setNeutralButton(fuckOffButton, onFuckOffButtonClicked)
+        if (neutralButton != null) {
+            if (neutralButton is CharSequence) {
+                builder.setNeutralButton(neutralButton as CharSequence?, onNeutralButtonClicked)
+            } else if (neutralButton is Int) {
+                builder.setNeutralButton(neutralButton, onNeutralButtonClicked)
             } else {
                 throw IllegalArgumentException("Wrong fuck off button text type in DialogUtils.getDialog(...)")
             }
@@ -102,76 +112,14 @@ object DialogUtils {
         return builder.create()
     }
 
-    abstract class Executable {
-        abstract fun run(): Boolean
-    }
-
-    class ClickRunner : DialogInterface.OnClickListener {
-
-        private val conditionalTask: Executable?
-        private val onSuccess: (() -> Unit)?
-        private val onFail: (() -> Unit)?
-
-        internal constructor(builder: Builder) {
-            conditionalTask = null
-            onSuccess = builder.onDiscard
-            onFail = null
-        }
-
-        internal constructor(taskBuilder: ConditionalTaskBuilder) {
-            conditionalTask = taskBuilder.conditionalTask
-            onSuccess = taskBuilder.onSuccess
-            onFail = taskBuilder.onFail
-        }
+    class ClickRunner @JvmOverloads constructor(private var onSuccess: (() -> Unit)? = null,
+                                                private var conditionalTask: (() -> Boolean)? = null,
+                                                private var onFail: (() -> Unit)? = null) : DialogInterface.OnClickListener {
 
         override fun onClick(dialog: DialogInterface, which: Int) {
-            val result = conditionalTask == null || conditionalTask.run()
-
-            if (result && onSuccess != null) {
-                try {
-                    onSuccess.invoke()
-                } catch (t: Throwable) {
-                    Logger.d(ClickRunner::class.java.name, t)
-                }
-            } else if (onFail != null) {
-                try {
-                    onFail.invoke()
-                } catch (t: Throwable) {
-                    Logger.d(ClickRunner::class.java.name, t)
-                }
-            }
-        }
-
-        internal class Builder {
-            var onDiscard: (() -> Unit)? = null
-
-            fun setOnDiscard(onDiscard: () -> Unit): Builder {
-                this.onDiscard = onDiscard
-                return this
-            }
-
-            fun build(): ClickRunner {
-                return ClickRunner(this)
-            }
-        }
-
-        internal class ConditionalTaskBuilder(val conditionalTask: Executable) {
-            var onSuccess: (() -> Unit)? = null
-            var onFail: (() -> Unit)? = null
-
-            fun onSuccess(onSuccess: () -> Unit): ConditionalTaskBuilder {
-                this.onSuccess = onSuccess
-                return this
-            }
-
-            fun onFail(onFail: () -> Unit): ConditionalTaskBuilder {
-                this.onFail = onFail
-                return this
-            }
-
-            fun build(): ClickRunner {
-                return ClickRunner(this)
-            }
+            conditionalTask?.let {
+                if (it.invoke()) onSuccess?.invoke() else onFail?.invoke()
+            } ?: onSuccess?.invoke()
         }
     }
 }

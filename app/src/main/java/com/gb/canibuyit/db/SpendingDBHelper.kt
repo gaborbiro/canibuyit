@@ -28,6 +28,10 @@ constructor(appContext: Context) : OrmLiteSqliteOpenHelper(appContext, DATABASE_
             TableUtils.createTable(connectionSource, ApiProject::class.java)
             TableUtils.createTable(connectionSource, ApiSaving::class.java)
             TableUtils.createTable(connectionSource, ApiSpentByCycle::class.java)
+
+            if (!database.isReadOnly){
+                database.setForeignKeyConstraintsEnabled(true)
+            }
         } catch (e: SQLException) {
             e.printStackTrace()
         }

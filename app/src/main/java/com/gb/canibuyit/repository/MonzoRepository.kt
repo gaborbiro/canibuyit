@@ -8,16 +8,18 @@ import com.gb.canibuyit.api.MonzoApi
 import com.gb.canibuyit.api.MonzoAuthApi
 import com.gb.canibuyit.db.model.ApiSpending
 import com.gb.canibuyit.interactor.ProjectInteractor
+import com.gb.canibuyit.model.CycleSpent
 import com.gb.canibuyit.model.Login
-import com.gb.canibuyit.model.SerializableMap
 import com.gb.canibuyit.model.Spending
 import com.gb.canibuyit.model.Transaction
 import com.gb.canibuyit.model.Webhooks
+import com.gb.canibuyit.model.copy
 import com.gb.canibuyit.util.FORMAT_RFC3339
 import com.gb.canibuyit.util.Logger
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
+import java.math.RoundingMode
 import java.time.LocalDate
 import java.time.ZoneId
 import javax.inject.Inject
@@ -72,45 +74,42 @@ class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi,
         startDate: LocalDate,
         endDate: LocalDate): Spending {
         val projectSettings = projectInteractor.getProject().blockingGet()
-        val savedSpendings = spendingsRepository.all.blockingGet()
+        val savedSpendings = spendingsRepository.getAll().blockingGet()
                 .groupBy { it.sourceData?.get(ApiSpending.SOURCE_MONZO_CATEGORY) }
-
         val savedSpending = savedSpendings[category.toString()]?.get(0)
-//        val size = transactionsByCategory.size
-//        if (category == ApiSpending.Category.ACCOMMODATION) {
-//            val firstHalf = transactionsByCategory.subList(0, size / 2 - 1)
-//            val secondHalf = transactionsByCategory.subList(size / 2, size)
-//            val spending1 = mapper.mapToSpending(
-//                    category,
-//                    firstHalf,
-//                    savedSpending,
-//                    projectSettings,
-//                    startDate.plusMonths(1).withDayOfMonth(1),
-//                    secondHalf.first().created.minusMonths(2).withDayOfMonth(31))
-//            val spending2 = mapper.mapToSpending(
-//                    category,
-//                    secondHalf,
-//                    savedSpending,
-//                    projectSettings,
-//                    secondHalf.first().created.withDayOfMonth(1),
-//                    endDate.withDayOfMonth(31))
-//            return Spending(
-//                    id = spending1.id,
-//                    targets = spending1.targets,
-//                    name = spending1.name,
-//                    notes = spending1.notes,
-//                    type = spending1.type,
-//                    value = (spending1.value + spending2.value) / 2.toBigDecimal(),
-//                    fromStartDate = least(spending1.fromStartDate, spending2.fromStartDate),
-//                    fromEndDate = most(spending1.fromEndDate, spending2.fromEndDate),
-//                    occurrenceCount = savedSpending?.occurrenceCount,
-//                    cycleMultiplier = spending1.cycleMultiplier,
-//                    cycle = most(spending1.cycle, spending2.cycle),
-//                    enabled = spending1.enabled,
-//                    spent = spending1.spent + spending2.spent,
-//                    savings = spending1.savings + spending2.savings,
-//                    sourceData = SerializableMap<String, String>().apply { put(ApiSpending.SOURCE_MONZO_CATEGORY, category.name.toLowerCase()) })
-//        } else {
+        val disabledCycles = savedSpending?.spentByCycle?.filter { !it.enabled }.orEmpty()
+
+        if (disabledCycles.isNotEmpty()) {
+            val cycleCount = savedSpending!!.spentByCycle!!.count(CycleSpent::enabled)
+            val filteredTransactions: Array<List<Transaction>> = excludeRanges(
+                    items = transactionsByCategory,
+                    rangesToExclude = disabledCycles.map { Pair(it.from, it.to) },
+                    compare = { transaction, date -> transaction.created.compareTo(date) })
+            val inclusiveRanges: List<Pair<LocalDate, LocalDate>> = disabledCycles.map { arrayOf(it.from.minusDays(1), it.to.plusDays(1)) }
+                    .toTypedArray().flatten().toMutableList().apply {
+                        add(0, startDate)
+                        add(endDate)
+                    }.run {
+                        filterIndexed { index, _ -> index % 2 == 0 } zip filterIndexed { index, _ -> index % 2 != 0 }
+                    }
+            return (inclusiveRanges zip filteredTransactions).map { (range, transactions) ->
+                val (rangeStart, rangeEnd) = range
+                mapper.mapToSpending(
+                        category,
+                        transactions,
+                        savedSpending,
+                        projectSettings,
+                        rangeStart,
+                        rangeEnd)
+            }.foldRightIndexed(null) { index, next, accumulator: Spending? ->
+                val result = accumulator?.merge(
+                        next,
+                        isCurrentCycle = index == cycleCount - 1) ?: next
+                result
+            }.let {
+                it?.copy(value = it.total.divide(cycleCount.toBigDecimal(), RoundingMode.DOWN).divide(100.toBigDecimal()))
+            }!!
+        } else {
             return mapper.mapToSpending(
                     category,
                     transactionsByCategory,
@@ -118,7 +117,26 @@ class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi,
                     projectSettings,
                     startDate,
                     endDate)
+        }
 //        }
+    }
+
+    private fun <T, D> excludeRanges(items: List<T>,
+                                     rangesToExclude: List<Pair<D, D>>,
+                                     compare: (a: T, b: D) -> Int): Array<List<T>> {
+        val filteredTransactions: Array<List<T>> = Array(rangesToExclude.size + 1) { _ -> mutableListOf<T>() }
+        var transactionIndex = 0
+        var rangeIndex = 0
+        while (transactionIndex < items.size) {
+            if (rangeIndex == rangesToExclude.size || compare(items[transactionIndex], rangesToExclude[rangeIndex].first) <= 0) {
+                (filteredTransactions[rangeIndex] as MutableList).add(items[transactionIndex])
+            }
+            transactionIndex++
+            if (rangeIndex < rangesToExclude.size && compare(items[transactionIndex], rangesToExclude[rangeIndex].second) > 0) {
+                rangeIndex++
+            }
+        }
+        return filteredTransactions
     }
 
     fun registerWebHook(accountId: String, url: String): Completable {

@@ -5,6 +5,7 @@ import com.gb.canibuyit.db.model.ApiSpending
 import com.gb.canibuyit.db.model.ApiSpentByCycle
 import com.gb.canibuyit.model.CycleSpent
 import com.gb.canibuyit.model.Spending
+import com.gb.canibuyit.util.doIfBoth
 import com.j256.ormlite.dao.Dao
 import com.j256.ormlite.stmt.DeleteBuilder
 import io.reactivex.Completable
@@ -16,20 +17,27 @@ class SpentByCycleRepository @Inject
 constructor(private val spentByCycleDao: Dao<ApiSpentByCycle, Int>,
             private val spendingDao: Dao<ApiSpending, Int>) {
 
-    fun create(spendings: List<Spending>): Completable {
+    fun saveSpentByCycles(spendings: List<Spending>): Completable {
         return Completable.create { emitter ->
             try {
-                spendings.flatMap { it.spentByCycle ?: emptyList() }
-                        .forEach { cycleSpent: CycleSpent ->
-                            spentByCycleDao.create(ApiSpentByCycle(
-                                    cycleSpent.id,
-                                    spendingDao.queryForId(cycleSpent.spendingId),
-                                    cycleSpent.from,
-                                    cycleSpent.to,
-                                    cycleSpent.amount,
-                                    cycleSpent.count,
-                                    cycleSpent.enabled))
-                        }
+                spendings.forEach { newSpending ->
+                    val apiSpending = spendingDao.queryForId(newSpending.id)
+                    val foreignCollection = apiSpending.spentByByCycle
+                    val items = newSpending.spentByCycle
+                    Pair(foreignCollection, items).doIfBoth { (foreignCollection, items) ->
+                        foreignCollection.clear()
+                        foreignCollection.addAll(items.map { spentByCycle ->
+                            ApiSpentByCycle(
+                                    spentByCycle.id,
+                                    apiSpending,
+                                    spentByCycle.from,
+                                    spentByCycle.to,
+                                    spentByCycle.amount,
+                                    spentByCycle.count,
+                                    spentByCycle.enabled)
+                        }.asIterable())
+                    }
+                }
                 emitter.onComplete()
             } catch (e: SQLException) {
                 emitter.onError(Exception("Error creating/updating spentByCycles", e))
@@ -42,22 +50,12 @@ constructor(private val spentByCycleDao: Dao<ApiSpentByCycle, Int>,
             try {
                 val builder: DeleteBuilder<ApiSpentByCycle, Int> = spentByCycleDao.deleteBuilder()
                 builder.where()
-                        .eq(Contract.SpentByCycle.SPENDING, spendingDao.queryForId(spendingId))
+                        .eq(Contract.SpentByCycle.SPENDING, spendingId)
                 spentByCycleDao.delete(builder.prepare())
+                spendingDao.queryForId(spendingId).spentByByCycle?.refreshCollection()
                 emitter.onComplete()
             } catch (e: SQLException) {
                 emitter.onError(e)
-            }
-        }
-    }
-
-    fun clearAll(): Completable {
-        return Completable.defer {
-            try {
-                spentByCycleDao.deleteBuilder().delete()
-                Completable.complete()
-            } catch (e: SQLException) {
-                Completable.error(e)
             }
         }
     }
@@ -66,14 +64,10 @@ constructor(private val spentByCycleDao: Dao<ApiSpentByCycle, Int>,
         return Single.create {
             try {
                 val spending = spendingDao.queryForId(cycleSpent.spendingId)
-                spentByCycleDao.update(ApiSpentByCycle(
-                        id = cycleSpent.id,
-                        spending = spending,
-                        from = cycleSpent.from,
-                        to = cycleSpent.to,
-                        amount = cycleSpent.amount,
-                        count = cycleSpent.count,
-                        enabled = enabled))
+                spending.spentByByCycle?.find { it.id == cycleSpent.id }?.copy(enabled = enabled)
+                        .run {
+                            spending.spentByByCycle?.update(this)
+                        }
                 it.onSuccess(spentByCycleDao.queryForId(cycleSpent.id).enabled!!)
             } catch (e: SQLException) {
                 it.onError(e)

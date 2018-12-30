@@ -36,7 +36,6 @@
         </activity>
         <activity
             android:name=".ui.SpendingEditorActivity"
-            android:label="@string/title_spending_modifier_detail"
             android:parentActivityName=".ui.MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"

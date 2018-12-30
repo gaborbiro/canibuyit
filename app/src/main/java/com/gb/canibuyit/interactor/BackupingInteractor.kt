@@ -42,23 +42,20 @@ constructor(private val backupingRepository: BackupingRepository,
     }
 
     fun exportSpendings(targetFilename: String): Completable {
-        try {
-            val pack = appContext.packageName
+        val finalFromPath = targetFilename.let { if (!it.endsWith("sqlite")) "$it.sqlite" else it }
+        val currentDBPath = "/data/${appContext.packageName}/databases/${SpendingDBHelper.DATABASE_NAME}"
 
-            var to = File(targetFilename)
-
-            if (!to.extension.equals("sqlite")) {
-                to = File(targetFilename + ".sqlite")
-            }
-
-            val data = Environment.getDataDirectory()
-            val currentDBPath = "/data/" + pack + "/databases/" + SpendingDBHelper.DATABASE_NAME
-            val from = File(data, currentDBPath)
-
-            FileUtils.copyFiles(from, to)
-            return Completable.complete()
+        return try {
+            exportFile(finalFromPath, currentDBPath)
+            Completable.complete()
         } catch (t: Throwable) {
-            return Completable.error(DomainException("Error exporting database", t))
+            Completable.error(DomainException("Error exporting database", t))
         }
+    }
+
+    private fun exportFile(toPath: String, fromPath: String) {
+        val from = File(Environment.getDataDirectory(), fromPath)
+        val to = File(toPath)
+        FileUtils.copyFiles(from, to)
     }
 }

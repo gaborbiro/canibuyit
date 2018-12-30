@@ -31,16 +31,15 @@ constructor(private val dao: Dao<ApiSpending, Int>,
             private val prefs: UserPreferences,
             private val gson: Gson) {
 
-    val all: Single<List<Spending>>
-        get() {
-            return Single.create<List<Spending>> { emitter ->
-                try {
-                    emitter.onSuccess(dao.queryForAll().map(mapper::map))
-                } catch (e: SQLException) {
-                    emitter.onError(e)
-                }
+    fun getAll(): Single<List<Spending>> {
+        return Single.create<List<Spending>> { emitter ->
+            try {
+                emitter.onSuccess(dao.queryForAll().map(mapper::map))
+            } catch (e: SQLException) {
+                emitter.onError(e)
             }
         }
+    }
 
     /**
      * The specified spending will have it;s id updated after a successful insert
@@ -90,6 +89,7 @@ constructor(private val dao: Dao<ApiSpending, Int>,
                         dao.update(apiSpending)
                     } else {
                         dao.create(apiSpending)
+                        it.id = apiSpending.id
                     }
                 }
                 savedMonzoSpendings.filter { savedCategories.contains(it.type.toString()) && it.enabled }
@@ -133,7 +133,7 @@ constructor(private val dao: Dao<ApiSpending, Int>,
         }
     }
 
-    fun get(id: Int): Maybe<Spending> {
+    fun get(id: Int?): Maybe<Spending> {
         return Maybe.create<Spending> { emitter ->
             try {
                 val spending = dao.queryForId(id)

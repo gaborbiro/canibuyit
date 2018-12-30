@@ -38,7 +38,7 @@ constructor(private val spendingsRepository: SpendingsRepository,
     // REACTIVE METHODS
 
     fun loadSpendings() {
-        spendingsRepository.all
+        spendingsRepository.getAll()
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())
                 .doOnSubscribe {
@@ -69,10 +69,8 @@ constructor(private val spendingsRepository: SpendingsRepository,
 
     fun createOrUpdateMonzoCategories(spendings: List<Spending>) {
         spendingsRepository.createOrUpdateMonzoSpendings(spendings)
-                .andThen(savingsRepository.clearAll())
-                .andThen(savingsRepository.create(spendings))
-                .andThen(spentByCycleRepository.clearAll())
-                .andThen(spentByCycleRepository.create(spendings))
+                .andThen(savingsRepository.saveSavings(spendings))
+                .andThen(spentByCycleRepository.saveSpentByCycles(spendings))
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())
                 .subscribe({
@@ -136,10 +134,8 @@ constructor(private val spendingsRepository: SpendingsRepository,
 
     fun createOrUpdate(spending: Spending): Completable {
         return spendingsRepository.createOrUpdate(spending)
-                .andThen(savingsRepository.clearAll())
-                .andThen(savingsRepository.create(listOf(spending)))
-                .andThen(spentByCycleRepository.clearAll())
-                .andThen(spentByCycleRepository.create(listOf(spending)))
+                .andThen(savingsRepository.saveSavings(listOf(spending)))
+                .andThen(spentByCycleRepository.saveSpentByCycles(listOf(spending)))
                 .onErrorResumeNext { throwable -> Completable.error(DomainException("Error updating spending in database. See logs.", throwable)) }
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())
@@ -147,7 +143,7 @@ constructor(private val spendingsRepository: SpendingsRepository,
 
     fun delete(id: Int): Completable {
         return spendingsRepository.delete(id)
-                .onErrorResumeNext { Completable.error(DomainException("Error deleting spending $id in database. See logs.")) }
+                .onErrorResumeNext { Completable.error(DomainException("Error deleting spending $id in database. See logs.", it)) }
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())
     }

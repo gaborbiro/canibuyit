@@ -28,7 +28,7 @@ class SpendingViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
             context.getString(R.string.spending_no_target, spending.value, context.resources.getQuantityString(R.plurals.times, it, it)) // -875.00 (once)
         } ?: let {
             context.resources.getQuantityString(R.plurals.amount_cycle, spending.cycleMultiplier,
-                    spending.value, spending.cycleMultiplier, context.resources.getQuantityText(spending.cycle.apiCycle.strRes, spending.cycleMultiplier)) // 3045.00 per month
+                    spending.value, spending.cycleMultiplier, context.resources.getQuantityText(spending.cycle.strRes, spending.cycleMultiplier)) // 3045.00 per month
         }
         nameView.text = context.getString(R.string.average, spending.name, perCycleAmount) // Rent (875.0)
         spending.spent.let { spent ->
@@ -38,7 +38,7 @@ class SpendingViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
                     cycleStr = context.resources.getQuantityString(R.plurals.times, it, it) // (10 times)
                 } ?: let {
                     cycleStr = context.resources.getQuantityString(R.plurals.period, spending.cycleMultiplier,
-                            spending.cycleMultiplier, context.resources.getQuantityText(spending.cycle.apiCycle.strRes, spending.cycleMultiplier)) // this week
+                            spending.cycleMultiplier, context.resources.getQuantityText(spending.cycle.strRes, spending.cycleMultiplier)) // this week
                 }
                 spending.target?.let {
                     spentView.text = context.getString(R.string.spending, spent, it, cycleStr) // 82.79/90 this week

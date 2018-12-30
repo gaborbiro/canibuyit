@@ -7,7 +7,6 @@ import com.gb.canibuyit.exception.MapperException
 import com.gb.canibuyit.model.CycleSpent
 import com.gb.canibuyit.model.Saving
 import com.gb.canibuyit.model.Spending
-import com.gb.canibuyit.model.toDomainCycle
 import com.gb.canibuyit.util.fromJson
 import com.google.gson.Gson
 import java.math.BigDecimal
@@ -22,11 +21,12 @@ class SpendingMapper @Inject constructor(private val gson: Gson) {
                 notes = apiSpending.notes,
                 type = apiSpending.type ?: throw MapperException("Missing type"),
                 value = apiSpending.value ?: throw MapperException("Missing value"),
+                total = BigDecimal.ZERO,
                 fromStartDate = apiSpending.fromStartDate ?: throw MapperException("Missing fromStartDate"),
                 fromEndDate = apiSpending.fromEndDate ?: throw MapperException("Missing fromEndDate"),
                 occurrenceCount = apiSpending.occurrenceCount,
                 cycleMultiplier = apiSpending.cycleMultiplier ?: throw MapperException("Missing cycleMultiplier"),
-                cycle = apiSpending.cycle?.toDomainCycle() ?: throw MapperException("cycle"),
+                cycle = apiSpending.cycle ?: throw MapperException("cycle"),
                 sourceData = apiSpending.sourceData?.let { gson.fromJson<MutableMap<String, String>>(it) },
                 enabled = apiSpending.enabled ?: throw MapperException("Missing enabled"),
                 spent = apiSpending.spent ?: BigDecimal.ZERO,
@@ -54,7 +54,7 @@ class SpendingMapper @Inject constructor(private val gson: Gson) {
                 fromEndDate = spending.fromEndDate,
                 occurrenceCount = spending.occurrenceCount,
                 cycleMultiplier = spending.cycleMultiplier,
-                cycle = spending.cycle.apiCycle,
+                cycle = spending.cycle,
                 sourceData = spending.sourceData?.let { gson.toJson(it) },
                 enabled = spending.enabled,
                 spent = spending.spent,

@@ -52,8 +52,8 @@ object BalanceCalculator {
                 }
             }
             counter++
-            movingStart = spending.fromStartDate + (spending.cycleMultiplier * counter * spending.cycle.apiCycle)
-            movingEnd = spending.fromEndDate + (spending.cycleMultiplier * counter * spending.cycle.apiCycle)
+            movingStart = spending.fromStartDate + (spending.cycleMultiplier * counter * spending.cycle)
+            movingEnd = spending.fromEndDate + (spending.cycleMultiplier * counter * spending.cycle)
             spending.occurrenceCount?.let {
                 if (++occurrenceCount >= it) {
                     `break` = true
