@@ -16,19 +16,19 @@ data class ApiSpentByCycle(
     var spending: ApiSpending? = null,
 
     @DatabaseField(columnName = Contract.SpentByCycle.FROM, canBeNull = false, dataType = DataType.SERIALIZABLE)
-    val from: LocalDate? = null,
+    var from: LocalDate? = null,
 
     @DatabaseField(columnName = Contract.SpentByCycle.TO, canBeNull = false, dataType = DataType.SERIALIZABLE)
-    val to: LocalDate? = null,
+    var to: LocalDate? = null,
 
     @DatabaseField(columnName = Contract.SpentByCycle.AMOUNT, canBeNull = false)
-    val amount: BigDecimal? = null,
+    var amount: BigDecimal? = null,
 
     @DatabaseField(columnName = Contract.SpentByCycle.COUNT, canBeNull = false)
-    val count: Int? = null,
+    var count: Int? = null,
 
     @DatabaseField(columnName = Contract.SpentByCycle.ENABLED, canBeNull = false)
-    val enabled: Boolean? = null) {
+    var enabled: Boolean? = null) {
 
     override fun toString(): String {
         return "ApiSpentByCycle(id=$id, from=$from, to=$to, amount=$amount, count=$count, enabled=$enabled)"

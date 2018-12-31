@@ -183,18 +183,6 @@ class SpendingEditorFragment : BaseFragment<SpendingEditorScreen, SpendingEditor
 
     override fun setSpentByCycleEnabled(uiModel: SpentByCycleUpdateUiModel) {
         when (uiModel) {
-            is SpentByCycleUpdateUiModel.AllLoading -> {
-                spent_by_cycle_list.forEachChild {
-                    it.toggle.isEnabled = false
-                    it.progress_indicator.show()
-                }
-            }
-            is SpentByCycleUpdateUiModel.AllFinished -> {
-                spent_by_cycle_list.forEachChild {
-                    it.toggle.isEnabled = true
-                    it.progress_indicator.invisible()
-                }
-            }
             is SpentByCycleUpdateUiModel.Loading -> {
                 spent_by_cycle_list.findViewWithTag<ViewGroup>(uiModel.cycleSpent?.id).apply {
                     toggle.isEnabled = false
@@ -276,8 +264,8 @@ class SpendingEditorFragment : BaseFragment<SpendingEditorScreen, SpendingEditor
                     }
                     is ContentStatus.ContentWasChangedInSensitiveWays -> {
                         DialogUtils.getSaveDialog(context!!, "Your modification will cause the \"Spent by cycle\" data to be recalculated.") {
-                            presenter.saveSpending(contentSaveStatus.spending)
                             presenter.deleteSpentByCycle(contentSaveStatus.spending)
+                            presenter.saveSpending(contentSaveStatus.spending)
                         }.show()
                     }
                     is ContentStatus.ContentInvalid -> context?.let(contentSaveStatus.validationError::showError)
@@ -309,8 +297,8 @@ class SpendingEditorFragment : BaseFragment<SpendingEditorScreen, SpendingEditor
             }
             is ContentStatus.ContentWasChangedInSensitiveWays -> {
                 DialogUtils.getSaveOrDiscardDialog(context!!, "Your modification will cause the \"Spent by cycle\" data to be recalculated.", {
-                    presenter.saveSpending(contentSaveStatus.spending)
                     presenter.deleteSpentByCycle(contentSaveStatus.spending)
+                    presenter.saveSpending(contentSaveStatus.spending)
                     true
                 }, onFinish).show()
             }
@@ -320,11 +308,6 @@ class SpendingEditorFragment : BaseFragment<SpendingEditorScreen, SpendingEditor
                         .show()
             }
         }
-    }
-
-    override fun onSpendingSaved(spending: Spending) {
-        this.originalSpending = spending
-        deleteBtn?.isVisible = true
     }
 
     override fun onSpendingLoaded(spending: Spending) {

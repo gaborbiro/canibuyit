@@ -6,10 +6,7 @@ import com.gb.canibuyit.model.Balance
 import com.gb.canibuyit.model.CycleSpent
 import com.gb.canibuyit.model.Lce
 import com.gb.canibuyit.model.Spending
-import com.gb.canibuyit.model.SpentByCycleUpdateUiModel
-import com.gb.canibuyit.repository.SavingsRepository
 import com.gb.canibuyit.repository.SpendingsRepository
-import com.gb.canibuyit.repository.SpentByCycleRepository
 import com.gb.canibuyit.rx.SchedulerProvider
 import com.gb.canibuyit.ui.BalanceBreakdown
 import io.reactivex.Completable
@@ -25,8 +22,6 @@ import javax.inject.Singleton
 @Singleton
 class SpendingInteractor @Inject
 constructor(private val spendingsRepository: SpendingsRepository,
-            private val savingsRepository: SavingsRepository,
-            private val spentByCycleRepository: SpentByCycleRepository,
             private val schedulerProvider: SchedulerProvider) {
 
     private val spendingsSubject: Subject<Lce<List<Spending>>> = PublishSubject.create<Lce<List<Spending>>>()
@@ -69,8 +64,6 @@ constructor(private val spendingsRepository: SpendingsRepository,
 
     fun createOrUpdateMonzoCategories(spendings: List<Spending>) {
         spendingsRepository.createOrUpdateMonzoSpendings(spendings)
-                .andThen(savingsRepository.saveSavings(spendings))
-                .andThen(spentByCycleRepository.saveSpentByCycles(spendings))
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())
                 .subscribe({
@@ -80,62 +73,26 @@ constructor(private val spendingsRepository: SpendingsRepository,
                 })
     }
 
-    fun setSpentByCycleEnabled(cycleSpent: CycleSpent, enabled: Boolean): Observable<SpentByCycleUpdateUiModel> {
-        return spentByCycleRepository.setSpentByCycleEnabled(cycleSpent, enabled)
-                .map { result -> this.mapSpentByCycleEnabledResult(cycleSpent, result) }
-                .toObservable()
-                .startWith(SpentByCycleUpdateUiModel.Loading(cycleSpent))
-                .onErrorResumeNext { throwable: Throwable ->
-                    Observable.just<SpentByCycleUpdateUiModel>(
-                            SpentByCycleUpdateUiModel.Error(
-                                    cycleSpent = cycleSpent,
-                                    error = throwable.message ?: "Error updating SpentByCycle ($cycleSpent).")
-                    )
-                }
-                .subscribeOn(schedulerProvider.io())
-                .observeOn(schedulerProvider.mainThread())
+    fun setSpentByCycleEnabled(cycleSpent: CycleSpent, enabled: Boolean) {
+        spendingsRepository.setSpentByCycleEnabled(cycleSpent, enabled)
     }
 
-    fun setAllSpentByCycleEnabled(spending: Spending, enabled: Boolean): Observable<SpentByCycleUpdateUiModel> {
-        return Observable.create<SpentByCycleUpdateUiModel> { emitter ->
-            spending.spentByCycle?.let { list ->
-                emitter.onNext(SpentByCycleUpdateUiModel.AllLoading)
-                list.forEach { cycleSpent ->
-                    val single = spentByCycleRepository.setSpentByCycleEnabled(cycleSpent, enabled)
-                            .map { result -> this.mapSpentByCycleEnabledResult(cycleSpent, result) }
-                            .onErrorResumeNext { throwable: Throwable ->
-                                Single.just<SpentByCycleUpdateUiModel>(
-                                        SpentByCycleUpdateUiModel.Error(
-                                                cycleSpent = cycleSpent,
-                                                error = throwable.message ?: "Error updating SpentByCycle ($cycleSpent).")
-                                )
-                            }
-                    emitter.onNext(single.blockingGet())
-                }
-                emitter.onNext(SpentByCycleUpdateUiModel.AllFinished)
-                emitter.onComplete()
-            } ?: emitter.onComplete()
+    fun setAllSpentByCycleEnabled(spending: Spending, enabled: Boolean) {
+        spending.spentByCycle?.let { list ->
+            list.forEach { cycleSpent ->
+                spendingsRepository.setSpentByCycleEnabled(cycleSpent, enabled)
+            }
         }
-                .subscribeOn(schedulerProvider.io())
-                .observeOn(schedulerProvider.mainThread())
     }
 
-    fun deleteSpentByCycleData(id: Int): Completable {
-        return spentByCycleRepository.deleteSpendByCycleBySpendingId(id)
-                .subscribeOn(schedulerProvider.io())
-                .observeOn(schedulerProvider.mainThread())
-    }
-
-    private fun mapSpentByCycleEnabledResult(cycleSpent: CycleSpent, enabled: Boolean): SpentByCycleUpdateUiModel {
-        return SpentByCycleUpdateUiModel.Success(cycleSpent.copy(enabled = enabled))
+    fun deleteSpentByCycleData(spending: Spending) {
+        spendingsRepository.deleteSpendByCycleBySpendingId(spending)
     }
 
     // NON-REACTIVE METHODS
 
     fun createOrUpdate(spending: Spending): Completable {
         return spendingsRepository.createOrUpdate(spending)
-                .andThen(savingsRepository.saveSavings(listOf(spending)))
-                .andThen(spentByCycleRepository.saveSpentByCycles(listOf(spending)))
                 .onErrorResumeNext { throwable -> Completable.error(DomainException("Error updating spending in database. See logs.", throwable)) }
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())

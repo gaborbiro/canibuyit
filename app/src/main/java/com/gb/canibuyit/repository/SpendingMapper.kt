@@ -63,13 +63,23 @@ class SpendingMapper @Inject constructor(private val gson: Gson) {
     }
 
     fun map(apiSpentByCycle: ApiSpentByCycle): CycleSpent = CycleSpent(
-            id =apiSpentByCycle.id ?: throw MapperException("Missing `id` when mapping ApiSpentByCycle"),
+            id = apiSpentByCycle.id ?: throw MapperException("Missing `id` when mapping ApiSpentByCycle"),
             spendingId = apiSpentByCycle.spending?.id ?: throw MapperException("Missing `spendingId` when mapping ApiSpentByCycle"),
             from = apiSpentByCycle.from ?: throw MapperException("Missing `from` when mapping ApiSpentByCycle"),
             to = apiSpentByCycle.to ?: throw MapperException("Missing `to` when mapping ApiSpentByCycle"),
             amount = apiSpentByCycle.amount ?: throw MapperException("Missing `amount` when mapping ApiSpentByCycle"),
             count = apiSpentByCycle.count ?: throw MapperException("Missing `count` when mapping ApiSpentByCycle"),
             enabled = apiSpentByCycle.enabled ?: throw MapperException("Missing `enabled` when mapping ApiSpentByCycle")
+    )
+
+    fun map(cycleSpent: CycleSpent, apiSpending: ApiSpending): ApiSpentByCycle = ApiSpentByCycle(
+            id = cycleSpent.id,
+            spending = apiSpending,
+            from = cycleSpent.from,
+            to = cycleSpent.to,
+            amount = cycleSpent.amount,
+            count = cycleSpent.count,
+            enabled = cycleSpent.enabled
     )
 
     fun map(apiSaving: ApiSaving): Saving {
@@ -79,6 +89,15 @@ class SpendingMapper @Inject constructor(private val gson: Gson) {
                 amount = apiSaving.amount ?: throw MapperException("Missing amount when mapping ApiSaving"),
                 created = apiSaving.created ?: throw MapperException("Missing created when mapping ApiSaving"),
                 target = apiSaving.target ?: throw MapperException("Missing target when mapping ApiSaving"))
+    }
+
+    fun map(saving: Saving, apiSpending: ApiSpending): ApiSaving {
+        return ApiSaving(
+                id = saving.id,
+                spending = apiSpending,
+                amount = saving.amount,
+                created = saving.created,
+                target = saving.target)
     }
 
     fun mapSourceData(sourceData: String?): Map<String, String>? {

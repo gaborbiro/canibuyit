@@ -62,7 +62,8 @@ class ApiSpending(
     var targets: String? = null,
 
     @ForeignCollectionField(eager = true, columnName = Contract.Spending.SAVINGS)
-    var savings: ForeignCollection<ApiSaving>? = null) {
+    var savings: ForeignCollection<ApiSaving>? = null
+) {
 
     companion object {
         @JvmStatic

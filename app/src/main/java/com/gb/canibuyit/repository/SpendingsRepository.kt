@@ -5,6 +5,7 @@ import com.gb.canibuyit.db.Contract
 import com.gb.canibuyit.db.model.ApiSpending
 import com.gb.canibuyit.exception.DomainException
 import com.gb.canibuyit.model.Balance
+import com.gb.canibuyit.model.CycleSpent
 import com.gb.canibuyit.model.Spending
 import com.gb.canibuyit.model.SpendingEvent
 import com.gb.canibuyit.ui.BalanceBreakdown
@@ -51,6 +52,8 @@ constructor(private val dao: Dao<ApiSpending, Int>,
                 dao.createOrUpdate(apiSpending)
                 emitter.onComplete()
                 spending.id = apiSpending.id
+                saveSavings(spending, apiSpending)
+                saveSpentByCycle(spending, apiSpending)
             } catch (e: SQLException) {
                 emitter.onError(e)
             }
@@ -91,6 +94,8 @@ constructor(private val dao: Dao<ApiSpending, Int>,
                         dao.create(apiSpending)
                         spending.id = apiSpending.id
                     }
+                    saveSavings(spending, apiSpending)
+                    saveSpentByCycle(spending, apiSpending)
                 }
                 // Disable leftovers (spendings that are no longer sent from Monzo)
                 // This can happen when the user retroactively re-categorizes some spendings,
@@ -106,6 +111,36 @@ constructor(private val dao: Dao<ApiSpending, Int>,
                 emitter.onError(Exception("Error creating/updating monzo spendings", e))
             }
         }
+    }
+
+    private fun saveSavings(spending: Spending, apiSpending: ApiSpending) {
+        dao.assignEmptyForeignCollection(apiSpending, Contract.Spending.SAVINGS)
+        apiSpending.savings?.let { foreignCollection ->
+            spending.savings?.map { mapper.map(it, apiSpending) }?.asIterable()?.also {
+                foreignCollection.clear()
+                foreignCollection.addAll(it)
+            }
+        }
+    }
+
+    private fun saveSpentByCycle(spending: Spending, apiSpending: ApiSpending) {
+        dao.assignEmptyForeignCollection(apiSpending, Contract.Spending.CYCLE_SPENT)
+        apiSpending.spentByCycle?.let { foreignCollection ->
+            spending.spentByCycle?.map { mapper.map(it, apiSpending) }?.asIterable()?.also {
+                foreignCollection.clear()
+                foreignCollection.addAll(it)
+            }
+        }
+    }
+
+    fun deleteSpendByCycleBySpendingId(spending: Spending) {
+        dao.queryForId(spending.id).spentByCycle?.clear()
+        spending.spentByCycle = emptyList()
+    }
+
+    fun setSpentByCycleEnabled(cycleSpent: CycleSpent, enabled: Boolean) {
+        dao.queryForId(cycleSpent.spendingId)
+                .spentByCycle?.find { it.id == cycleSpent.id }?.enabled = enabled
     }
 
     fun delete(id: Int): Completable {

@@ -41,7 +41,6 @@ class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi,
                 .map(mapper::mapToLogin)
     }
 
-    @Suppress("NAME_SHADOWING")
     fun getSpendings(accountIds: List<String>, since: LocalDate? = null): Single<List<Spending>> {
         val sinceStr = since?.let { FORMAT_RFC3339.format(it.atStartOfDay(ZoneId.systemDefault())) }
 
@@ -63,12 +62,12 @@ class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi,
                     return@map transactions.groupBy(Transaction::category)
                             .mapNotNull { (category, transactionsForThatCategory) ->
                                 Logger.d("MonzoRepository", "${transactionsForThatCategory.size} $category")
-                                return@mapNotNull getSpending(category, transactionsForThatCategory, startDate, endDate)
+                                return@mapNotNull convertTransactionsToSpending(category, transactionsForThatCategory, startDate, endDate)
                             }
                 }
     }
 
-    private fun getSpending(
+    private fun convertTransactionsToSpending(
         category: ApiSpending.Category,
         transactionsByCategory: List<Transaction>,
         startDate: LocalDate,
@@ -118,7 +117,6 @@ class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi,
                     startDate,
                     endDate)
         }
-//        }
     }
 
     private fun <T, D> excludeRanges(items: List<T>,
