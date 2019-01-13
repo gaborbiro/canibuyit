@@ -81,8 +81,8 @@ class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi,
         if (disabledCycles.isNotEmpty()) {
             val cycleCount = savedSpending!!.spentByCycle!!.count(CycleSpent::enabled)
             val filteredTransactions: Array<List<Transaction>> = excludeRanges(
-                    items = transactionsByCategory,
-                    rangesToExclude = disabledCycles.map { Pair(it.from, it.to) },
+                    list = transactionsByCategory,
+                    ranges = disabledCycles.map { Pair(it.from, it.to) },
                     compare = { transaction, date -> transaction.created.compareTo(date) })
             val inclusiveRanges: List<Pair<LocalDate, LocalDate>> = disabledCycles.map { arrayOf(it.from.minusDays(1), it.to.plusDays(1)) }
                     .toTypedArray().flatten().toMutableList().apply {
@@ -91,7 +91,7 @@ class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi,
                     }.run {
                         filterIndexed { index, _ -> index % 2 == 0 } zip filterIndexed { index, _ -> index % 2 != 0 }
                     }
-            return (inclusiveRanges zip filteredTransactions).map { (range, transactions) ->
+            return (inclusiveRanges zip filteredTransactions).filter { it.second.isNotEmpty() }.map { (range, transactions) ->
                 val (rangeStart, rangeEnd) = range
                 mapper.mapToSpending(
                         category,
@@ -100,7 +100,7 @@ class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi,
                         projectSettings,
                         rangeStart,
                         rangeEnd)
-            }.foldRightIndexed(null) { index, next, accumulator: Spending? ->
+            }.foldIndexed(null) { index, accumulator: Spending?, next ->
                 val result = accumulator?.merge(
                         next,
                         isCurrentCycle = index == cycleCount - 1) ?: next
@@ -119,22 +119,25 @@ class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi,
         }
     }
 
-    private fun <T, D> excludeRanges(items: List<T>,
-                                     rangesToExclude: List<Pair<D, D>>,
+    private fun <T, D> excludeRanges(list: List<T>,
+                                     ranges: List<Pair<D, D>>,
                                      compare: (a: T, b: D) -> Int): Array<List<T>> {
-        val filteredTransactions: Array<List<T>> = Array(rangesToExclude.size + 1) { _ -> mutableListOf<T>() }
-        var transactionIndex = 0
-        var rangeIndex = 0
-        while (transactionIndex < items.size) {
-            if (rangeIndex == rangesToExclude.size || compare(items[transactionIndex], rangesToExclude[rangeIndex].first) <= 0) {
-                (filteredTransactions[rangeIndex] as MutableList).add(items[transactionIndex])
+        infix fun T.isBefore(d: D) = compare(this, d) < 0
+        infix fun T.isAfter(d: D) = compare(this, d) > 0
+        val result: Array<MutableList<T>> = Array(ranges.size + 1) { _ -> mutableListOf<T>() }
+        var listIndex = 0
+        var rangesIndex = 0
+
+        while (listIndex < list.size) {
+            if (rangesIndex >= ranges.size || list[listIndex] isBefore ranges[rangesIndex].first) {
+                result[rangesIndex].add(list[listIndex])
             }
-            transactionIndex++
-            if (rangeIndex < rangesToExclude.size && compare(items[transactionIndex], rangesToExclude[rangeIndex].second) > 0) {
-                rangeIndex++
+            listIndex++
+            if (rangesIndex < ranges.size && list[listIndex] isAfter ranges[rangesIndex].second) {
+                rangesIndex++
             }
         }
-        return filteredTransactions
+        return result as Array<List<T>>
     }
 
     fun registerWebHook(accountId: String, url: String): Completable {

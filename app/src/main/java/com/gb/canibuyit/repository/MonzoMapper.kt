@@ -18,6 +18,7 @@ import com.gb.canibuyit.model.div
 import com.gb.canibuyit.model.firstCycleDay
 import com.gb.canibuyit.model.lastCycleDay
 import com.gb.canibuyit.model.ordinal
+import com.gb.canibuyit.util.compare
 import com.gb.canibuyit.util.doIfBoth
 import org.apache.commons.lang3.text.WordUtils
 import java.math.BigDecimal
@@ -108,13 +109,6 @@ class MonzoMapper @Inject constructor() {
 
         val transactionsByCycle: Map<Int, List<Transaction>> = sortedTransactions.groupBy { cycle.ordinal(it.created) }
 
-        val shouldRecalculateSpentByCycle = savedSpending?.spentByCycle == null
-                || savedSpending.spentByCycle!!.isEmpty()
-                || cycle != savedSpending.cycle
-                || cycleMultiplier != savedSpending.cycleMultiplier
-                || fromStartDate != savedSpending.fromStartDate
-                || fromEndDate != savedSpending.fromEndDate
-
         val spentByCycle = transactionsByCycle.map { (_, list) ->
             val firstDay = list[0].created.firstCycleDay(cycle)
             val lastDay = least(list[0].created.lastCycleDay(cycle), LocalDate.now())
@@ -127,6 +121,14 @@ class MonzoMapper @Inject constructor() {
                     count = list.size,
                     enabled = true)
         }
+
+        val shouldRecalculateSpentByCycle = (savedSpending?.spentByCycle == null
+                || savedSpending.spentByCycle!!.isEmpty()
+                || cycle != savedSpending.cycle
+                || cycleMultiplier != savedSpending.cycleMultiplier
+                || fromStartDate != savedSpending.fromStartDate
+                || fromEndDate != savedSpending.fromEndDate)
+                || !spentByCycle.compare(savedSpending.spentByCycle!!, spendByCycleComparator)
         val spent: BigDecimal = spentByCycle.last().amount
         val savings: List<Saving>? = getSavings(transactionsByCycle, cycle, savedSpending)
 
@@ -256,5 +258,16 @@ class MonzoMapper @Inject constructor() {
     private fun getTarget(endDate: LocalDate, targets: Map<LocalDate, Int>?): Int? {
         val lastTargetDate = targets?.keys?.filter { it < endDate }?.max()
         return lastTargetDate?.let { targets[it] }
+    }
+
+    val spendByCycleComparator = Comparator<CycleSpent> { o1, o2 ->
+        if (o1 === o2) return@Comparator 0
+        if (o1.spendingId != o2.spendingId) return@Comparator 1
+        if (o1.from != o2.from) return@Comparator 1
+        if (o1.to != o2.to) return@Comparator 1
+        if (o1.amount != o2.amount) return@Comparator 1
+        if (o1.count != o2.count) return@Comparator 1
+        if (o1.enabled != o2.enabled) return@Comparator 1
+        0
     }
 }

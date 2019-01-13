@@ -39,12 +39,14 @@ class SpendingEditorPresenter @Inject constructor(
     }
 
     fun deleteSpending(spending: Spending) {
-        spendingInteractor.delete(spending.id!!)
-                .subscribe(getScreen()::onSpendingDeleted, this::onError)
+        disposeOnFinish(spendingInteractor.delete(spending.id!!)
+                .subscribe(getScreen()::onSpendingDeleted, this::onError))
     }
 
     fun onSpentByCycleChecked(spentByCycle: CycleSpent, enabled: Boolean) {
-        spendingInteractor.setSpentByCycleEnabled(spentByCycle, enabled)
+        disposeOnFinish(spendingInteractor.setSpentByCycleEnabled(spentByCycle, enabled).subscribe(
+                getScreen()::setSpentByCycleEnabled,
+                this::onError))
     }
 
     fun onAllSpentByCycleChecked(spending: Spending, enabled: Boolean) {

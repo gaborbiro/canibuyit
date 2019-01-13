@@ -28,7 +28,8 @@ data class ApiSpentByCycle(
     var count: Int? = null,
 
     @DatabaseField(columnName = Contract.SpentByCycle.ENABLED, canBeNull = false)
-    var enabled: Boolean? = null) {
+    var enabled: Boolean? = null
+) {
 
     override fun toString(): String {
         return "ApiSpentByCycle(id=$id, from=$from, to=$to, amount=$amount, count=$count, enabled=$enabled)"

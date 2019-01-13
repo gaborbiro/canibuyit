@@ -6,6 +6,7 @@ import com.gb.canibuyit.model.Balance
 import com.gb.canibuyit.model.CycleSpent
 import com.gb.canibuyit.model.Lce
 import com.gb.canibuyit.model.Spending
+import com.gb.canibuyit.model.SpentByCycleUpdateUiModel
 import com.gb.canibuyit.repository.SpendingsRepository
 import com.gb.canibuyit.rx.SchedulerProvider
 import com.gb.canibuyit.ui.BalanceBreakdown
@@ -73,8 +74,23 @@ constructor(private val spendingsRepository: SpendingsRepository,
                 })
     }
 
-    fun setSpentByCycleEnabled(cycleSpent: CycleSpent, enabled: Boolean) {
-        spendingsRepository.setSpentByCycleEnabled(cycleSpent, enabled)
+    fun setSpentByCycleEnabled(cycleSpent: CycleSpent, enabled: Boolean): Observable<SpentByCycleUpdateUiModel> {
+        return spendingsRepository.setSpentByCycleEnabled(cycleSpent, enabled)
+                .map { result -> this.mapSpentByCycleEnabledResult(cycleSpent, result) }
+                .toObservable()
+                .startWith(SpentByCycleUpdateUiModel.Loading(cycleSpent))
+                .onErrorResumeNext { throwable: Throwable ->
+                    Observable.just(SpentByCycleUpdateUiModel.Error(
+                            cycleSpent = cycleSpent,
+                            error = throwable.message ?: "Error updating SpentByCycle ($cycleSpent).")
+                    )
+                }
+                .subscribeOn(schedulerProvider.io())
+                .observeOn(schedulerProvider.mainThread())
+    }
+
+    private fun mapSpentByCycleEnabledResult(cycleSpent: CycleSpent, enabled: Boolean): SpentByCycleUpdateUiModel {
+        return SpentByCycleUpdateUiModel.Success(cycleSpent.copy(enabled = enabled))
     }
 
     fun setAllSpentByCycleEnabled(spending: Spending, enabled: Boolean) {

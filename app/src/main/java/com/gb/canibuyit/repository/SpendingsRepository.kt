@@ -138,9 +138,16 @@ constructor(private val dao: Dao<ApiSpending, Int>,
         spending.spentByCycle = emptyList()
     }
 
-    fun setSpentByCycleEnabled(cycleSpent: CycleSpent, enabled: Boolean) {
-        dao.queryForId(cycleSpent.spendingId)
-                .spentByCycle?.find { it.id == cycleSpent.id }?.enabled = enabled
+    fun setSpentByCycleEnabled(cycleSpent: CycleSpent, enabled: Boolean): Single<Boolean> {
+        return Single.fromCallable {
+            dao.queryForId(cycleSpent.spendingId).spentByCycle?.apply {
+                find { it.id == cycleSpent.id }?.apply {
+                    this.enabled = enabled
+                    update(this)
+                }
+            }
+            enabled
+        }
     }
 
     fun delete(id: Int): Completable {
