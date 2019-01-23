@@ -1,5 +1,13 @@
 package com.gb.canibuyit.util
 
+import com.google.gson.JsonDeserializationContext
+import com.google.gson.JsonDeserializer
+import com.google.gson.JsonElement
+import com.google.gson.JsonObject
+import com.google.gson.JsonPrimitive
+import com.google.gson.JsonSerializationContext
+import com.google.gson.JsonSerializer
+import java.lang.reflect.Type
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -54,3 +62,14 @@ fun max(date1: LocalDate, date2: LocalDate) = if (date1 > date2) date1 else date
 fun midnightOfToday() = LocalDateTime.of(LocalDate.now(), LocalTime.MIDNIGHT)
 
 fun LocalDateTime.millisUntil() = LocalDateTime.now().until(this, ChronoUnit.MILLIS)
+
+object localDateSerializer: JsonSerializer<LocalDate>, JsonDeserializer<LocalDate> {
+
+    override fun serialize(src: LocalDate, typeOfSrc: Type, context: JsonSerializationContext): JsonElement {
+        return JsonPrimitive(src.toString())
+    }
+
+    override fun deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): LocalDate {
+        return LocalDate.parse(json.asString)
+    }
+}

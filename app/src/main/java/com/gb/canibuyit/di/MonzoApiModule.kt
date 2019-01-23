@@ -8,6 +8,7 @@ import com.gb.canibuyit.api.MonzoApi
 import com.gb.canibuyit.api.MonzoAuthApi
 import com.gb.canibuyit.api.MonzoAuthenticator
 import com.gb.canibuyit.api.MonzoDispatchApi
+import com.gb.canibuyit.util.localDateSerializer
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import dagger.Module
@@ -17,6 +18,7 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
+import java.time.LocalDate
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
@@ -98,6 +100,7 @@ class MonzoApiModule {
     @Singleton
     internal fun provideGson(): Gson = GsonBuilder()
             .setDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
+            .registerTypeAdapter(LocalDate::class.java, localDateSerializer)
             .enableComplexMapKeySerialization()
             .create()
 
