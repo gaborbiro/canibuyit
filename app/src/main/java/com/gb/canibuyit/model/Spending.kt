@@ -135,25 +135,6 @@ class Spending(var id: Int? = null,
 
     val isPersisted
         get() = id != null
-
-    fun merge(other: Spending, isCurrentCycle: Boolean): Spending {
-        id = other.id
-        name = other.name
-        notes = other.notes
-        type = other.type
-        value = BigDecimal.ZERO
-        total += other.total
-        occurrenceCount = other.occurrenceCount
-        cycleMultiplier = other.cycleMultiplier
-        cycle = other.cycle
-        enabled = other.enabled
-        sourceData = other.sourceData
-        spent = if (isCurrentCycle) other.spent else BigDecimal.ZERO
-        spentByCycle = spentByCycle?.union(other.spentByCycle ?: emptyList())?.toList() ?: other.spentByCycle
-        targets = other.targets
-        savings = savings?.let { s1 -> other.savings?.let { s2 -> arrayOf(*s1, *s2) } ?: let { s1 } } ?: other.savings
-        return this
-    }
 }
 
 operator fun Int.times(cycle: ApiSpending.Cycle) = Pair(this, cycle)
@@ -213,42 +194,6 @@ fun LocalDate.lastCycleDay(cycle: ApiSpending.Cycle): LocalDate = when (cycle) {
     MONTHS -> this.with(lastDayOfMonth())
     YEARS -> this.with(lastDayOfYear())
 }.atStartOfDay().plusDays(1).minusNanos(1).toLocalDate()
-
-fun Spending.copy(id: Int? = null,
-                  name: String? = null,
-                  notes: String? = null,
-                  type: ApiSpending.Category? = null,
-                  value: BigDecimal? = null,
-                  total: BigDecimal? = null,
-                  fromStartDate: LocalDate? = null,
-                  fromEndDate: LocalDate? = null,
-                  occurrenceCount: Int? = null,
-                  cycleMultiplier: Int? = null,
-                  cycle: ApiSpending.Cycle? = null,
-                  enabled: Boolean? = null,
-                  sourceData: MutableMap<String, String>? = null,
-                  spent: BigDecimal? = null,
-                  spentByCycle: List<CycleSpent>? = null,
-                  targets: Map<LocalDate, Int>? = null,
-                  savings: Array<out Saving>? = null): Spending {
-    return Spending(id = id ?: this.id,
-            name = name ?: this.name,
-            notes = notes ?: this.notes,
-            type = type ?: this.type,
-            value = value ?: this.value,
-            total = total ?: this.total,
-            fromStartDate = fromStartDate ?: this.fromStartDate,
-            fromEndDate = fromEndDate ?: this.fromEndDate,
-            occurrenceCount = occurrenceCount ?: this.occurrenceCount,
-            cycleMultiplier = cycleMultiplier ?: this.cycleMultiplier,
-            cycle = cycle ?: this.cycle,
-            enabled = enabled ?: this.enabled,
-            sourceData = sourceData ?: this.sourceData,
-            spent = spent ?: this.spent,
-            spentByCycle = spentByCycle ?: this.spentByCycle,
-            targets = targets ?: this.targets,
-            savings = savings ?: this.savings)
-}
 
 data class CycleSpent(
     val id: Int?,

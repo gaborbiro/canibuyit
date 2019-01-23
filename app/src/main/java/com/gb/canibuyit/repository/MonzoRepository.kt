@@ -10,15 +10,16 @@ import com.gb.canibuyit.db.model.ApiSpending
 import com.gb.canibuyit.interactor.ProjectInteractor
 import com.gb.canibuyit.model.CycleSpent
 import com.gb.canibuyit.model.Login
+import com.gb.canibuyit.model.Saving
 import com.gb.canibuyit.model.Spending
 import com.gb.canibuyit.model.Transaction
 import com.gb.canibuyit.model.Webhooks
-import com.gb.canibuyit.model.copy
 import com.gb.canibuyit.util.FORMAT_RFC3339
 import com.gb.canibuyit.util.Logger
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
+import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
 import java.time.ZoneId
@@ -78,37 +79,33 @@ class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi,
         val savedSpending = savedSpendings[category.toString()]?.get(0)
         val disabledCycles = savedSpending?.spentByCycle?.filter { !it.enabled }.orEmpty()
 
-        if (disabledCycles.isNotEmpty()) {
-            val cycleCount = savedSpending!!.spentByCycle!!.count(CycleSpent::enabled)
-            val filteredTransactions: Array<List<Transaction>> = excludeRanges(
-                    list = transactionsByCategory,
-                    ranges = disabledCycles.map { Pair(it.from, it.to) },
-                    compare = { transaction, date -> transaction.created.compareTo(date) })
-            val inclusiveRanges: List<Pair<LocalDate, LocalDate>> = disabledCycles.map { arrayOf(it.from.minusDays(1), it.to.plusDays(1)) }
-                    .toTypedArray().flatten().toMutableList().apply {
-                        add(0, startDate)
-                        add(endDate)
-                    }.run {
-                        filterIndexed { index, _ -> index % 2 == 0 } zip filterIndexed { index, _ -> index % 2 != 0 }
-                    }
-            return (inclusiveRanges zip filteredTransactions).filter { it.second.isNotEmpty() }.map { (range, transactions) ->
-                val (rangeStart, rangeEnd) = range
-                mapper.mapToSpending(
-                        category,
-                        transactions,
-                        savedSpending,
-                        projectSettings,
-                        rangeStart,
-                        rangeEnd)
-            }.foldIndexed(null) { index, accumulator: Spending?, next ->
-                val result = accumulator?.merge(
-                        next,
-                        isCurrentCycle = index == cycleCount - 1) ?: next
-                result
-            }.let {
-                it?.copy(value = it.total.divide(cycleCount.toBigDecimal(), RoundingMode.DOWN).divide(100.toBigDecimal()))
-            }!!
-        } else {
+//        if (disabledCycles.isNotEmpty()) {
+//            val partitionedTransactions: Array<List<Transaction>> = partitionRanges(
+//                    list = transactionsByCategory,
+//                    ranges = disabledCycles.map { Pair(it.from, it.to) },
+//                    compare = { transaction, date -> transaction.created.compareTo(date) })
+//            val inclusiveRanges: List<Pair<LocalDate, LocalDate>> = disabledCycles.map { arrayOf(it.from.minusDays(1), it.to.plusDays(1)) }
+//                    .toTypedArray().flatten().toMutableList().apply {
+//                        add(0, startDate)
+//                        add(endDate)
+//                    }.run {
+//                        filterIndexed { index, _ -> index % 2 == 0 } zip filterIndexed { index, _ -> index % 2 != 0 }
+//                    }
+//            val data = (inclusiveRanges zip partitionedTransactions)
+//            return data.map { (range, transactions) ->
+//                val (rangeStart, rangeEnd) = range
+//                mapper.mapToSpending(
+//                        category,
+//                        transactions,
+//                        savedSpending,
+//                        projectSettings,
+//                        rangeStart,
+//                        rangeEnd)
+//            }.foldIndexed(SpendingAccumulator()) { index, accumulator: SpendingAccumulator, next ->
+//                accumulator.merge(next, savedSpending, isCurrentCycle = index == data.size - 1)
+//                accumulator
+//            }.let(SpendingAccumulator::toSpending)
+//        } else {
             return mapper.mapToSpending(
                     category,
                     transactionsByCategory,
@@ -116,12 +113,12 @@ class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi,
                     projectSettings,
                     startDate,
                     endDate)
-        }
+//        }
     }
 
-    private fun <T, D> excludeRanges(list: List<T>,
-                                     ranges: List<Pair<D, D>>,
-                                     compare: (a: T, b: D) -> Int): Array<List<T>> {
+    private fun <T, D> partitionRanges(list: List<T>,
+                                       ranges: List<Pair<D, D>>,
+                                       compare: (a: T, b: D) -> Int): Array<List<T>> {
         infix fun T.isBefore(d: D) = compare(this, d) < 0
         infix fun T.isAfter(d: D) = compare(this, d) > 0
         val result: Array<MutableList<T>> = Array(ranges.size + 1) { _ -> mutableListOf<T>() }
@@ -129,9 +126,9 @@ class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi,
         var rangesIndex = 0
 
         while (listIndex < list.size) {
-            if (rangesIndex >= ranges.size || list[listIndex] isBefore ranges[rangesIndex].first) {
+//            if (rangesIndex >= ranges.size || list[listIndex] isBefore ranges[rangesIndex].first) {
                 result[rangesIndex].add(list[listIndex])
-            }
+//            }
             listIndex++
             if (rangesIndex < ranges.size && list[listIndex] isAfter ranges[rangesIndex].second) {
                 rangesIndex++
@@ -167,5 +164,63 @@ operator fun <T> Array<T>?.plus(array: Array<T>?): Array<T>? {
             System.arraycopy(array, 0, result, thisSize, arraySize)
             result
         }
+    }
+}
+
+class SpendingAccumulator(
+    var id: Int? = null,
+    var name: String? = null,
+    var notes: String? = null,
+    var type: ApiSpending.Category? = null,
+    var total: BigDecimal = BigDecimal.ZERO,
+    var fromStartDate: LocalDate? = null,
+    var fromEndDate: LocalDate? = null,
+    var occurrenceCount: Int? = null,
+    var cycleMultiplier: Int? = null,
+    var cycle: ApiSpending.Cycle? = null,
+    var enabled: Boolean? = null,
+    var sourceData: MutableMap<String, String> = mutableMapOf(),
+    var spent: BigDecimal? = null,
+    var spentByCycle: MutableList<CycleSpent> = mutableListOf(),
+    var targets: MutableMap<LocalDate, Int> = mutableMapOf(),
+    var savings: Array<out Saving>? = null
+) {
+    fun merge(other: Spending, savedSpending: Spending?, isCurrentCycle: Boolean) {
+        id = other.id
+        name = other.name
+        notes = other.notes
+        type = other.type
+        total += other.total
+        occurrenceCount = other.occurrenceCount
+        cycleMultiplier = other.cycleMultiplier
+        cycle = other.cycle
+        enabled = other.enabled
+        other.sourceData?.let { sourceData.putAll(it) }
+        spent = if (isCurrentCycle) other.spent else BigDecimal.ZERO
+        other.spentByCycle?.let { spentByCycle.addAll(it) }
+        other.targets?.let { targets.putAll(it) }
+        savings = savings?.let { s1 -> other.savings?.let { s2 -> arrayOf(*s1, *s2) } ?: let { s1 } } ?: other.savings
+    }
+
+    fun toSpending(): Spending {
+        return Spending(
+                id = null,
+                name = name!!,
+                notes = notes,
+                type = type!!,
+                value = total.divide(spentByCycle.count(CycleSpent::enabled).toBigDecimal(), RoundingMode.DOWN).divide(100.toBigDecimal()),
+                total = total,
+                fromStartDate = fromStartDate!!,
+                fromEndDate = fromEndDate!!,
+                occurrenceCount = occurrenceCount,
+                cycleMultiplier = cycleMultiplier!!,
+                cycle = cycle!!,
+                enabled = enabled!!,
+                sourceData = sourceData,
+                spent = spent!!,
+                spentByCycle = spentByCycle,
+                targets = targets,
+                savings = savings
+        )
     }
 }
