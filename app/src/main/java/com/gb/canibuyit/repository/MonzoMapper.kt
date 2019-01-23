@@ -129,7 +129,12 @@ class MonzoMapper @Inject constructor() {
                 || fromStartDate != savedSpending.fromStartDate
                 || fromEndDate != savedSpending.fromEndDate)
                 || !spentByCycle.compare(savedSpending.spentByCycle!!, spendByCycleComparator)
-        val spent: BigDecimal = spentByCycle.last().amount
+
+        val spent: BigDecimal = transactionsByCycle[cycle.ordinal(endDate)]
+                ?.sumBy(Transaction::amount)?.toBigDecimal()
+                ?.divide(100.toBigDecimal()) // cents to pounds
+                ?: BigDecimal.ZERO
+
         val savings: List<Saving>? = getSavings(transactionsByCycle, cycle, savedSpending)
 
         return Spending(
