@@ -17,7 +17,7 @@ import android.support.v4.app.NotificationCompat
 import android.support.v4.content.ContextCompat
 import com.gb.canibuyit.R
 import com.gb.canibuyit.interactor.SpendingInteractor
-import com.gb.canibuyit.receiver.MyEventAlarmReceiver
+import com.gb.canibuyit.fcm.MyEventAlarmReceiver
 import com.gb.canibuyit.ui.MainActivity
 import io.reactivex.disposables.Disposable
 import javax.inject.Inject
@@ -68,7 +68,7 @@ class LocalNotificationManager @Inject constructor(
 
      * @param messageBody FCM message body received.
      */
-    fun showSimpleNotification(title: String, messageBody: String) {
+    fun showSimpleNotification(title: String?, messageBody: String?) {
         notificationManager.notify("Monzo", 0, buildNotification(pendingIntent = getLaunchIntent(),
                 channel = CHANNEL_SPENDINGS,
                 title = title,

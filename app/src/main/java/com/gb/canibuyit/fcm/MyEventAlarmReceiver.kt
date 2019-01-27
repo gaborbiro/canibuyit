@@ -1,4 +1,4 @@
-package com.gb.canibuyit.receiver
+package com.gb.canibuyit.fcm
 
 import android.app.Notification
 import android.app.NotificationManager

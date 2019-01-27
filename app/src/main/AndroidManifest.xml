@@ -63,6 +63,6 @@
             </intent-filter>
         </service>
 
-        <receiver android:name=".receiver.MyEventAlarmReceiver"/>
+        <receiver android:name=".fcm.MyEventAlarmReceiver"/>
     </application>
 </manifest>

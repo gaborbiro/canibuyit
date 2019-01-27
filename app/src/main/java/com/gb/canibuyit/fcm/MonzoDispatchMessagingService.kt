@@ -10,6 +10,7 @@ import com.gb.canibuyit.interactor.MonzoInteractor
 import com.gb.canibuyit.notification.LocalNotificationManager
 import com.gb.canibuyit.repository.MonzoMapper
 import com.gb.canibuyit.util.formatEventTime
+import com.gb.canibuyit.util.formatEventTimePrefix
 import com.gb.canibuyit.util.midnightOfToday
 import com.gb.canibuyit.util.millisUntil
 import com.gb.canibuyit.util.parseEventDateTime
@@ -32,7 +33,10 @@ class MonzoDispatchMessagingService : FirebaseMessagingService() {
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         Log.d(TAG, "From: " + remoteMessage.from)
-        remoteMessage.notification?.let { Log.d(TAG, "Notification: ${it.title} ${it.body}") }
+        remoteMessage.notification?.let {
+            Log.d(TAG, "Notification: ${it.title} ${it.body}")
+            localNotificationManager.showSimpleNotification(it.title, it.body)
+        }
         remoteMessage.data?.let { it: MutableMap<String, String> ->
             Log.d(TAG, "Data: $it")
             it["monzo_data"]?.let(this@MonzoDispatchMessagingService::handleMonzoPush)
@@ -57,7 +61,7 @@ class MonzoDispatchMessagingService : FirebaseMessagingService() {
             val alarmTime = LocalDateTime.of(eventStartTime.toLocalDate(), LocalTime.MIDNIGHT)
                     .minusHours(3)
             localNotificationManager.scheduleEventNotification(alarmTime.millisUntil(), "Event: " + event.title, eventStartTime.formatEventTime(), event.url)
-//            localNotificationManager.showSimpleNotification("Event notification scheduled: " + event.title, eventStartTime.formatEventTimePrefix())
+            localNotificationManager.showSimpleNotification("Early event notif sheduled: ${event.title}", alarmTime.formatEventTimePrefix())
         }
     }
 
