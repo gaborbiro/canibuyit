@@ -1,8 +1,8 @@
 package com.gb.canibuyit.di
 
 import com.gb.canibuyit.App
-import com.gb.canibuyit.fcm.MonzoDispatchInstanceIdService
-import com.gb.canibuyit.fcm.MonzoDispatchMessagingService
+import com.gb.canibuyit.fcm.FirebaseInstanceIdService
+import com.gb.canibuyit.fcm.PushMessagingFirebaseService
 import com.gb.canibuyit.ui.BalanceReadingInputDialog
 import com.gb.canibuyit.ui.LoginActivity
 import com.gb.canibuyit.ui.MainActivity
@@ -22,7 +22,7 @@ interface CanIBuyItGraph {
 
     fun inject(loginActivity: LoginActivity)
 
-    fun inject(monzoDispatchInstanceIdService: MonzoDispatchInstanceIdService)
+    fun inject(firebaseInstanceIdService: FirebaseInstanceIdService)
 
-    fun inject(monzoDispatchMessagingService: MonzoDispatchMessagingService)
+    fun inject(pushMessagingFirebaseService: PushMessagingFirebaseService)
 }

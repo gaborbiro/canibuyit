@@ -5,19 +5,17 @@ import android.util.Log
 import android.widget.Toast
 import com.gb.canibuyit.CredentialsProvider
 import com.gb.canibuyit.di.Injector
-import com.gb.canibuyit.exception.ErrorHandler
 import com.gb.canibuyit.presenter.MonzoDispatchPresenter
 import com.gb.canibuyit.screen.MonzoDispatchScreen
 import com.google.firebase.iid.FirebaseInstanceId
 import com.google.firebase.iid.FirebaseInstanceIdService
 import javax.inject.Inject
 
-class MonzoDispatchInstanceIdService : FirebaseInstanceIdService(), MonzoDispatchScreen {
+class FirebaseInstanceIdService : FirebaseInstanceIdService(), MonzoDispatchScreen {
 
-    @field:[Inject] lateinit var errorHandler: ErrorHandler
-    @field:[Inject] lateinit var appContext: Context
-    @field:[Inject] lateinit var presenter: MonzoDispatchPresenter
-    @field:[Inject] lateinit var credentialsProvider: CredentialsProvider
+    @Inject lateinit var appContext: Context
+    @Inject lateinit var presenter: MonzoDispatchPresenter
+    @Inject lateinit var credentialsProvider: CredentialsProvider
 
     init {
         Injector.INSTANCE.graph.inject(this)
@@ -43,6 +41,6 @@ class MonzoDispatchInstanceIdService : FirebaseInstanceIdService(), MonzoDispatc
     }
 
     companion object {
-        private val TAG = "MonzoDispatch"
+        private const val TAG = "MonzoDispatch"
     }
 }

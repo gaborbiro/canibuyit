@@ -7,7 +7,6 @@ import com.gb.canibuyit.TRANSACTION_HISTORY_LENGTH_MONTHS
 import com.gb.canibuyit.di.Injector
 import com.gb.canibuyit.fcm.model.FcmMonzoData
 import com.gb.canibuyit.interactor.MonzoInteractor
-import com.gb.canibuyit.notification.LocalNotificationManager
 import com.gb.canibuyit.repository.MonzoMapper
 import com.gb.canibuyit.util.formatEventTime
 import com.gb.canibuyit.util.formatEventTimePrefix
@@ -21,11 +20,11 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import javax.inject.Inject
 
-class MonzoDispatchMessagingService : FirebaseMessagingService() {
+class PushMessagingFirebaseService : FirebaseMessagingService() {
 
-    @field:[Inject] lateinit var monzoInteractor: MonzoInteractor
-    @field:[Inject] lateinit var monzoMapper: MonzoMapper
-    @field:[Inject] lateinit var localNotificationManager: LocalNotificationManager
+    @Inject lateinit var monzoInteractor: MonzoInteractor
+    @Inject lateinit var monzoMapper: MonzoMapper
+    @Inject lateinit var localNotificationManager: LocalNotificationManager
 
     init {
         Injector.INSTANCE.graph.inject(this)
@@ -33,22 +32,22 @@ class MonzoDispatchMessagingService : FirebaseMessagingService() {
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         Log.d(TAG, "From: " + remoteMessage.from)
-        remoteMessage.notification?.let {
-            Log.d(TAG, "Notification: ${it.title} ${it.body}")
-            localNotificationManager.showSimpleNotification(it.title, it.body)
-        }
         remoteMessage.data?.let { it: MutableMap<String, String> ->
             Log.d(TAG, "Data: $it")
-            it["monzo_data"]?.let(this@MonzoDispatchMessagingService::handleMonzoPush)
-            it["event"]?.let(this@MonzoDispatchMessagingService::handleCalendarEventPush)
+            it["monzo_data"]?.let(this@PushMessagingFirebaseService::handleMonzoPush)
+            it["event"]?.let(this@PushMessagingFirebaseService::handleCalendarEventPush)
         }
     }
 
     private fun handleMonzoPush(payload: String) {
-        val category = Gson().fromJson(payload, FcmMonzoData::class.java)?.data?.let {
-            monzoMapper.mapToTransaction(it).category
+        try {
+            val category = Gson().fromJson(payload, FcmMonzoData::class.java)?.data?.let {
+                monzoMapper.mapToTransaction(it).category
+            }
+            category?.let { localNotificationManager.showSpendingInNotification(it.toString()) }
+        } catch (t: Throwable) {
+            Log.e(TAG, "Error handling monzo push", t)
         }
-        category?.let { localNotificationManager.showSpendingInNotification(it.toString()) }
         monzoInteractor.loadSpendings(listOf(ACCOUNT_ID_PREPAID, ACCOUNT_ID_RETAIL), TRANSACTION_HISTORY_LENGTH_MONTHS)
     }
 
@@ -81,4 +80,4 @@ class MonzoDispatchMessagingService : FirebaseMessagingService() {
                      val url: String)
 }
 
-private const val TAG = "MonzoDispatchMessagingService"
+private const val TAG = "PushMessagingFirebaseService"

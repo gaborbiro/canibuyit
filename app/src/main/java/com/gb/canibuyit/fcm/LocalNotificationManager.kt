@@ -1,4 +1,4 @@
-package com.gb.canibuyit.notification
+package com.gb.canibuyit.fcm
 
 import android.app.AlarmManager
 import android.app.Notification
@@ -17,10 +17,10 @@ import android.support.v4.app.NotificationCompat
 import android.support.v4.content.ContextCompat
 import com.gb.canibuyit.R
 import com.gb.canibuyit.interactor.SpendingInteractor
-import com.gb.canibuyit.fcm.MyEventAlarmReceiver
 import com.gb.canibuyit.ui.MainActivity
 import io.reactivex.disposables.Disposable
 import javax.inject.Inject
+import kotlin.math.absoluteValue
 
 class LocalNotificationManager @Inject constructor(
     private val applicationContext: Context,
@@ -40,10 +40,11 @@ class LocalNotificationManager @Inject constructor(
         disposable = spendingInteractor.getSpendingsDataStream().subscribe({
             if (!it.loading && !it.hasError()) {
                 spendingInteractor.getByMonzoCategory(category).subscribe({ spending ->
-                    val spent = spending.spent.abs()
-                    spending.target?.let {
-                        val progress: Float = (spent / Math.abs(it).toBigDecimal()).toFloat() * 100
-                        showSimpleNotification(spending.name, ("%.0f%%(%.0f/%.0f)").format(progress, spent, it))
+                    spending.target?.let { target: Int ->
+                        val spent = spending.spent.abs()
+                        val target = target.absoluteValue
+                        val progress: Float = (spent / target.toBigDecimal()).toFloat() * 100
+                        showSimpleNotification(spending.name, ("%.0f%% (%.0f/%d)").format(progress, spent, target))
                     } ?: let {
                         //                        showSimpleNotification(spending.name, "£%.0f".format(spent))
                     }
