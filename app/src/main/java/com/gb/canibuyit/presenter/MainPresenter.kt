@@ -33,7 +33,7 @@ constructor(private val monzoInteractor: MonzoInteractor,
             private val userPreferences: UserPreferences) : BasePresenter<MainScreen>() {
 
     init {
-        disposeOnFinish(spendingInteractor.getSpendingsDataStream().subscribe({
+        disposeOnFinish(spendingInteractor.spendingUIModel().subscribe({
             if (it.loading) getScreen().showProgress() else getScreen().hideProgress()
             if (!it.loading && !it.hasError()) {
                 fetchBalance()

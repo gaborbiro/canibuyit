@@ -1,5 +1,6 @@
 package com.gb.canibuyit.interactor
 
+import android.annotation.SuppressLint
 import com.gb.canibuyit.db.model.ApiSpending
 import com.gb.canibuyit.exception.DomainException
 import com.gb.canibuyit.model.Balance
@@ -25,44 +26,45 @@ class SpendingInteractor @Inject
 constructor(private val spendingsRepository: SpendingsRepository,
             private val schedulerProvider: SchedulerProvider) {
 
-    private val spendingsSubject: Subject<Lce<List<Spending>>> = PublishSubject.create<Lce<List<Spending>>>()
+    private val spendingUIModel: Subject<Lce<List<Spending>>> = PublishSubject.create<Lce<List<Spending>>>()
 
-    fun getSpendingsDataStream(): Subject<Lce<List<Spending>>> {
-        return spendingsSubject
-    }
+    fun spendingUIModel(): Subject<Lce<List<Spending>>> = spendingUIModel
 
     // REACTIVE METHODS
 
+    @SuppressLint("CheckResult")
     fun loadSpendings() {
         spendingsRepository.getAll()
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())
                 .doOnSubscribe {
-                    spendingsSubject.onNext(Lce.loading())
+                    spendingUIModel.onNext(Lce.loading())
                 }
                 .subscribe({
-                    spendingsSubject.onNext(Lce.content(it))
+                    spendingUIModel.onNext(Lce.content(it))
                 }, { throwable ->
-                    spendingsSubject.onNext(Lce.error(DomainException("Error loading from database. See logs.", throwable)))
+                    spendingUIModel.onNext(Lce.error(DomainException("Error loading from database. See logs.", throwable)))
                 })
     }
 
+    @SuppressLint("CheckResult")
     fun clearSpendings() {
         spendingsRepository.deleteAll()
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())
                 .doOnSubscribe {
-                    spendingsSubject.onNext(Lce.loading())
+                    spendingUIModel.onNext(Lce.loading())
                 }
                 .subscribe({
                     loadSpendings()
                 }, { throwable ->
                     if (throwable is SQLException) {
-                        spendingsSubject.onNext(Lce.error(throwable))
+                        spendingUIModel.onNext(Lce.error(throwable))
                     }
                 })
     }
 
+    @SuppressLint("CheckResult")
     fun createOrUpdateMonzoCategories(spendings: List<Spending>) {
         spendingsRepository.createOrUpdateMonzoSpendings(spendings)
                 .subscribeOn(schedulerProvider.io())
@@ -70,7 +72,7 @@ constructor(private val spendingsRepository: SpendingsRepository,
                 .subscribe({
                     loadSpendings()
                 }, { throwable ->
-                    spendingsSubject.onNext(Lce.error(DomainException("Error saving monzo spendings. See logs.", throwable)))
+                    spendingUIModel.onNext(Lce.error(DomainException("Error saving monzo spendings. See logs.", throwable)))
                 })
     }
 

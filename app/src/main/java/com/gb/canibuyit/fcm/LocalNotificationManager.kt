@@ -16,44 +16,17 @@ import android.support.annotation.DrawableRes
 import android.support.v4.app.NotificationCompat
 import android.support.v4.content.ContextCompat
 import com.gb.canibuyit.R
-import com.gb.canibuyit.interactor.SpendingInteractor
 import com.gb.canibuyit.ui.MainActivity
-import io.reactivex.disposables.Disposable
 import javax.inject.Inject
-import kotlin.math.absoluteValue
 
 class LocalNotificationManager @Inject constructor(
-    private val applicationContext: Context,
-    private val spendingInteractor: SpendingInteractor) {
+    private val applicationContext: Context) {
 
     private val notificationManager: NotificationManager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     private val notificationColor: Int = ContextCompat.getColor(applicationContext, R.color.primary)
 
-    private var disposable: Disposable? = null
-
     init {
         createChannels()
-    }
-
-    fun showSpendingInNotification(category: String) {
-        disposable?.dispose()
-        disposable = spendingInteractor.getSpendingsDataStream().subscribe({
-            if (!it.loading && !it.hasError()) {
-                spendingInteractor.getByMonzoCategory(category).subscribe({ spending ->
-                    spending.target?.let { target: Int ->
-                        val spent = spending.spent.abs()
-                        val target = target.absoluteValue
-                        val progress: Float = (spent / target.toBigDecimal()).toFloat() * 100
-                        showSimpleNotification(spending.name, ("%.0f%% (%.0f/%d)").format(progress, spent, target))
-                    } ?: let {
-                        //                        showSimpleNotification(spending.name, "£%.0f".format(spent))
-                    }
-                }, {})
-                disposable?.dispose()
-            }
-        }, {
-            disposable?.dispose()
-        })
     }
 
     fun showEventNotification(title: String, messageBody: String, url: String) {

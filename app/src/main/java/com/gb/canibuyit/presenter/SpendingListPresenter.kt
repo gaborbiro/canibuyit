@@ -8,7 +8,7 @@ class SpendingListPresenter @Inject
 constructor(private val spendingInteractor: SpendingInteractor) : BasePresenter<SpendingListScreen>() {
 
     init {
-        disposeOnFinish(spendingInteractor.getSpendingsDataStream().subscribe({
+        disposeOnFinish(spendingInteractor.spendingUIModel().subscribe({
             if (!it.loading) {
                 it.error?.let(this::onError)
                 it.content
