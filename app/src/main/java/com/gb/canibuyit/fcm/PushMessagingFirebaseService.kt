@@ -9,6 +9,7 @@ import com.gb.canibuyit.di.Injector
 import com.gb.canibuyit.fcm.model.FcmMonzoData
 import com.gb.canibuyit.interactor.MonzoInteractor
 import com.gb.canibuyit.interactor.SpendingInteractor
+import com.gb.canibuyit.model.onNextContent
 import com.gb.canibuyit.repository.MonzoMapper
 import com.gb.canibuyit.util.Logger
 import com.gb.canibuyit.util.formatEventTime
@@ -45,32 +46,18 @@ class PushMessagingFirebaseService : FirebaseMessagingService() {
     }
 
     private fun handleMonzoPush(payload: String) {
-        try {
-            val category = Gson().fromJson(payload, FcmMonzoData::class.java)?.data?.let {
-                monzoMapper.mapToTransaction(it).category
-            }
-            category?.let {
-                doOnNextSpendingUIModel { showSpendingNotification(category.toString()) }
-            }
-        } catch (t: Throwable) {
-            Log.e(TAG, "Error handling monzo push", t)
+        Gson().fromJson(payload, FcmMonzoData::class.java)?.data?.let {
+            monzoMapper.mapToTransaction(it).category
+        }?.let { category ->
+            spendingInteractor.spendingModel
+                    .onNextContent()
+                    .subscribe({
+                        showSpendingNotification(category.toString())
+                    }, {
+                        Logger.e(TAG, "SpendingUIModel Error", it)
+                    })
         }
         monzoInteractor.loadSpendings(listOf(ACCOUNT_ID_PREPAID, ACCOUNT_ID_RETAIL), TRANSACTION_HISTORY_LENGTH_MONTHS)
-    }
-
-    @SuppressLint("CheckResult")
-    private fun doOnNextSpendingUIModel(task: () -> Unit) {
-        spendingInteractor.spendingUIModel()
-                .filter { !it.loading }
-                .map { it.content != null }
-                .firstOrError()
-                .subscribe({ success ->
-                    if (success) {
-                        task.invoke()
-                    }
-                }, {
-                    Logger.e(TAG, "SpendingUIModel Error", it)
-                })
     }
 
     @SuppressLint("CheckResult")

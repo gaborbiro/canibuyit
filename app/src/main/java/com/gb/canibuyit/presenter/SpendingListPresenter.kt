@@ -8,10 +8,10 @@ class SpendingListPresenter @Inject
 constructor(private val spendingInteractor: SpendingInteractor) : BasePresenter<SpendingListScreen>() {
 
     init {
-        disposeOnFinish(spendingInteractor.spendingUIModel().subscribe({
-            if (!it.loading) {
-                it.error?.let(this::onError)
-                it.content
+        disposeOnFinish(spendingInteractor.spendingModel.subscribe({ lce ->
+            if (!lce.loading) {
+                lce.error?.let(this::onError)
+                lce.content
                         ?.sortedBy { -it.valuePerMonth.abs() }
                         ?.sortedBy { !it.enabled }
                         ?.let(getScreen()::setData)

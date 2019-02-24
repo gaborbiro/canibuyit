@@ -53,7 +53,7 @@ constructor(private val schedulerProvider: SchedulerProvider,
         return onErrorPrep(monzoRepository.getSpendings(accountIds, since)
                 .subscribeOn(schedulerProvider.io())
                 .doOnSubscribe {
-                    spendingInteractor.spendingUIModel().onNext(Lce.loading())
+                    spendingInteractor.spendingModel.onNext(Lce.loading())
                 })
                 .subscribe({
                     spendingInteractor.createOrUpdateMonzoCategories(it)
@@ -62,7 +62,7 @@ constructor(private val schedulerProvider: SchedulerProvider,
                     if (throwable is MonzoException && throwable.action == DomainException.Action.LOGIN) {
                         loginSubject.onNext(Lce.error(throwable))
                     } else {
-                        spendingInteractor.spendingUIModel().onNext(Lce.error(throwable))
+                        spendingInteractor.spendingModel.onNext(Lce.error(throwable))
                     }
                 })
     }

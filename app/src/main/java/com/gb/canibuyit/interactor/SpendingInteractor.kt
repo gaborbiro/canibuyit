@@ -26,9 +26,7 @@ class SpendingInteractor @Inject
 constructor(private val spendingsRepository: SpendingsRepository,
             private val schedulerProvider: SchedulerProvider) {
 
-    private val spendingUIModel: Subject<Lce<List<Spending>>> = PublishSubject.create<Lce<List<Spending>>>()
-
-    fun spendingUIModel(): Subject<Lce<List<Spending>>> = spendingUIModel
+    val spendingModel: Subject<Lce<List<Spending>>> = PublishSubject.create<Lce<List<Spending>>>()
 
     // REACTIVE METHODS
 
@@ -38,12 +36,12 @@ constructor(private val spendingsRepository: SpendingsRepository,
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())
                 .doOnSubscribe {
-                    spendingUIModel.onNext(Lce.loading())
+                    spendingModel.onNext(Lce.loading())
                 }
                 .subscribe({
-                    spendingUIModel.onNext(Lce.content(it))
+                    spendingModel.onNext(Lce.content(it))
                 }, { throwable ->
-                    spendingUIModel.onNext(Lce.error(DomainException("Error loading from database. See logs.", throwable)))
+                    spendingModel.onNext(Lce.error(DomainException("Error loading from database. See logs.", throwable)))
                 })
     }
 
@@ -53,13 +51,13 @@ constructor(private val spendingsRepository: SpendingsRepository,
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())
                 .doOnSubscribe {
-                    spendingUIModel.onNext(Lce.loading())
+                    spendingModel.onNext(Lce.loading())
                 }
                 .subscribe({
                     loadSpendings()
                 }, { throwable ->
                     if (throwable is SQLException) {
-                        spendingUIModel.onNext(Lce.error(throwable))
+                        spendingModel.onNext(Lce.error(throwable))
                     }
                 })
     }
@@ -72,7 +70,7 @@ constructor(private val spendingsRepository: SpendingsRepository,
                 .subscribe({
                     loadSpendings()
                 }, { throwable ->
-                    spendingUIModel.onNext(Lce.error(DomainException("Error saving monzo spendings. See logs.", throwable)))
+                    spendingModel.onNext(Lce.error(DomainException("Error saving monzo spendings. See logs.", throwable)))
                 })
     }
 

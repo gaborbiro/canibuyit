@@ -33,24 +33,24 @@ constructor(private val monzoInteractor: MonzoInteractor,
             private val userPreferences: UserPreferences) : BasePresenter<MainScreen>() {
 
     init {
-        disposeOnFinish(spendingInteractor.spendingUIModel().subscribe({
-            if (it.loading) getScreen().showProgress() else getScreen().hideProgress()
-            if (!it.loading && !it.hasError()) {
+        disposeOnFinish(spendingInteractor.spendingModel.subscribe({ lce ->
+            if (lce.loading) getScreen().showProgress() else getScreen().hideProgress()
+            if (!lce.loading && !lce.hasError()) {
                 fetchBalance()
             }
         }, this::onError))
-        disposeOnFinish(monzoInteractor.getLoginDataStream().subscribe({
-            if (it.loading) {
+        disposeOnFinish(monzoInteractor.getLoginDataStream().subscribe({ lce ->
+            if (lce.loading) {
                 getScreen().showProgress()
             } else {
                 getScreen().hideProgress()
-                if (it.hasError()) {
-                    this.onError(it.error!!)
+                if (lce.hasError()) {
+                    this.onError(lce.error!!)
                 } else {
-                    it.content?.let {
-                        credentialsProvider.accessToken = it.accessToken
-                        credentialsProvider.accessTokenExpiry = it.expiresAt
-                        credentialsProvider.refreshToken = it.refreshToken
+                    lce.content?.let { login ->
+                        credentialsProvider.accessToken = login.accessToken
+                        credentialsProvider.accessTokenExpiry = login.expiresAt
+                        credentialsProvider.refreshToken = login.refreshToken
                         getScreen().showToast("You are now logged in. Registering for Monzo notifications...")
                         getScreen().sendFCMTokenToServer()
                         fetchMonzoData()
