@@ -24,7 +24,7 @@
             android:layout_width="wrap_content"
             android:text="Date of reading: "/>
 
-        <com.gb.canibuyit.ui.DatePickerButton
+        <com.gb.canibuyit.feature.spending.ui.DatePickerButton
             android:id="@+id/when_btn"
             android:layout_height="wrap_content"
             android:layout_width="wrap_content"

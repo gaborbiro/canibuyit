@@ -16,7 +16,7 @@ import android.support.annotation.DrawableRes
 import android.support.v4.app.NotificationCompat
 import android.support.v4.content.ContextCompat
 import com.gb.canibuyit.R
-import com.gb.canibuyit.ui.MainActivity
+import com.gb.canibuyit.feature.spending.ui.MainActivity
 import javax.inject.Inject
 
 class LocalNotificationManager @Inject constructor(

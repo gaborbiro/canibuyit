@@ -1,5 +1,5 @@
 package com.gb.canibuyit.fcm.model
 
-import com.gb.canibuyit.api.model.ApiTransaction
+import com.gb.canibuyit.feature.monzo.api.model.ApiMonzoTransaction
 
-class FcmMonzoData(val data: ApiTransaction?)
+class FcmMonzoData(val data: ApiMonzoTransaction?)

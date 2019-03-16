@@ -8,7 +8,7 @@ import android.view.View
 import butterknife.ButterKnife
 import butterknife.Unbinder
 import com.gb.canibuyit.di.Injector
-import com.gb.canibuyit.exception.ContextSource
+import com.gb.canibuyit.error.ContextSource
 import com.gb.canibuyit.presenter.BasePresenter
 import com.gb.canibuyit.screen.Screen
 import org.jetbrains.annotations.Nullable

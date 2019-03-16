@@ -1,8 +1,5 @@
 package com.gb.canibuyit.model
 
-import io.reactivex.Observable
-import io.reactivex.Single
-
 open class Lce<T> {
 
     var loading: Boolean = false
@@ -45,10 +42,4 @@ open class Lce<T> {
             return Lce<T>(error)
         }
     }
-}
-
-fun <T> Observable<Lce<T>>.onNextContent(): Single<T> {
-    return filter { !it.loading && !it.hasError() }
-            .map { it.content!! }
-            .firstOrError()
 }

@@ -5,8 +5,8 @@ import android.support.v7.app.AppCompatActivity
 import butterknife.ButterKnife
 import butterknife.Unbinder
 import com.gb.canibuyit.di.Injector
-import com.gb.canibuyit.exception.ContextSource
-import com.gb.canibuyit.exception.ErrorHandler
+import com.gb.canibuyit.error.ContextSource
+import com.gb.canibuyit.error.ErrorHandler
 import com.gb.canibuyit.presenter.BasePresenter
 import com.gb.canibuyit.screen.ProgressScreen
 import com.gb.canibuyit.screen.Screen

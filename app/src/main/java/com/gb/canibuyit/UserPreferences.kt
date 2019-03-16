@@ -1,7 +1,7 @@
 package com.gb.canibuyit
 
 import android.content.SharedPreferences
-import com.gb.canibuyit.ui.model.BalanceReading
+import com.gb.canibuyit.feature.spending.model.BalanceReading
 import com.gb.canibuyit.util.PrefsUtil
 import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject

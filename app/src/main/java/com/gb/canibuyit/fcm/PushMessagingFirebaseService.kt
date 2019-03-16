@@ -2,15 +2,14 @@ package com.gb.canibuyit.fcm
 
 import android.annotation.SuppressLint
 import android.util.Log
-import com.gb.canibuyit.ACCOUNT_ID_PREPAID
-import com.gb.canibuyit.ACCOUNT_ID_RETAIL
-import com.gb.canibuyit.TRANSACTION_HISTORY_LENGTH_MONTHS
+import com.gb.canibuyit.feature.monzo.ACCOUNT_ID_RETAIL
+import com.gb.canibuyit.feature.monzo.MONZO_CATEGORY
+import com.gb.canibuyit.feature.monzo.TRANSACTION_HISTORY_LENGTH_MONTHS
 import com.gb.canibuyit.di.Injector
 import com.gb.canibuyit.fcm.model.FcmMonzoData
-import com.gb.canibuyit.interactor.MonzoInteractor
-import com.gb.canibuyit.interactor.SpendingInteractor
-import com.gb.canibuyit.model.onNextContent
-import com.gb.canibuyit.repository.MonzoMapper
+import com.gb.canibuyit.feature.monzo.data.MonzoInteractor
+import com.gb.canibuyit.feature.spending.data.SpendingInteractor
+import com.gb.canibuyit.feature.monzo.data.MonzoMapper
 import com.gb.canibuyit.util.Logger
 import com.gb.canibuyit.util.formatEventTime
 import com.gb.canibuyit.util.formatEventTimePrefix
@@ -47,22 +46,22 @@ class PushMessagingFirebaseService : FirebaseMessagingService() {
 
     private fun handleMonzoPush(payload: String) {
         Gson().fromJson(payload, FcmMonzoData::class.java)?.data?.let {
-            monzoMapper.mapToTransaction(it).category
+            monzoMapper.mapApiTransaction(it).category
         }?.let { category ->
-            spendingInteractor.spendingModel
-                    .onNextContent()
-                    .subscribe({
-                        showSpendingNotification(category.toString())
-                    }, {
-                        Logger.e(TAG, "SpendingUIModel Error", it)
-                    })
+            spendingInteractor.subscribeToSpendings({
+                if (!it.loading && !it.hasError()) {
+                    showMonzoSpendingNotification(category.toString())
+                }
+            }, {
+                Logger.e(TAG, "SpendingUIModel Error", it)
+            })
         }
-        monzoInteractor.loadSpendings(listOf(ACCOUNT_ID_PREPAID, ACCOUNT_ID_RETAIL), TRANSACTION_HISTORY_LENGTH_MONTHS)
+        monzoInteractor.loadSpendings(ACCOUNT_ID_RETAIL, TRANSACTION_HISTORY_LENGTH_MONTHS)
     }
 
     @SuppressLint("CheckResult")
-    private fun showSpendingNotification(category: String) {
-        spendingInteractor.getByMonzoCategory(category)
+    private fun showMonzoSpendingNotification(category: String) {
+        spendingInteractor.getByRemoteCategory(category, MONZO_CATEGORY)
                 .subscribe({ spending ->
                     spending.target?.let { target: Int ->
                         val spent = spending.spent.abs()

@@ -8,6 +8,7 @@ import android.text.SpannableString
 import android.text.Spanned
 import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
+import android.text.style.UnderlineSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -31,11 +32,15 @@ fun View.showKeyboard() {
     }
 }
 
-fun TextView.setTextWithLink(text: String, linkPart: String, runOnClick: () -> Unit) {
-    this.setTextWithLinks(text, arrayOf(linkPart), arrayOf(runOnClick))
+fun link(text: String) = SpannableString(text).apply {
+    setSpan(UnderlineSpan(), 0, length, 0)
 }
 
-fun TextView.setTextWithLinks(text: String, linkParts: Array<String>, runOnClicks: Array<() -> Unit>) {
+fun TextView.setSubtextWithLink(text: String, linkPart: String, runOnClick: () -> Unit) {
+    this.setSubtextWithLinks(text, arrayOf(linkPart), arrayOf(runOnClick))
+}
+
+fun TextView.setSubtextWithLinks(text: String, linkParts: Array<String>, runOnClicks: Array<() -> Unit>) {
     this.text = text
     val spannable = SpannableString(this.text)
 
@@ -69,15 +74,9 @@ fun createDatePickerDialog(context: Context, date: LocalDate, listener: (DatePic
     }, date.year, date.monthValue - 1, date.dayOfMonth)
 }
 
-fun ViewGroup.inflate(@LayoutRes resource: Int, attachToRoot: Boolean = false) =
-    LayoutInflater.from(this.context).inflate(resource, this, attachToRoot)
+inline fun <reified T : View> ViewGroup.inflate(@LayoutRes resource: Int, attachToRoot: Boolean = false): T =
+    LayoutInflater.from(this.context).inflate(resource, this, attachToRoot) as T
 
 @Suppress("UNCHECKED_CAST")
-fun <T : View> ViewGroup.add(@LayoutRes resource: Int): T =
-    (LayoutInflater.from(this.context).inflate(resource, this, false) as T).also { addView(it) }
-
-fun ViewGroup.forEachChild(apply: (View) -> Unit) {
-    for (i in 0 until childCount) {
-        apply(getChildAt(i))
-    }
-}
+inline fun <reified T : View> ViewGroup.add(@LayoutRes resource: Int): T =
+    (inflate(resource) as T).also { addView(it) }

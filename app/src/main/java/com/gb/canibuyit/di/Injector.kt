@@ -3,7 +3,7 @@ package com.gb.canibuyit.di
 import android.app.Application
 import android.content.Context
 import android.support.v4.app.FragmentManager
-import com.gb.canibuyit.exception.ContextSource
+import com.gb.canibuyit.error.ContextSource
 import java.util.ArrayList
 
 enum class Injector {
@@ -37,10 +37,10 @@ enum class Injector {
 
     val context: Context?
         get() {
-            if (contextSources.size > 0) {
-                return contextSources[contextSources.size - 1].baseContext
+            return if (contextSources.size > 0) {
+                contextSources[contextSources.size - 1].baseContext
             } else {
-                return null
+                null
             }
         }
 }

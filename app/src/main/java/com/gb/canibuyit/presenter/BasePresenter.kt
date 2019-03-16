@@ -1,6 +1,6 @@
 package com.gb.canibuyit.presenter
 
-import com.gb.canibuyit.exception.ErrorHandler
+import com.gb.canibuyit.error.ErrorHandler
 import com.gb.canibuyit.screen.Screen
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable

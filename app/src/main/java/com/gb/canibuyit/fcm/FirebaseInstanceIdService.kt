@@ -3,18 +3,18 @@ package com.gb.canibuyit.fcm
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
-import com.gb.canibuyit.CredentialsProvider
+import com.gb.canibuyit.feature.monzo.CredentialsProvider
 import com.gb.canibuyit.di.Injector
-import com.gb.canibuyit.presenter.MonzoDispatchPresenter
-import com.gb.canibuyit.screen.MonzoDispatchScreen
+import com.gb.canibuyit.feature.dispatch.presenter.DispatchPresenter
+import com.gb.canibuyit.feature.dispatch.screen.DispatchScreen
 import com.google.firebase.iid.FirebaseInstanceId
 import com.google.firebase.iid.FirebaseInstanceIdService
 import javax.inject.Inject
 
-class FirebaseInstanceIdService : FirebaseInstanceIdService(), MonzoDispatchScreen {
+class FirebaseInstanceIdService : FirebaseInstanceIdService(), DispatchScreen {
 
     @Inject lateinit var appContext: Context
-    @Inject lateinit var presenter: MonzoDispatchPresenter
+    @Inject lateinit var presenter: DispatchPresenter
     @Inject lateinit var credentialsProvider: CredentialsProvider
 
     init {

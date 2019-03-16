@@ -33,4 +33,8 @@
         <item name="android:button">@drawable/cloud_selector</item>
         <item name="android:buttonTint">@color/accent</item>
     </style>
+
+    <style name="FormHeading" parent="TextAppearance.AppCompat.Subhead">
+
+    </style>
 </resources>

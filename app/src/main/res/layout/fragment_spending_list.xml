@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             xmlns:tools="http://schemas.android.com/tools"
-             android:layout_height="match_parent"
-             android:layout_width="match_parent"
-             xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_height="match_parent"
+    android:layout_width="match_parent">
 
     <android.support.v4.widget.SwipeRefreshLayout
         android:id="@+id/swipe_container"
@@ -12,13 +12,13 @@
 
         <android.support.v7.widget.RecyclerView
             android:drawSelectorOnTop="true"
-            android:id="@android:id/list"
+            android:id="@+id/recycler_view"
             android:layout_height="match_parent"
             android:layout_width="match_parent"
             android:scrollbars="vertical"
             app:layoutManager="android.support.v7.widget.LinearLayoutManager"
-            tools:context=".ui.MainActivity"
-            tools:listitem="@layout/list_item_spending"/>
+            tools:context=".feature.spending.ui.MainActivity"
+            tools:listitem="@layout/list_item_spending" />
     </android.support.v4.widget.SwipeRefreshLayout>
 
 </FrameLayout>
