@@ -77,7 +77,7 @@ class MainActivity : BaseActivity(), MainScreen, DispatchScreen, SpendingListFra
         mainPresenter.handleDeepLink(intent)
     }
 
-    override fun inject(): BasePresenter<Screen> {
+    override fun inject(): BasePresenter<Screen>? {
         Injector.INSTANCE.graph.inject(this)
         return mainPresenter as BasePresenter<Screen>
     }

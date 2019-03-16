@@ -10,7 +10,6 @@ import com.gb.canibuyit.error.ErrorHandler
 import com.gb.canibuyit.presenter.BasePresenter
 import com.gb.canibuyit.screen.ProgressScreen
 import com.gb.canibuyit.screen.Screen
-import org.jetbrains.annotations.Nullable
 import javax.inject.Inject
 
 abstract class BaseActivity : AppCompatActivity(), ProgressScreen, ContextSource {
@@ -69,6 +68,5 @@ abstract class BaseActivity : AppCompatActivity(), ProgressScreen, ContextSource
         progressDialog = null
     }
 
-    @Nullable
-    protected abstract fun inject(): BasePresenter<Screen>
+    protected abstract fun inject(): BasePresenter<Screen>?
 }

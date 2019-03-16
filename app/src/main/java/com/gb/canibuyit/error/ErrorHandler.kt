@@ -21,7 +21,7 @@ constructor(private val appContext: Context) {
                         PromptDialog.messageDialog("Server error " + exception.code, exception.message)
                                 .also {
                                     if (exception.action == DomainException.Action.LOGIN) {
-                                        it.setPositiveButton(android.R.string.ok) { LoginActivity.show(Injector.INSTANCE.context) }
+                                        it.setPositiveButton(android.R.string.ok) { LoginActivity.show(appContext) }
                                     }
                                 }
                     }
