@@ -1,6 +1,7 @@
 package com.gb.canibuyit.feature.spending.ui
 
 import android.os.Bundle
+import android.text.SpannableStringBuilder
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater
@@ -9,21 +10,23 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import com.gb.canibuyit.feature.monzo.MONZO_CATEGORY
 import com.gb.canibuyit.R
-import com.gb.canibuyit.feature.spending.persistence.model.ApiSpending
 import com.gb.canibuyit.di.Injector
+import com.gb.canibuyit.feature.monzo.MONZO_CATEGORY
 import com.gb.canibuyit.feature.project.data.Project
 import com.gb.canibuyit.feature.spending.model.Spending
 import com.gb.canibuyit.feature.spending.model.plus
 import com.gb.canibuyit.feature.spending.model.times
+import com.gb.canibuyit.feature.spending.persistence.model.ApiSpending
 import com.gb.canibuyit.feature.spending.presenter.SpendingEditorPresenter
 import com.gb.canibuyit.feature.spending.screen.SpendingEditorScreen
 import com.gb.canibuyit.ui.BaseFragment
+import com.gb.canibuyit.ui.PromptDialog
 import com.gb.canibuyit.util.DialogUtils
 import com.gb.canibuyit.util.TextChangeListener
 import com.gb.canibuyit.util.ValidationError
 import com.gb.canibuyit.util.add
+import com.gb.canibuyit.util.bold
 import com.gb.canibuyit.util.formatDayMonthYearWithPrefix
 import com.gb.canibuyit.util.hide
 import com.gb.canibuyit.util.hideKeyboard
@@ -117,7 +120,7 @@ class SpendingEditorFragment : BaseFragment<SpendingEditorScreen, SpendingEditor
     }
 
     private fun setDisplayedSpending(spending: Spending) {
-        activity?.title = getString(R.string.title_spending_modifier_detail, spending.name, spending.id)
+        activity?.title = "ID: ${spending.id}"
         name_input.setText(spending.name)
         average_input.setText(spending.value.toPlainString())
         spending.target?.let {
@@ -161,9 +164,10 @@ class SpendingEditorFragment : BaseFragment<SpendingEditorScreen, SpendingEditor
                 spent_by_cycle_list.add<TextView>(com.gb.canibuyit.R.layout.list_item_spent_by_cycle)
                         .apply {
                             tag = cycleSpent.id!!
-                            text = link("${cycleSpent.from} ${cycleSpent.to}: ${cycleSpent.amount} (${cycleSpent.count})")
+                            text = "${cycleSpent.from} - ${cycleSpent.to}: ${cycleSpent.amount} (${cycleSpent.count})".link()
+                                    .bold(cycleSpent.amount.toString())
                             setOnClickListener {
-                                presenter.onViewSpentByCycleDetails(cycleSpent)
+                                presenter.onViewSpentByCycleDetails(cycleSpent, originalSpending!!.type)
                             }
                         }
             }
@@ -319,6 +323,20 @@ class SpendingEditorFragment : BaseFragment<SpendingEditorScreen, SpendingEditor
         } catch (ve: ValidationError) {
             ContentStatus.ContentInvalid(ve)
         }
+    }
+
+    private var cycleSpendDetailsDialog: PromptDialog? = null
+
+    override fun showCycleSpendDetails(title: String, text: SpannableStringBuilder) {
+        cycleSpendDetailsDialog = PromptDialog.bigMessageDialog(title, text)
+                .setPositiveButton(android.R.string.ok) {
+                    presenter.onCloseSpentByCycleDetails()
+                }
+        cycleSpendDetailsDialog?.show(supportFragmentManager!!, "CycleSpendDetails")
+    }
+
+    override fun hideCycleSpendDetails() {
+        cycleSpendDetailsDialog?.hide(supportFragmentManager!!)
     }
 
     private sealed class ContentStatus {

@@ -44,7 +44,7 @@ open class BaseDialogFragment : DialogFragment() {
         return this
     }
 
-    fun setBigMessage(body: String): BaseDialogFragment {
+    fun setBigMessage(body: CharSequence): BaseDialogFragment {
         this.big_message.text = body
         this.big_message_container.show()
         updateTitleVisibility()
@@ -78,5 +78,11 @@ open class BaseDialogFragment : DialogFragment() {
         val ft = manager.beginTransaction()
         ft.add(this, tag)
         ft.commitAllowingStateLoss()
+    }
+
+    fun hide(manager: FragmentManager) {
+        manager.findFragmentByTag(tag)?.let {
+            manager.beginTransaction().remove(it).commitAllowingStateLoss()
+        }
     }
 }

@@ -2,7 +2,9 @@ package com.gb.canibuyit.ui
 
 import android.os.Bundle
 import android.support.annotation.StringRes
+import android.text.SpannableStringBuilder
 import android.view.View
+import android.view.ViewGroup
 
 open class PromptDialog : BaseDialogFragment() {
 
@@ -14,11 +16,18 @@ open class PromptDialog : BaseDialogFragment() {
         super.onViewCreated(view, savedInstanceState)
         arguments?.getString(EXTRA_TITLE)?.let { setTitle(it) }
         arguments?.getString(EXTRA_MESSAGE)?.let { setMessage(it) }
-        arguments?.getString(EXTRA_BIG_MESSAGE)?.let { setBigMessage(it) }
+        arguments?.getCharSequence(EXTRA_BIG_MESSAGE)?.let { setBigMessage(it) }
 
         super.setPositiveButton(btnStringResId) {
             dismiss()
             onClickListener?.invoke(it)
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        if (dialog != null) {
+            dialog.window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
         }
     }
 
@@ -45,7 +54,18 @@ open class PromptDialog : BaseDialogFragment() {
 
             val args = Bundle()
             args.putString(EXTRA_TITLE, title)
-            args.putString(EXTRA_BIG_MESSAGE, message)
+            args.putCharSequence(EXTRA_BIG_MESSAGE, message)
+            promptDialog.arguments = args
+
+            return promptDialog
+        }
+
+        fun bigMessageDialog(title: String, message: SpannableStringBuilder): PromptDialog {
+            val promptDialog = PromptDialog()
+
+            val args = Bundle()
+            args.putString(EXTRA_TITLE, title)
+            args.putCharSequence(EXTRA_BIG_MESSAGE, message)
             promptDialog.arguments = args
 
             return promptDialog

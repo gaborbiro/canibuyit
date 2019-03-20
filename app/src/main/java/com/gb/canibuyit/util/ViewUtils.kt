@@ -8,6 +8,7 @@ import android.text.SpannableString
 import android.text.Spanned
 import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
+import android.text.style.StyleSpan
 import android.text.style.UnderlineSpan
 import android.view.LayoutInflater
 import android.view.View
@@ -32,9 +33,23 @@ fun View.showKeyboard() {
     }
 }
 
-fun link(text: String) = SpannableString(text).apply {
+fun String.link() = this.span().link()
+
+fun String.bold(vararg subString: String) = this.span().bold(*subString)
+
+fun SpannableString.link() = this.apply {
     setSpan(UnderlineSpan(), 0, length, 0)
 }
+
+fun SpannableString.bold(vararg subString: String) = this.apply {
+    subString.forEach {
+        val start = this.indexOf(it)
+        val end = start + it.length
+        setSpan(StyleSpan(android.graphics.Typeface.BOLD), start, end, Spannable.SPAN_INCLUSIVE_INCLUSIVE)
+    }
+}
+
+private fun String.span() = SpannableString(this)
 
 fun TextView.setSubtextWithLink(text: String, linkPart: String, runOnClick: () -> Unit) {
     this.setSubtextWithLinks(text, arrayOf(linkPart), arrayOf(runOnClick))

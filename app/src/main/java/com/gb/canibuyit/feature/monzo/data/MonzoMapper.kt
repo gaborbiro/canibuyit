@@ -20,6 +20,7 @@ import com.gb.canibuyit.feature.spending.model.ordinal
 import com.gb.canibuyit.feature.spending.persistence.model.ApiSpending
 import com.gb.canibuyit.model.SerializableMap
 import com.gb.canibuyit.util.compare
+import com.gb.canibuyit.util.max
 import org.apache.commons.lang3.text.WordUtils
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -104,7 +105,7 @@ class MonzoMapper @Inject constructor() {
         val transactionsByCycle: Map<Int, List<Transaction>> = sortedTransactions.groupBy { cycle.ordinal(it.created) }
 
         val spentByCycle = transactionsByCycle.map { (_, list) ->
-            val firstDay = list[0].created.firstCycleDay(cycle)
+            val firstDay = max(list[0].created.firstCycleDay(cycle), startDate)
             val lastDay = least(list[0].created.lastCycleDay(cycle), LocalDate.now())
             CycleSpent(
                     id = null,
