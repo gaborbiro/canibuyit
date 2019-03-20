@@ -55,7 +55,7 @@ constructor(private val schedulerProvider: SchedulerProvider,
         val since = lastXMonths?.let {
             LocalDate.now().minusMonths(it)
         }
-        return monzoRepository.getSpendings(accountId, since)
+        return monzoRepository.getSpendings(accountId, since, before = LocalDate.now())
                 .subscribeOn(schedulerProvider.io())
                 .doOnSubscribe {
                     monzoSpendingsSubject.onNext(Lce.loading())
@@ -75,8 +75,8 @@ constructor(private val schedulerProvider: SchedulerProvider,
                 })
     }
 
-    fun getTransactions(accountId: String, since: LocalDate, before: LocalDate): Observable<Lce<List<Transaction>>> {
-        return monzoRepository.getTransactions(accountId, since, before)
+    fun getRawTransactions(accountId: String, since: LocalDate, before: LocalDate): Observable<Lce<List<Transaction>>> {
+        return monzoRepository.getRawTransactions(accountId, since, before)
                 .toObservable()
                 .map(this::mapSuccess)
                 .startWith(Lce.loading())

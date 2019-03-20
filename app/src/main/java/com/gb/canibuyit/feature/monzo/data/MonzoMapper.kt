@@ -5,22 +5,21 @@ import com.gb.canibuyit.feature.monzo.api.model.ApiMonzoLogin
 import com.gb.canibuyit.feature.monzo.api.model.ApiMonzoTransaction
 import com.gb.canibuyit.feature.monzo.api.model.ApiWebhook
 import com.gb.canibuyit.feature.monzo.api.model.ApiWebhooks
-import com.gb.canibuyit.feature.spending.persistence.model.ApiSpending
-import com.gb.canibuyit.feature.project.data.Project
-import com.gb.canibuyit.feature.spending.model.CycleSpent
 import com.gb.canibuyit.feature.monzo.model.Login
-import com.gb.canibuyit.feature.spending.model.Saving
-import com.gb.canibuyit.model.SerializableMap
-import com.gb.canibuyit.feature.spending.model.Spending
 import com.gb.canibuyit.feature.monzo.model.Transaction
 import com.gb.canibuyit.feature.monzo.model.Webhook
 import com.gb.canibuyit.feature.monzo.model.Webhooks
+import com.gb.canibuyit.feature.project.data.Project
+import com.gb.canibuyit.feature.spending.model.CycleSpent
+import com.gb.canibuyit.feature.spending.model.Saving
+import com.gb.canibuyit.feature.spending.model.Spending
 import com.gb.canibuyit.feature.spending.model.div
 import com.gb.canibuyit.feature.spending.model.firstCycleDay
 import com.gb.canibuyit.feature.spending.model.lastCycleDay
 import com.gb.canibuyit.feature.spending.model.ordinal
+import com.gb.canibuyit.feature.spending.persistence.model.ApiSpending
+import com.gb.canibuyit.model.SerializableMap
 import com.gb.canibuyit.util.compare
-import com.gb.canibuyit.util.doIfBoth
 import org.apache.commons.lang3.text.WordUtils
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -77,12 +76,6 @@ class MonzoMapper @Inject constructor() {
                       projectSettings: Project,
                       startDate: LocalDate,
                       endDate: LocalDate): Spending {
-        Pair(sortedTransactions.firstOrNull()?.created,
-                sortedTransactions.lastOrNull()?.created).doIfBoth { (firstDate, lastDate) ->
-            if (firstDate < startDate || lastDate > endDate) {
-                throw IllegalArgumentException("List of transactions ($category) is out of bounds: start: $startDate first: $firstDate last: $lastDate end: $endDate")
-            }
-        }
         val categoryStr = WordUtils.capitalizeFully(category.toString().replace("\\_".toRegex(), " "))
         val name: String = if (projectSettings.namePinned) (savedSpending?.name ?: categoryStr) else categoryStr
 
