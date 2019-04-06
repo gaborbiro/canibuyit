@@ -53,7 +53,7 @@ final BUTTERKNIFE='8.8.1'
 final RETROFIT='2.5.0'
 final RETROFIT_RXJAVA2='2.5.0'
 final RXJAVA='2.2.4'
-final RXANDROID='2.1.0'
+final RXANDROID='2.1.1'
 final OK_HTTP='3.12.0'
 final CONSTRAINT_LAYOUT='2.0.0-alpha3'
 

@@ -318,7 +318,7 @@ constructor(private val dao: Dao<ApiSpending, Int>,
             buffer.append("\n-----------------\nTotal: ")
             buffer.append("%1\$.0f".format(amount))
             if (hasNegAmounts) {
-                buffer.append("\n\n*Negative value means the average has fallen below the target. Time to adjust the target?")
+                buffer.append("\n\n*Negative value means your average spending is now less then your limit in that category. Time to lower the limit?")
             }
         }
         return buffer.toString()

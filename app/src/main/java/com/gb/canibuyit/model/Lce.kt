@@ -31,7 +31,7 @@ open class Lce<T> {
 
     companion object {
         fun <T> loading(): Lce<T> {
-            return Lce<T>(true)
+            return Lce(true)
         }
 
         fun <T> content(content: T): Lce<T> {
@@ -39,7 +39,7 @@ open class Lce<T> {
         }
 
         fun <T> error(error: Throwable): Lce<T> {
-            return Lce<T>(error)
+            return Lce(error)
         }
     }
 }
