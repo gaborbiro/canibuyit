@@ -5,7 +5,7 @@ import com.gb.canibuyit.feature.monzo.MONZO_CATEGORY
 import com.gb.canibuyit.feature.spending.persistence.model.ApiSpending
 import com.gb.canibuyit.error.DomainException
 import com.gb.canibuyit.feature.monzo.data.MonzoInteractor
-import com.gb.canibuyit.model.Lce
+import com.gb.canibuyit.base.model.Lce
 import com.gb.canibuyit.feature.spending.model.Spending
 import com.gb.canibuyit.rx.SchedulerProvider
 import com.gb.canibuyit.feature.spending.ui.BalanceBreakdown

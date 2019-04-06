@@ -3,7 +3,7 @@ package com.gb.canibuyit.feature.monzo.data
 import com.gb.canibuyit.UserPreferences
 import com.gb.canibuyit.error.DomainException
 import com.gb.canibuyit.feature.monzo.error.MonzoException
-import com.gb.canibuyit.model.Lce
+import com.gb.canibuyit.base.model.Lce
 import com.gb.canibuyit.feature.monzo.model.Login
 import com.gb.canibuyit.feature.spending.model.Spending
 import com.gb.canibuyit.feature.monzo.model.Transaction

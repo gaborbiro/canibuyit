@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.widget.Toast
 
 import com.gb.canibuyit.di.Injector
+import com.gb.canibuyit.util.ActivityLifecycleCallbacksAdapter
 import com.j256.ormlite.android.apptools.OpenHelperManager
 
 class App : Application() {

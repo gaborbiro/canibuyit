@@ -5,8 +5,8 @@ import android.util.Log
 import android.widget.Toast
 import com.gb.canibuyit.feature.monzo.CredentialsProvider
 import com.gb.canibuyit.di.Injector
-import com.gb.canibuyit.feature.dispatch.presenter.DispatchPresenter
-import com.gb.canibuyit.feature.dispatch.screen.DispatchScreen
+import com.gb.canibuyit.feature.dispatch.view.DispatchPresenter
+import com.gb.canibuyit.feature.dispatch.view.DispatchScreen
 import com.google.firebase.iid.FirebaseInstanceId
 import com.google.firebase.iid.FirebaseInstanceIdService
 import javax.inject.Inject

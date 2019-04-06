@@ -15,8 +15,8 @@
         android:layout_above="@id/statistics"
         android:layout_height="match_parent"
         android:layout_width="match_parent"
-        android:name="com.gb.canibuyit.feature.spending.ui.SpendingListFragment"
-        tools:context=".feature.spending.ui.MainActivity"
+        android:name="com.gb.canibuyit.feature.spending.view.SpendingListFragment"
+        tools:context=".feature.spending.view.MainActivity"
         tools:layout="@layout/fragment_spending_list"/>
 
     <View

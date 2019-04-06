@@ -14,11 +14,11 @@
         android:layout_marginLeft="@dimen/padding"
         android:layout_marginRight="@dimen/padding"
         android:layout_toLeftOf="@id/statistics"
-        tools:context=".feature.spending.ui.MainActivity">
+        tools:context=".feature.spending.view.MainActivity">
 
         <fragment
             android:id="@+id/spending_list_fragment"
-            android:name="com.gb.canibuyit.feature.spending.ui.SpendingListFragment"
+            android:name="com.gb.canibuyit.feature.spending.view.SpendingListFragment"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="3"

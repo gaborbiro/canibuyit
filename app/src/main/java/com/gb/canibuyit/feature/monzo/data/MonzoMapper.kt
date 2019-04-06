@@ -18,7 +18,7 @@ import com.gb.canibuyit.feature.spending.model.firstCycleDay
 import com.gb.canibuyit.feature.spending.model.lastCycleDay
 import com.gb.canibuyit.feature.spending.model.ordinal
 import com.gb.canibuyit.feature.spending.persistence.model.ApiSpending
-import com.gb.canibuyit.model.SerializableMap
+import com.gb.canibuyit.base.model.SerializableMap
 import com.gb.canibuyit.util.compare
 import com.gb.canibuyit.util.max
 import org.apache.commons.lang3.text.WordUtils

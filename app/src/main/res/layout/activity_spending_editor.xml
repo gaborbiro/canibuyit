@@ -3,5 +3,5 @@
     android:id="@+id/spending_editor_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".feature.spending.ui.SpendingEditorActivity"
+    tools:context=".feature.spending.view.SpendingEditorActivity"
     tools:ignore="MergeRootFrame" />

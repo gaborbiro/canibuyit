@@ -18,7 +18,7 @@
         <activity
             android:label="@string/app_name"
             android:launchMode="singleTask"
-            android:name=".feature.spending.ui.MainActivity">
+            android:name=".feature.spending.view.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -36,20 +36,20 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".feature.spending.ui.SpendingEditorActivity"
-            android:parentActivityName=".feature.spending.ui.MainActivity">
+            android:name=".feature.spending.view.SpendingEditorActivity"
+            android:parentActivityName=".feature.spending.view.MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".feature.spending.ui.MainActivity" />
+                android:value=".feature.spending.view.MainActivity" />
         </activity>
 
         <activity android:name=".feature.spending.ui.FileDialogActivity" />
         <activity
-            android:name=".feature.monzo.ui.LoginActivity"
-            android:parentActivityName=".feature.spending.ui.MainActivity">
+            android:name=".feature.monzo.view.LoginActivity"
+            android:parentActivityName=".feature.spending.view.MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".feature.spending.ui.MainActivity" />
+                android:value=".feature.spending.view.MainActivity" />
         </activity>
 
         <service

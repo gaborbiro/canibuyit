@@ -17,7 +17,7 @@
             android:layout_width="match_parent"
             android:scrollbars="vertical"
             app:layoutManager="android.support.v7.widget.LinearLayoutManager"
-            tools:context=".feature.spending.ui.MainActivity"
+            tools:context=".feature.spending.view.MainActivity"
             tools:listitem="@layout/list_item_spending" />
     </android.support.v4.widget.SwipeRefreshLayout>
 

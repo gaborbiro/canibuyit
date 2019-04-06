@@ -3,8 +3,8 @@ package com.gb.canibuyit.error
 import android.content.Context
 import android.widget.Toast
 import com.gb.canibuyit.di.Injector
-import com.gb.canibuyit.feature.monzo.ui.LoginActivity
-import com.gb.canibuyit.ui.PromptDialog
+import com.gb.canibuyit.feature.monzo.view.LoginActivity
+import com.gb.canibuyit.base.ui.PromptDialog
 import com.gb.canibuyit.util.Logger
 import javax.inject.Inject
 import javax.inject.Singleton

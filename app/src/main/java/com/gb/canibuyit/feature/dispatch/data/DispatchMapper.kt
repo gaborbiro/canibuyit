@@ -1,6 +1,6 @@
 package com.gb.canibuyit.feature.dispatch.data
 
-import com.gb.canibuyit.feature.dispatch.api.ApiDispatchRegistration
+import com.gb.canibuyit.feature.dispatch.api.model.ApiDispatchRegistration
 import com.gb.canibuyit.feature.dispatch.model.DispatchRegistration
 import javax.inject.Inject
 import javax.inject.Singleton
