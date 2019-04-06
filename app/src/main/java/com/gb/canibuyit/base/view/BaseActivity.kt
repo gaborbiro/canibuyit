@@ -1,7 +1,7 @@
 package com.gb.canibuyit.base.view
 
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatActivity
 import butterknife.ButterKnife
 import butterknife.Unbinder
 import com.gb.canibuyit.base.ui.ProgressDialog

@@ -2,11 +2,11 @@ package com.gb.canibuyit.feature.spending.view
 
 import android.content.Context
 import android.os.Bundle
-import android.support.v4.widget.SwipeRefreshLayout
-import android.support.v7.widget.DividerItemDecoration
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.recyclerview.widget.DividerItemDecoration
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.gb.canibuyit.R
 import com.gb.canibuyit.base.view.BaseFragment
 import com.gb.canibuyit.di.Injector

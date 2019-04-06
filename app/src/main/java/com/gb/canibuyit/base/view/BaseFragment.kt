@@ -2,9 +2,9 @@ package com.gb.canibuyit.base.view
 
 import android.content.Context
 import android.os.Bundle
-import android.support.v4.app.Fragment
-import android.support.v4.app.FragmentManager
 import android.view.View
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
 import butterknife.ButterKnife
 import butterknife.Unbinder
 import com.gb.canibuyit.di.Injector

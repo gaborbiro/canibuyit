@@ -1,9 +1,9 @@
 package com.gb.canibuyit.feature.spending.ui
 
-import android.support.v7.widget.RecyclerView
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.recyclerview.widget.RecyclerView
 import com.gb.canibuyit.R
 import com.gb.canibuyit.feature.monzo.MONZO_CATEGORY
 import com.gb.canibuyit.feature.spending.model.Saving

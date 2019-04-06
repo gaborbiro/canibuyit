@@ -4,9 +4,9 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Path
-import android.support.v4.content.ContextCompat
 import android.util.AttributeSet
 import android.widget.RelativeLayout
+import androidx.core.content.ContextCompat
 import com.gb.canibuyit.R
 
 class ProgressRelativeLayout @JvmOverloads constructor(context: Context,

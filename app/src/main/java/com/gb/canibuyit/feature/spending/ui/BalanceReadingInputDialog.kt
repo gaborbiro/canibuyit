@@ -4,12 +4,12 @@ import android.app.AlertDialog
 import android.app.Dialog
 import android.content.DialogInterface
 import android.os.Bundle
-import android.support.v4.app.DialogFragment
 import android.text.TextUtils
 import android.view.LayoutInflater
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.Toast
+import androidx.fragment.app.DialogFragment
 import com.gb.canibuyit.R
 import com.gb.canibuyit.UserPreferences
 import com.gb.canibuyit.di.Injector
@@ -26,8 +26,10 @@ class BalanceReadingInputDialog : DialogFragment(), DialogInterface.OnClickListe
     private var lastUpdate: BalanceReading? = null
 
     lateinit var body: LinearLayout
-    private val amountInput: EditText by lazy { body.findViewById(R.id.amount_input) as EditText }
-    private val whenBtn: DatePickerButton by lazy { body.findViewById(R.id.when_btn) as DatePickerButton }
+    private val amountInput: EditText by lazy { body.findViewById<EditText>(R.id.amount_input) }
+    private val whenBtn: DatePickerButton by lazy {
+        body.findViewById<DatePickerButton>(R.id.when_btn)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

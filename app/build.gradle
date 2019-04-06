@@ -47,24 +47,28 @@ kapt {
     useBuildCache = true
 }
 
-final SUPPORT_LIBRARY = '28.0.0'
 final DAGGER = '2.21'
-final BUTTERKNIFE='8.8.1'
-final RETROFIT='2.5.0'
-final RETROFIT_RXJAVA2='2.5.0'
-final RXJAVA='2.2.4'
-final RXANDROID='2.1.1'
-final OK_HTTP='3.12.0'
-final CONSTRAINT_LAYOUT='2.0.0-alpha4'
+final BUTTERKNIFE = '10.1.0'
+final RETROFIT = '2.5.0'
+final RETROFIT_RXJAVA2 = '2.5.0'
+final RXJAVA = '2.2.4'
+final RXANDROID = '2.1.1'
+final OK_HTTP = '3.12.0'
+final CONSTRAINT_LAYOUT = '1.1.3'
+final ANDROIDX_CORE = '1.0.0'
+final ANDROIDX_COREKTX = '1.0.1'
+final ANDROIDX_APPCOMPAT = '1.0.2'
+
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    // KTX
+    implementation "androidx.core:core-ktx:${ANDROIDX_COREKTX}"
+
     implementation 'com.j256.ormlite:ormlite-android:4.48'
-    implementation "com.android.support:support-v4:${SUPPORT_LIBRARY}"
-    implementation "com.android.support:appcompat-v7:${SUPPORT_LIBRARY}"
-    implementation "com.android.support:cardview-v7:${SUPPORT_LIBRARY}"
-    implementation "com.android.support:design:${SUPPORT_LIBRARY}"
-    implementation "com.android.support.constraint:constraint-layout:${CONSTRAINT_LAYOUT}"
+    implementation "androidx.appcompat:appcompat:${ANDROIDX_APPCOMPAT}"
+    implementation "androidx.cardview:cardview:${ANDROIDX_CORE}"
+    implementation "androidx.constraintlayout:constraintlayout:${CONSTRAINT_LAYOUT}"
+    implementation "androidx.recyclerview:recyclerview:${ANDROIDX_CORE}"
 
     implementation 'com.github.PhilJay:MPAndroidChart:v2.2.4'
 

@@ -10,10 +10,10 @@ import android.content.Intent
 import android.media.RingtoneManager
 import android.net.Uri
 import android.os.SystemClock
-import android.support.annotation.ColorInt
-import android.support.annotation.DrawableRes
-import android.support.v4.app.NotificationCompat
-import android.support.v4.content.ContextCompat
+import androidx.annotation.ColorInt
+import androidx.annotation.DrawableRes
+import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 import com.gb.canibuyit.R
 import com.gb.canibuyit.feature.spending.view.MainActivity
 import javax.inject.Inject

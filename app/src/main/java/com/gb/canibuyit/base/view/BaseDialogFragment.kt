@@ -1,12 +1,12 @@
 package com.gb.canibuyit.base.view
 
 import android.os.Bundle
-import android.support.annotation.StringRes
-import android.support.v4.app.DialogFragment
-import android.support.v4.app.FragmentManager
+import androidx.annotation.StringRes
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.FragmentManager
 import com.gb.canibuyit.R
 import com.gb.canibuyit.util.hide
 import com.gb.canibuyit.util.show

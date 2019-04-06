@@ -3,8 +3,8 @@ package com.gb.canibuyit.feature.spending.view
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
 import android.view.MenuItem
+import androidx.appcompat.app.AppCompatActivity
 import com.gb.canibuyit.R
 
 class SpendingEditorActivity : AppCompatActivity() {

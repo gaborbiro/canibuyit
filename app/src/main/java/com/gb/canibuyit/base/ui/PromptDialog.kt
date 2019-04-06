@@ -1,7 +1,7 @@
 package com.gb.canibuyit.base.ui
 
 import android.os.Bundle
-import android.support.annotation.StringRes
+import androidx.annotation.StringRes
 import android.text.SpannableStringBuilder
 import android.view.View
 import android.view.ViewGroup

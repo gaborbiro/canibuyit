@@ -2,13 +2,14 @@ package com.gb.canibuyit.util;
 
 import android.app.Activity;
 import android.content.pm.PackageManager;
-import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 public class PermissionVerifier {
 
@@ -52,7 +53,7 @@ public class PermissionVerifier {
 
     /**
      * Results will come in the
-     * {@link android.support.v4.app.FragmentActivity#onRequestPermissionsResult(int, String[], int[])} method
+     * {@link androidx.fragment.app.FragmentActivity#onRequestPermissionsResult(int, String[], int[])} method
      */
     private void askForPermissions(String[] permissions) {
         requestedPermissions = permissions;
@@ -73,14 +74,11 @@ public class PermissionVerifier {
         // TODO verify the permissions parameter to see if everything is there
         if (requestCode == this.requestCode) {
             Arrays.sort(permissions);
-            if (grantResults.length > 0
+            return grantResults.length > 0
                     && grantResults[0] == PackageManager.PERMISSION_GRANTED
-                    && Arrays.equals(this.permissions, permissions)) {
-                return true;
-            }
+                    && Arrays.equals(this.permissions, permissions);
         } else {
             throw new IllegalArgumentException("Wrong requestCode");
         }
-        return false;
     }
 }

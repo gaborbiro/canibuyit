@@ -1,10 +1,10 @@
 package com.gb.canibuyit.feature.spending.ui
 
 import android.content.Context
-import android.support.annotation.IntDef
 import android.view.View
 import android.widget.TextView
 import android.widget.Toast
+import androidx.annotation.IntDef
 
 import java.lang.annotation.Retention
 import java.lang.annotation.RetentionPolicy

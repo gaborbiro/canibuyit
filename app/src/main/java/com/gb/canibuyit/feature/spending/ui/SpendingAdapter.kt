@@ -1,7 +1,7 @@
 package com.gb.canibuyit.feature.spending.ui
 
-import android.support.v7.widget.RecyclerView
 import android.view.ViewGroup
+import androidx.recyclerview.widget.RecyclerView
 import com.gb.canibuyit.R
 import com.gb.canibuyit.feature.spending.model.Spending
 import com.gb.canibuyit.util.inflate

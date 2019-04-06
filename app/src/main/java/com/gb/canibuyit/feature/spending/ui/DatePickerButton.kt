@@ -2,10 +2,10 @@ package com.gb.canibuyit.feature.spending.ui
 
 import android.app.DatePickerDialog
 import android.content.Context
-import android.support.v7.widget.AppCompatButton
 import android.util.AttributeSet
 import android.view.GestureDetector
 import android.view.MotionEvent
+import androidx.appcompat.widget.AppCompatButton
 import com.gb.canibuyit.util.createDatePickerDialog
 import com.gb.canibuyit.util.formatDayMonthYearWithPrefix
 import java.time.LocalDate

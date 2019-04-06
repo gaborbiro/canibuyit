@@ -1,8 +1,8 @@
 package com.gb.canibuyit.feature.spending.ui
 
 import android.os.Bundle
-import android.support.annotation.StringRes
 import android.view.View
+import androidx.annotation.StringRes
 import com.gb.canibuyit.base.view.BaseDialogFragment
 import com.gb.canibuyit.util.show
 import kotlinx.android.synthetic.main.prompt_dialog_layout.*

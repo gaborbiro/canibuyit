@@ -1,8 +1,8 @@
 package com.gb.canibuyit.feature.spending.ui
 
 import android.os.Bundle
-import android.support.v4.app.FragmentManager
 import android.view.View
+import androidx.fragment.app.FragmentManager
 import com.gb.canibuyit.base.ui.PromptDialog
 import com.gb.canibuyit.feature.spending.persistence.model.ApiSpending
 import com.gb.canibuyit.util.eitherOrNull

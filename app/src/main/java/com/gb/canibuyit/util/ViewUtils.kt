@@ -2,7 +2,6 @@ package com.gb.canibuyit.util
 
 import android.app.DatePickerDialog
 import android.content.Context
-import android.support.annotation.LayoutRes
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.Spanned
@@ -16,6 +15,7 @@ import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.widget.DatePicker
 import android.widget.TextView
+import androidx.annotation.LayoutRes
 import java.time.LocalDate
 
 fun View.hideKeyboard() {
