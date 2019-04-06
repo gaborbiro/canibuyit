@@ -14,6 +14,7 @@ import com.gb.canibuyit.feature.spending.model.Spending
 import com.gb.canibuyit.feature.spending.ui.SpendingAdapter
 import com.gb.canibuyit.feature.spending.view.SpendingListFragment.FragmentCallback
 import kotlinx.android.synthetic.main.fragment_spending_list.*
+import javax.inject.Inject
 
 /**
  * A list fragment representing a list of Spendings. This fragment also supports
@@ -22,9 +23,11 @@ import kotlinx.android.synthetic.main.fragment_spending_list.*
  *
  * Activities containing this fragment MUST implement the [FragmentCallback] interface.
  */
-class SpendingListFragment : BaseFragment<SpendingListScreen, SpendingListPresenter>(),
+class SpendingListFragment : BaseFragment(),
         SpendingListScreen, SpendingAdapter.OnSpendingClickedListener,
         SwipeRefreshLayout.OnRefreshListener {
+
+    @Inject internal lateinit var presenter: SpendingListPresenter
 
     /**
      * The fragment's current callback object, which is notified of list item clicks.
@@ -45,6 +48,11 @@ class SpendingListFragment : BaseFragment<SpendingListScreen, SpendingListPresen
         adapter = SpendingAdapter(this)
         recycler_view.adapter = adapter
         swipe_container.setOnRefreshListener(this)
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        presenter.screenReference = this
     }
 
     override fun onResume() {

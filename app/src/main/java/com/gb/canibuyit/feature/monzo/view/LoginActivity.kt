@@ -9,8 +9,6 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import com.gb.canibuyit.R
 import com.gb.canibuyit.base.view.BaseActivity
-import com.gb.canibuyit.base.view.BasePresenter
-import com.gb.canibuyit.base.view.Screen
 import com.gb.canibuyit.di.Injector
 import com.gb.canibuyit.feature.monzo.CLIENT_ID
 import com.gb.canibuyit.feature.monzo.CredentialsProvider
@@ -47,9 +45,8 @@ class LoginActivity : BaseActivity() {
         webview.loadUrl(url)
     }
 
-    override fun inject(): BasePresenter<Screen>? {
+    override fun inject() {
         Injector.INSTANCE.graph.inject(this)
-        return null
     }
 
     companion object {

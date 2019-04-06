@@ -1,41 +1,49 @@
 package com.gb.canibuyit.base.view
 
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.OnLifecycleEvent
 import com.gb.canibuyit.error.ErrorHandler
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
 import javax.inject.Inject
+import kotlin.reflect.KProperty
 
-abstract class BasePresenter<S : Screen> {
+abstract class BasePresenter : LifecycleObserver {
 
     @Inject lateinit var errorHandler: ErrorHandler
 
-    private val currentDisposables: CompositeDisposable = CompositeDisposable()
-    private var screen: S? = null
-
-    fun setScreen(screen: S) {
-        if (this.screen != screen) {
-            this.screen = screen
-            onScreenSet()
+    var screenReference: Screen? = null
+        set(value) {
+            field = value
+            value?.addLifecycleObserver(this)
         }
-    }
 
-    fun getScreen(): S {
-        return screen!!
-    }
+    private val onDestroyDisposables: CompositeDisposable = CompositeDisposable()
 
     internal fun onError(throwable: Throwable) {
         errorHandler.onError(throwable)
     }
 
-    protected fun disposeOnFinish(disposable: Disposable) {
-        currentDisposables.add(disposable)
+    protected fun disposeOnDestroy(disposable: Disposable) {
+        onDestroyDisposables.add(disposable)
     }
 
-    fun onPresenterDestroyed() {
-        currentDisposables.clear()
+    @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
+    fun onDestroy() {
+        onDestroyDisposables.clear()
+        screenReference = null
     }
 
-    open fun onScreenSet() {
-        // override in child class if needed
+    protected interface ScreenDelegate<S : Screen> {
+        operator fun getValue(presenter: BasePresenter, property: KProperty<*>): S
+    }
+
+    protected inline fun <reified S : Screen> screenDelegate(): ScreenDelegate<S> {
+        return object : ScreenDelegate<S> {
+            private val screen by lazy { screenReference as S }
+
+            override fun getValue(presenter: BasePresenter, property: KProperty<*>) = screen
+        }
     }
 }

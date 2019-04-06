@@ -2,12 +2,12 @@ package com.gb.canibuyit.base.view
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import butterknife.ButterKnife
-import butterknife.Unbinder
+import androidx.lifecycle.LifecycleObserver
 import com.gb.canibuyit.base.ui.ProgressDialog
 import com.gb.canibuyit.di.Injector
 import com.gb.canibuyit.error.ContextSource
 import com.gb.canibuyit.error.ErrorHandler
+import org.jetbrains.annotations.Nullable
 import javax.inject.Inject
 
 abstract class BaseActivity : AppCompatActivity(), ProgressScreen, ContextSource {
@@ -15,13 +15,10 @@ abstract class BaseActivity : AppCompatActivity(), ProgressScreen, ContextSource
     @Inject lateinit var errorHandler: ErrorHandler
 
     private var progressDialog: ProgressDialog? = null
-    private lateinit var unbinder: Unbinder
-    var presenter: BasePresenter<Screen>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        presenter = inject()
-        presenter?.setScreen(this)
+        inject()
     }
 
     override fun onResume() {
@@ -32,17 +29,6 @@ abstract class BaseActivity : AppCompatActivity(), ProgressScreen, ContextSource
     override fun onPause() {
         super.onPause()
         Injector.INSTANCE.unregisterContextSource(this)
-    }
-
-    override fun onContentChanged() {
-        super.onContentChanged()
-        unbinder = ButterKnife.bind(this)
-    }
-
-    override fun onDestroy() {
-        unbinder.unbind()
-        super.onDestroy()
-        presenter?.onPresenterDestroyed()
     }
 
     protected fun onError(throwable: Throwable) {
@@ -67,5 +53,9 @@ abstract class BaseActivity : AppCompatActivity(), ProgressScreen, ContextSource
         progressDialog = null
     }
 
-    protected abstract fun inject(): BasePresenter<Screen>?
+    override fun addLifecycleObserver(observer: LifecycleObserver) {
+        lifecycle.addObserver(observer)
+    }
+
+    protected abstract fun inject()
 }

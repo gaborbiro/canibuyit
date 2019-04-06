@@ -20,16 +20,18 @@ class SpendingEditorPresenter @Inject constructor(
     private val spendingInteractor: SpendingInteractor,
     private val projectInteractor: ProjectInteractor,
     private val monzoInteractor: MonzoInteractor
-) : BasePresenter<SpendingEditorScreen>() {
+) : BasePresenter() {
 
     private var projectSettings: Project? = null
     private var disposable: Disposable? = null
+
+    val screen: SpendingEditorScreen by screenDelegate()
 
     @SuppressLint("CheckResult")
     fun saveSpending(spending: Spending) {
         spendingInteractor.createOrUpdate(spending)
                 .subscribe({
-                    getScreen().onSpendingLoaded(spending)
+                    screen.onSpendingLoaded(spending)
                 }) {
                     var throwable: Throwable = it
                     onError(throwable)
@@ -49,16 +51,16 @@ class SpendingEditorPresenter @Inject constructor(
     }
 
     fun deleteSpending(spending: Spending) {
-        disposeOnFinish(spendingInteractor.delete(spending.id!!)
-                .subscribe(getScreen()::onSpendingDeleted, this::onError))
+        disposeOnDestroy(spendingInteractor.delete(spending.id!!)
+                .subscribe(screen::onSpendingDeleted, this::onError))
     }
 
     fun showSpending(spendingId: Int) {
-        disposeOnFinish(spendingInteractor.get(spendingId)
-                .subscribe(getScreen()::onSpendingLoaded, this::onError))
-        disposeOnFinish(projectInteractor.getProject().subscribe({ project ->
+        disposeOnDestroy(spendingInteractor.get(spendingId)
+                .subscribe(screen::onSpendingLoaded, this::onError))
+        disposeOnDestroy(projectInteractor.getProject().subscribe({ project ->
             this.projectSettings = project
-            getScreen().applyProjectSettingsToScreen(project)
+            screen.applyProjectSettingsToScreen(project)
         }, this::onError))
     }
 
@@ -69,7 +71,7 @@ class SpendingEditorPresenter @Inject constructor(
                 .subscribe({
                     it.error?.let(this::onError)
                     it.content?.let {
-                        getScreen().hideCycleSpendDetails()
+                        screen.hideCycleSpendDetails()
                         val text = it
                                 .filter { it.category == category }
                                 .mapIndexed { index, transaction ->
@@ -78,14 +80,14 @@ class SpendingEditorPresenter @Inject constructor(
                                             Regex("[\\s]+"), " ")}\"".bold(amount.toString())
                                 }.joinTo(buffer = SpannableStringBuilder(), separator = "\n\n")
                         spentByCycle.apply {
-                            getScreen().showCycleSpendDetails(
+                            screen.showCycleSpendDetails(
                                     title = "$from $to: $amount ($count)",
                                     text = text)
                         }
                     }
                 }, this::onError)
         spentByCycle.apply {
-            getScreen().showCycleSpendDetails(
+            screen.showCycleSpendDetails(
                     title = "$from $to: $amount ($count)",
                     text = SpannableStringBuilder("Loading..."))
         }

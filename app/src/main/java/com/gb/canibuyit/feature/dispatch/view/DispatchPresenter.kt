@@ -11,7 +11,9 @@ import javax.inject.Inject
 
 class DispatchPresenter @Inject
 constructor(private val monzoInteractor: MonzoInteractor,
-            private val dispatchInteractor: DispatchInteractor) : BasePresenter<DispatchScreen>() {
+            private val dispatchInteractor: DispatchInteractor) : BasePresenter() {
+
+    val screen: DispatchScreen by screenDelegate()
 
     @SuppressLint("CheckResult")
     fun sendFCMTokenToServer(token: String) {
@@ -26,7 +28,7 @@ constructor(private val monzoInteractor: MonzoInteractor,
             monzoInteractor.registerWebhook(ACCOUNT_ID_RETAIL,
                     MONZO_DISPATCH_API_WEBHOOK + "/" + dispatchRegistration.hash)
                     .subscribe({
-                        getScreen().showToast(
+                        screen.showToast(
                                 "Successfully registered for retail Monzo push notifications $MONZO_DISPATCH_API_WEBHOOK/${dispatchRegistration.hash}")
                     }, errorHandler::onErrorSoft)
         }, errorHandler::onErrorSoft)

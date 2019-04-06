@@ -14,8 +14,6 @@ import com.gb.canibuyit.R
 import com.gb.canibuyit.UserPreferences
 import com.gb.canibuyit.base.ui.PromptDialog
 import com.gb.canibuyit.base.view.BaseActivity
-import com.gb.canibuyit.base.view.BasePresenter
-import com.gb.canibuyit.base.view.Screen
 import com.gb.canibuyit.di.Injector
 import com.gb.canibuyit.feature.dispatch.view.DispatchPresenter
 import com.gb.canibuyit.feature.dispatch.view.DispatchScreen
@@ -61,7 +59,7 @@ class MainActivity : BaseActivity(), MainScreen, DispatchScreen,
         SpendingListFragment.FragmentCallback, BalanceBreakdownDialogCallback {
 
     @Inject internal lateinit var userPreferences: UserPreferences
-    @Inject internal lateinit var mainPresenter: MainPresenter
+    @Inject internal lateinit var presenter: MainPresenter
     @Inject internal lateinit var dispatchPresenter: DispatchPresenter
 
     /**
@@ -73,23 +71,23 @@ class MainActivity : BaseActivity(), MainScreen, DispatchScreen,
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        dispatchPresenter.setScreen(this)
+        presenter.screenReference = this
+        dispatchPresenter.screenReference = this
         setContentView(R.layout.activity_main)
 
         if (findViewById<View>(R.id.spending_editor_container) != null) {
             twoPane = true
         }
-        mainPresenter.handleDeepLink(intent)
+        presenter.handleDeepLink(intent)
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        mainPresenter.handleDeepLink(intent)
+        presenter.handleDeepLink(intent)
     }
 
-    override fun inject(): BasePresenter<Screen>? {
+    override fun inject() {
         Injector.INSTANCE.graph.inject(this)
-        return mainPresenter as BasePresenter<Screen>
     }
 
     override fun close() {
@@ -101,11 +99,11 @@ class MainActivity : BaseActivity(), MainScreen, DispatchScreen,
      * that the spending with the given database ID was selected.
      */
     override fun onSpendingSelected(id: Int) {
-        mainPresenter.showEditorScreenForSpending(id)
+        presenter.showEditorScreenForSpending(id)
     }
 
     override fun refresh() {
-        mainPresenter.fetchMonzoData()
+        presenter.fetchMonzoData()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -115,25 +113,25 @@ class MainActivity : BaseActivity(), MainScreen, DispatchScreen,
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
-            R.id.menu_add -> mainPresenter.showEditorScreen()
+            R.id.menu_add -> presenter.showEditorScreen()
             R.id.menu_export -> {
                 permissionVerifier =
                     PermissionVerifier(this, arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE))
                 if (permissionVerifier.verifyPermissions(true,
                                 REQUEST_CODE_PERMISSIONS_FOR_DB_EXPORT)) {
-                    mainPresenter.exportDatabase()
+                    presenter.exportDatabase()
                 }
             }
-            R.id.menu_import_all -> mainPresenter.onImportDatabase(
+            R.id.menu_import_all -> presenter.onImportDatabase(
                     MainScreen.SpendingsImportType.ALL)
-            R.id.menu_import_monzo -> mainPresenter.onImportDatabase(
+            R.id.menu_import_monzo -> presenter.onImportDatabase(
                     MainScreen.SpendingsImportType.MONZO)
-            R.id.menu_import_non_monzo -> mainPresenter.onImportDatabase(
+            R.id.menu_import_non_monzo -> presenter.onImportDatabase(
                     MainScreen.SpendingsImportType.NON_MONZO)
             R.id.menu_fcm -> sendFCMTokenToServer()
-            R.id.menu_delete_spendings -> mainPresenter.deleteAllSpendings()
-            R.id.menu_set_project_name -> mainPresenter.onSetProjectName()
-            R.id.menu_hooks -> mainPresenter.logWebhooks()
+            R.id.menu_delete_spendings -> presenter.deleteAllSpendings()
+            R.id.menu_set_project_name -> presenter.onSetProjectName()
+            R.id.menu_hooks -> presenter.logWebhooks()
         }
         return super.onOptionsItemSelected(item)
     }
@@ -173,19 +171,19 @@ class MainActivity : BaseActivity(), MainScreen, DispatchScreen,
             when (requestCode) {
                 REQUEST_CODE_CHOOSE_FILE_ALL -> if (resultCode == Activity.RESULT_OK) {
                     val path = data.getStringExtra(EXTRA_RESULT_PATH)
-                    mainPresenter.onImportSpendings(path, MainScreen.SpendingsImportType.ALL)
+                    presenter.onImportSpendings(path, MainScreen.SpendingsImportType.ALL)
                 }
                 REQUEST_CODE_CHOOSE_FILE_MONZO -> if (resultCode == Activity.RESULT_OK) {
                     val path = data.getStringExtra(EXTRA_RESULT_PATH)
-                    mainPresenter.onImportSpendings(path, MainScreen.SpendingsImportType.MONZO)
+                    presenter.onImportSpendings(path, MainScreen.SpendingsImportType.MONZO)
                 }
                 REQUEST_CODE_CHOOSE_FILE_NON_MONZO -> if (resultCode == Activity.RESULT_OK) {
                     val path = data.getStringExtra(EXTRA_RESULT_PATH)
-                    mainPresenter.onImportSpendings(path, MainScreen.SpendingsImportType.NON_MONZO)
+                    presenter.onImportSpendings(path, MainScreen.SpendingsImportType.NON_MONZO)
                 }
                 REQUEST_CODE_CHOOSE_FILE_EXPORT -> if (resultCode == Activity.RESULT_OK) {
                     val path = data.getStringExtra(EXTRA_RESULT_PATH)
-                    mainPresenter.onExportSpendings(path)
+                    presenter.onExportSpendings(path)
                 }
             }
         }
@@ -197,7 +195,7 @@ class MainActivity : BaseActivity(), MainScreen, DispatchScreen,
         if (requestCode == REQUEST_CODE_PERMISSIONS_FOR_DB_EXPORT) {
             if (permissionVerifier.onRequestPermissionsResult(requestCode, permissions,
                             grantResults)) {
-                mainPresenter.exportDatabase()
+                presenter.exportDatabase()
             } else {
                 Toast.makeText(this, "Missing permissions!", Toast.LENGTH_SHORT).show()
             }
@@ -262,9 +260,9 @@ class MainActivity : BaseActivity(), MainScreen, DispatchScreen,
                 estimateAtTime,
                 arrayOf(defoMaybeStr, targetDefoMaybeStr, "behave", estimateDateStr),
                 arrayOf(
-                        mainPresenter::showBalanceBreakdown,
-                        mainPresenter::showTargetBalanceBreakdown,
-                        mainPresenter::showTargetSavingBreakdown,
+                        presenter::showBalanceBreakdown,
+                        presenter::showTargetBalanceBreakdown,
+                        presenter::showTargetSavingBreakdown,
                         this::showEstimateDateUpdater))
 
     }
@@ -312,13 +310,13 @@ class MainActivity : BaseActivity(), MainScreen, DispatchScreen,
     override fun setProjectName(currentName: String?) {
         val inputDialog = InputDialog.newInstance("Project name", currentName)
         inputDialog.setPositiveButton(R.string.save) { _ ->
-            mainPresenter.setProjectName(inputDialog.input)
+            presenter.setProjectName(inputDialog.input)
         }
                 .show(supportFragmentManager, null)
     }
 
     override fun onBalanceBreakdownItemClicked(category: ApiSpending.Category) {
-        mainPresenter.onBalanceBreakdownItemClicked(category)
+        presenter.onBalanceBreakdownItemClicked(category)
     }
 
     override fun showBalanceBreakdown(breakdown: BalanceBreakdown) {

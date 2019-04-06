@@ -30,20 +30,22 @@ constructor(private val monzoInteractor: MonzoInteractor,
             private val projectInteractor: ProjectInteractor,
             private val backupingInteractor: BackupingInteractor,
             private val credentialsProvider: CredentialsProvider,
-            private val userPreferences: UserPreferences) : BasePresenter<MainScreen>() {
+            private val userPreferences: UserPreferences) : BasePresenter() {
+
+    val screen: MainScreen by screenDelegate()
 
     init {
-        disposeOnFinish(spendingInteractor.subscribeToSpendings({ lce ->
-            if (lce.loading) getScreen().showProgress() else getScreen().hideProgress()
+        disposeOnDestroy(spendingInteractor.subscribeToSpendings({ lce ->
+            if (lce.loading) screen.showProgress() else screen.hideProgress()
             if (!lce.loading && !lce.hasError()) {
                 fetchBalance()
             }
         }, this::onError))
-        disposeOnFinish(monzoInteractor.subscribeToLogin({ lce ->
+        disposeOnDestroy(monzoInteractor.subscribeToLogin({ lce ->
             if (lce.loading) {
-                getScreen().showProgress()
+                screen.showProgress()
             } else {
-                getScreen().hideProgress()
+                screen.hideProgress()
                 if (lce.hasError()) {
                     this.onError(lce.error!!)
                 } else {
@@ -51,57 +53,54 @@ constructor(private val monzoInteractor: MonzoInteractor,
                         credentialsProvider.accessToken = login.accessToken
                         credentialsProvider.accessTokenExpiry = login.expiresAt
                         credentialsProvider.refreshToken = login.refreshToken
-                        getScreen().showToast(
+                        screen.showToast(
                                 "You are now logged in. Registering for Monzo notifications...")
-                        getScreen().sendFCMTokenToServer()
+                        screen.sendFCMTokenToServer()
                         fetchMonzoData()
                     }
                 }
             }
         }, this::onError))
-    }
-
-    override fun onScreenSet() {
-        disposeOnFinish(userPreferences.getBalanceReadingDataStream().subscribe { fetchBalance() })
-        disposeOnFinish(userPreferences.getEstimateDateDataStream().subscribe { fetchBalance() })
+        disposeOnDestroy(userPreferences.getBalanceReadingDataStream().subscribe { fetchBalance() })
+        disposeOnDestroy(userPreferences.getEstimateDateDataStream().subscribe { fetchBalance() })
     }
 
     @SuppressLint("CheckResult")
     private fun fetchBalance() {
-        disposeOnFinish(spendingInteractor.getBalance()
-                .doOnSubscribe { getScreen().showProgress() }
+        disposeOnDestroy(spendingInteractor.getBalance()
+                .doOnSubscribe { screen.showProgress() }
                 .doAfterTerminate {
-                    getScreen().hideProgress()
-                    getScreen().setLastUpdate(userPreferences.lastUpdate?.formatSimpleDateTime()
+                    screen.hideProgress()
+                    screen.setLastUpdate(userPreferences.lastUpdate?.formatSimpleDateTime()
                             ?: "never")
                 }
-                .subscribe(getScreen()::setBalanceInfo, {
-                    getScreen().setBalanceInfo(null)
+                .subscribe(screen::setBalanceInfo, {
+                    screen.setBalanceInfo(null)
                     this.onError(DomainException("Cannot calculate balance. See logs", it))
                 }))
         projectInteractor.getProject().subscribe(Consumer {
-            getScreen().setTitle(it.projectName)
+            screen.setTitle(it.projectName)
         })
     }
 
     fun showBalanceBreakdown() {
-        getScreen().showBalanceBreakdown(spendingInteractor.getBalanceBreakdown())
+        screen.showBalanceBreakdown(spendingInteractor.getBalanceBreakdown())
     }
 
     fun onBalanceBreakdownItemClicked(category: ApiSpending.Category) {
         val details = spendingInteractor.getBalanceBreakdownCategoryDetails(category)
         details?.let {
-            getScreen().showDialog(category.name.toLowerCase().capitalize(), it)
-        } ?: let { getScreen().showToast("Unavailable") }
+            screen.showDialog(category.name.toLowerCase().capitalize(), it)
+        } ?: let { screen.showToast("Unavailable") }
     }
 
     fun showTargetBalanceBreakdown() {
-        getScreen().showDialog("Target balance breakdown",
+        screen.showDialog("Target balance breakdown",
                 spendingInteractor.getTargetBalanceBreakdown())
     }
 
     fun showTargetSavingBreakdown() {
-        getScreen().showDialog("Saved by keeping targets",
+        screen.showDialog("Saved by keeping targets",
                 spendingInteractor.getTargetSavingBreakdown())
     }
 
@@ -119,20 +118,20 @@ constructor(private val monzoInteractor: MonzoInteractor,
                 }
             }
         } else if (!credentialsProvider.isRefresh()) {
-            getScreen().close()
-            getScreen().showLoginActivity()
+            screen.close()
+            screen.showLoginActivity()
         }
     }
 
     private fun login(authorizationCode: String) {
-        disposeOnFinish(monzoInteractor.login(authorizationCode))
+        disposeOnDestroy(monzoInteractor.login(authorizationCode))
     }
 
     fun fetchMonzoData() {
         if (!credentialsProvider.isRefresh()) {
-            getScreen().showLoginActivity()
+            screen.showLoginActivity()
         } else {
-            disposeOnFinish(monzoInteractor.loadSpendings(ACCOUNT_ID_RETAIL,
+            disposeOnDestroy(monzoInteractor.loadSpendings(ACCOUNT_ID_RETAIL,
                     TRANSACTION_HISTORY_LENGTH_MONTHS))
         }
     }
@@ -143,15 +142,15 @@ constructor(private val monzoInteractor: MonzoInteractor,
     }
 
     fun exportDatabase() {
-        disposeOnFinish(projectInteractor.getProject().subscribe(Consumer {
-            getScreen().showPickerForExport(getSuggestedExportPath(it.projectName))
+        disposeOnDestroy(projectInteractor.getProject().subscribe(Consumer {
+            screen.showPickerForExport(getSuggestedExportPath(it.projectName))
         }))
     }
 
     @SuppressLint("CheckResult")
     fun onExportSpendings(path: String) {
         backupingInteractor.exportSpendings(path)
-                .subscribe({ getScreen().showToast("Database exported") }, this::onError)
+                .subscribe({ screen.showToast("Database exported") }, this::onError)
     }
 
     private fun getSuggestedExportPath(projectName: String?): String {
@@ -164,7 +163,7 @@ constructor(private val monzoInteractor: MonzoInteractor,
 
     fun onImportDatabase(importType: MainScreen.SpendingsImportType) {
         val directory = "$BACKUP_FOLDER/"
-        getScreen().showPickerForImport(directory, importType)
+        screen.showPickerForImport(directory, importType)
     }
 
     fun onImportSpendings(path: String, importType: MainScreen.SpendingsImportType) {
@@ -179,34 +178,36 @@ constructor(private val monzoInteractor: MonzoInteractor,
     }
 
     fun showEditorScreenForSpending(id: Int) {
-        getScreen().showEditorScreen(id)
+        screen.showEditorScreen(id)
     }
 
     fun showEditorScreen() {
-        getScreen().showEditorScreen(null)
+        screen.showEditorScreen(null)
     }
 
     fun onSetProjectName() {
-        disposeOnFinish(projectInteractor.getProject().subscribe({
-            getScreen().setProjectName(it.projectName)
+        disposeOnDestroy(projectInteractor.getProject().subscribe({
+            screen.setProjectName(it.projectName)
         }, errorHandler::onErrorSoft))
     }
 
     fun setProjectName(projectName: String) {
-        disposeOnFinish(projectInteractor.getProject().subscribe({
+        disposeOnDestroy(projectInteractor.getProject().subscribe({
             it.projectName = projectName
-            getScreen().showToast("Project name saved")
-            getScreen().setTitle(projectName)
+            screen.showToast("Project name saved")
+            screen.setTitle(projectName)
         }, errorHandler::onErrorSoft))
     }
 
     fun logWebhooks() {
-        disposeOnFinish(monzoInteractor.getWebhooks(ACCOUNT_ID_RETAIL).subscribe({ retailWebhooks ->
-            val buffer = StringBuffer()
-            buffer.append("Retail account:\n")
-            retailWebhooks.webhooks.joinTo(buffer, separator = "\n", transform = { it.url })
-            Logger.d("com.gb.canibuyit.feature.spending.view.MainPresenter", buffer.toString())
-            getScreen().showDialog("Webhooks", buffer.toString())
-        }, errorHandler::onErrorSoft))
+        disposeOnDestroy(
+                monzoInteractor.getWebhooks(ACCOUNT_ID_RETAIL).subscribe({ retailWebhooks ->
+                    val buffer = StringBuffer()
+                    buffer.append("Retail account:\n")
+                    retailWebhooks.webhooks.joinTo(buffer, separator = "\n", transform = { it.url })
+                    Logger.d("com.gb.canibuyit.feature.spending.view.MainPresenter",
+                            buffer.toString())
+                    screen.showDialog("Webhooks", buffer.toString())
+                }, errorHandler::onErrorSoft))
     }
 }

@@ -3,6 +3,7 @@ package com.gb.canibuyit.fcm
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
+import androidx.lifecycle.LifecycleObserver
 import com.gb.canibuyit.di.Injector
 import com.gb.canibuyit.feature.dispatch.view.DispatchPresenter
 import com.gb.canibuyit.feature.dispatch.view.DispatchScreen
@@ -19,7 +20,7 @@ class FirebaseInstanceIdService : FirebaseInstanceIdService(), DispatchScreen {
 
     init {
         Injector.INSTANCE.graph.inject(this)
-        presenter.setScreen(this)
+        presenter.screenReference = this
     }
 
     override fun onTokenRefresh() {
@@ -38,6 +39,10 @@ class FirebaseInstanceIdService : FirebaseInstanceIdService(), DispatchScreen {
     }
 
     override fun hideProgress() {
+    }
+
+    override fun addLifecycleObserver(observer: LifecycleObserver) {
+        // ignore
     }
 }
 

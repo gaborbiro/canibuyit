@@ -34,14 +34,16 @@ import com.gb.canibuyit.util.orNull
 import kotlinx.android.synthetic.main.fragment_spending_editor.*
 import java.math.BigDecimal
 import java.time.LocalDate
+import javax.inject.Inject
 
 /**
  * A fragment representing a single Spending detail screen. This fragment is either
  * contained in a [MainActivity] in two-pane mode (on tablets) or a
  * [SpendingEditorActivity] on handsets.
  */
-class SpendingEditorFragment : BaseFragment<SpendingEditorScreen, SpendingEditorPresenter>(),
-        SpendingEditorScreen {
+class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen {
+
+    @Inject internal lateinit var presenter: SpendingEditorPresenter
 
     private var originalSpending: Spending? = null
     private var cycleMultiplierChanged: Boolean = false
@@ -57,6 +59,7 @@ class SpendingEditorFragment : BaseFragment<SpendingEditorScreen, SpendingEditor
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
+        presenter.screenReference = this
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,

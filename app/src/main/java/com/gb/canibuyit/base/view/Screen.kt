@@ -1,3 +1,7 @@
 package com.gb.canibuyit.base.view
 
-interface Screen
+import androidx.lifecycle.LifecycleObserver
+
+interface Screen {
+    fun addLifecycleObserver(observer: LifecycleObserver)
+}

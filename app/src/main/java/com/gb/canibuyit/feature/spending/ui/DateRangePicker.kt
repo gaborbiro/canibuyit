@@ -8,7 +8,6 @@ import android.view.MotionEvent
 import android.view.View
 import android.widget.DatePicker
 import android.widget.LinearLayout
-import butterknife.ButterKnife
 import com.gb.canibuyit.R
 import com.gb.canibuyit.util.createDatePickerDialog
 import com.gb.canibuyit.util.formatDayMonthYear
@@ -82,12 +81,11 @@ class DateRangePicker : LinearLayout {
     private fun init() {
         View.inflate(context, R.layout.date_range_picker, this)
         orientation = LinearLayout.VERTICAL
-        ButterKnife.bind(this)
         resetDates()
 
         start_date_btn.setOnClickListener(datePickerOnClickListener)
         end_date_btn.setOnClickListener(datePickerOnClickListener)
-        reset_btn.setOnClickListener { v ->
+        reset_btn.setOnClickListener {
             resetDates()
             startDatePickerDialog = null
             endDatePickerDialog = null

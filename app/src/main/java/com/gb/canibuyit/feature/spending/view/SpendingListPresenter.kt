@@ -5,17 +5,18 @@ import com.gb.canibuyit.feature.spending.data.SpendingInteractor
 import javax.inject.Inject
 
 class SpendingListPresenter @Inject
-constructor(private val spendingInteractor: SpendingInteractor) :
-        BasePresenter<SpendingListScreen>() {
+constructor(private val spendingInteractor: SpendingInteractor) : BasePresenter() {
+
+    val screen: SpendingListScreen by screenDelegate()
 
     init {
-        disposeOnFinish(spendingInteractor.subscribeToSpendings({ lce ->
+        disposeOnDestroy(spendingInteractor.subscribeToSpendings({ lce ->
             if (!lce.loading) {
                 lce.error?.let(this::onError)
                 lce.content
                         ?.sortedBy { -it.valuePerMonth.abs() }
                         ?.sortedBy { !it.enabled }
-                        ?.let(getScreen()::setData)
+                        ?.let(screen::setData)
             }
         }, this::onError))
     }

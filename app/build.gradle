@@ -48,7 +48,6 @@ kapt {
 }
 
 final DAGGER = '2.21'
-final BUTTERKNIFE = '10.1.0'
 final RETROFIT = '2.5.0'
 final RETROFIT_RXJAVA2 = '2.5.0'
 final RXJAVA = '2.2.4'
@@ -78,10 +77,6 @@ dependencies {
     // Dagger 2
     implementation "com.google.dagger:dagger:${DAGGER}"
     kapt "com.google.dagger:dagger-compiler:${DAGGER}"
-
-    // ButterKnife
-    implementation "com.jakewharton:butterknife:${BUTTERKNIFE}"
-    kapt "com.jakewharton:butterknife-compiler:${BUTTERKNIFE}"
 
     // Retrofit
     implementation "com.squareup.retrofit2:retrofit:${RETROFIT}"
