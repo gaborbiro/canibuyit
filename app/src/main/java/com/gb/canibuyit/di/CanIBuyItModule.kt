@@ -10,6 +10,7 @@ import com.gb.canibuyit.feature.spending.persistence.model.ApiSpending
 import com.gb.canibuyit.base.rx.SchedulerProvider
 import com.gb.canibuyit.base.rx.SchedulerProviderImpl
 import com.gb.canibuyit.util.localDateSerializer
+import com.gb.lib_prefsutil.PrefsUtil
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.j256.ormlite.dao.Dao
@@ -41,6 +42,10 @@ class CanIBuyItModule {
     fun provideSpendingDao(spendingDBHelper: SpendingDBHelper): Dao<ApiSpending, Int> {
         return spendingDBHelper.getDao<Dao<ApiSpending, Int>, ApiSpending>(ApiSpending::class.java)
     }
+
+    @Provides
+    @Singleton
+    fun providePrefsUtil(appContext: Context): PrefsUtil = PrefsUtil(appContext, "settings")
 
     @Provides
     @Singleton

@@ -2,7 +2,7 @@ package com.gb.canibuyit
 
 import android.content.SharedPreferences
 import com.gb.canibuyit.feature.spending.model.BalanceReading
-import com.gb.canibuyit.util.PrefsUtil
+import com.gb.lib_prefsutil.PrefsUtil
 import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
 import java.time.LocalDate
@@ -23,13 +23,13 @@ constructor(private val prefsUtil: PrefsUtil) : SharedPreferences.OnSharedPrefer
     }
 
     var estimateDate: LocalDate
-        get() = prefsUtil.get(PREF_ESTIMATE_DATE, "").let {
-            if (it.isNotEmpty()) LocalDate.parse(it) else LocalDate.now()
+        get() = prefsUtil[PREF_ESTIMATE_DATE, ""].let {
+            if (!it.isNullOrEmpty()) LocalDate.parse(it) else LocalDate.now()
         }
         set(date) = prefsUtil.put(PREF_ESTIMATE_DATE, date.toString())
 
     var balanceReading: BalanceReading?
-        get() = prefsUtil.get(PREF_READING, BalanceReading.CREATOR)
+        get() = prefsUtil[PREF_READING, BalanceReading.CREATOR]
         set(reading) = if (reading != null) {
             prefsUtil.put(PREF_READING, reading)
         } else {
@@ -52,8 +52,8 @@ constructor(private val prefsUtil: PrefsUtil) : SharedPreferences.OnSharedPrefer
     }
 
     var lastUpdate: LocalDateTime?
-        get() = prefsUtil.get(PREF_LAST_UPDATE, "").let {
-            if (it.isNotEmpty()) LocalDateTime.parse(it) else null
+        get() = prefsUtil[PREF_LAST_UPDATE, ""].let {
+            if (!it.isNullOrEmpty()) LocalDateTime.parse(it) else null
         }
         set(date) = prefsUtil.put(PREF_LAST_UPDATE, date.toString())
 

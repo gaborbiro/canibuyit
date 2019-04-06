@@ -1,7 +1,6 @@
 package com.gb.canibuyit.feature.monzo
 
-import com.gb.canibuyit.util.PrefsUtil
-
+import com.gb.lib_prefsutil.PrefsUtil
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -9,15 +8,15 @@ import javax.inject.Singleton
 class CredentialsProvider @Inject constructor(private val prefsUtil: PrefsUtil) {
 
     var accessToken: String?
-        get() = prefsUtil.get(PREF_ACCESS_TOKEN, "")
+        get() = prefsUtil[PREF_ACCESS_TOKEN, ""]
         set(accessToken) = prefsUtil.put(PREF_ACCESS_TOKEN, accessToken)
 
     var accessTokenExpiry: Long
-        get() = prefsUtil.get(PREF_ACCESS_TOKEN_EXPIRY, Long.MAX_VALUE)
+        get() = prefsUtil[PREF_ACCESS_TOKEN_EXPIRY, Long.MAX_VALUE]
         set(value) = prefsUtil.put(PREF_ACCESS_TOKEN_EXPIRY, value)
 
     var refreshToken: String?
-        get() = prefsUtil.get(PREF_REFRESH_TOKEN, null as String?)
+        get() = prefsUtil[PREF_REFRESH_TOKEN, ""]
         set(refreshToken) = prefsUtil.put(PREF_REFRESH_TOKEN, refreshToken)
 
     fun isRefresh(): Boolean {

@@ -14,6 +14,7 @@ import androidx.annotation.ColorInt
 import androidx.annotation.DrawableRes
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.getSystemService
 import com.gb.canibuyit.R
 import com.gb.canibuyit.feature.spending.view.MainActivity
 import javax.inject.Inject
@@ -22,7 +23,7 @@ class LocalNotificationManager @Inject constructor(
     private val applicationContext: Context) {
 
     private val notificationManager: NotificationManager =
-        applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        applicationContext.getSystemService<NotificationManager>()!!
     private val notificationColor: Int = ContextCompat.getColor(applicationContext, R.color.primary)
 
     init {
@@ -69,8 +70,7 @@ class LocalNotificationManager @Inject constructor(
                 PendingIntent.FLAG_CANCEL_CURRENT)
 
         val futureInMillis = SystemClock.elapsedRealtime() + delay
-        val alarmManager =
-            applicationContext.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val alarmManager = applicationContext.getSystemService<AlarmManager>()!!
         alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, futureInMillis, pendingIntent)
     }
 
