@@ -3,8 +3,8 @@ package com.gb.canibuyit.feature.spending.ui
 import android.os.Bundle
 import android.view.View
 import androidx.annotation.StringRes
+import androidx.core.view.isVisible
 import com.gb.canibuyit.base.view.BaseDialogFragment
-import com.gb.canibuyit.util.show
 import kotlinx.android.synthetic.main.prompt_dialog_layout.*
 
 class InputDialog : BaseDialogFragment() {
@@ -17,7 +17,7 @@ class InputDialog : BaseDialogFragment() {
         super.onViewCreated(view, savedInstanceState)
         arguments?.getString(EXTRA_TITLE)?.let { setTitle(it) }
         arguments?.getString(EXTRA_CURRENT_INPUT)?.let { text_input.setText(it) }
-        text_input.show()
+        text_input.isVisible = true
         updateTitleVisibility()
 
         super.setPositiveButton(btnStringResId) {

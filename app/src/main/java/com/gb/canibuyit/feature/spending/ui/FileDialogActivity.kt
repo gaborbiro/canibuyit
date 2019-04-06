@@ -14,14 +14,13 @@ import android.widget.ImageView
 import android.widget.ListView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.view.isVisible
 import com.gb.canibuyit.R
 import com.gb.canibuyit.error.DirReadException
 import com.gb.canibuyit.util.DirUtils
 import com.gb.canibuyit.util.PermissionVerifier
-import com.gb.canibuyit.util.hide
 import com.gb.canibuyit.util.hideKeyboard
 import com.gb.canibuyit.util.inflate
-import com.gb.canibuyit.util.show
 import kotlinx.android.synthetic.main.activity_file_picker.*
 import java.io.File
 import java.util.HashMap
@@ -75,7 +74,7 @@ class FileDialogActivity : ListActivity() {
             new_btn.isEnabled = false
         }
 
-        this.selection_buttons_container.hide()
+        this.selection_buttons_container.isVisible = false
         this.cancel_btn.setOnClickListener(this::setSelectVisible)
         this.create_btn.setOnClickListener {
             if (this.file_name_input.text.isNotEmpty()) {
@@ -216,8 +215,8 @@ class FileDialogActivity : ListActivity() {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
             this.select_btn.isEnabled = false
             if (this.creation_buttons_container.visibility == View.VISIBLE) {
-                this.creation_buttons_container.hide()
-                this.selection_buttons_container.show()
+                this.creation_buttons_container.isVisible = false
+                this.selection_buttons_container.isVisible = true
             } else {
                 parentPath?.let {
                     setData(it)
@@ -232,8 +231,8 @@ class FileDialogActivity : ListActivity() {
     }
 
     private fun setCreateVisible(view: View?) {
-        this.creation_buttons_container.show()
-        this.selection_buttons_container.hide()
+        this.creation_buttons_container.isVisible = true
+        this.selection_buttons_container.isVisible = false
         view?.apply {
             hideKeyboard()
         }
@@ -241,8 +240,8 @@ class FileDialogActivity : ListActivity() {
     }
 
     private fun setSelectVisible(view: View?) {
-        this.creation_buttons_container.hide()
-        this.selection_buttons_container.show()
+        this.creation_buttons_container.isVisible = false
+        this.selection_buttons_container.isVisible = true
         view?.apply {
             hideKeyboard()
         }

@@ -2,12 +2,12 @@ package com.gb.canibuyit.feature.spending.ui
 
 import android.os.Bundle
 import android.view.View
+import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentManager
 import com.gb.canibuyit.base.ui.PromptDialog
 import com.gb.canibuyit.feature.spending.persistence.model.ApiSpending
 import com.gb.canibuyit.util.eitherOrNull
 import com.gb.canibuyit.util.setSubtextWithLinks
-import com.gb.canibuyit.util.show
 import kotlinx.android.synthetic.main.prompt_dialog_layout.*
 import java.io.Serializable
 
@@ -48,7 +48,7 @@ class BalanceBreakdownDialog : PromptDialog() {
             breakdown.spendings.joinTo(buffer = this, separator = "\n", transform = {
                 it.second
             })
-            big_message_container.show()
+            big_message_container.isVisible = true
             big_message.setSubtextWithLinks(
                     toString(),
                     breakdown.spendings.map { it.second }.toTypedArray(),

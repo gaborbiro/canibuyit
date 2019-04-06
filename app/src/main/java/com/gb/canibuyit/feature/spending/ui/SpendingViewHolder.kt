@@ -3,13 +3,12 @@ package com.gb.canibuyit.feature.spending.ui
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.gb.canibuyit.R
 import com.gb.canibuyit.feature.monzo.MONZO_CATEGORY
 import com.gb.canibuyit.feature.spending.model.Saving
 import com.gb.canibuyit.feature.spending.model.Spending
-import com.gb.canibuyit.util.hide
-import com.gb.canibuyit.util.show
 import java.math.BigDecimal
 
 class SpendingViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -55,16 +54,16 @@ class SpendingViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
                     spentView.text = context.getString(R.string.spending_no_target, spent,
                             cycleStr) // 0.00 this month
                 }
-                spentView.show()
+                spentView.isVisible = true
             } else {
-                spentView.hide()
+                spentView.isVisible = false
             }
         }
         if (spending.sourceData?.containsKey(MONZO_CATEGORY) == true) {
             iconView.setImageResource(R.drawable.monzo)
-            iconView.show()
+            iconView.isVisible = true
         } else {
-            iconView.hide()
+            iconView.isVisible = false
         }
         spending.spent.let { spent ->
             if (spent != BigDecimal.ZERO) {
@@ -83,8 +82,8 @@ class SpendingViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         spending.savings?.let {
             it.sumByDouble(Saving::amount).let { saving ->
                 savingView.text = context.getString(R.string.saving, saving)
-                savingView.show()
+                savingView.isVisible = true
             }
-        } ?: savingView.hide()
+        } ?: run { savingView.isVisible = false }
     }
 }

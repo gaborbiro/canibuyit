@@ -10,6 +10,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.core.view.isVisible
 import com.gb.canibuyit.R
 import com.gb.canibuyit.base.ui.PromptDialog
 import com.gb.canibuyit.base.view.BaseFragment
@@ -21,17 +22,15 @@ import com.gb.canibuyit.feature.spending.model.plus
 import com.gb.canibuyit.feature.spending.model.times
 import com.gb.canibuyit.feature.spending.persistence.model.ApiSpending
 import com.gb.canibuyit.feature.spending.ui.PlusOneAdapter
+import com.gb.canibuyit.feature.spending.ui.ValidationError
 import com.gb.canibuyit.util.DialogUtils
 import com.gb.canibuyit.util.TextChangeListener
-import com.gb.canibuyit.feature.spending.ui.ValidationError
 import com.gb.canibuyit.util.add
 import com.gb.canibuyit.util.bold
 import com.gb.canibuyit.util.formatDayMonthYearWithPrefix
-import com.gb.canibuyit.util.hide
 import com.gb.canibuyit.util.hideKeyboard
 import com.gb.canibuyit.util.link
 import com.gb.canibuyit.util.orNull
-import com.gb.canibuyit.util.show
 import kotlinx.android.synthetic.main.fragment_spending_editor.*
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -172,16 +171,12 @@ class SpendingEditorFragment : BaseFragment<SpendingEditorScreen, SpendingEditor
         notes_input.setText(spending.notes)
         spending.sourceData?.get(MONZO_CATEGORY)?.let {
             source_category_lbl.text = "(original Monzo category: $it)"
-            source_category_lbl.show()
+            source_category_lbl.isVisible = true
         }
         spending.spentByCycle?.let { list ->
-            spent_by_cycle_list.show()
+            spent_by_cycle_list.isVisible = true
             spent_by_cycle_list.removeAllViews()
-            if (list.isEmpty()) {
-                spent_by_cycle_lbl.hide()
-            } else {
-                spent_by_cycle_lbl.show()
-            }
+            spent_by_cycle_lbl.isVisible = !list.isEmpty()
             list.forEach { cycleSpent ->
                 spent_by_cycle_list.add<TextView>(
                         com.gb.canibuyit.R.layout.list_item_spent_by_cycle)

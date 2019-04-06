@@ -2,9 +2,8 @@ package com.gb.canibuyit.base.ui
 
 import android.os.Bundle
 import android.view.View
+import androidx.core.view.isVisible
 import com.gb.canibuyit.base.view.BaseDialogFragment
-import com.gb.canibuyit.util.hide
-import com.gb.canibuyit.util.show
 import kotlinx.android.synthetic.main.prompt_dialog_layout.*
 
 class ProgressDialog : BaseDialogFragment() {
@@ -12,8 +11,8 @@ class ProgressDialog : BaseDialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         arguments?.getString(EXTRA_MESSAGE)?.let { setMessage(it) }
-        button.hide()
-        progress_bar.show()
+        button.isVisible = false
+        progress_bar.isVisible = true
         isCancelable = false
     }
 

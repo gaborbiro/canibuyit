@@ -5,12 +5,10 @@ import androidx.annotation.StringRes
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentManager
 import com.gb.canibuyit.R
-import com.gb.canibuyit.util.hide
-import com.gb.canibuyit.util.show
-import com.gb.canibuyit.util.visible
 import kotlinx.android.synthetic.main.prompt_dialog_layout.*
 
 open class BaseDialogFragment : DialogFragment() {
@@ -40,14 +38,14 @@ open class BaseDialogFragment : DialogFragment() {
 
     fun setMessage(body: String): BaseDialogFragment {
         this.message.text = body
-        this.message.show()
+        this.message.isVisible = true
         updateTitleVisibility()
         return this
     }
 
     fun setBigMessage(body: CharSequence): BaseDialogFragment {
         this.big_message.text = body
-        this.big_message_container.show()
+        this.big_message_container.isVisible = true
         updateTitleVisibility()
         return this
     }
@@ -55,23 +53,19 @@ open class BaseDialogFragment : DialogFragment() {
     open fun setPositiveButton(buttonTextId: Int, listener: ((View) -> Unit)?): BaseDialogFragment {
         listener?.let { button.setOnClickListener(it) }
         button.text = getString(buttonTextId)
-        button.show()
-        progress_bar.hide()
+        button.isVisible = true
+        progress_bar.isVisible = false
         return this
     }
 
     protected fun updateTitleVisibility() {
         if (!dialog_title.text.isNullOrBlank()) {
-            dialog_title.show()
+            dialog_title.isVisible = true
 
-            if (message.visible() || big_message_container.visible() || text_input.visible()) {
-                title_bottom_divider.show()
-            } else {
-                title_bottom_divider.hide()
-            }
+            title_bottom_divider.isVisible = message.isVisible || big_message_container.isVisible || text_input.isVisible
         } else {
-            dialog_title.hide()
-            title_bottom_divider.hide()
+            dialog_title.isVisible = false
+            title_bottom_divider.isVisible = false
         }
     }
 
