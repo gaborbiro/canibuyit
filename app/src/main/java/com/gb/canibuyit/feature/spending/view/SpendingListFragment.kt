@@ -8,11 +8,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.gb.canibuyit.R
-import com.gb.canibuyit.di.Injector
-import com.gb.canibuyit.feature.spending.view.SpendingListFragment.FragmentCallback
-import com.gb.canibuyit.feature.spending.model.Spending
 import com.gb.canibuyit.base.view.BaseFragment
+import com.gb.canibuyit.di.Injector
+import com.gb.canibuyit.feature.spending.model.Spending
 import com.gb.canibuyit.feature.spending.ui.SpendingAdapter
+import com.gb.canibuyit.feature.spending.view.SpendingListFragment.FragmentCallback
 import kotlinx.android.synthetic.main.fragment_spending_list.*
 
 /**
@@ -22,7 +22,9 @@ import kotlinx.android.synthetic.main.fragment_spending_list.*
  *
  * Activities containing this fragment MUST implement the [FragmentCallback] interface.
  */
-class SpendingListFragment : BaseFragment<SpendingListScreen, SpendingListPresenter>(), SpendingListScreen, SpendingAdapter.OnSpendingClickedListener, SwipeRefreshLayout.OnRefreshListener {
+class SpendingListFragment : BaseFragment<SpendingListScreen, SpendingListPresenter>(),
+        SpendingListScreen, SpendingAdapter.OnSpendingClickedListener,
+        SwipeRefreshLayout.OnRefreshListener {
 
     /**
      * The fragment's current callback object, which is notified of list item clicks.
@@ -31,13 +33,15 @@ class SpendingListFragment : BaseFragment<SpendingListScreen, SpendingListPresen
 
     private lateinit var adapter: SpendingAdapter
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
+                              savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_spending_list, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        recycler_view.addItemDecoration(DividerItemDecoration(activity, DividerItemDecoration.VERTICAL))
+        recycler_view.addItemDecoration(
+                DividerItemDecoration(activity, DividerItemDecoration.VERTICAL))
         adapter = SpendingAdapter(this)
         recycler_view.adapter = adapter
         swipe_container.setOnRefreshListener(this)

@@ -11,7 +11,8 @@ import com.gb.canibuyit.R
 
 class ProgressRelativeLayout @JvmOverloads constructor(context: Context,
                                                        attrs: AttributeSet? = null,
-                                                       defStyleAttr: Int = 0) : RelativeLayout(context, attrs, defStyleAttr) {
+                                                       defStyleAttr: Int = 0) :
+        RelativeLayout(context, attrs, defStyleAttr) {
 
     internal var progress: Float = 0.0f
         set(value) {
@@ -26,16 +27,22 @@ class ProgressRelativeLayout @JvmOverloads constructor(context: Context,
             when (value) {
                 Mode.MIN_LIMIT -> {
                     when {
-                        progress > 0.99 -> paint.color = ContextCompat.getColor(context, R.color.spending_list_item_spend_high)
-                        progress > 0.75 -> paint.color = ContextCompat.getColor(context, R.color.spending_list_item_spend_medium)
-                        else -> paint.color = ContextCompat.getColor(context, R.color.spending_list_item_spend_low)
+                        progress > 0.99 -> paint.color =
+                            ContextCompat.getColor(context, R.color.spending_list_item_spend_high)
+                        progress > 0.75 -> paint.color =
+                            ContextCompat.getColor(context, R.color.spending_list_item_spend_medium)
+                        else -> paint.color =
+                            ContextCompat.getColor(context, R.color.spending_list_item_spend_low)
                     }
                 }
                 Mode.MAX_LIMIT -> {
                     when {
-                        progress > 0.99 -> paint.color = ContextCompat.getColor(context, R.color.spending_list_item_spend_low)
-                        progress > 0.75 -> paint.color = ContextCompat.getColor(context, R.color.spending_list_item_spend_medium)
-                        else -> paint.color = ContextCompat.getColor(context, R.color.spending_list_item_spend_high)
+                        progress > 0.99 -> paint.color =
+                            ContextCompat.getColor(context, R.color.spending_list_item_spend_low)
+                        progress > 0.75 -> paint.color =
+                            ContextCompat.getColor(context, R.color.spending_list_item_spend_medium)
+                        else -> paint.color =
+                            ContextCompat.getColor(context, R.color.spending_list_item_spend_high)
                     }
                 }
                 Mode.DEFAULT -> {

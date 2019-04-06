@@ -1,7 +1,7 @@
 package com.gb.canibuyit.feature.project.data
 
 import com.gb.canibuyit.feature.project.model.ApiProject
-import com.gb.canibuyit.rx.SchedulerProvider
+import com.gb.canibuyit.base.rx.SchedulerProvider
 import io.reactivex.Single
 import io.reactivex.disposables.Disposable
 import javax.inject.Inject
@@ -23,8 +23,10 @@ class Project constructor(projectRepository: ProjectRepository,
 
     private var nameUpdater = Updater(schedulerProvider, projectRepository::projectName)
     private var nameOverrideUpdater = Updater(schedulerProvider, projectRepository::nameOverride)
-    private var categoryOverrideUpdater = Updater(schedulerProvider, projectRepository::categoryOverride)
-    private var averageOverrideUpdater = Updater(schedulerProvider, projectRepository::averageOverride)
+    private var categoryOverrideUpdater =
+        Updater(schedulerProvider, projectRepository::categoryOverride)
+    private var averageOverrideUpdater =
+        Updater(schedulerProvider, projectRepository::averageOverride)
     private var cycleOverrideUpdater = Updater(schedulerProvider, projectRepository::cycleOverride)
     private var whenOverrideUpdater = Updater(schedulerProvider, projectRepository::whenOverride)
 

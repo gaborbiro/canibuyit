@@ -12,10 +12,10 @@ import javax.inject.Inject
 
 abstract class BaseActivity : AppCompatActivity(), ProgressScreen, ContextSource {
 
-    lateinit @Inject var errorHandler: ErrorHandler
+    @Inject lateinit var errorHandler: ErrorHandler
 
     private var progressDialog: ProgressDialog? = null
-    lateinit var unbinder: Unbinder
+    private lateinit var unbinder: Unbinder
     var presenter: BasePresenter<Screen>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -53,8 +53,8 @@ abstract class BaseActivity : AppCompatActivity(), ProgressScreen, ContextSource
         progressDialog ?: let {
             progressDialog = ProgressDialog.newInstance("Please wait")
                     .apply {
-                show(supportFragmentManager, "progress")
-            }
+                        show(supportFragmentManager, "progress")
+                    }
         }
     }
 

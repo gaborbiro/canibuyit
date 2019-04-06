@@ -3,15 +3,11 @@ package com.gb.canibuyit.util;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
-import android.text.TextUtils;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.nio.channels.FileChannel;
 
@@ -56,18 +52,5 @@ public class FileUtils {
         }
 
         return null;
-    }
-
-    static String streamToString(InputStream is) throws IOException {
-        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is));
-        StringBuilder result = new StringBuilder();
-        String line;
-
-        while (!TextUtils.isEmpty(line = bufferedReader.readLine())) {
-            result.append(line);
-            result.append("\n");
-        }
-        bufferedReader.close();
-        return result.toString();
     }
 }

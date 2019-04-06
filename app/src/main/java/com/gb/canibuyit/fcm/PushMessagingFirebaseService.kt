@@ -2,14 +2,14 @@ package com.gb.canibuyit.fcm
 
 import android.annotation.SuppressLint
 import android.util.Log
+import com.gb.canibuyit.di.Injector
+import com.gb.canibuyit.fcm.model.FcmMonzoData
 import com.gb.canibuyit.feature.monzo.ACCOUNT_ID_RETAIL
 import com.gb.canibuyit.feature.monzo.MONZO_CATEGORY
 import com.gb.canibuyit.feature.monzo.TRANSACTION_HISTORY_LENGTH_MONTHS
-import com.gb.canibuyit.di.Injector
-import com.gb.canibuyit.fcm.model.FcmMonzoData
 import com.gb.canibuyit.feature.monzo.data.MonzoInteractor
-import com.gb.canibuyit.feature.spending.data.SpendingInteractor
 import com.gb.canibuyit.feature.monzo.data.MonzoMapper
+import com.gb.canibuyit.feature.spending.data.SpendingInteractor
 import com.gb.canibuyit.util.Logger
 import com.gb.canibuyit.util.formatEventTime
 import com.gb.canibuyit.util.formatEventTimePrefix
@@ -36,7 +36,7 @@ class PushMessagingFirebaseService : FirebaseMessagingService() {
     }
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
-        Log.d(TAG, "From: " + remoteMessage.from)
+        Log.d(TAG, "From: ${remoteMessage.from}")
         remoteMessage.data?.let {
             Log.d(TAG, "Data: $it")
             it["monzo_data"]?.let(this@PushMessagingFirebaseService::handleMonzoPush)
@@ -68,7 +68,8 @@ class PushMessagingFirebaseService : FirebaseMessagingService() {
                         val absTarget = target.absoluteValue
                         val progress: Float = spent.divide(absTarget.toBigDecimal())
                                 .multiply(100.toBigDecimal()).toFloat()
-                        localNotificationManager.showSimpleNotification(spending.name, ("%.0f%% (%.0f/%d)").format(progress, spent, absTarget))
+                        localNotificationManager.showSimpleNotification(spending.name,
+                                ("%.0f%% (%.0f/%d)").format(progress, spent, absTarget))
                     } ?: let {
                         //                        showSimpleNotification(spending.name, "£%.0f".format(spent))
                     }
@@ -84,8 +85,11 @@ class PushMessagingFirebaseService : FirebaseMessagingService() {
             if (isEarlyEvent(eventStartTime, eventEndTime)) {
                 val alarmTime = LocalDateTime.of(eventStartTime.toLocalDate(), LocalTime.MIDNIGHT)
                         .minusHours(3)
-                localNotificationManager.scheduleEventNotification(alarmTime.millisUntil(), "Event: " + event.title, eventStartTime.formatEventTime(), event.url)
-                localNotificationManager.showSimpleNotification("Early event notif sheduled: ${event.title}", alarmTime.formatEventTimePrefix())
+                localNotificationManager.scheduleEventNotification(alarmTime.millisUntil(),
+                        "Event: " + event.title, eventStartTime.formatEventTime(), event.url)
+                localNotificationManager.showSimpleNotification(
+                        "Early event notif sheduled: ${event.title}",
+                        alarmTime.formatEventTimePrefix())
             }
         } catch (t: Throwable) {
             Log.e(TAG, "Error handling calendar push", t)
@@ -93,7 +97,8 @@ class PushMessagingFirebaseService : FirebaseMessagingService() {
     }
 
     private fun isEarlyEvent(startTime: LocalDateTime, endTime: LocalDateTime): Boolean {
-        return !isAllDayEvent(startTime, endTime) && startTime.isAfter(midnightOfToday()) && startTime.hour < 10
+        return !isAllDayEvent(startTime, endTime) && startTime.isAfter(
+                midnightOfToday()) && startTime.hour < 10
     }
 
     private fun isAllDayEvent(startTime: LocalDateTime, endTime: LocalDateTime): Boolean {

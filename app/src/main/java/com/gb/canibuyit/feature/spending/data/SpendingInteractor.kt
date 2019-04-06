@@ -1,14 +1,14 @@
 package com.gb.canibuyit.feature.spending.data
 
 import android.annotation.SuppressLint
-import com.gb.canibuyit.feature.monzo.MONZO_CATEGORY
-import com.gb.canibuyit.feature.spending.persistence.model.ApiSpending
-import com.gb.canibuyit.error.DomainException
-import com.gb.canibuyit.feature.monzo.data.MonzoInteractor
 import com.gb.canibuyit.base.model.Lce
+import com.gb.canibuyit.error.DomainException
+import com.gb.canibuyit.feature.monzo.MONZO_CATEGORY
+import com.gb.canibuyit.feature.monzo.data.MonzoInteractor
 import com.gb.canibuyit.feature.spending.model.Spending
-import com.gb.canibuyit.rx.SchedulerProvider
+import com.gb.canibuyit.feature.spending.persistence.model.ApiSpending
 import com.gb.canibuyit.feature.spending.ui.BalanceBreakdown
+import com.gb.canibuyit.base.rx.SchedulerProvider
 import io.reactivex.Completable
 import io.reactivex.Maybe
 import io.reactivex.Observable
@@ -27,7 +27,8 @@ constructor(private val spendingsRepository: SpendingsRepository,
 
     private val spendingSubject = PublishSubject.create<Lce<List<Spending>>>()
 
-    fun subscribeToSpendings(onNext: (Lce<List<Spending>>) -> Unit, onError: (Throwable) -> Unit): Disposable {
+    fun subscribeToSpendings(onNext: (Lce<List<Spending>>) -> Unit,
+                             onError: (Throwable) -> Unit): Disposable {
         return spendingSubject.subscribe(onNext, onError)
     }
 
@@ -56,7 +57,8 @@ constructor(private val spendingsRepository: SpendingsRepository,
                 .subscribe({
                     spendingSubject.onNext(Lce.content(it))
                 }, { throwable ->
-                    spendingSubject.onNext(Lce.error(DomainException("Error loading from database. See logs.", throwable)))
+                    spendingSubject.onNext(Lce.error(
+                            DomainException("Error loading from database. See logs.", throwable)))
                 })
     }
 
@@ -85,7 +87,8 @@ constructor(private val spendingsRepository: SpendingsRepository,
                 .subscribe({
                     loadSpendings()
                 }, { throwable ->
-                    spendingSubject.onNext(Lce.error(DomainException("Error saving monzo spendings. See logs.", throwable)))
+                    spendingSubject.onNext(Lce.error(
+                            DomainException("Error saving monzo spendings. See logs.", throwable)))
                 })
     }
 
@@ -97,28 +100,44 @@ constructor(private val spendingsRepository: SpendingsRepository,
 
     fun createOrUpdate(spending: Spending): Completable {
         return spendingsRepository.createOrUpdate(spending)
-                .onErrorResumeNext { throwable -> Completable.error(DomainException("Error updating spending in database. See logs.", throwable)) }
+                .onErrorResumeNext { throwable ->
+                    Completable.error(
+                            DomainException("Error updating spending in database. See logs.",
+                                    throwable))
+                }
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())
     }
 
     fun delete(id: Int): Completable {
         return spendingsRepository.delete(id)
-                .onErrorResumeNext { Completable.error(DomainException("Error deleting spending $id in database. See logs.", it)) }
+                .onErrorResumeNext {
+                    Completable.error(
+                            DomainException("Error deleting spending $id in database. See logs.",
+                                    it))
+                }
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())
     }
 
     fun get(id: Int): Maybe<Spending> {
         return spendingsRepository.get(id)
-                .onErrorResumeNext { throwable: Throwable -> Maybe.error<Spending>(DomainException("Error reading spending $id from database. See logs.", throwable)) }
+                .onErrorResumeNext { throwable: Throwable ->
+                    Maybe.error<Spending>(
+                            DomainException("Error reading spending $id from database. See logs.",
+                                    throwable))
+                }
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())
     }
 
     fun getByRemoteCategory(category: String, remoteCategoryKey: String): Observable<Spending> {
         return spendingsRepository.getSpendingByRemoteCategory(category, remoteCategoryKey)
-                .onErrorResumeNext { throwable: Throwable -> Observable.error<Spending>(DomainException("Error reading spending with category `$category` from database. See logs.", throwable)) }
+                .onErrorResumeNext { throwable: Throwable ->
+                    Observable.error<Spending>(DomainException(
+                            "Error reading spending with category `$category` from database. See logs.",
+                            throwable))
+                }
                 .subscribeOn(schedulerProvider.io())
                 .observeOn(schedulerProvider.mainThread())
     }

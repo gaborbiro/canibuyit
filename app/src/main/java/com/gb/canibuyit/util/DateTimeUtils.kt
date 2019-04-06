@@ -3,7 +3,6 @@ package com.gb.canibuyit.util
 import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
 import com.google.gson.JsonElement
-import com.google.gson.JsonObject
 import com.google.gson.JsonPrimitive
 import com.google.gson.JsonSerializationContext
 import com.google.gson.JsonSerializer
@@ -63,13 +62,15 @@ fun midnightOfToday() = LocalDateTime.of(LocalDate.now(), LocalTime.MIDNIGHT)
 
 fun LocalDateTime.millisUntil() = LocalDateTime.now().until(this, ChronoUnit.MILLIS)
 
-object localDateSerializer: JsonSerializer<LocalDate>, JsonDeserializer<LocalDate> {
+object localDateSerializer : JsonSerializer<LocalDate>, JsonDeserializer<LocalDate> {
 
-    override fun serialize(src: LocalDate, typeOfSrc: Type, context: JsonSerializationContext): JsonElement {
+    override fun serialize(src: LocalDate, typeOfSrc: Type,
+                           context: JsonSerializationContext): JsonElement {
         return JsonPrimitive(src.toString())
     }
 
-    override fun deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): LocalDate {
+    override fun deserialize(json: JsonElement, typeOfT: Type,
+                             context: JsonDeserializationContext): LocalDate {
         return LocalDate.parse(json.asString)
     }
 }

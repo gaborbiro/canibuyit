@@ -3,10 +3,10 @@ package com.gb.canibuyit.fcm
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
-import com.gb.canibuyit.feature.monzo.CredentialsProvider
 import com.gb.canibuyit.di.Injector
 import com.gb.canibuyit.feature.dispatch.view.DispatchPresenter
 import com.gb.canibuyit.feature.dispatch.view.DispatchScreen
+import com.gb.canibuyit.feature.monzo.CredentialsProvider
 import com.google.firebase.iid.FirebaseInstanceId
 import com.google.firebase.iid.FirebaseInstanceIdService
 import javax.inject.Inject
@@ -39,8 +39,6 @@ class FirebaseInstanceIdService : FirebaseInstanceIdService(), DispatchScreen {
 
     override fun hideProgress() {
     }
-
-    companion object {
-        private const val TAG = "MonzoDispatch"
-    }
 }
+
+private const val TAG = "MonzoDispatch"

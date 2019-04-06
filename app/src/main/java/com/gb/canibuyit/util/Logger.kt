@@ -4,8 +4,6 @@ import android.util.Log
 
 object Logger {
 
-    private val TAG = "CanIBuyIt"
-
     fun d(tag: String, message: String) {
         Log.d(TAG, "($tag) $message")
     }
@@ -30,3 +28,5 @@ object Logger {
         Log.v(TAG, "($tag) $message")
     }
 }
+
+private const val TAG = "CanIBuyIt"

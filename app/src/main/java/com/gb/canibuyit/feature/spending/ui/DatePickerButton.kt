@@ -33,7 +33,8 @@ class DatePickerButton : AppCompatButton {
         init()
     }
 
-    constructor(context: Context, attrs: AttributeSet, defStyleAttr: Int) : super(context, attrs, defStyleAttr) {
+    constructor(context: Context, attrs: AttributeSet, defStyleAttr: Int) : super(context, attrs,
+            defStyleAttr) {
         init()
     }
 
@@ -64,7 +65,8 @@ class DatePickerButton : AppCompatButton {
     fun setDate(date: LocalDate) {
         originalDate = date
         if (datePickerDialog != null) {
-            getDatePickerDialog().updateDate(originalDate.year, originalDate.monthValue, originalDate.dayOfMonth)
+            getDatePickerDialog().updateDate(originalDate.year, originalDate.monthValue,
+                    originalDate.dayOfMonth)
         }
     }
 }

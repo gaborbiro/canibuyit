@@ -9,7 +9,6 @@ import android.content.Context
 import android.content.Intent
 import android.media.RingtoneManager
 import android.net.Uri
-import android.os.Build
 import android.os.SystemClock
 import android.support.annotation.ColorInt
 import android.support.annotation.DrawableRes
@@ -22,7 +21,8 @@ import javax.inject.Inject
 class LocalNotificationManager @Inject constructor(
     private val applicationContext: Context) {
 
-    private val notificationManager: NotificationManager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    private val notificationManager: NotificationManager =
+        applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     private val notificationColor: Int = ContextCompat.getColor(applicationContext, R.color.primary)
 
     init {
@@ -34,7 +34,8 @@ class LocalNotificationManager @Inject constructor(
                 pendingIntent = getUrlIntent(url),
                 channel = CHANNEL_EVENTS,
                 title = title,
-                message = messageBody))
+                message = messageBody)
+        )
     }
 
     /**
@@ -46,7 +47,8 @@ class LocalNotificationManager @Inject constructor(
         notificationManager.notify("Monzo", 0, buildNotification(pendingIntent = getLaunchIntent(),
                 channel = CHANNEL_SPENDINGS,
                 title = title,
-                message = messageBody))
+                message = messageBody)
+        )
     }
 
     /**
@@ -59,19 +61,24 @@ class LocalNotificationManager @Inject constructor(
                 title = title,
                 message = messageBody)
 
-        val notificationIntent = Intent(applicationContext, MyEventAlarmReceiver::class.java)
-        notificationIntent.putExtra(MyEventAlarmReceiver.NOTIFICATION, notification)
-        val pendingIntent = PendingIntent.getBroadcast(applicationContext, 0, notificationIntent, PendingIntent.FLAG_CANCEL_CURRENT)
+        val notificationIntent =
+            Intent(applicationContext, MyEventAlarmReceiver::class.java).apply {
+                putExtra(MyEventAlarmReceiver.NOTIFICATION, notification)
+            }
+        val pendingIntent = PendingIntent.getBroadcast(applicationContext, 0, notificationIntent,
+                PendingIntent.FLAG_CANCEL_CURRENT)
 
         val futureInMillis = SystemClock.elapsedRealtime() + delay
-        val alarmManager = applicationContext.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val alarmManager =
+            applicationContext.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, futureInMillis, pendingIntent)
     }
 
     private fun getUrlIntent(url: String): PendingIntent {
-        val i = Intent(Intent.ACTION_VIEW)
-        i.data = Uri.parse(url)
-        return PendingIntent.getActivity(applicationContext, 0, i, 0)
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            data = Uri.parse(url)
+        }
+        return PendingIntent.getActivity(applicationContext, 0, intent, 0)
     }
 
     private fun getLaunchIntent(): PendingIntent {
@@ -91,7 +98,8 @@ class LocalNotificationManager @Inject constructor(
                                   @DrawableRes smallIcon: Int = R.drawable.piggybank,
                                   alertOnlyOnce: Boolean = false,
                                   autoCancel: Boolean = true,
-                                  sound: Uri? = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION),
+                                  sound: Uri? = RingtoneManager.getDefaultUri(
+                                          RingtoneManager.TYPE_NOTIFICATION),
                                   vibrate: LongArray? = null): Notification {
         return NotificationCompat.Builder(applicationContext, channel)
                 .setSmallIcon(smallIcon)
@@ -109,11 +117,7 @@ class LocalNotificationManager @Inject constructor(
     }
 
     private fun createChannels() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-            return
-        }
-        val spendingsChannel = NotificationChannel(CHANNEL_SPENDINGS,
-                "Spending alerts",
+        val spendingsChannel = NotificationChannel(CHANNEL_SPENDINGS, "Spending alerts",
                 NotificationManager.IMPORTANCE_LOW)
         spendingsChannel.setShowBadge(false)
         notificationManager.createNotificationChannel(spendingsChannel)

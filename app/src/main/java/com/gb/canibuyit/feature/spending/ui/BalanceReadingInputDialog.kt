@@ -22,13 +22,12 @@ import javax.inject.Inject
 
 class BalanceReadingInputDialog : DialogFragment(), DialogInterface.OnClickListener {
 
-    @Inject
-    lateinit var userPreferences: UserPreferences
+    @Inject lateinit var userPreferences: UserPreferences
     private var lastUpdate: BalanceReading? = null
 
     lateinit var body: LinearLayout
-    val amountInput: EditText by lazy { body.findViewById(R.id.amount_input) as EditText }
-    val whenBtn: DatePickerButton by lazy { body.findViewById(R.id.when_btn) as DatePickerButton }
+    private val amountInput: EditText by lazy { body.findViewById(R.id.amount_input) as EditText }
+    private val whenBtn: DatePickerButton by lazy { body.findViewById(R.id.when_btn) as DatePickerButton }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,7 +36,8 @@ class BalanceReadingInputDialog : DialogFragment(), DialogInterface.OnClickListe
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        body = LayoutInflater.from(activity).inflate(R.layout.dialog_balance_reading, null) as LinearLayout
+        body = LayoutInflater.from(activity).inflate(R.layout.dialog_balance_reading,
+                null) as LinearLayout
 
         lastUpdate?.let {
             amountInput.setText(lastUpdate!!.balance.toString())
@@ -64,7 +64,8 @@ class BalanceReadingInputDialog : DialogFragment(), DialogInterface.OnClickListe
     override fun onClick(dialog: DialogInterface?, which: Int) {
         if (validate()) {
             val selectedDate = whenBtn.selectedDate
-            userPreferences.balanceReading = BalanceReading(selectedDate, amountInput.text.toString().toFloat())
+            userPreferences.balanceReading =
+                BalanceReading(selectedDate, amountInput.text.toString().toFloat())
             dismiss()
         }
     }
@@ -84,7 +85,8 @@ class BalanceReadingInputDialog : DialogFragment(), DialogInterface.OnClickListe
 
         val estimateDate = userPreferences.estimateDate
         if (selectedDate > estimateDate) {
-            Toast.makeText(activity, "Please select a date before the target date!", Toast.LENGTH_SHORT)
+            Toast.makeText(activity, "Please select a date before the target date!",
+                    Toast.LENGTH_SHORT)
                     .show()
             return false
         }

@@ -9,16 +9,19 @@ import java.time.LocalDate
 
 @DatabaseTable(tableName = Contract.SpentByCycle.TABLE)
 data class ApiSpentByCycle(
+
     @DatabaseField(generatedId = true, columnName = Contract.Project._ID, canBeNull = false)
     var id: Int? = null,
 
     @DatabaseField(columnName = Contract.SpentByCycle.SPENDING, canBeNull = false, foreign = true)
     var spending: ApiSpending? = null,
 
-    @DatabaseField(columnName = Contract.SpentByCycle.FROM, canBeNull = false, dataType = DataType.SERIALIZABLE)
+    @DatabaseField(columnName = Contract.SpentByCycle.FROM, canBeNull = false,
+            dataType = DataType.SERIALIZABLE)
     var from: LocalDate? = null,
 
-    @DatabaseField(columnName = Contract.SpentByCycle.TO, canBeNull = false, dataType = DataType.SERIALIZABLE)
+    @DatabaseField(columnName = Contract.SpentByCycle.TO, canBeNull = false,
+            dataType = DataType.SERIALIZABLE)
     var to: LocalDate? = null,
 
     @DatabaseField(columnName = Contract.SpentByCycle.AMOUNT, canBeNull = false)

@@ -1,15 +1,15 @@
 package com.gb.canibuyit.feature.monzo.data
 
 import com.gb.canibuyit.UserPreferences
+import com.gb.canibuyit.base.model.Lce
 import com.gb.canibuyit.error.DomainException
 import com.gb.canibuyit.feature.monzo.error.MonzoException
-import com.gb.canibuyit.base.model.Lce
 import com.gb.canibuyit.feature.monzo.model.Login
-import com.gb.canibuyit.feature.spending.model.Spending
 import com.gb.canibuyit.feature.monzo.model.Transaction
 import com.gb.canibuyit.feature.monzo.model.Webhook
 import com.gb.canibuyit.feature.monzo.model.Webhooks
-import com.gb.canibuyit.rx.SchedulerProvider
+import com.gb.canibuyit.feature.spending.model.Spending
+import com.gb.canibuyit.base.rx.SchedulerProvider
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
@@ -33,7 +33,8 @@ constructor(private val schedulerProvider: SchedulerProvider,
         return loginSubject.subscribe(onNext, onError)
     }
 
-    fun subscribeToMonzoSpendings(onNext: (Lce<List<Spending>>) -> Unit, onError: (Throwable) -> Unit): Disposable {
+    fun subscribeToMonzoSpendings(onNext: (Lce<List<Spending>>) -> Unit,
+                                  onError: (Throwable) -> Unit): Disposable {
         return monzoSpendingsSubject.subscribe(onNext, onError)
     }
 
@@ -75,7 +76,8 @@ constructor(private val schedulerProvider: SchedulerProvider,
                 })
     }
 
-    fun getRawTransactions(accountId: String, since: LocalDate, before: LocalDate): Observable<Lce<List<Transaction>>> {
+    fun getRawTransactions(accountId: String, since: LocalDate,
+                           before: LocalDate): Observable<Lce<List<Transaction>>> {
         return monzoRepository.getRawTransactions(accountId, since, before)
                 .toObservable()
                 .map(this::mapSuccess)

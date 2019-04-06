@@ -1,8 +1,8 @@
 package com.gb.canibuyit.feature.spending.view
 
+import com.gb.canibuyit.base.view.ProgressScreen
 import com.gb.canibuyit.feature.spending.data.Balance
 import com.gb.canibuyit.feature.spending.ui.BalanceBreakdown
-import com.gb.canibuyit.base.view.ProgressScreen
 
 interface MainScreen : ProgressScreen {
 

@@ -1,4 +1,4 @@
-package com.gb.canibuyit.util
+package com.gb.canibuyit.feature.spending.ui
 
 import android.content.Context
 import android.support.annotation.IntDef
@@ -14,19 +14,24 @@ import java.lang.annotation.RetentionPolicy
  * field (with [TextView.setError] and the ones tha are shown
  * as a Toast or Dialog instead (DatePicker, etc...).
  */
-class ValidationError(@param:ValidationErrorType internal val type: Int, internal val target: View?, internal val errorMessage: String) : Exception() {
+class ValidationError(@param:ValidationErrorType
+                      internal val type: Int, internal val target: View?,
+                      internal val errorMessage: String) : Exception() {
 
-    @IntDef(TYPE_INPUT_FIELD, TYPE_NON_INPUT_FIELD)
+    @IntDef(TYPE_INPUT_FIELD,
+            TYPE_NON_INPUT_FIELD)
     @Retention(RetentionPolicy.SOURCE)
     private annotation class ValidationErrorType
 
     init {
         if (type == TYPE_INPUT_FIELD) {
             if (target == null) {
-                throw IllegalArgumentException("Please specify a target view for the input field error " + "message")
+                throw IllegalArgumentException(
+                        "Please specify a target view for the input field error " + "message")
             }
             if (target !is TextView) {
-                throw IllegalArgumentException("Wrong view type in ValidationError. Cannot show error " + "message.")
+                throw IllegalArgumentException(
+                        "Wrong view type in ValidationError. Cannot show error " + "message.")
 
             }
         }

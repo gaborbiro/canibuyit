@@ -6,10 +6,10 @@ import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteException
 import com.gb.canibuyit.feature.monzo.MONZO_CATEGORY
-import com.gb.canibuyit.feature.spending.persistence.model.ApiSpentByCycle
 import com.gb.canibuyit.feature.project.model.ApiProject
 import com.gb.canibuyit.feature.spending.persistence.model.ApiSaving
 import com.gb.canibuyit.feature.spending.persistence.model.ApiSpending
+import com.gb.canibuyit.feature.spending.persistence.model.ApiSpentByCycle
 import com.j256.ormlite.android.apptools.OrmLiteSqliteOpenHelper
 import com.j256.ormlite.support.ConnectionSource
 import com.j256.ormlite.table.TableUtils
@@ -21,7 +21,8 @@ import java.util.regex.Pattern
 import javax.inject.Inject
 
 class SpendingDBHelper @Inject
-constructor(appContext: Context) : OrmLiteSqliteOpenHelper(appContext, DATABASE_NAME, null, DATABASE_VERSION) {
+constructor(appContext: Context) :
+        OrmLiteSqliteOpenHelper(appContext, DATABASE_NAME, null, DATABASE_VERSION) {
 
     override fun onCreate(database: SQLiteDatabase, connectionSource: ConnectionSource) {
         try {
@@ -34,7 +35,8 @@ constructor(appContext: Context) : OrmLiteSqliteOpenHelper(appContext, DATABASE_
         }
     }
 
-    override fun onUpgrade(database: SQLiteDatabase, connectionSource: ConnectionSource, oldVersion: Int, newVersion: Int) {
+    override fun onUpgrade(database: SQLiteDatabase, connectionSource: ConnectionSource,
+                           oldVersion: Int, newVersion: Int) {
     }
 
     @Throws(SQLiteException::class)
@@ -44,26 +46,28 @@ constructor(appContext: Context) : OrmLiteSqliteOpenHelper(appContext, DATABASE_
 
     @Throws(SQLException::class)
     fun getAllSpendings(db: SQLiteDatabase): Cursor {
-        return db.query(Contract.Spending.TABLE, Contract.Spending.COLUMNS, null, null, null, null, null)
+        return db.query(Contract.Spending.TABLE, Contract.Spending.COLUMNS, null, null, null, null,
+                null)
     }
 
     @Throws(SQLException::class, IOException::class, ClassNotFoundException::class)
     fun insertSpendings(cursor: Cursor, filter: Map<String, Any?>?) {
         if (cursor.count > 0) {
-            val db = writableDatabase
-            try {
-                db.beginTransaction()
-                cursor.moveToFirst()
-                while (!cursor.isAfterLast) {
-                    val contentValues = cursorRowToContentValues(cursor)
-                    if (filter == null || match(contentValues, filter)) {
-                        db.insert(Contract.Spending.TABLE, null, contentValues)
+            writableDatabase.apply {
+                try {
+                    beginTransaction()
+                    cursor.moveToFirst()
+                    while (!cursor.isAfterLast) {
+                        val contentValues = cursorRowToContentValues(cursor)
+                        if (filter == null || match(contentValues, filter)) {
+                            insert(Contract.Spending.TABLE, null, contentValues)
+                        }
+                        cursor.moveToNext()
                     }
-                    cursor.moveToNext()
+                    setTransactionSuccessful()
+                } finally {
+                    endTransaction()
                 }
-                db.setTransactionSuccessful()
-            } finally {
-                db.endTransaction()
             }
         }
         cursor.close()
@@ -84,10 +88,10 @@ constructor(appContext: Context) : OrmLiteSqliteOpenHelper(appContext, DATABASE_
         if (contentValues.containsKey(key)) {
             return contentValues.get(key)
         } else if (key.contains("/")) {
-            val m = Pattern.compile("/").matcher(key)
-            if (m.find()) {
-                val o = contentValues.get(key.substring(0, m.start()))
-                return getContentValue(o, key.substring(m.end(), key.length))
+            val matcher = Pattern.compile("/").matcher(key)
+            if (matcher.find()) {
+                val o = contentValues.get(key.substring(0, matcher.start()))
+                return getContentValue(o, key.substring(matcher.end(), key.length))
             }
         }
         return null
@@ -95,61 +99,56 @@ constructor(appContext: Context) : OrmLiteSqliteOpenHelper(appContext, DATABASE_
 
     @Throws(IOException::class, ClassNotFoundException::class)
     private fun getContentValue(contentValues: Any, key: String): Any? {
-        var cv = contentValues
-        if (cv is ContentValues) {
-            return getContentValue(cv, key)
-        } else if (cv is Map<*, *>) {
-            return cv[key]
-        } else if (cv is ByteArray) {
-            cv = ObjectInputStream(ByteArrayInputStream(cv)).readObject()
-            return getContentValue(cv, key)
-        } else {
-            return null
+        return when (contentValues) {
+            is ContentValues -> getContentValue(contentValues, key)
+            is Map<*, *> -> contentValues[key]
+            is ByteArray -> {
+                ObjectInputStream(ByteArrayInputStream(contentValues)).readObject().apply {
+                    getContentValue(this, key)
+                }
+            }
+            else -> null
         }
     }
 
     private fun match(actual: Any?, expected: Any?): Boolean {
-        if (expected == null) {
-            return actual == null
-        } else if (expected.javaClass == Any::class.java) {
-            return actual != null
-        } else {
-            return expected == actual
+        return when {
+            expected == null -> actual == null
+            expected.javaClass == Any::class.java -> actual != null
+            else -> expected == actual
         }
     }
 
-    companion object {
-
-        val DATABASE_NAME = "spendings.sqlite"
-        private val DATABASE_VERSION = 1
-
-        private fun cursorRowToContentValues(cursor: Cursor): ContentValues {
-            val values = ContentValues()
-            val columns = cursor.columnNames
-            val length = columns.size
-            for (i in 0..length - 1) {
-                when (cursor.getType(i)) {
-                    Cursor.FIELD_TYPE_NULL -> values.putNull(columns[i])
-                    Cursor.FIELD_TYPE_INTEGER -> values.put(columns[i], cursor.getLong(i))
-                    Cursor.FIELD_TYPE_FLOAT -> values.put(columns[i], cursor.getDouble(i))
-                    Cursor.FIELD_TYPE_STRING -> values.put(columns[i], cursor.getString(i))
-                    Cursor.FIELD_TYPE_BLOB -> values.put(columns[i], cursor.getBlob(i))
-                }
-            }
-            values.remove(Contract.Spending._ID)
-            return values
-        }
-
-        val FILTER_MONZO = object : HashMap<String, Any?>() {
-            init {
-                put(Contract.Spending.SOURCE_DATA + "/" + MONZO_CATEGORY, Any())
+    private fun cursorRowToContentValues(cursor: Cursor): ContentValues {
+        val values = ContentValues()
+        val columns = cursor.columnNames
+        val length = columns.size
+        for (i in 0 until length) {
+            when (cursor.getType(i)) {
+                Cursor.FIELD_TYPE_NULL -> values.putNull(columns[i])
+                Cursor.FIELD_TYPE_INTEGER -> values.put(columns[i], cursor.getLong(i))
+                Cursor.FIELD_TYPE_FLOAT -> values.put(columns[i], cursor.getDouble(i))
+                Cursor.FIELD_TYPE_STRING -> values.put(columns[i], cursor.getString(i))
+                Cursor.FIELD_TYPE_BLOB -> values.put(columns[i], cursor.getBlob(i))
             }
         }
-
-        val FILTER_NON_MONZO = object : HashMap<String, Any?>() {
-            init {
-                put(Contract.Spending.SOURCE_DATA + "/" + MONZO_CATEGORY, null)
-            }
-        }
+        values.remove(Contract.Spending._ID)
+        return values
     }
 }
+
+const val DATABASE_NAME = "spendings.sqlite"
+
+val FILTER_MONZO = object : HashMap<String, Any?>() {
+    init {
+        put(Contract.Spending.SOURCE_DATA + "/" + MONZO_CATEGORY, Any())
+    }
+}
+
+val FILTER_NON_MONZO = object : HashMap<String, Any?>() {
+    init {
+        put(Contract.Spending.SOURCE_DATA + "/" + MONZO_CATEGORY, null)
+    }
+}
+
+private const val DATABASE_VERSION = 1

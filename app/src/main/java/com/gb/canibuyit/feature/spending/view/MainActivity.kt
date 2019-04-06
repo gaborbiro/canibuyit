@@ -12,21 +12,27 @@ import android.view.View
 import android.widget.Toast
 import com.gb.canibuyit.R
 import com.gb.canibuyit.UserPreferences
+import com.gb.canibuyit.base.ui.PromptDialog
+import com.gb.canibuyit.base.view.BaseActivity
+import com.gb.canibuyit.base.view.BasePresenter
+import com.gb.canibuyit.base.view.Screen
 import com.gb.canibuyit.di.Injector
 import com.gb.canibuyit.feature.dispatch.view.DispatchPresenter
+import com.gb.canibuyit.feature.dispatch.view.DispatchScreen
 import com.gb.canibuyit.feature.monzo.view.LoginActivity
 import com.gb.canibuyit.feature.spending.data.Balance
 import com.gb.canibuyit.feature.spending.persistence.model.ApiSpending
-import com.gb.canibuyit.base.view.BasePresenter
-import com.gb.canibuyit.feature.dispatch.view.DispatchScreen
-import com.gb.canibuyit.base.view.Screen
-import com.gb.canibuyit.base.view.BaseActivity
-import com.gb.canibuyit.base.ui.PromptDialog
 import com.gb.canibuyit.feature.spending.ui.BalanceBreakdown
 import com.gb.canibuyit.feature.spending.ui.BalanceBreakdownDialog
+import com.gb.canibuyit.feature.spending.ui.BalanceBreakdownDialogCallback
 import com.gb.canibuyit.feature.spending.ui.BalanceReadingInputDialog
+import com.gb.canibuyit.feature.spending.ui.EXTRA_RESULT_PATH
+import com.gb.canibuyit.feature.spending.ui.EXTRA_SELECTION_MODE
+import com.gb.canibuyit.feature.spending.ui.EXTRA_START_PATH
 import com.gb.canibuyit.feature.spending.ui.FileDialogActivity
 import com.gb.canibuyit.feature.spending.ui.InputDialog
+import com.gb.canibuyit.feature.spending.ui.SELECTION_MODE_CREATE
+import com.gb.canibuyit.feature.spending.ui.SELECTION_MODE_OPEN
 import com.gb.canibuyit.util.PermissionVerifier
 import com.gb.canibuyit.util.createDatePickerDialog
 import com.gb.canibuyit.util.formatDayMonthYearWithPrefix
@@ -51,7 +57,8 @@ import javax.inject.Inject
  * This activity also implements the required [SpendingListFragment.FragmentCallback]
  * interface to listen for item selections.
  */
-class MainActivity : BaseActivity(), MainScreen, DispatchScreen, SpendingListFragment.FragmentCallback, BalanceBreakdownDialog.Companion.Callback {
+class MainActivity : BaseActivity(), MainScreen, DispatchScreen,
+        SpendingListFragment.FragmentCallback, BalanceBreakdownDialogCallback {
 
     @Inject internal lateinit var userPreferences: UserPreferences
     @Inject internal lateinit var mainPresenter: MainPresenter
@@ -110,14 +117,19 @@ class MainActivity : BaseActivity(), MainScreen, DispatchScreen, SpendingListFra
         when (item.itemId) {
             R.id.menu_add -> mainPresenter.showEditorScreen()
             R.id.menu_export -> {
-                permissionVerifier = PermissionVerifier(this, arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE))
-                if (permissionVerifier.verifyPermissions(true, REQUEST_CODE_PERMISSIONS_FOR_DB_EXPORT)) {
+                permissionVerifier =
+                    PermissionVerifier(this, arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE))
+                if (permissionVerifier.verifyPermissions(true,
+                                REQUEST_CODE_PERMISSIONS_FOR_DB_EXPORT)) {
                     mainPresenter.exportDatabase()
                 }
             }
-            R.id.menu_import_all -> mainPresenter.onImportDatabase(MainScreen.SpendingsImportType.ALL)
-            R.id.menu_import_monzo -> mainPresenter.onImportDatabase(MainScreen.SpendingsImportType.MONZO)
-            R.id.menu_import_non_monzo -> mainPresenter.onImportDatabase(MainScreen.SpendingsImportType.NON_MONZO)
+            R.id.menu_import_all -> mainPresenter.onImportDatabase(
+                    MainScreen.SpendingsImportType.ALL)
+            R.id.menu_import_monzo -> mainPresenter.onImportDatabase(
+                    MainScreen.SpendingsImportType.MONZO)
+            R.id.menu_import_non_monzo -> mainPresenter.onImportDatabase(
+                    MainScreen.SpendingsImportType.NON_MONZO)
             R.id.menu_fcm -> sendFCMTokenToServer()
             R.id.menu_delete_spendings -> mainPresenter.deleteAllSpendings()
             R.id.menu_set_project_name -> mainPresenter.onSetProjectName()
@@ -127,26 +139,32 @@ class MainActivity : BaseActivity(), MainScreen, DispatchScreen, SpendingListFra
     }
 
     override fun onBackPressed() {
-        val detailFragment = supportFragmentManager.findFragmentById(R.id.spending_editor_container) as SpendingEditorFragment?
+        val detailFragment = supportFragmentManager.findFragmentById(
+                R.id.spending_editor_container) as SpendingEditorFragment?
         detailFragment?.onFragmentClose { super@MainActivity.onBackPressed() }
                 ?: super@MainActivity.onBackPressed()
     }
 
     override fun showPickerForExport(suggestedPath: String) {
         val i = Intent(this, FileDialogActivity::class.java)
-        i.putExtra(FileDialogActivity.EXTRA_START_PATH, suggestedPath)
-        i.putExtra(FileDialogActivity.EXTRA_SELECTION_MODE, FileDialogActivity.SELECTION_MODE_CREATE)
+        i.putExtra(EXTRA_START_PATH, suggestedPath)
+        i.putExtra(EXTRA_SELECTION_MODE,
+                SELECTION_MODE_CREATE)
         startActivityForResult(i, REQUEST_CODE_CHOOSE_FILE_EXPORT)
     }
 
-    override fun showPickerForImport(directory: String, spendingsImportType: MainScreen.SpendingsImportType) {
+    override fun showPickerForImport(directory: String,
+                                     spendingsImportType: MainScreen.SpendingsImportType) {
         val i = Intent(this, FileDialogActivity::class.java)
-        i.putExtra(FileDialogActivity.EXTRA_START_PATH, directory)
-        i.putExtra(FileDialogActivity.EXTRA_SELECTION_MODE, FileDialogActivity.SELECTION_MODE_OPEN)
+        i.putExtra(EXTRA_START_PATH, directory)
+        i.putExtra(EXTRA_SELECTION_MODE, SELECTION_MODE_OPEN)
         when (spendingsImportType) {
-            MainScreen.SpendingsImportType.ALL -> startActivityForResult(i, REQUEST_CODE_CHOOSE_FILE_ALL)
-            MainScreen.SpendingsImportType.MONZO -> startActivityForResult(i, REQUEST_CODE_CHOOSE_FILE_MONZO)
-            MainScreen.SpendingsImportType.NON_MONZO -> startActivityForResult(i, REQUEST_CODE_CHOOSE_FILE_NON_MONZO)
+            MainScreen.SpendingsImportType.ALL -> startActivityForResult(i,
+                    REQUEST_CODE_CHOOSE_FILE_ALL)
+            MainScreen.SpendingsImportType.MONZO -> startActivityForResult(i,
+                    REQUEST_CODE_CHOOSE_FILE_MONZO)
+            MainScreen.SpendingsImportType.NON_MONZO -> startActivityForResult(i,
+                    REQUEST_CODE_CHOOSE_FILE_NON_MONZO)
         }
     }
 
@@ -154,19 +172,19 @@ class MainActivity : BaseActivity(), MainScreen, DispatchScreen, SpendingListFra
         if (data != null) {
             when (requestCode) {
                 REQUEST_CODE_CHOOSE_FILE_ALL -> if (resultCode == Activity.RESULT_OK) {
-                    val path = data.getStringExtra(FileDialogActivity.EXTRA_RESULT_PATH)
+                    val path = data.getStringExtra(EXTRA_RESULT_PATH)
                     mainPresenter.onImportSpendings(path, MainScreen.SpendingsImportType.ALL)
                 }
                 REQUEST_CODE_CHOOSE_FILE_MONZO -> if (resultCode == Activity.RESULT_OK) {
-                    val path = data.getStringExtra(FileDialogActivity.EXTRA_RESULT_PATH)
+                    val path = data.getStringExtra(EXTRA_RESULT_PATH)
                     mainPresenter.onImportSpendings(path, MainScreen.SpendingsImportType.MONZO)
                 }
                 REQUEST_CODE_CHOOSE_FILE_NON_MONZO -> if (resultCode == Activity.RESULT_OK) {
-                    val path = data.getStringExtra(FileDialogActivity.EXTRA_RESULT_PATH)
+                    val path = data.getStringExtra(EXTRA_RESULT_PATH)
                     mainPresenter.onImportSpendings(path, MainScreen.SpendingsImportType.NON_MONZO)
                 }
                 REQUEST_CODE_CHOOSE_FILE_EXPORT -> if (resultCode == Activity.RESULT_OK) {
-                    val path = data.getStringExtra(FileDialogActivity.EXTRA_RESULT_PATH)
+                    val path = data.getStringExtra(EXTRA_RESULT_PATH)
                     mainPresenter.onExportSpendings(path)
                 }
             }
@@ -174,9 +192,11 @@ class MainActivity : BaseActivity(), MainScreen, DispatchScreen, SpendingListFra
         super.onActivityResult(requestCode, resultCode, data)
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>,
+                                            grantResults: IntArray) {
         if (requestCode == REQUEST_CODE_PERMISSIONS_FOR_DB_EXPORT) {
-            if (permissionVerifier.onRequestPermissionsResult(requestCode, permissions, grantResults)) {
+            if (permissionVerifier.onRequestPermissionsResult(requestCode, permissions,
+                            grantResults)) {
                 mainPresenter.exportDatabase()
             } else {
                 Toast.makeText(this, "Missing permissions!", Toast.LENGTH_SHORT).show()
@@ -190,7 +210,8 @@ class MainActivity : BaseActivity(), MainScreen, DispatchScreen, SpendingListFra
 
     override fun showEditorScreen(spendingId: Int?) {
         if (twoPane) {
-            val spendingEditorFragment = supportFragmentManager.findFragmentById(R.id.spending_editor_container) as SpendingEditorFragment
+            val spendingEditorFragment = supportFragmentManager.findFragmentById(
+                    R.id.spending_editor_container) as SpendingEditorFragment
             if (!spendingEditorFragment.isAdded) {
                 val detailFragment = SpendingEditorFragment()
 
@@ -203,11 +224,14 @@ class MainActivity : BaseActivity(), MainScreen, DispatchScreen, SpendingListFra
                         .replace(R.id.spending_editor_container, detailFragment).commit()
             } else {
                 // if a detail fragment is already visible
-                spendingEditorFragment.onFragmentClose { spendingEditorFragment.showSpending(spendingId) }
+                spendingEditorFragment.onFragmentClose {
+                    spendingEditorFragment.showSpending(spendingId)
+                }
             }
         } else {
             if (spendingId != null) {
-                startActivity(SpendingEditorActivity.getIntentForUpdate(this@MainActivity, spendingId))
+                startActivity(
+                        SpendingEditorActivity.getIntentForUpdate(this@MainActivity, spendingId))
             } else {
                 startActivity(SpendingEditorActivity.getIntentForCreate(this@MainActivity))
             }
@@ -218,11 +242,13 @@ class MainActivity : BaseActivity(), MainScreen, DispatchScreen, SpendingListFra
         val text: String
         val balanceReading = userPreferences.balanceReading
         text = balanceReading?.date?.let {
-            getString(R.string.reading, balanceReading.balance, balanceReading.date.formatDayMonthYearWithPrefix())
+            getString(R.string.reading, balanceReading.balance,
+                    balanceReading.date.formatDayMonthYearWithPrefix())
         } ?: getString(R.string.reading_none)
         reference_lbl.setSubtextWithLink(text, text.substring(6), this::showBalanceUpdateDialog)
         val estimateDate = userPreferences.estimateDate
-        val estimateDateStr = if (estimateDate.isToday()) getString(R.string.today) else estimateDate.formatDayMonthYearWithPrefix()
+        val estimateDateStr = if (estimateDate.isToday()) getString(
+                R.string.today) else estimateDate.formatDayMonthYearWithPrefix()
 
         var defoMaybeStr = "?"
         var targetDefoMaybeStr = "?"
@@ -230,7 +256,8 @@ class MainActivity : BaseActivity(), MainScreen, DispatchScreen, SpendingListFra
             defoMaybeStr = getString(R.string.amount_formatted, balance.amount)
             targetDefoMaybeStr = getString(R.string.amount_formatted, balance.target)
         }
-        val estimateAtTime = getString(R.string.estimate_at_date, defoMaybeStr, estimateDateStr, targetDefoMaybeStr)
+        val estimateAtTime =
+            getString(R.string.estimate_at_date, defoMaybeStr, estimateDateStr, targetDefoMaybeStr)
         projection_lbl.setSubtextWithLinks(
                 estimateAtTime,
                 arrayOf(defoMaybeStr, targetDefoMaybeStr, "behave", estimateDateStr),
@@ -248,7 +275,8 @@ class MainActivity : BaseActivity(), MainScreen, DispatchScreen, SpendingListFra
 
             if (balanceReading != null && balanceReading.date?.isAfter(date) == true) {
                 Toast.makeText(this@MainActivity,
-                        "Please set a date after the last balance " + "reading! (" + balanceReading.date + ")", Toast.LENGTH_SHORT)
+                        "Please set a date after the last balance " + "reading! (" + balanceReading.date + ")",
+                        Toast.LENGTH_SHORT)
                         .show()
             } else {
                 userPreferences.estimateDate = date
@@ -283,7 +311,9 @@ class MainActivity : BaseActivity(), MainScreen, DispatchScreen, SpendingListFra
 
     override fun setProjectName(currentName: String?) {
         val inputDialog = InputDialog.newInstance("Project name", currentName)
-        inputDialog.setPositiveButton(R.string.save) { _ -> mainPresenter.setProjectName(inputDialog.input) }
+        inputDialog.setPositiveButton(R.string.save) { _ ->
+            mainPresenter.setProjectName(inputDialog.input)
+        }
                 .show(supportFragmentManager, null)
     }
 

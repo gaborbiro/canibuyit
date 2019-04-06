@@ -9,7 +9,8 @@ data class Balance(
      * Not all spendings have a target set, in which case this defaults back to the estimate
      */
     var target: Float = 0f,
-    var spendingEvents: Array<SpendingEvent>? = emptyArray())
+    var spendingEvents: Array<SpendingEvent>? = emptyArray()
+)
 
 class SpendingEvent(val start: LocalDate,
                     val end: LocalDate,

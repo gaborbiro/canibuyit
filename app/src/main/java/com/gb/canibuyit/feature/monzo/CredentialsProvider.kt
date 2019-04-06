@@ -23,10 +23,11 @@ class CredentialsProvider @Inject constructor(private val prefsUtil: PrefsUtil) 
     fun isRefresh(): Boolean {
         return !refreshToken.isNullOrEmpty()
     }
-
-    companion object {
-        private val PREF_ACCESS_TOKEN = "com.gb.canibuyit.feature.monzo.CredentialsProvider.PREF_ACCESS_TOKEN"
-        private val PREF_REFRESH_TOKEN = "com.gb.canibuyit.feature.monzo.CredentialsProvider.PREF_REFRESH_TOKEN"
-        private val PREF_ACCESS_TOKEN_EXPIRY = "com.gb.canibuyit.feature.monzo.CredentialsProvider.PREF_ACCESS_TOKEN_EXPIRY"
-    }
 }
+
+private const val PREF_ACCESS_TOKEN =
+    "com.gb.canibuyit.feature.monzo.CredentialsProvider.PREF_ACCESS_TOKEN"
+private const val PREF_REFRESH_TOKEN =
+    "com.gb.canibuyit.feature.monzo.CredentialsProvider.PREF_REFRESH_TOKEN"
+private const val PREF_ACCESS_TOKEN_EXPIRY =
+    "com.gb.canibuyit.feature.monzo.CredentialsProvider.PREF_ACCESS_TOKEN_EXPIRY"

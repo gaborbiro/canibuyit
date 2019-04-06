@@ -1,11 +1,12 @@
 package com.gb.canibuyit.feature.spending.view
 
-import com.gb.canibuyit.feature.spending.data.SpendingInteractor
 import com.gb.canibuyit.base.view.BasePresenter
+import com.gb.canibuyit.feature.spending.data.SpendingInteractor
 import javax.inject.Inject
 
 class SpendingListPresenter @Inject
-constructor(private val spendingInteractor: SpendingInteractor) : BasePresenter<SpendingListScreen>() {
+constructor(private val spendingInteractor: SpendingInteractor) :
+        BasePresenter<SpendingListScreen>() {
 
     init {
         disposeOnFinish(spendingInteractor.subscribeToSpendings({ lce ->

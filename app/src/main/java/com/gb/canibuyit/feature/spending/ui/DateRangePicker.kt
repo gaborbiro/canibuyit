@@ -104,14 +104,16 @@ class DateRangePicker : LinearLayout {
     }
 
     private fun getStartDatePickerDialog(): DatePickerDialog {
-        startDatePickerDialog = startDatePickerDialog ?: createDatePickerDialog(context, startDate, onDateSetListener).apply {
+        startDatePickerDialog = startDatePickerDialog ?: createDatePickerDialog(context, startDate,
+                onDateSetListener).apply {
             datePicker.tag = R.id.start_date_btn
         }
         return startDatePickerDialog!!
     }
 
     private fun getEndDatePickerDialog(): DatePickerDialog {
-        endDatePickerDialog = endDatePickerDialog ?: createDatePickerDialog(context, endDate, onDateSetListener).apply {
+        endDatePickerDialog = endDatePickerDialog ?: createDatePickerDialog(context, endDate,
+                onDateSetListener).apply {
             datePicker.tag = R.id.end_date_btn
         }
         return endDatePickerDialog!!

@@ -11,13 +11,10 @@ import okhttp3.Response
 import okhttp3.Route
 import javax.inject.Inject
 
-class MonzoAuthenticator @Inject constructor(val monzoAuthApi: MonzoAuthApi,
-                                             val credentialsProvider: CredentialsProvider,
-                                             val monzoMapper: MonzoMapper) : Authenticator, Interceptor {
-    companion object {
-        val AUTHORIZATION = "Authorization"
-        val HEADER_VALUE_PREFIX = "Bearer "
-    }
+class MonzoAuthenticator @Inject constructor(private val monzoAuthApi: MonzoAuthApi,
+                                             private val credentialsProvider: CredentialsProvider,
+                                             private val monzoMapper: MonzoMapper
+) : Authenticator, Interceptor {
 
     override fun intercept(chain: Interceptor.Chain): Response {
         return chain.proceed(chain.request().newBuilder()
@@ -40,3 +37,6 @@ class MonzoAuthenticator @Inject constructor(val monzoAuthApi: MonzoAuthApi,
                 ?.build()
     }
 }
+
+private const val AUTHORIZATION = "Authorization"
+private const val HEADER_VALUE_PREFIX = "Bearer "

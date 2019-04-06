@@ -53,7 +53,8 @@ class Spending(var id: Int? = null,
             return value / cycle.toMonths().toBigDecimal() * cycleMultiplier.toBigDecimal()
         }
 
-    fun compareForEditing(other: Any?, ignoreDates: Boolean, ignoreCycleMultiplier: Boolean): ComparisonResult {
+    fun compareForEditing(other: Any?, ignoreDates: Boolean,
+                          ignoreCycleMultiplier: Boolean): ComparisonResult {
         if (this === other) return ComparisonResult.Different
         if (javaClass != other?.javaClass) return return ComparisonResult.Different
 
@@ -171,7 +172,8 @@ private fun LocalDate.monthsSinceYear0() =
     this.year * 12 + (this.monthValue - 1) + this.dayOfMonth.toFloat() / 32
 
 fun Pair<Pair<LocalDate, LocalDate>, Pair<LocalDate, LocalDate>>.overlap(cycle: ApiSpending.Cycle) =
-    Pair(max(this.first.first, this.second.first), min(this.first.second, this.second.second)) / cycle
+    Pair(max(this.first.first, this.second.first),
+            min(this.first.second, this.second.second)) / cycle
 
 fun ApiSpending.Cycle.ordinal(date: LocalDate)
         : Int = when (this) {

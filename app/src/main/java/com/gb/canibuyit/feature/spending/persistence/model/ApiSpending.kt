@@ -16,10 +16,12 @@ import java.time.LocalDate
  */
 @DatabaseTable(tableName = Contract.Spending.TABLE)
 class ApiSpending(
+
     @DatabaseField(generatedId = true, columnName = Contract.Spending._ID, canBeNull = false)
     var id: Int? = null,
 
-    @DatabaseField(index = true, columnName = Contract.Spending.NAME, unique = true, canBeNull = false)
+    @DatabaseField(index = true, columnName = Contract.Spending.NAME, unique = true,
+            canBeNull = false)
     var name: String? = null,
 
     @DatabaseField(columnName = Contract.Spending.NOTES, canBeNull = true)
@@ -31,10 +33,12 @@ class ApiSpending(
     @DatabaseField(columnName = Contract.Spending.VALUE, canBeNull = false)
     var value: BigDecimal? = null,
 
-    @DatabaseField(columnName = Contract.Spending.FROM_START_DATE, canBeNull = false, dataType = DataType.SERIALIZABLE)
+    @DatabaseField(columnName = Contract.Spending.FROM_START_DATE, canBeNull = false,
+            dataType = DataType.SERIALIZABLE)
     var fromStartDate: LocalDate? = null,
 
-    @DatabaseField(columnName = Contract.Spending.FROM_END_DATE, canBeNull = false, dataType = DataType.SERIALIZABLE)
+    @DatabaseField(columnName = Contract.Spending.FROM_END_DATE, canBeNull = false,
+            dataType = DataType.SERIALIZABLE)
     var fromEndDate: LocalDate? = null,
 
     @DatabaseField(columnName = Contract.Spending.OCCURRENCE_COUNT, canBeNull = true)

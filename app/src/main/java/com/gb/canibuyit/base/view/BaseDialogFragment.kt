@@ -15,7 +15,8 @@ import kotlinx.android.synthetic.main.prompt_dialog_layout.*
 
 open class BaseDialogFragment : DialogFragment() {
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
+                              savedInstanceState: Bundle?): View {
         return inflater.inflate(R.layout.prompt_dialog_layout, container, false)
     }
 

@@ -1,11 +1,11 @@
 package com.gb.canibuyit.feature.spending.data
 
-import com.gb.canibuyit.feature.spending.persistence.model.ApiSpending
 import com.gb.canibuyit.feature.spending.model.Spending
 import com.gb.canibuyit.feature.spending.model.div
 import com.gb.canibuyit.feature.spending.model.overlap
 import com.gb.canibuyit.feature.spending.model.plus
 import com.gb.canibuyit.feature.spending.model.times
+import com.gb.canibuyit.feature.spending.persistence.model.ApiSpending
 import java.time.LocalDate
 
 object BalanceCalculator {
@@ -20,7 +20,8 @@ object BalanceCalculator {
      * @return two floating point values, the first is the minimum possible value, the second is
      * * the maximum possible value
      */
-    fun getEstimatedBalance(spending: Spending, start: LocalDate?, end: LocalDate = LocalDate.now()): Balance {
+    fun getEstimatedBalance(spending: Spending, start: LocalDate?,
+                            end: LocalDate = LocalDate.now()): Balance {
         if (start != null && end < start) {
             throw IllegalArgumentException("Start date must come before end date!")
         }
@@ -40,8 +41,11 @@ object BalanceCalculator {
                 val targetIncrement = spending.target?.let { -Math.abs(it).toFloat() }
                         ?: spending.value.toFloat()
                 if (end >= movingStart) {
-                    val overlap = Pair(Pair(start ?: spending.fromStartDate, end.plusDays(1)), Pair(movingStart, movingEnd.plusDays(1))).overlap(ApiSpending.Cycle.DAYS)
-                    val fraction = overlap / (Pair(movingStart, movingEnd.plusDays(1)) / ApiSpending.Cycle.DAYS)
+                    val overlap = Pair(Pair(start ?: spending.fromStartDate, end.plusDays(1)),
+                            Pair(movingStart, movingEnd.plusDays(1))).overlap(
+                            ApiSpending.Cycle.DAYS)
+                    val fraction = overlap / (Pair(movingStart,
+                            movingEnd.plusDays(1)) / ApiSpending.Cycle.DAYS)
                     target += fraction * targetIncrement
                     total += fraction * spending.value.toFloat()
                     spendingEvents.add(SpendingEvent(movingStart, movingEnd, total))
@@ -50,7 +54,8 @@ object BalanceCalculator {
                 }
             }
             counter++
-            movingStart = spending.fromStartDate + (spending.cycleMultiplier * counter * spending.cycle)
+            movingStart =
+                spending.fromStartDate + (spending.cycleMultiplier * counter * spending.cycle)
             movingEnd = spending.fromEndDate + (spending.cycleMultiplier * counter * spending.cycle)
             spending.occurrenceCount?.let {
                 if (++occurrenceCount >= it) {

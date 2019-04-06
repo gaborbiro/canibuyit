@@ -6,7 +6,8 @@ import com.gb.canibuyit.R
 import com.gb.canibuyit.feature.spending.model.Spending
 import com.gb.canibuyit.util.inflate
 
-class SpendingAdapter(private val onSpendingClickedListener: OnSpendingClickedListener) : RecyclerView.Adapter<SpendingViewHolder>() {
+class SpendingAdapter(private val onSpendingClickedListener: OnSpendingClickedListener) :
+        RecyclerView.Adapter<SpendingViewHolder>() {
 
     private var spendings: List<Spending>? = null
 
@@ -21,7 +22,9 @@ class SpendingAdapter(private val onSpendingClickedListener: OnSpendingClickedLi
 
     override fun onBindViewHolder(holder: SpendingViewHolder, position: Int) {
         holder.bind(spendings!![position])
-        holder.itemView.setOnClickListener { v -> onSpendingClickedListener.onSpendingClicked(spendings!![position]) }
+        holder.itemView.setOnClickListener { v ->
+            onSpendingClickedListener.onSpendingClicked(spendings!![position])
+        }
     }
 
     override fun getItemCount(): Int {

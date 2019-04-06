@@ -10,13 +10,12 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
-import android.widget.Button
 import android.widget.ImageView
 import android.widget.ListView
 import android.widget.TextView
 import android.widget.Toast
 import com.gb.canibuyit.R
-import com.gb.canibuyit.util.DirReadException
+import com.gb.canibuyit.error.DirReadException
 import com.gb.canibuyit.util.DirUtils
 import com.gb.canibuyit.util.PermissionVerifier
 import com.gb.canibuyit.util.hide
@@ -44,11 +43,11 @@ class FileDialogActivity : ListActivity() {
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_file_picker)
-        val permissions: Array<String>
-        if (selectionMode == SELECTION_MODE_CREATE) {
-            permissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        val permissions: Array<String> = if (selectionMode == SELECTION_MODE_CREATE) {
+            arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE)
         } else {
-            permissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
+            arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
         }
         permissionVerifier = PermissionVerifier(this, permissions)
         permissionVerifier.verifyPermissions(true, REQUEST_CODE_EXTERNAL_STORAGE_PERMISSION)
@@ -67,14 +66,13 @@ class FileDialogActivity : ListActivity() {
                 finish()
             }
         }
-        val newButton = findViewById(R.id.new_btn) as Button
-        newButton.setOnClickListener { v ->
+        new_btn.setOnClickListener { v ->
             setCreateVisible(v)
             this.file_name_input.setText("")
             this.file_name_input.requestFocus()
         }
         if (selectionMode == SELECTION_MODE_OPEN) {
-            newButton.isEnabled = false
+            new_btn.isEnabled = false
         }
 
         this.selection_buttons_container.hide()
@@ -114,7 +112,8 @@ class FileDialogActivity : ListActivity() {
                 path = parent
             } catch (e2: DirReadException) {
                 e.printStackTrace()
-                Toast.makeText(this@FileDialogActivity, "Unable to read folder $path", Toast.LENGTH_SHORT)
+                Toast.makeText(this@FileDialogActivity, "Unable to read folder $path",
+                        Toast.LENGTH_SHORT)
                         .show()
                 try {
                     path = ROOT
@@ -150,7 +149,8 @@ class FileDialogActivity : ListActivity() {
     }
 
     private class FileListAdapter internal constructor(context: Context,
-                                                       items: List<DirUtils.FileInfo>) : ArrayAdapter<DirUtils.FileInfo>(context, 0, items) {
+                                                       items: List<DirUtils.FileInfo>) :
+            ArrayAdapter<DirUtils.FileInfo>(context, 0, items) {
         private inner class ViewHolder {
             lateinit var icon: ImageView
             lateinit var filename: TextView
@@ -171,7 +171,8 @@ class FileDialogActivity : ListActivity() {
                 holder = view.tag as ViewHolder
             }
             val fileInfo = getItem(position)
-            holder.icon.setImageResource(if (fileInfo!!.isFolder) R.drawable.folder else R.drawable.file)
+            holder.icon.setImageResource(
+                    if (fileInfo!!.isFolder) R.drawable.folder else R.drawable.file)
             holder.filename.text = fileInfo.path
             return view
         }
@@ -190,7 +191,7 @@ class FileDialogActivity : ListActivity() {
         if (file.isDirectory) {
             this.select_btn.isEnabled = false
             if (file.canRead()) {
-                lastPositions.put(currentPath, position)
+                lastPositions[currentPath] = position
                 setData(file.absolutePath)
 
                 if (canSelectDir) {
@@ -200,7 +201,8 @@ class FileDialogActivity : ListActivity() {
                 }
             } else {
                 AlertDialog.Builder(this)
-                        .setTitle("Folder [" + file.name + "] " + getText(R.string.cant_read_folder))
+                        .setTitle(
+                                "Folder [" + file.name + "] " + getText(R.string.cant_read_folder))
                         .setPositiveButton("OK", null).show()
             }
         } else {
@@ -229,43 +231,43 @@ class FileDialogActivity : ListActivity() {
         }
     }
 
-    private fun setCreateVisible(v: View?) {
+    private fun setCreateVisible(view: View?) {
         this.creation_buttons_container.show()
         this.selection_buttons_container.hide()
-        v?.apply {
+        view?.apply {
             hideKeyboard()
         }
         this.select_btn.isEnabled = false
     }
 
-    private fun setSelectVisible(v: View?) {
+    private fun setSelectVisible(view: View?) {
         this.creation_buttons_container.hide()
         this.selection_buttons_container.show()
-        v?.apply {
+        view?.apply {
             hideKeyboard()
         }
         this.select_btn.isEnabled = false
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
-        if (!permissionVerifier.onRequestPermissionsResult(requestCode, permissions, grantResults)) {
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>,
+                                            grantResults: IntArray) {
+        if (!permissionVerifier.onRequestPermissionsResult(requestCode, permissions,
+                        grantResults)) {
             Toast.makeText(this, "Missing permissions!", Toast.LENGTH_SHORT).show()
         }
     }
-
-    companion object {
-        private val REQUEST_CODE_EXTERNAL_STORAGE_PERMISSION = 1
-
-        val SELECTION_MODE_CREATE = 1
-        val SELECTION_MODE_OPEN = 2
-
-        private val ROOT = "/"
-        private val PARENT = "../"
-
-        val EXTRA_START_PATH = "START_PATH"
-        val EXTRA_FORMAT_FILTER = "FORMAT_FILTER"
-        val EXTRA_RESULT_PATH = "RESULT_PATH"
-        val EXTRA_SELECTION_MODE = "SELECTION_MODE"
-        val EXTRA_CAN_SELECT_DIR = "CAN_SELECT_DIR"
-    }
 }
+
+private const val REQUEST_CODE_EXTERNAL_STORAGE_PERMISSION = 1
+
+const val SELECTION_MODE_CREATE = 1
+const val SELECTION_MODE_OPEN = 2
+
+private const val ROOT = "/"
+private const val PARENT = "../"
+
+const val EXTRA_START_PATH = "START_PATH"
+const val EXTRA_FORMAT_FILTER = "FORMAT_FILTER"
+const val EXTRA_RESULT_PATH = "RESULT_PATH"
+const val EXTRA_SELECTION_MODE = "SELECTION_MODE"
+const val EXTRA_CAN_SELECT_DIR = "CAN_SELECT_DIR"

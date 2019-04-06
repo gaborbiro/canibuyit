@@ -4,14 +4,19 @@ import okhttp3.ResponseBody
 import retrofit2.HttpException
 import java.io.IOException
 
-open class DomainException @JvmOverloads constructor(message: String?, cause: Throwable? = null) : Throwable(message, cause) {
+open class DomainException @JvmOverloads constructor(
+    message: String?,
+    cause: Throwable? = null) : Throwable(message, cause) {
 
     var responseBody: ResponseBody? = null
         private set
+
     var code: Int
         private set
+
     var kind: Kind
         private set
+
     var action: Action? = null
         private set
 

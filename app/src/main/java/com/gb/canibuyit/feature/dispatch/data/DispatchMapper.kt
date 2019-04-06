@@ -8,7 +8,8 @@ import javax.inject.Singleton
 @Singleton
 class DispatchMapper @Inject constructor() {
 
-    fun mapToDispatchRegistration(apiDispatchRegistration: ApiDispatchRegistration): DispatchRegistration {
+    fun mapToDispatchRegistration(
+        apiDispatchRegistration: ApiDispatchRegistration): DispatchRegistration {
         return DispatchRegistration(apiDispatchRegistration.hash)
     }
 }

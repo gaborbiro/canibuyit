@@ -11,6 +11,7 @@ interface CanIBuyItComponent : CanIBuyItGraph {
 
     @Component.Builder
     interface Builder {
+
         @BindsInstance
         fun application(application: Application): Builder
 

@@ -7,7 +7,8 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class DispatchRepository @Inject constructor(private val dispatchApi: DispatchApi, private val dispatchMapper: DispatchMapper) {
+class DispatchRepository @Inject constructor(private val dispatchApi: DispatchApi,
+                                             private val dispatchMapper: DispatchMapper) {
 
     fun register(token: String): Single<DispatchRegistration> {
         return dispatchApi.register(token).map { dispatchMapper.mapToDispatchRegistration(it) }

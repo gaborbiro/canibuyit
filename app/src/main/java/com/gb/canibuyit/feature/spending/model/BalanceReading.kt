@@ -21,6 +21,7 @@ class BalanceReading(val date: LocalDate?,
     }
 
     companion object {
+        @JvmField
         val CREATOR = createParcel { BalanceReading(it) }
     }
 }

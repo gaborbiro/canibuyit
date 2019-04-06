@@ -2,13 +2,13 @@ package com.gb.canibuyit.di
 
 import android.app.Application
 import android.content.Context
-import com.gb.canibuyit.feature.spending.persistence.SpendingDBHelper
-import com.gb.canibuyit.feature.project.model.ApiProject
-import com.gb.canibuyit.feature.spending.persistence.model.ApiSpending
 import com.gb.canibuyit.feature.dispatch.di.DispatchModule
 import com.gb.canibuyit.feature.monzo.di.MonzoModule
-import com.gb.canibuyit.rx.SchedulerProvider
-import com.gb.canibuyit.rx.SchedulerProviderImpl
+import com.gb.canibuyit.feature.project.model.ApiProject
+import com.gb.canibuyit.feature.spending.persistence.SpendingDBHelper
+import com.gb.canibuyit.feature.spending.persistence.model.ApiSpending
+import com.gb.canibuyit.base.rx.SchedulerProvider
+import com.gb.canibuyit.base.rx.SchedulerProviderImpl
 import com.gb.canibuyit.util.localDateSerializer
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder

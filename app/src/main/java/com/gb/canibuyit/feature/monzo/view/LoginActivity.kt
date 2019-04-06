@@ -8,14 +8,14 @@ import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import com.gb.canibuyit.R
+import com.gb.canibuyit.base.view.BaseActivity
+import com.gb.canibuyit.base.view.BasePresenter
+import com.gb.canibuyit.base.view.Screen
 import com.gb.canibuyit.di.Injector
 import com.gb.canibuyit.feature.monzo.CLIENT_ID
 import com.gb.canibuyit.feature.monzo.CredentialsProvider
 import com.gb.canibuyit.feature.monzo.MONZO_OAUTH_URL
 import com.gb.canibuyit.feature.monzo.MONZO_URI_AUTH_CALLBACK
-import com.gb.canibuyit.base.view.BasePresenter
-import com.gb.canibuyit.base.view.Screen
-import com.gb.canibuyit.base.view.BaseActivity
 import com.gb.canibuyit.util.Logger
 import kotlinx.android.synthetic.main.activity_web.*
 import java.net.URLEncoder

@@ -45,7 +45,8 @@ fun SpannableString.bold(vararg subString: String) = this.apply {
     subString.forEach {
         val start = this.indexOf(it)
         val end = start + it.length
-        setSpan(StyleSpan(android.graphics.Typeface.BOLD), start, end, Spannable.SPAN_INCLUSIVE_INCLUSIVE)
+        setSpan(StyleSpan(android.graphics.Typeface.BOLD), start, end,
+                Spannable.SPAN_INCLUSIVE_INCLUSIVE)
     }
 }
 
@@ -55,7 +56,8 @@ fun TextView.setSubtextWithLink(text: String, linkPart: String, runOnClick: () -
     this.setSubtextWithLinks(text, arrayOf(linkPart), arrayOf(runOnClick))
 }
 
-fun TextView.setSubtextWithLinks(text: String, linkParts: Array<String>, runOnClicks: Array<() -> Unit>) {
+fun TextView.setSubtextWithLinks(text: String, linkParts: Array<String>,
+                                 runOnClicks: Array<() -> Unit>) {
     this.text = text
     val spannable = SpannableString(this.text)
 
@@ -67,7 +69,8 @@ fun TextView.setSubtextWithLinks(text: String, linkParts: Array<String>, runOnCl
     this.movementMethod = LinkMovementMethod.getInstance()
 }
 
-private fun applyLink(text: String, spannable: Spannable, linkPart: String, runOnClick: () -> Unit) {
+private fun applyLink(text: String, spannable: Spannable, linkPart: String,
+                      runOnClick: () -> Unit) {
     val startIndex = text.indexOf(linkPart)
     if (startIndex < 0) {
         throw IllegalArgumentException("linkPart must be included in text")
@@ -83,13 +86,15 @@ private fun applyLink(text: String, spannable: Spannable, linkPart: String, runO
     }, startIndex, startIndex + linkPart.length, Spanned.SPAN_INCLUSIVE_INCLUSIVE)
 }
 
-fun createDatePickerDialog(context: Context, date: LocalDate, listener: (DatePicker, LocalDate) -> Unit): DatePickerDialog {
+fun createDatePickerDialog(context: Context, date: LocalDate,
+                           listener: (DatePicker, LocalDate) -> Unit): DatePickerDialog {
     return DatePickerDialog(context, { view, year, month, dayOfMonth ->
         listener.invoke(view, LocalDate.of(year, month + 1, dayOfMonth))
     }, date.year, date.monthValue - 1, date.dayOfMonth)
 }
 
-inline fun <reified T : View> ViewGroup.inflate(@LayoutRes resource: Int, attachToRoot: Boolean = false): T =
+inline fun <reified T : View> ViewGroup.inflate(@LayoutRes resource: Int,
+                                                attachToRoot: Boolean = false): T =
     LayoutInflater.from(this.context).inflate(resource, this, attachToRoot) as T
 
 @Suppress("UNCHECKED_CAST")

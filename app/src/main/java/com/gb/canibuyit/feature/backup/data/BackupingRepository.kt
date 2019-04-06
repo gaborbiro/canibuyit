@@ -4,6 +4,8 @@ import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteException
 import com.gb.canibuyit.feature.spending.persistence.Contract
+import com.gb.canibuyit.feature.spending.persistence.FILTER_MONZO
+import com.gb.canibuyit.feature.spending.persistence.FILTER_NON_MONZO
 import com.gb.canibuyit.feature.spending.persistence.SpendingDBHelper
 import io.reactivex.Completable
 import java.sql.SQLException
@@ -19,11 +21,11 @@ constructor(private val spendingDBHelper: SpendingDBHelper) {
     }
 
     fun importMonzoSpendings(file: String): Completable {
-        return importSpendings(file, SpendingDBHelper.FILTER_MONZO)
+        return importSpendings(file, FILTER_MONZO)
     }
 
     fun importNonMonzoSpendings(file: String): Completable {
-        return importSpendings(file, SpendingDBHelper.FILTER_NON_MONZO)
+        return importSpendings(file, FILTER_NON_MONZO)
     }
 
     private fun importSpendings(file: String, filter: Map<String, Any?>?): Completable {
@@ -43,7 +45,8 @@ constructor(private val spendingDBHelper: SpendingDBHelper) {
             spendingDBHelper.insertSpendings(cursor, filter)
             return Completable.complete()
         } catch (e: SQLException) {
-            return Completable.error(Exception("Error writing to table " + Contract.Spending.TABLE, e))
+            return Completable.error(
+                    Exception("Error writing to table " + Contract.Spending.TABLE, e))
         } finally {
             try {
                 cursor.close()
