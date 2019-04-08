@@ -42,7 +42,7 @@ class Spending(var id: Int? = null,
                var enabled: Boolean,
                var sourceData: Map<String, String>? = null,
                var spent: BigDecimal,
-               var spentByCycle: List<CycleSpent>? = null,
+               var cycleSpendings: List<CycleSpending>? = null,
                var targets: Map<LocalDate, Int>? = null,
                var savings: Array<out Saving>? = null) {
 
@@ -197,7 +197,7 @@ fun LocalDate.lastCycleDay(cycle: ApiSpending.Cycle): LocalDate = when (cycle) {
     YEARS -> this.with(lastDayOfYear())
 }.atStartOfDay().plusDays(1).minusNanos(1).toLocalDate()
 
-data class CycleSpent(
+data class CycleSpending(
     val id: Int?,
     val spendingId: Int?,
     val from: LocalDate,

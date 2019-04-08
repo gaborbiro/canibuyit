@@ -9,7 +9,7 @@ import com.gb.canibuyit.feature.monzo.data.MonzoInteractor
 import com.gb.canibuyit.feature.project.data.Project
 import com.gb.canibuyit.feature.project.data.ProjectInteractor
 import com.gb.canibuyit.feature.spending.data.SpendingInteractor
-import com.gb.canibuyit.feature.spending.model.CycleSpent
+import com.gb.canibuyit.feature.spending.model.CycleSpending
 import com.gb.canibuyit.feature.spending.model.Spending
 import com.gb.canibuyit.feature.spending.persistence.model.ApiSpending
 import com.gb.canibuyit.util.bold
@@ -64,7 +64,7 @@ class SpendingEditorPresenter @Inject constructor(
         }, this::onError))
     }
 
-    fun onViewSpentByCycleDetails(spentByCycle: CycleSpent, category: ApiSpending.Category) {
+    fun onViewSpentByCycleDetails(spentByCycle: CycleSpending, category: ApiSpending.Category) {
         disposable?.dispose()
         disposable = monzoInteractor.getRawTransactions(ACCOUNT_ID_RETAIL, spentByCycle.from,
                 spentByCycle.to)

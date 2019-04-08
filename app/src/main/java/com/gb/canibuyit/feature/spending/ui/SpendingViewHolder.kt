@@ -72,8 +72,12 @@ class SpendingViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
                     progressView.mode =
                         if (it < 0.0) ProgressRelativeLayout.Mode.MIN_LIMIT else ProgressRelativeLayout.Mode.MAX_LIMIT
                 } ?: let {
-                    progressView.progress = (spent / spending.value).abs().toFloat()
-                    progressView.mode = ProgressRelativeLayout.Mode.DEFAULT
+                    if (spending.value != BigDecimal.ZERO) {
+                        progressView.progress = (spent / spending.value).abs().toFloat()
+                        progressView.mode = ProgressRelativeLayout.Mode.DEFAULT
+                    } else {
+                        progressView.mode = ProgressRelativeLayout.Mode.OFF
+                    }
                 }
             } else {
                 progressView.mode = ProgressRelativeLayout.Mode.OFF

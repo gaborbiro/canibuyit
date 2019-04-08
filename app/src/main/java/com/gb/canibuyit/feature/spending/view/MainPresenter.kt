@@ -117,7 +117,7 @@ constructor(private val monzoInteractor: MonzoInteractor,
                     login(authorizationCode)
                 }
             }
-        } else if (!credentialsProvider.isRefresh()) {
+        } else if (!credentialsProvider.isRefreshToken()) {
             screen.close()
             screen.showLoginActivity()
         }
@@ -128,7 +128,7 @@ constructor(private val monzoInteractor: MonzoInteractor,
     }
 
     fun fetchMonzoData() {
-        if (!credentialsProvider.isRefresh()) {
+        if (!credentialsProvider.isRefreshToken()) {
             screen.showLoginActivity()
         } else {
             disposeOnDestroy(monzoInteractor.loadSpendings(ACCOUNT_ID_RETAIL,

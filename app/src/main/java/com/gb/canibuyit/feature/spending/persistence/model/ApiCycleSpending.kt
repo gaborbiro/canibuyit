@@ -7,31 +7,31 @@ import com.j256.ormlite.table.DatabaseTable
 import java.math.BigDecimal
 import java.time.LocalDate
 
-@DatabaseTable(tableName = Contract.SpentByCycle.TABLE)
-data class ApiSpentByCycle(
+@DatabaseTable(tableName = Contract.CycleSpending.TABLE)
+data class ApiCycleSpending(
 
     @DatabaseField(generatedId = true, columnName = Contract.Project._ID, canBeNull = false)
     var id: Int? = null,
 
-    @DatabaseField(columnName = Contract.SpentByCycle.SPENDING, canBeNull = false, foreign = true)
+    @DatabaseField(columnName = Contract.CycleSpending.SPENDING, canBeNull = false, foreign = true)
     var spending: ApiSpending? = null,
 
-    @DatabaseField(columnName = Contract.SpentByCycle.FROM, canBeNull = false,
+    @DatabaseField(columnName = Contract.CycleSpending.FROM, canBeNull = false,
             dataType = DataType.SERIALIZABLE)
     var from: LocalDate? = null,
 
-    @DatabaseField(columnName = Contract.SpentByCycle.TO, canBeNull = false,
+    @DatabaseField(columnName = Contract.CycleSpending.TO, canBeNull = false,
             dataType = DataType.SERIALIZABLE)
     var to: LocalDate? = null,
 
-    @DatabaseField(columnName = Contract.SpentByCycle.AMOUNT, canBeNull = false)
+    @DatabaseField(columnName = Contract.CycleSpending.AMOUNT, canBeNull = false)
     var amount: BigDecimal? = null,
 
-    @DatabaseField(columnName = Contract.SpentByCycle.COUNT, canBeNull = false)
+    @DatabaseField(columnName = Contract.CycleSpending.COUNT, canBeNull = false)
     var count: Int? = null
 ) {
 
     override fun toString(): String {
-        return "ApiSpentByCycle(id=$id, from=$from, to=$to, amount=$amount, count=$count)"
+        return "ApiCycleSpending(id=$id, from=$from, to=$to, amount=$amount, count=$count)"
     }
 }

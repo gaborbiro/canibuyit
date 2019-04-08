@@ -119,7 +119,7 @@ class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen {
                 enabled = enabled_switch.isChecked,
                 sourceData = originalSpending?.sourceData,
                 spent = originalSpending?.spent ?: BigDecimal.ZERO,
-                spentByCycle = originalSpending?.spentByCycle,
+                cycleSpendings = originalSpending?.cycleSpendings,
                 // if target was changed, add a new entry to the list or update the last one if it's still from today
                 // because savings calculations are done at end of day, today's saving target will be locked down at midnight
                 targets = target_input.text.orNull()?.toString()?.toInt()?.let { target ->
@@ -176,7 +176,7 @@ class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen {
             source_category_lbl.text = "(original Monzo category: $it)"
             source_category_lbl.isVisible = true
         }
-        spending.spentByCycle?.let { list ->
+        spending.cycleSpendings?.let { list ->
             spent_by_cycle_list.isVisible = true
             spent_by_cycle_list.removeAllViews()
             spent_by_cycle_lbl.isVisible = !list.isEmpty()

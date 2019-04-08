@@ -36,7 +36,7 @@ class Contract {
         }
     }
 
-    class SpentByCycle {
+    class CycleSpending {
 
         companion object {
 

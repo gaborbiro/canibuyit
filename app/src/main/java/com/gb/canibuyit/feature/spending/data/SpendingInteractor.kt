@@ -93,7 +93,7 @@ constructor(private val spendingsRepository: SpendingsRepository,
     }
 
     fun deleteSpentByCycleData(spending: Spending) {
-        spendingsRepository.deleteSpendByCycleBySpendingId(spending)
+        spendingsRepository.deleteCycleSpendingBySpendingId(spending)
     }
 
     // NON-REACTIVE METHODS

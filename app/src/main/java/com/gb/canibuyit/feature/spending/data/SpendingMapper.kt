@@ -1,12 +1,12 @@
 package com.gb.canibuyit.feature.spending.data
 
 import com.gb.canibuyit.error.MapperException
-import com.gb.canibuyit.feature.spending.model.CycleSpent
+import com.gb.canibuyit.feature.spending.model.CycleSpending
 import com.gb.canibuyit.feature.spending.model.Saving
 import com.gb.canibuyit.feature.spending.model.Spending
 import com.gb.canibuyit.feature.spending.persistence.model.ApiSaving
 import com.gb.canibuyit.feature.spending.persistence.model.ApiSpending
-import com.gb.canibuyit.feature.spending.persistence.model.ApiSpentByCycle
+import com.gb.canibuyit.feature.spending.persistence.model.ApiCycleSpending
 import com.gb.canibuyit.util.fromJson
 import com.google.gson.Gson
 import java.math.BigDecimal
@@ -34,7 +34,7 @@ class SpendingMapper @Inject constructor(private val gson: Gson) {
                 sourceData = mapSourceData(apiSpending.sourceData),
                 enabled = apiSpending.enabled ?: throw MapperException("Missing enabled"),
                 spent = apiSpending.spent ?: BigDecimal.ZERO,
-                spentByCycle = apiSpending.spentByCycle?.map(this::map),
+                cycleSpendings = apiSpending.cycleSpendings?.map(this::map),
                 targets = apiSpending.targets?.let {
                     gson.fromJson<MutableMap<LocalDate, Int>>(it)
                 },
@@ -67,30 +67,30 @@ class SpendingMapper @Inject constructor(private val gson: Gson) {
                 targets = spending.targets?.let { gson.toJson(it) })
     }
 
-    fun map(apiSpentByCycle: ApiSpentByCycle): CycleSpent =
-        CycleSpent(
+    fun map(apiSpentByCycle: ApiCycleSpending): CycleSpending =
+        CycleSpending(
                 id = apiSpentByCycle.id ?: throw MapperException(
-                        "Missing `id` when mapping ApiSpentByCycle"),
+                        "Missing `id` when mapping ApiCycleSpending"),
                 spendingId = apiSpentByCycle.spending?.id ?: throw MapperException(
-                        "Missing `spendingId` when mapping ApiSpentByCycle"),
+                        "Missing `spendingId` when mapping ApiCycleSpending"),
                 from = apiSpentByCycle.from ?: throw MapperException(
-                        "Missing `from` when mapping ApiSpentByCycle"),
+                        "Missing `from` when mapping ApiCycleSpending"),
                 to = apiSpentByCycle.to ?: throw MapperException(
-                        "Missing `to` when mapping ApiSpentByCycle"),
+                        "Missing `to` when mapping ApiCycleSpending"),
                 amount = apiSpentByCycle.amount ?: throw MapperException(
-                        "Missing `amount` when mapping ApiSpentByCycle"),
+                        "Missing `amount` when mapping ApiCycleSpending"),
                 count = apiSpentByCycle.count ?: throw MapperException(
-                        "Missing `count` when mapping ApiSpentByCycle")
+                        "Missing `count` when mapping ApiCycleSpending")
         )
 
-    fun map(cycleSpent: CycleSpent, apiSpending: ApiSpending): ApiSpentByCycle =
-        ApiSpentByCycle(
-                id = cycleSpent.id,
+    fun map(cycleSpending: CycleSpending, apiSpending: ApiSpending): ApiCycleSpending =
+        ApiCycleSpending(
+                id = cycleSpending.id,
                 spending = apiSpending,
-                from = cycleSpent.from,
-                to = cycleSpent.to,
-                amount = cycleSpent.amount,
-                count = cycleSpent.count
+                from = cycleSpending.from,
+                to = cycleSpending.to,
+                amount = cycleSpending.amount,
+                count = cycleSpending.count
         )
 
     fun map(apiSaving: ApiSaving): Saving {

@@ -50,7 +50,7 @@ constructor(private val dao: Dao<ApiSpending, Int>,
                 emitter.onComplete()
                 spending.id = apiSpending.id
                 saveSavings(spending, apiSpending)
-                saveSpentByCycle(spending, apiSpending)
+                saveCycleSpendings(spending, apiSpending)
             } catch (e: SQLException) {
                 emitter.onError(e)
             }
@@ -61,7 +61,7 @@ constructor(private val dao: Dao<ApiSpending, Int>,
                                 remoteCategoryKey: String): Completable {
         return Completable.create { emitter ->
             val savedSpendings = dao.queryForAll()
-            val savedCategories: MutableList<String?> = savedSpendings
+            val savedRemoteCategories: MutableList<String?> = savedSpendings
                     .mapNotNull {
                         mapper.mapSourceData(it.sourceData)?.get(remoteCategoryKey)
                     }
@@ -73,7 +73,7 @@ constructor(private val dao: Dao<ApiSpending, Int>,
 
                     // find the saved spending that has the same remote category as the current remote spending
                     // Note: no two remote spending should have the same remote category, so there will only be one match
-                    val exists = savedCategories.remove(remoteCategory)
+                    val exists = savedRemoteCategories.remove(remoteCategory)
 
                     val apiSpending = mapper.map(spending)
                     if (exists) {
@@ -83,13 +83,13 @@ constructor(private val dao: Dao<ApiSpending, Int>,
                         spending.id = apiSpending.id
                     }
                     saveSavings(spending, apiSpending)
-                    saveSpentByCycle(spending, apiSpending)
+                    saveCycleSpendings(spending, apiSpending)
                 }
                 // Disable leftovers (spendings that are no longer received)
                 // This can happen when the user retroactively re-categorizes some spendings,
                 // causing one or more of the categories to disappear
                 savedSpendings.filter {
-                    savedCategories.contains(it.type.toString()) && it.enabled!!
+                    savedRemoteCategories.contains(it.type.toString()) && it.enabled!!
                 }.forEach {
                     it.enabled = false
                     it.value = BigDecimal.ZERO
@@ -112,19 +112,19 @@ constructor(private val dao: Dao<ApiSpending, Int>,
         }
     }
 
-    private fun saveSpentByCycle(spending: Spending, apiSpending: ApiSpending) {
+    private fun saveCycleSpendings(spending: Spending, apiSpending: ApiSpending) {
         dao.assignEmptyForeignCollection(apiSpending, Contract.Spending.CYCLE_SPENT)
-        apiSpending.spentByCycle?.let { foreignCollection ->
-            spending.spentByCycle?.map { mapper.map(it, apiSpending) }?.asIterable()?.also {
+        apiSpending.cycleSpendings?.let { foreignCollection ->
+            spending.cycleSpendings?.map { mapper.map(it, apiSpending) }?.asIterable()?.also {
                 foreignCollection.clear()
                 foreignCollection.addAll(it)
             }
         }
     }
 
-    fun deleteSpendByCycleBySpendingId(spending: Spending) {
-        dao.queryForId(spending.id).spentByCycle?.clear()
-        spending.spentByCycle = emptyList()
+    fun deleteCycleSpendingBySpendingId(spending: Spending) {
+        dao.queryForId(spending.id).cycleSpendings?.clear()
+        spending.cycleSpendings = emptyList()
     }
 
     fun delete(id: Int): Completable {

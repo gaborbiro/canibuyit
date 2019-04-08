@@ -19,7 +19,7 @@ class CredentialsProvider @Inject constructor(private val prefsUtil: PrefsUtil) 
         get() = prefsUtil[PREF_REFRESH_TOKEN, ""]
         set(refreshToken) = prefsUtil.put(PREF_REFRESH_TOKEN, refreshToken)
 
-    fun isRefresh(): Boolean {
+    fun isRefreshToken(): Boolean {
         return !refreshToken.isNullOrEmpty()
     }
 }

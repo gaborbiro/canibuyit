@@ -24,7 +24,7 @@ class FirebaseInstanceIdService : FirebaseInstanceIdService(), DispatchScreen {
     }
 
     override fun onTokenRefresh() {
-        if (!credentialsProvider.accessToken.isNullOrEmpty() || credentialsProvider.isRefresh()) {
+        if (!credentialsProvider.accessToken.isNullOrEmpty() || credentialsProvider.isRefreshToken()) {
             val refreshedToken = FirebaseInstanceId.getInstance().token
             Log.d(TAG, "Refreshed token: " + refreshedToken!!)
             presenter.sendFCMTokenToServer(refreshedToken)
