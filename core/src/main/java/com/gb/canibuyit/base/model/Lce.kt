@@ -25,7 +25,7 @@ open class Lce<T> {
         this.error = error
     }
 
-    internal fun hasError(): Boolean {
+    fun hasError(): Boolean {
         return error != null
     }
 

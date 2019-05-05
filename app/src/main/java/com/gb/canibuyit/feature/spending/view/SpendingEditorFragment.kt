@@ -12,7 +12,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.core.view.isVisible
 import com.gb.canibuyit.R
-import com.gb.canibuyit.base.ui.PromptDialog
+import com.gb.canibuyit.base.view.PromptDialog
 import com.gb.canibuyit.base.view.BaseFragment
 import com.gb.canibuyit.di.Injector
 import com.gb.canibuyit.feature.monzo.MONZO_CATEGORY

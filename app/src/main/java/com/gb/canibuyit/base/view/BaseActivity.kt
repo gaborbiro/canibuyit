@@ -3,14 +3,13 @@ package com.gb.canibuyit.base.view
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.LifecycleObserver
-import com.gb.canibuyit.base.ui.ProgressDialog
 import com.gb.canibuyit.di.Injector
 import com.gb.canibuyit.error.ContextSource
-import com.gb.canibuyit.error.ErrorHandler
-import org.jetbrains.annotations.Nullable
+import com.gb.canibuyit.base.error.ErrorHandler
 import javax.inject.Inject
 
-abstract class BaseActivity : AppCompatActivity(), ProgressScreen, ContextSource {
+abstract class BaseActivity : AppCompatActivity(), ProgressScreen,
+        ContextSource {
 
     @Inject lateinit var errorHandler: ErrorHandler
 

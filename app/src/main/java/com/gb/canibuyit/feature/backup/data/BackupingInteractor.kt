@@ -2,10 +2,10 @@ package com.gb.canibuyit.feature.backup.data
 
 import android.content.Context
 import android.os.Environment
+import com.gb.canibuyit.base.rx.SchedulerProvider
 import com.gb.canibuyit.error.DomainException
 import com.gb.canibuyit.feature.spending.data.SpendingInteractor
 import com.gb.canibuyit.feature.spending.persistence.DATABASE_NAME
-import com.gb.canibuyit.base.rx.SchedulerProvider
 import com.gb.canibuyit.util.FileUtils
 import io.reactivex.Completable
 import java.io.File
@@ -32,18 +32,16 @@ constructor(private val backupingRepository: BackupingRepository,
 
     private fun prepareImportCompletable(completable: Completable): Completable {
         return completable
-                .onErrorResumeNext { throwable ->
-                    Completable.error(
-                            DomainException("Error importing database. See logs.", throwable))
-                }
-                .subscribeOn(schedulerProvider.io())
-                .observeOn(schedulerProvider.mainThread())
+            .onErrorResumeNext { throwable ->
+                Completable.error(DomainException("Error importing database. See logs.", throwable))
+            }
+            .subscribeOn(schedulerProvider.io())
+            .observeOn(schedulerProvider.mainThread())
     }
 
     fun exportSpendings(targetFilename: String): Completable {
         val finalFromPath = targetFilename.let { if (!it.endsWith("sqlite")) "$it.sqlite" else it }
-        val currentDBPath =
-            "/data/${appContext.packageName}/databases/$DATABASE_NAME"
+        val currentDBPath = "/data/${appContext.packageName}/databases/$DATABASE_NAME"
 
         return try {
             exportFile(finalFromPath, currentDBPath)

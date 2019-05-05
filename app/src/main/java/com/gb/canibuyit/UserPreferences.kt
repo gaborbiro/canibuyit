@@ -2,7 +2,7 @@ package com.gb.canibuyit
 
 import android.content.SharedPreferences
 import com.gb.canibuyit.feature.spending.model.BalanceReading
-import com.gb.lib_prefsutil.PrefsUtil
+import com.gb.prefsutil.PrefsUtil
 import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
 import java.time.LocalDate
@@ -29,7 +29,7 @@ constructor(private val prefsUtil: PrefsUtil) : SharedPreferences.OnSharedPrefer
         set(date) = prefsUtil.put(PREF_ESTIMATE_DATE, date.toString())
 
     var balanceReading: BalanceReading?
-        get() = prefsUtil[PREF_READING, BalanceReading.CREATOR]
+        get() = prefsUtil.getOrNull(PREF_READING, BalanceReading.CREATOR, null)
         set(reading) = if (reading != null) {
             prefsUtil.put(PREF_READING, reading)
         } else {
@@ -53,7 +53,7 @@ constructor(private val prefsUtil: PrefsUtil) : SharedPreferences.OnSharedPrefer
 
     var lastUpdate: LocalDateTime?
         get() = prefsUtil[PREF_LAST_UPDATE, ""].let {
-            if (!it.isNullOrEmpty()) LocalDateTime.parse(it) else null
+            if (it.isNotEmpty()) LocalDateTime.parse(it) else null
         }
         set(date) = prefsUtil.put(PREF_LAST_UPDATE, date.toString())
 

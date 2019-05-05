@@ -1,11 +1,10 @@
-package com.gb.canibuyit.base.ui
+package com.gb.canibuyit.base.view
 
 import android.os.Bundle
-import androidx.annotation.StringRes
 import android.text.SpannableStringBuilder
 import android.view.View
 import android.view.ViewGroup
-import com.gb.canibuyit.base.view.BaseDialogFragment
+import androidx.annotation.StringRes
 
 open class PromptDialog : BaseDialogFragment() {
 
@@ -17,7 +16,8 @@ open class PromptDialog : BaseDialogFragment() {
         super.onViewCreated(view, savedInstanceState)
         arguments?.getString(EXTRA_TITLE)?.let(this@PromptDialog::setTitle)
         arguments?.getString(EXTRA_MESSAGE)?.let(this@PromptDialog::setMessage)
-        arguments?.getCharSequence(EXTRA_BIG_MESSAGE)?.let(this@PromptDialog::setBigMessage)
+        arguments?.getCharSequence(
+            EXTRA_BIG_MESSAGE)?.let(this@PromptDialog::setBigMessage)
 
         super.setPositiveButton(btnStringResId) {
             dismiss()
@@ -28,7 +28,7 @@ open class PromptDialog : BaseDialogFragment() {
     override fun onStart() {
         super.onStart()
         dialog?.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT)
+            ViewGroup.LayoutParams.WRAP_CONTENT)
     }
 
     override fun setPositiveButton(buttonTextId: Int, listener: ((View) -> Unit)?): PromptDialog {
@@ -54,7 +54,8 @@ open class PromptDialog : BaseDialogFragment() {
             PromptDialog().apply {
                 arguments = Bundle().apply {
                     putString(EXTRA_TITLE, title)
-                    putCharSequence(EXTRA_BIG_MESSAGE, message)
+                    putCharSequence(
+                        EXTRA_BIG_MESSAGE, message)
                 }
             }
 
@@ -62,7 +63,8 @@ open class PromptDialog : BaseDialogFragment() {
             PromptDialog().apply {
                 arguments = Bundle().apply {
                     putString(EXTRA_TITLE, title)
-                    putCharSequence(EXTRA_BIG_MESSAGE, message)
+                    putCharSequence(
+                        EXTRA_BIG_MESSAGE, message)
                 }
             }
     }

@@ -1,9 +1,8 @@
-package com.gb.canibuyit.base.ui
+package com.gb.canibuyit.base.view
 
 import android.os.Bundle
 import android.view.View
 import androidx.core.view.isVisible
-import com.gb.canibuyit.base.view.BaseDialogFragment
 import kotlinx.android.synthetic.main.prompt_dialog_layout.*
 
 class ProgressDialog : BaseDialogFragment() {

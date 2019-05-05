@@ -1,9 +1,10 @@
-package com.gb.canibuyit.error
+package com.gb.canibuyit.base.error
 
 import android.content.Context
 import android.widget.Toast
-import com.gb.canibuyit.base.ui.PromptDialog
+import com.gb.canibuyit.base.view.PromptDialog
 import com.gb.canibuyit.di.Injector
+import com.gb.canibuyit.error.DomainException
 import com.gb.canibuyit.feature.monzo.view.LoginActivity
 import com.gb.canibuyit.util.Logger
 import javax.inject.Inject

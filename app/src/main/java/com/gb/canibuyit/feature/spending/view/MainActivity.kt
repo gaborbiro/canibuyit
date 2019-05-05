@@ -12,7 +12,7 @@ import android.view.View
 import android.widget.Toast
 import com.gb.canibuyit.R
 import com.gb.canibuyit.UserPreferences
-import com.gb.canibuyit.base.ui.PromptDialog
+import com.gb.canibuyit.base.view.PromptDialog
 import com.gb.canibuyit.base.view.BaseActivity
 import com.gb.canibuyit.di.Injector
 import com.gb.canibuyit.feature.dispatch.view.DispatchPresenter

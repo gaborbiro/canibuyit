@@ -4,7 +4,7 @@ import android.os.Bundle
 import android.view.View
 import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentManager
-import com.gb.canibuyit.base.ui.PromptDialog
+import com.gb.canibuyit.base.view.PromptDialog
 import com.gb.canibuyit.feature.spending.persistence.model.ApiSpending
 import com.gb.canibuyit.util.eitherOrNull
 import com.gb.canibuyit.util.setSubtextWithLinks

@@ -2,15 +2,15 @@ package com.gb.canibuyit.di
 
 import android.app.Application
 import android.content.Context
+import com.gb.canibuyit.base.rx.SchedulerProvider
+import com.gb.canibuyit.base.rx.SchedulerProviderImpl
 import com.gb.canibuyit.feature.dispatch.di.DispatchModule
 import com.gb.canibuyit.feature.monzo.di.MonzoModule
 import com.gb.canibuyit.feature.project.model.ApiProject
 import com.gb.canibuyit.feature.spending.persistence.SpendingDBHelper
 import com.gb.canibuyit.feature.spending.persistence.model.ApiSpending
-import com.gb.canibuyit.base.rx.SchedulerProvider
-import com.gb.canibuyit.base.rx.SchedulerProviderImpl
 import com.gb.canibuyit.util.localDateSerializer
-import com.gb.lib_prefsutil.PrefsUtil
+import com.gb.prefsutil.PrefsUtil
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.j256.ormlite.dao.Dao
@@ -50,10 +50,10 @@ class CanIBuyItModule {
     @Provides
     @Singleton
     internal fun provideGson(): Gson = GsonBuilder()
-            .setDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
-            .registerTypeAdapter(LocalDate::class.java, localDateSerializer)
-            .enableComplexMapKeySerialization()
-            .create()
+        .setDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
+        .registerTypeAdapter(LocalDate::class.java, localDateSerializer)
+        .enableComplexMapKeySerialization()
+        .create()
 
     @Provides
     @Singleton
