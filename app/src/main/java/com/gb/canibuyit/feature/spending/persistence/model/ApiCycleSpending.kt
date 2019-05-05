@@ -16,22 +16,24 @@ data class ApiCycleSpending(
     @DatabaseField(columnName = Contract.CycleSpending.SPENDING, canBeNull = false, foreign = true)
     var spending: ApiSpending? = null,
 
-    @DatabaseField(columnName = Contract.CycleSpending.FROM, canBeNull = false,
-            dataType = DataType.SERIALIZABLE)
+    @DatabaseField(columnName = Contract.CycleSpending.FROM, canBeNull = false, dataType = DataType.SERIALIZABLE)
     var from: LocalDate? = null,
 
     @DatabaseField(columnName = Contract.CycleSpending.TO, canBeNull = false,
-            dataType = DataType.SERIALIZABLE)
+        dataType = DataType.SERIALIZABLE)
     var to: LocalDate? = null,
 
     @DatabaseField(columnName = Contract.CycleSpending.AMOUNT, canBeNull = false)
     var amount: BigDecimal? = null,
 
     @DatabaseField(columnName = Contract.CycleSpending.COUNT, canBeNull = false)
-    var count: Int? = null
+    var count: Int? = null,
+
+    @DatabaseField(columnName = Contract.CycleSpending.TARGET, canBeNull = true)
+    var target: Int? = null
 ) {
 
     override fun toString(): String {
-        return "ApiCycleSpending(id=$id, from=$from, to=$to, amount=$amount, count=$count)"
+        return "ApiCycleSpending(id=$id, from=$from, to=$to, amount=$amount, target=$target, count=$count)"
     }
 }

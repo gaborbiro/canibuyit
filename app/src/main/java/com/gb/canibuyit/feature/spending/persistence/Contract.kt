@@ -48,7 +48,7 @@ class Contract {
             const val TO = "to"
             const val AMOUNT = "amount"
             const val COUNT = "count"
-            const val ENABLED = "enabled"
+            const val TARGET = "target"
         }
     }
 

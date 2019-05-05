@@ -173,10 +173,10 @@ private fun LocalDate.monthsSinceYear0() =
 
 fun Pair<Pair<LocalDate, LocalDate>, Pair<LocalDate, LocalDate>>.overlap(cycle: ApiSpending.Cycle) =
     Pair(max(this.first.first, this.second.first),
-            min(this.first.second, this.second.second)) / cycle
+        min(this.first.second, this.second.second)) / cycle
 
 fun ApiSpending.Cycle.ordinal(date: LocalDate)
-        : Int = when (this) {
+    : Int = when (this) {
     DAYS -> date.toEpochDay().toInt()
     WEEKS -> (date.with(DayOfWeek.MONDAY).toEpochDay() / 7).toInt()
     MONTHS -> date.year * 12 + date.monthValue
@@ -203,6 +203,7 @@ data class CycleSpending(
     val from: LocalDate,
     val to: LocalDate,
     val amount: BigDecimal,
+    val target: Int?,
     val count: Int) {
-    override fun toString() = "$from $to: $amount ($count)"
+    override fun toString() = "$from $to: $amount${target?.let { "/$target" } ?: ""} ($count)"
 }

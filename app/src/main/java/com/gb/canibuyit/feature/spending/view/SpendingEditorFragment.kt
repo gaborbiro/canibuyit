@@ -12,8 +12,8 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.core.view.isVisible
 import com.gb.canibuyit.R
-import com.gb.canibuyit.base.view.PromptDialog
 import com.gb.canibuyit.base.view.BaseFragment
+import com.gb.canibuyit.base.view.PromptDialog
 import com.gb.canibuyit.di.Injector
 import com.gb.canibuyit.feature.monzo.MONZO_CATEGORY
 import com.gb.canibuyit.feature.project.data.Project
@@ -75,68 +75,68 @@ class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen {
         val fromEndDate = period_date_picker.endDate
         val cycle =
             if (cycle_picker.selectedItem is ApiSpending.Cycle) cycle_picker.selectedItem as ApiSpending.Cycle else throw ValidationError(
-                    ValidationError.TYPE_NON_INPUT_FIELD, null,
-                    "Please select a cycle")
+                ValidationError.TYPE_NON_INPUT_FIELD, null,
+                "Please select a cycle")
         if (fromStartDate > fromEndDate) {
             throw ValidationError(
-                    ValidationError.TYPE_NON_INPUT_FIELD, null,
-                    "Start date must not be higher then end date")
+                ValidationError.TYPE_NON_INPUT_FIELD, null,
+                "Start date must not be higher then end date")
         }
         val cycleMultiplier = cycle_multiplier_input.text.orNull()?.toString()?.toInt()
-                ?: throw ValidationError(
-                        ValidationError.TYPE_INPUT_FIELD,
-                        cycle_multiplier_input,
-                        "Please fill in")
+            ?: throw ValidationError(
+                ValidationError.TYPE_INPUT_FIELD,
+                cycle_multiplier_input,
+                "Please fill in")
         val lastValidDate = (fromStartDate + cycleMultiplier * cycle).minusDays(1)
         if (fromEndDate > lastValidDate) {
             throw ValidationError(
-                    ValidationError.TYPE_NON_INPUT_FIELD, null,
-                    "End date cannot be higher than " + lastValidDate.formatDayMonthYearWithPrefix())
+                ValidationError.TYPE_NON_INPUT_FIELD, null,
+                "End date cannot be higher than " + lastValidDate.formatDayMonthYearWithPrefix())
         }
         val valueStr = average_input.text.orNull()?.toString()
-                ?: throw ValidationError(
-                        ValidationError.TYPE_INPUT_FIELD,
-                        average_input,
-                        "Please specify an amount")
+            ?: throw ValidationError(
+                ValidationError.TYPE_INPUT_FIELD,
+                average_input,
+                "Please specify an amount")
         return Spending(
-                id = originalSpending?.id,
-                name = name_input.text.orNull()?.toString()
-                        ?: throw ValidationError(
-                                ValidationError.TYPE_INPUT_FIELD,
-                                name_input,
-                                "Please specify a name"),
-                notes = notes_input.text.orNull()?.toString(),
-                type = if (category_picker.selectedItem is ApiSpending.Category) category_picker.selectedItem as ApiSpending.Category else throw ValidationError(
-                        ValidationError.TYPE_NON_INPUT_FIELD,
-                        null, "Please select a category"),
-                value = valueStr.toBigDecimal(),
-                total = BigDecimal.ZERO,
-                fromStartDate = fromStartDate,
-                fromEndDate = fromEndDate,
-                occurrenceCount = occurrence_count_input.text.orNull()?.toString()?.toInt(),
-                cycleMultiplier = cycleMultiplier,
-                cycle = cycle,
-                enabled = enabled_switch.isChecked,
-                sourceData = originalSpending?.sourceData,
-                spent = originalSpending?.spent ?: BigDecimal.ZERO,
-                cycleSpendings = originalSpending?.cycleSpendings,
-                // if target was changed, add a new entry to the list or update the last one if it's still from today
-                // because savings calculations are done at end of day, today's saving target will be locked down at midnight
-                targets = target_input.text.orNull()?.toString()?.toInt()?.let { target ->
-                    val now = LocalDate.now()
-                    val targetHistory = originalSpending?.targets?.toMutableMap()
-                    targetHistory?.maxBy { it.key }?.let {
-                        if (it.value != target) {
-                            if (it.key < now) {
-                                targetHistory[now] = target
-                            } else {
-                                targetHistory[it.key] = target
-                            }
+            id = originalSpending?.id,
+            name = name_input.text.orNull()?.toString()
+                ?: throw ValidationError(
+                    ValidationError.TYPE_INPUT_FIELD,
+                    name_input,
+                    "Please specify a name"),
+            notes = notes_input.text.orNull()?.toString(),
+            type = if (category_picker.selectedItem is ApiSpending.Category) category_picker.selectedItem as ApiSpending.Category else throw ValidationError(
+                ValidationError.TYPE_NON_INPUT_FIELD,
+                null, "Please select a category"),
+            value = valueStr.toBigDecimal(),
+            total = BigDecimal.ZERO,
+            fromStartDate = fromStartDate,
+            fromEndDate = fromEndDate,
+            occurrenceCount = occurrence_count_input.text.orNull()?.toString()?.toInt(),
+            cycleMultiplier = cycleMultiplier,
+            cycle = cycle,
+            enabled = enabled_switch.isChecked,
+            sourceData = originalSpending?.sourceData,
+            spent = originalSpending?.spent ?: BigDecimal.ZERO,
+            cycleSpendings = originalSpending?.cycleSpendings,
+            // if target was changed, add a new entry to the list or update the last one if it's still from today
+            // because savings calculations are done at end of day, today's saving target will be locked down at midnight
+            targets = target_input.text.orNull()?.toString()?.toInt()?.let { target ->
+                val now = LocalDate.now()
+                val targetHistory = originalSpending?.targets?.toMutableMap()
+                targetHistory?.maxBy { it.key }?.let {
+                    if (it.value != target) {
+                        if (it.key < now) {
+                            targetHistory[now] = target
+                        } else {
+                            targetHistory[it.key] = target
                         }
                     }
-                    targetHistory ?: mutableMapOf(Pair(now, target))
-                },
-                savings = null)
+                }
+                targetHistory ?: mutableMapOf(Pair(now, target))
+            },
+            savings = null)
     }
 
     private fun setDisplayedSpending(spending: Spending) {
@@ -162,12 +162,8 @@ class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen {
         spending.cycleMultiplier.let { cycleMultiplier ->
             cycle_multiplier_input.setText(cycleMultiplier.toString())
             context?.resources?.apply {
-                average_cycle_lbl.text =
-                    " per $cycleMultiplier ${getQuantityString(spending.cycle.strRes,
-                            cycleMultiplier)}"
-                target_cycle_lbl.text =
-                    " per $cycleMultiplier ${getQuantityString(spending.cycle.strRes,
-                            cycleMultiplier)}"
+                average_cycle_lbl.text = " per $cycleMultiplier ${getQuantityString(spending.cycle.strRes, cycleMultiplier)}"
+                target_cycle_lbl.text = " per $cycleMultiplier ${getQuantityString(spending.cycle.strRes, cycleMultiplier)}"
             }
         }
         cycle_picker.setSelection(spending.cycle.ordinal + 1)
@@ -179,20 +175,22 @@ class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen {
         spending.cycleSpendings?.let { list ->
             spent_by_cycle_list.isVisible = true
             spent_by_cycle_list.removeAllViews()
-            spent_by_cycle_lbl.isVisible = !list.isEmpty()
+            spent_by_cycle_lbl.isVisible = list.isNotEmpty()
             list.forEach { cycleSpent ->
-                spent_by_cycle_list.add<TextView>(
-                        com.gb.canibuyit.R.layout.list_item_spent_by_cycle)
-                        .apply {
-                            tag = cycleSpent.id!!
-                            text =
-                                "${cycleSpent.from} - ${cycleSpent.to}: ${cycleSpent.amount} (${cycleSpent.count})".link()
-                                        .bold(cycleSpent.amount.toString())
-                            setOnClickListener {
-                                presenter.onViewSpentByCycleDetails(cycleSpent,
-                                        originalSpending!!.type)
-                            }
+                val saving = cycleSpent.target?.let { target -> cycleSpent.amount - BigDecimal.valueOf(target.toDouble()) }
+                val cycleSpentText = cycleSpent.run {
+                    "$from - $to: $amount #$count ${saving?.let { "($target => $saving)" } ?: ""}".link().bold(amount.toString())
+                }
+
+                spent_by_cycle_list.add<TextView>(R.layout.list_item_spent_by_cycle)
+                    .apply {
+                        tag = cycleSpent.id!!
+                        text =
+                            cycleSpentText
+                        setOnClickListener {
+                            presenter.onViewSpentByCycleDetails(cycleSpent, originalSpending!!.type)
                         }
+                    }
             }
         }
     }
@@ -222,7 +220,7 @@ class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen {
         })
         period_date_picker.touchInterceptor = { _ ->
             keyboardDismisser.onTouch(period_date_picker,
-                    MotionEvent.obtain(0, 0, MotionEvent.ACTION_DOWN, 0f, 0f, 0))
+                MotionEvent.obtain(0, 0, MotionEvent.ACTION_DOWN, 0f, 0f, 0))
             false
         }
     }
@@ -263,13 +261,13 @@ class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen {
                     }
                     is ContentStatus.ContentWasChangedInSensitiveWays -> {
                         DialogUtils.getSaveDialog(context!!,
-                                "Your modification will cause the \"Spent by cycle\" data to be recalculated.") {
+                            "Your modification will cause the \"Spent by cycle\" data to be recalculated.") {
                             presenter.deleteSpentByCycle(contentSaveStatus.spending)
                             presenter.saveSpending(contentSaveStatus.spending)
                         }.show()
                     }
                     is ContentStatus.ContentInvalid -> context?.let(
-                            contentSaveStatus.validationError::showError)
+                        contentSaveStatus.validationError::showError)
                 }
             }
             R.id.menu_delete -> {
@@ -298,18 +296,18 @@ class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen {
             }
             is ContentStatus.ContentWasChangedInSensitiveWays -> {
                 DialogUtils.getSaveOrDiscardDialog(context!!,
-                        "Your modification will cause the \"Spent by cycle\" data to be recalculated.",
-                        {
-                            presenter.deleteSpentByCycle(contentSaveStatus.spending)
-                            presenter.saveSpending(contentSaveStatus.spending)
-                            true
-                        }, onFinish).show()
+                    "Your modification will cause the \"Spent by cycle\" data to be recalculated.",
+                    {
+                        presenter.deleteSpentByCycle(contentSaveStatus.spending)
+                        presenter.saveSpending(contentSaveStatus.spending)
+                        true
+                    }, onFinish).show()
             }
             is ContentStatus.ContentUnchanged -> onFinish.invoke()
             is ContentStatus.ContentInvalid -> {
                 DialogUtils.getDiscardDialog(context!!,
-                        contentSaveStatus.validationError.errorMessage, onFinish)
-                        .show()
+                    contentSaveStatus.validationError.errorMessage, onFinish)
+                    .show()
             }
         }
     }
@@ -356,9 +354,9 @@ class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen {
             val comparison = originalSpending?.compareForEditing(newSpending, false, false)
             when {
                 isNew || comparison == Spending.ComparisonResult.Different -> ContentStatus.ContentWasChanged(
-                        newSpending)
+                    newSpending)
                 comparison == Spending.ComparisonResult.DifferentSensitive -> ContentStatus.ContentWasChangedInSensitiveWays(
-                        newSpending)
+                    newSpending)
                 else -> ContentStatus.ContentUnchanged
             }
         } catch (ve: ValidationError) {
@@ -370,9 +368,9 @@ class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen {
 
     override fun showCycleSpendDetails(title: String, text: SpannableStringBuilder) {
         cycleSpendDetailsDialog = PromptDialog.bigMessageDialog(title, text)
-                .setPositiveButton(android.R.string.ok) {
-                    presenter.onCloseSpentByCycleDetails()
-                }
+            .setPositiveButton(android.R.string.ok) {
+                presenter.onCloseSpentByCycleDetails()
+            }
         cycleSpendDetailsDialog?.show(supportFragmentManager!!, "CycleSpendDetails")
     }
 
@@ -389,16 +387,16 @@ class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen {
 
     private fun isEmpty(): Boolean {
         return name_input.text.isEmpty() &&
-                notes_input.text.isEmpty() &&
-                category_picker.selectedItem !is ApiSpending.Category &&
-                average_input.text.isEmpty() &&
-                !period_date_picker.isStartDateChanged &&
-                !period_date_picker.isEndDateChanged &&
-                occurrence_count_input.text.isEmpty() &&
-                cycle_multiplier_input.text.toString() == "1" &&
-                cycle_picker.selectedItem !is ApiSpending.Cycle &&
-                !enabled_switch.isChecked &&
-                target_input.text.isEmpty()
+            notes_input.text.isEmpty() &&
+            category_picker.selectedItem !is ApiSpending.Category &&
+            average_input.text.isEmpty() &&
+            !period_date_picker.isStartDateChanged &&
+            !period_date_picker.isEndDateChanged &&
+            occurrence_count_input.text.isEmpty() &&
+            cycle_multiplier_input.text.toString() == "1" &&
+            cycle_picker.selectedItem !is ApiSpending.Cycle &&
+            !enabled_switch.isChecked &&
+            target_input.text.isEmpty()
     }
 }
 

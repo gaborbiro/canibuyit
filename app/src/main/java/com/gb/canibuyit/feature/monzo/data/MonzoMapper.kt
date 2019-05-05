@@ -117,6 +117,7 @@ class MonzoMapper @Inject constructor() {
                 from = firstDay,
                 to = lastDay,
                 amount = list.sumBy { it.amount }.toBigDecimal().divide(100.toBigDecimal()),
+                target = getTarget(list, savedSpending?.targets, finalCycle),
                 count = list.size)
         }
 
@@ -184,6 +185,8 @@ class MonzoMapper @Inject constructor() {
             "shopping" -> ApiSpending.Category.LUXURY
             "holidays" -> ApiSpending.Category.VACATION
             "pot" -> ApiSpending.Category.SAVINGS
+            "family" -> ApiSpending.Category.ACCOMMODATION
+            "charity" -> ApiSpending.Category.GIFTS_GIVEN
             else -> {
                 try {
                     ApiSpending.Category.valueOf(monzoCategory.replace("-", "_").toUpperCase())
@@ -206,17 +209,10 @@ class MonzoMapper @Inject constructor() {
                            savedSpending: Spending?): List<Saving>? {
         val savings = transactionsByCycle.mapNotNull saving@{
             val transactionsForCycle: List<Transaction> = it.value
-            val lastCycleDay = transactionsForCycle.maxBy(Transaction::created)?.created!!.lastCycleDay(cycle)
-
-            if (lastCycleDay <= LocalDate.now()) { // ongoing cycles don't have savings calculated on them
-                val target = getTarget(lastCycleDay, savedSpending?.targets)
-                if (target != null) {
-                    val saving = transactionsForCycle.sumBy(Transaction::amount).div(100.0).minus(target)
-                    return@saving Saving(null, savedSpending?.id, saving, lastCycleDay, target)
-                } else {
-                    return@saving null
-                }
-            } else {
+            getTarget(transactionsForCycle, savedSpending?.targets, cycle)?.let { target ->
+                val saving = transactionsForCycle.sumBy(Transaction::amount).div(100.0).minus(target)
+                return@saving Saving(null, savedSpending?.id, saving, LocalDate.now(), target)
+            } ?: run {
                 return@saving null
             }
         }
@@ -263,18 +259,12 @@ class MonzoMapper @Inject constructor() {
 
     private fun getTarget(transactionsForCycle: List<Transaction>, targets: Map<LocalDate, Int>?, cycle: ApiSpending.Cycle): Int? {
         val lastCycleDay = transactionsForCycle.maxBy(Transaction::created)?.created!!.lastCycleDay(cycle)
-        return if (lastCycleDay <= LocalDate.now()) {
+        return if (lastCycleDay <= LocalDate.now()) { // ongoing cycles don't have savings calculated on them
             val lastTargetDate = targets?.keys?.filter { it < lastCycleDay }?.max()
             lastTargetDate?.let { targets[it] }
         } else {
             null
         }
-    }
-
-
-    private fun getTarget(endDate: LocalDate, targets: Map<LocalDate, Int>?): Int? {
-        val lastTargetDate = targets?.keys?.filter { it < endDate }?.max()
-        return lastTargetDate?.let { targets[it] }
     }
 
     private val cycleSpendingComparator = Comparator<CycleSpending> { cycleSpent1, o2 ->

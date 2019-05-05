@@ -21,7 +21,7 @@ class ApiSpending(
     var id: Int? = null,
 
     @DatabaseField(index = true, columnName = Contract.Spending.NAME, unique = true,
-            canBeNull = false)
+        canBeNull = false)
     var name: String? = null,
 
     @DatabaseField(columnName = Contract.Spending.NOTES, canBeNull = true)
@@ -33,12 +33,10 @@ class ApiSpending(
     @DatabaseField(columnName = Contract.Spending.VALUE, canBeNull = false)
     var value: BigDecimal? = null,
 
-    @DatabaseField(columnName = Contract.Spending.FROM_START_DATE, canBeNull = false,
-            dataType = DataType.SERIALIZABLE)
+    @DatabaseField(columnName = Contract.Spending.FROM_START_DATE, canBeNull = false, dataType = DataType.SERIALIZABLE)
     var fromStartDate: LocalDate? = null,
 
-    @DatabaseField(columnName = Contract.Spending.FROM_END_DATE, canBeNull = false,
-            dataType = DataType.SERIALIZABLE)
+    @DatabaseField(columnName = Contract.Spending.FROM_END_DATE, canBeNull = false, dataType = DataType.SERIALIZABLE)
     var fromEndDate: LocalDate? = null,
 
     @DatabaseField(columnName = Contract.Spending.OCCURRENCE_COUNT, canBeNull = true)
@@ -74,12 +72,36 @@ class ApiSpending(
     }
 
     enum class Category(val defaultEnabled: Boolean = true) {
-        ACCOMMODATION, AUTOMOBILE, CHILD_SUPPORT, DONATIONS_GIVEN, ENTERTAINMENT, FOOD,
-        GIFTS_GIVEN, GROCERIES, HOUSEHOLD, INSURANCE, MEDICARE, PERSONAL_CARE, PETS,
-        SELF_IMPROVEMENT, SPORTS_RECREATION, TAX, TRANSPORTATION, UTILITIES, VACATION,
-        GIFTS_RECEIVED, INCOME(defaultEnabled = false), FINES,
-        ONLINE_SERVICES, LUXURY, CASH, SAVINGS, EXPENSES(defaultEnabled = false), OTHER,
-        TOP_UP, POT;
+        ACCOMMODATION,
+        AUTOMOBILE,
+        CHILD_SUPPORT,
+        DONATIONS_GIVEN,
+        ENTERTAINMENT,
+        FOOD,
+        GIFTS_GIVEN,
+        GROCERIES,
+        HOUSEHOLD,
+        INSURANCE,
+        MEDICARE,
+        PERSONAL_CARE,
+        PETS,
+        SELF_IMPROVEMENT,
+        SPORTS_RECREATION,
+        TAX,
+        TRANSPORTATION,
+        UTILITIES,
+        VACATION,
+        GIFTS_RECEIVED,
+        INCOME(defaultEnabled = false),
+        FINES,
+        ONLINE_SERVICES,
+        LUXURY,
+        CASH,
+        SAVINGS,
+        EXPENSES(defaultEnabled = false),
+        OTHER,
+        TOP_UP,
+        POT;
 
         override fun toString(): String {
             return name.toLowerCase()
