@@ -1,5 +1,7 @@
 package com.gb.canibuyit.util
 
+import java.math.BigDecimal
+
 fun <T> List<T>.compare(other: List<T>, comparator: Comparator<T>): Boolean {
     if (size != other.size) {
         return false
@@ -10,4 +12,12 @@ fun <T> List<T>.compare(other: List<T>, comparator: Comparator<T>): Boolean {
         }
     }
     return true
+}
+
+public inline fun <T> Iterable<T>.sumBy(selector: (T) -> BigDecimal): BigDecimal {
+    var sum = BigDecimal.ZERO
+    for (element in this) {
+        sum += selector(element)
+    }
+    return sum
 }

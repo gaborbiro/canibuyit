@@ -62,18 +62,20 @@ class PushMessagingFirebaseService : FirebaseMessagingService() {
     @SuppressLint("CheckResult")
     private fun showMonzoSpendingNotification(category: String) {
         spendingInteractor.getByRemoteCategory(category, MONZO_CATEGORY)
-                .subscribe({ spending ->
-                    spending.target?.let { target: Int ->
-                        val spent = spending.spent.abs()
-                        val absTarget = target.absoluteValue
-                        val progress: Float = spent.divide(absTarget.toBigDecimal())
-                                .multiply(100.toBigDecimal()).toFloat()
-                        localNotificationManager.showSimpleNotification(spending.name,
-                                ("%.0f%% (%.0f/%d)").format(progress, spent, absTarget))
-                    } ?: let {
-                        //                        showSimpleNotification(spending.name, "£%.0f".format(spent))
-                    }
-                }, {})
+            .subscribe({ spending ->
+                val spent = spending.spent.abs()
+                spending.target?.let { target: Int ->
+                    val absTarget = target.absoluteValue
+                    val progress: Float = spent.divide(absTarget.toBigDecimal())
+                        .multiply(100.toBigDecimal()).toFloat()
+                    localNotificationManager.showSimpleNotification(spending.name,
+                        ("%.0f%% (%.0f/%d)").format(progress, spent, absTarget))
+                } ?: let {
+                    localNotificationManager.showSimpleNotification(spending.name, "£%.0f".format(spent))
+                }
+            }, {
+                Log.e(TAG, "Error handling monzo push", it)
+            })
     }
 
     private fun handleCalendarEventPush(payload: String) {
@@ -84,12 +86,12 @@ class PushMessagingFirebaseService : FirebaseMessagingService() {
 
             if (isEarlyEvent(eventStartTime, eventEndTime)) {
                 val alarmTime = LocalDateTime.of(eventStartTime.toLocalDate(), LocalTime.MIDNIGHT)
-                        .minusHours(3)
+                    .minusHours(3)
                 localNotificationManager.scheduleEventNotification(alarmTime.millisUntil(),
-                        "Event: " + event.title, eventStartTime.formatEventTime(), event.url)
+                    "Event: " + event.title, eventStartTime.formatEventTime(), event.url)
                 localNotificationManager.showSimpleNotification(
-                        "Early event notif sheduled: ${event.title}",
-                        alarmTime.formatEventTimePrefix())
+                    "Early event notif scheduled: ${event.title}",
+                    alarmTime.formatEventTimePrefix())
             }
         } catch (t: Throwable) {
             Log.e(TAG, "Error handling calendar push", t)
@@ -98,7 +100,7 @@ class PushMessagingFirebaseService : FirebaseMessagingService() {
 
     private fun isEarlyEvent(startTime: LocalDateTime, endTime: LocalDateTime): Boolean {
         return !isAllDayEvent(startTime, endTime) && startTime.isAfter(
-                midnightOfToday()) && startTime.hour < 10
+            midnightOfToday()) && startTime.hour < 10
     }
 
     private fun isAllDayEvent(startTime: LocalDateTime, endTime: LocalDateTime): Boolean {

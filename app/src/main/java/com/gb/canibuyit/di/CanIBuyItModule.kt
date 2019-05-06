@@ -9,7 +9,7 @@ import com.gb.canibuyit.feature.monzo.di.MonzoModule
 import com.gb.canibuyit.feature.project.model.ApiProject
 import com.gb.canibuyit.feature.spending.persistence.SpendingDBHelper
 import com.gb.canibuyit.feature.spending.persistence.model.ApiSpending
-import com.gb.canibuyit.util.localDateSerializer
+import com.gb.canibuyit.util.LocalDateSerializer
 import com.gb.prefsutil.PrefsUtil
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
@@ -51,7 +51,7 @@ class CanIBuyItModule {
     @Singleton
     internal fun provideGson(): Gson = GsonBuilder()
         .setDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
-        .registerTypeAdapter(LocalDate::class.java, localDateSerializer)
+        .registerTypeAdapter(LocalDate::class.java, LocalDateSerializer)
         .enableComplexMapKeySerialization()
         .create()
 

@@ -75,7 +75,8 @@ class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi,
 
     private fun convertTransactionsToSpending(category: ApiSpending.Category,
                                               transactionsByCategory: List<Transaction>,
-                                              startDate: LocalDate, endDate: LocalDate): Spending {
+                                              startDate: LocalDate,
+                                              endDate: LocalDate): Spending {
         val projectSettings = projectInteractor.getProject().blockingGet()
         val savedSpendings = spendingsRepository.getAll().blockingGet()
                 .groupBy { it.sourceData?.get(MONZO_CATEGORY) }

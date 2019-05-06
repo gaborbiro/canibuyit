@@ -58,11 +58,11 @@ fun LocalDateTime.formatSimpleDateTime() = DateTimeFormatter.ofPattern("dd.MMM H
 fun min(date1: LocalDate, date2: LocalDate) = if (date1 < date2) date1 else date2
 fun max(date1: LocalDate, date2: LocalDate) = if (date1 > date2) date1 else date2
 
-fun midnightOfToday() = LocalDateTime.of(LocalDate.now(), LocalTime.MIDNIGHT)
+fun midnightOfToday(): LocalDateTime = LocalDateTime.of(LocalDate.now(), LocalTime.MIDNIGHT)
 
 fun LocalDateTime.millisUntil() = LocalDateTime.now().until(this, ChronoUnit.MILLIS)
 
-object localDateSerializer : JsonSerializer<LocalDate>, JsonDeserializer<LocalDate> {
+object LocalDateSerializer : JsonSerializer<LocalDate>, JsonDeserializer<LocalDate> {
 
     override fun serialize(src: LocalDate, typeOfSrc: Type,
                            context: JsonSerializationContext): JsonElement {

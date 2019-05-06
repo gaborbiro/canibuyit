@@ -46,7 +46,7 @@ class Spending(var id: Int? = null,
                var targets: Map<LocalDate, Int>? = null,
                var savings: Array<out Saving>? = null) {
 
-    val target = targets?.maxBy { it.key }?.value
+    val target: Int? = targets?.maxBy { it.key }?.value
 
     val valuePerMonth: BigDecimal
         get() {
