@@ -16,7 +16,8 @@ data class Balance(
 
 class SpendingEvent(val start: LocalDate,
                     val end: LocalDate,
-                    val amount: Float) {
+                    val amount: Float,
+                    val total: Float) {
     override fun toString(): String {
         return "SpendingEvent(start=$start, end=$end, amount=$amount)"
     }

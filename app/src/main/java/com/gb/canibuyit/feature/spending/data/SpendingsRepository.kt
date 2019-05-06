@@ -327,7 +327,7 @@ constructor(private val dao: Dao<ApiSpending, Int>,
 
     fun getBalanceBreakdownCategoryDetails(category: ApiSpending.Category): String? {
         return prefs.balanceReading?.let { reading ->
-            val startDate = reading.date
+            val startDate = reading.date!!
             val endDate = prefs.estimateDate
             val balance = calculateBalanceForCategory(category, startDate, endDate)
             val buffer = StringBuffer()
@@ -337,11 +337,17 @@ constructor(private val dao: Dao<ApiSpending, Int>,
                 separator = "\n",
                 transform = {
                     index++
-                    if (endDate > it.end) {
-                        "$index. ${it.start.formatDayMonth()} - ${it.end.formatDayMonthYear()} (${it.amount})"
+                    val startStr = if (startDate <= it.start) {
+                        "$index. ${it.start.formatDayMonth()}"
                     } else {
-                        "$index. ${it.start.formatDayMonth()}( - ${it.end.formatDayMonthYear()}) (${it.amount})"
+                        "$index. (${startDate.formatDayMonth()})"
                     }
+                    val endStr = if (endDate >= it.end) {
+                        "${it.end.formatDayMonthYear()} (%1\$.2f = %2\$.2f)".format(it.amount, it.total)
+                    } else {
+                        "(${endDate.formatDayMonthYear()}) (%1\$.2f = %2\$.2f)".format(it.amount, it.total)
+                    }
+                    "$startStr - $endStr"
                 }).toString()
         }
     }
