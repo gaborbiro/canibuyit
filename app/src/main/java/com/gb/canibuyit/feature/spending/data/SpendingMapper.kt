@@ -21,7 +21,6 @@ class SpendingMapper @Inject constructor(private val gson: Gson) {
             notes = apiSpending.notes,
             type = apiSpending.type!!,
             value = apiSpending.value!!,
-            total = BigDecimal.ZERO,
             fromStartDate = apiSpending.fromStartDate!!,
             fromEndDate = apiSpending.fromEndDate!!,
             occurrenceCount = apiSpending.occurrenceCount,

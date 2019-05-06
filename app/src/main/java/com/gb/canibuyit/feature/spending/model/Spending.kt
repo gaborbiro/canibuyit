@@ -19,7 +19,6 @@ class Spending(var id: Int? = null,
                var notes: String? = null,
                var type: ApiSpending.Category,
                var value: BigDecimal,
-               var total: BigDecimal,
                /**
                 * Date before witch the transaction certainly won't happen. The repetition cycle
                 * is added to this date.
@@ -141,11 +140,12 @@ class Spending(var id: Int? = null,
 operator fun Int.times(cycle: ApiSpending.Cycle) = Pair(this, cycle)
 
 operator fun LocalDate.plus(cycle: Pair<Int, ApiSpending.Cycle>): LocalDate {
+    val multiplier = cycle.first.toLong()
     return when (cycle.second) {
-        DAYS -> this.plusDays(cycle.first.toLong())
-        WEEKS -> this.plusWeeks(cycle.first.toLong())
-        MONTHS -> this.plusMonths(cycle.first.toLong())
-        YEARS -> this.plusYears(cycle.first.toLong())
+        DAYS -> this.plusDays(multiplier)
+        WEEKS -> this.plusWeeks(multiplier)
+        MONTHS -> this.plusMonths(multiplier)
+        YEARS -> this.plusYears(multiplier)
     }
 }
 

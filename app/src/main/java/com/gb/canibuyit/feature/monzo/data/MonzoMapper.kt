@@ -21,7 +21,6 @@ import com.gb.canibuyit.feature.spending.model.ordinal
 import com.gb.canibuyit.feature.spending.persistence.model.ApiSpending
 import com.gb.canibuyit.util.compare
 import com.gb.canibuyit.util.max
-import com.gb.canibuyit.util.sumBy as sumByBigDecimal
 import org.apache.commons.lang3.text.WordUtils
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -29,6 +28,24 @@ import java.time.LocalDate
 import java.time.ZonedDateTime
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.collections.List
+import kotlin.collections.Map
+import kotlin.collections.component1
+import kotlin.collections.component2
+import kotlin.collections.filter
+import kotlin.collections.firstOrNull
+import kotlin.collections.forEach
+import kotlin.collections.groupBy
+import kotlin.collections.indices
+import kotlin.collections.isNotEmpty
+import kotlin.collections.listOf
+import kotlin.collections.map
+import kotlin.collections.mapNotNull
+import kotlin.collections.max
+import kotlin.collections.maxBy
+import kotlin.collections.sumBy
+import kotlin.collections.toTypedArray
+import com.gb.canibuyit.util.sumBy as sumByBigDecimal
 
 @Singleton
 class MonzoMapper @Inject constructor() {
@@ -144,7 +161,6 @@ class MonzoMapper @Inject constructor() {
             notes = savedSpending?.notes,
             type = finalCategory,
             value = finalAverage,
-            total = sortedTransactions.sumBy(Transaction::amount).toBigDecimal(),
             fromStartDate = finalFromStartDate,
             fromEndDate = finalFromEndDate,
             occurrenceCount = savedSpending?.occurrenceCount,

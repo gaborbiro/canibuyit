@@ -110,7 +110,6 @@ class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen {
                 ValidationError.TYPE_NON_INPUT_FIELD,
                 null, "Please select a category"),
             value = valueStr.toBigDecimal(),
-            total = BigDecimal.ZERO,
             fromStartDate = fromStartDate,
             fromEndDate = fromEndDate,
             occurrenceCount = occurrence_count_input.text.orNull()?.toString()?.toInt(),
