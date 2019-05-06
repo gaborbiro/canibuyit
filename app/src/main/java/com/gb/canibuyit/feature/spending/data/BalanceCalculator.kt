@@ -30,7 +30,7 @@ object BalanceCalculator {
             throw IllegalArgumentException("Start date must come before end date!")
         }
         if (!spending.enabled) {
-            return Balance(0f, 0f, emptyArray())
+            return Balance(0f, 0f, emptyArray(), spending)
         }
         var stop = false
         var target = 0f
@@ -70,6 +70,6 @@ object BalanceCalculator {
                 }
             }
         } while (!stop)
-        return Balance(total, target, spendingEvents.toTypedArray())
+        return Balance(total, target, spendingEvents.toTypedArray(), spending)
     }
 }

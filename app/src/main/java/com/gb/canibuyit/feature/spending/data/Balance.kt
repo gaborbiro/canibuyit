@@ -1,5 +1,6 @@
 package com.gb.canibuyit.feature.spending.data
 
+import com.gb.canibuyit.feature.spending.model.Spending
 import java.time.LocalDate
 
 data class Balance(
@@ -9,7 +10,8 @@ data class Balance(
      * Not all spendings have a target set, in which case this defaults back to the estimate
      */
     var target: Float = 0f,
-    var spendingEvents: Array<SpendingEvent>? = emptyArray()
+    var spendingEvents: Array<SpendingEvent>? = emptyArray(),
+    var spending: Spending?
 )
 
 class SpendingEvent(val start: LocalDate,

@@ -217,20 +217,19 @@ constructor(private val dao: Dao<ApiSpending, Int>,
         prefs.balanceReading?.let { reading ->
             val startDate = reading.date
             val endDate = prefs.estimateDate
-            val totalExpense = calculateTotalBalanceExceptForCategory(omittedCategory = ApiSpending.Category.INCOME, startDate = startDate, endDate = endDate)
+            val totalExpense =
+                calculateTotalBalanceExceptForCategory(omittedCategory = ApiSpending.Category.INCOME, startDate = startDate, endDate = endDate)
             try {
                 ApiSpending.Category.values()
                     .map { Pair(it, calculateBalanceForCategory(it, startDate, endDate)) }
                     .filter { it.second.amount != 0f }
                     .sortedByDescending { Math.abs(it.second.amount) }
-                    .forEach {
-                        val category = it.first
-                        val balance = it.second.amount
-                        val name = category.name.substring(0, Math.min(10, category.name.length)).toLowerCase().capitalize()
-                        val amount: String = "%1\$.0f".format(balance)
+                    .forEach { (category, balance) ->
+                        val name = balance.spending?.name ?: category.name.substring(0, Math.min(10, category.name.length)).toLowerCase().capitalize()
+                        val amount: String = "%1\$.0f".format(balance.amount)
 
                         result.add(Pair(category, if (category != ApiSpending.Category.INCOME) {
-                            val percent = balance / totalExpense.amount * 100
+                            val percent = balance.amount / totalExpense.amount * 100
                             "%1\$s: %2\$s (%3\$.1f%%)".format(name, amount, percent)
                         } else {
                             "%1\$s: %2\$s".format(name, amount)
@@ -255,16 +254,16 @@ constructor(private val dao: Dao<ApiSpending, Int>,
         prefs.balanceReading?.let { balanceReading ->
             val startDate = balanceReading.date
             val endDate = prefs.estimateDate
-            val total = calculateTotalBalanceExceptForCategory(omittedCategory = ApiSpending.Category.INCOME, startDate = startDate, endDate = endDate).target
+            val total =
+                calculateTotalBalanceExceptForCategory(omittedCategory = ApiSpending.Category.INCOME, startDate = startDate, endDate = endDate).target
             try {
                 ApiSpending.Category.values()
                     .map { Pair(it, calculateBalanceForCategory(it, startDate, endDate)) }
                     .filter { it.second.target != 0f }
                     .sortedBy { it.second.target }
-                    .joinTo(buffer = buffer, separator = "\n", transform = {
-                        val category = it.first
-                        val target = it.second.target
-                        val name = category.name.substring(0, Math.min(12, category.name.length)).toLowerCase().capitalize()
+                    .joinTo(buffer = buffer, separator = "\n", transform = { (category, balance) ->
+                        val target = balance.target
+                        val name = balance.spending?.name ?: category.name.substring(0, Math.min(12, category.name.length)).toLowerCase().capitalize()
                         val amount = "%1\$.0f".format(target)
 
                         if (category != ApiSpending.Category.INCOME) {
@@ -295,11 +294,10 @@ constructor(private val dao: Dao<ApiSpending, Int>,
                     .map { Pair(it, calculateBalanceForCategory(it, startDate, endDate)) }
                     .filter { (it.second.target - it.second.amount) != 0f }
                     .sortedByDescending { Math.abs(it.second.target) }
-                    .joinTo(buffer = buffer, separator = "\n", transform = {
-                        val category = it.first
-                        val amount = it.second.amount
-                        val target = it.second.target
-                        val name = category.name.substring(0, Math.min(12, category.name.length)).toLowerCase().capitalize()
+                    .joinTo(buffer = buffer, separator = "\n", transform = { (category, balance) ->
+                        val amount = balance.amount
+                        val target = balance.target
+                        val name = balance.spending?.name ?: category.name.substring(0, Math.min(12, category.name.length)).toLowerCase().capitalize()
                         val saving = target - amount
                         val amountStr = "%1\$.0f".format(saving)
                         if (saving > 0) {
@@ -375,8 +373,9 @@ constructor(private val dao: Dao<ApiSpending, Int>,
 
     private fun calculateBalance(builder: Where<ApiSpending, Int>, startDate: LocalDate?, endDate: LocalDate): Balance {
         val spendingEvents = mutableListOf<SpendingEvent>()
-        val totalBalance = Balance(0f, 0f, null)
-        dao.query(builder.prepare()).map(mapper::map).forEach { spending ->
+        val totalBalance = Balance(0f, 0f, null, null)
+        val spendings = dao.query(builder.prepare()).map(mapper::map)
+        spendings.forEach { spending ->
             val balance = BalanceCalculator.getEstimatedBalance(spending, startDate, endDate)
             totalBalance.amount += balance.amount
             totalBalance.target += balance.target
@@ -386,6 +385,9 @@ constructor(private val dao: Dao<ApiSpending, Int>,
         }
         spendingEvents.sortBy { it.start }
         totalBalance.spendingEvents = spendingEvents.toTypedArray()
+        if (spendings.size == 1) {
+            totalBalance.spending = spendings[0]
+        }
         return totalBalance
     }
 }
