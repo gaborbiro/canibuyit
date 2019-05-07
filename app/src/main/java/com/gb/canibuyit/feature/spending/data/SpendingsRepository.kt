@@ -242,42 +242,7 @@ constructor(private val dao: Dao<ApiSpending, Int>,
                 throw DomainException("Error calculating balance breakdown", e)
             }
         }
-
         return BalanceBreakdown(result.toTypedArray(), totalIncomeStr, totalExpenseStr)
-    }
-
-    /**
-     * Fetch breakdown of target projection
-     */
-    fun getTargetBalanceBreakdown(): String {
-        val buffer = StringBuffer()
-        prefs.balanceReading?.let { balanceReading ->
-            val startDate = balanceReading.date
-            val endDate = prefs.estimateDate
-            val total =
-                calculateTotalBalanceExceptForCategory(omittedCategory = ApiSpending.Category.INCOME, startDate = startDate, endDate = endDate).target
-            try {
-                ApiSpending.Category.values()
-                    .map { Pair(it, calculateBalanceForCategory(it, startDate, endDate)) }
-                    .filter { it.second.target != 0f }
-                    .sortedBy { it.second.target }
-                    .joinTo(buffer = buffer, separator = "\n", transform = { (category, balance) ->
-                        val target = balance.target
-                        val name = balance.spending?.name ?: category.name.substring(0, Math.min(12, category.name.length)).toLowerCase().capitalize()
-                        val amount = "%1\$.0f".format(target)
-
-                        if (category != ApiSpending.Category.INCOME) {
-                            val percent = target.div(total).times(100)
-                            "%1\$s: %2\$s (%3\$.1f%%)".format(name, amount, percent)
-                        } else {
-                            "%1\$s: %2\$s".format(name, amount)
-                        }
-                    })
-            } catch (e: IllegalArgumentException) {
-                throw DomainException("Date of balance reading must not come after date of target estimate", e)
-            }
-        }
-        return buffer.toString()
     }
 
     /**
@@ -299,7 +264,7 @@ constructor(private val dao: Dao<ApiSpending, Int>,
                         val target = balance.target
                         val name = balance.spending?.name ?: category.name.substring(0, Math.min(12, category.name.length)).toLowerCase().capitalize()
                         val saving = target - amount
-                        val amountStr = "%1\$.0f".format(saving)
+                        val amountStr = "%1\$.2f".format(saving)
                         if (saving > 0) {
                             "%1\$s: %2\$s".format(name, amountStr)
                         } else {

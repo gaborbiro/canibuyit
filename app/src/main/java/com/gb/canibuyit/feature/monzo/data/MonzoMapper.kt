@@ -28,23 +28,9 @@ import java.time.LocalDate
 import java.time.ZonedDateTime
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.collections.List
-import kotlin.collections.Map
 import kotlin.collections.component1
 import kotlin.collections.component2
-import kotlin.collections.filter
-import kotlin.collections.firstOrNull
-import kotlin.collections.forEach
-import kotlin.collections.groupBy
-import kotlin.collections.indices
-import kotlin.collections.isNotEmpty
-import kotlin.collections.listOf
-import kotlin.collections.map
-import kotlin.collections.mapNotNull
-import kotlin.collections.max
-import kotlin.collections.maxBy
 import kotlin.collections.sumBy
-import kotlin.collections.toTypedArray
 import com.gb.canibuyit.util.sumBy as sumByBigDecimal
 
 @Singleton
@@ -91,43 +77,39 @@ class MonzoMapper @Inject constructor() {
                       projectSettings: Project,
                       startDate: LocalDate,
                       endDate: LocalDate): Spending {
-        val categoryStr =
-            WordUtils.capitalizeFully(category.toString().replace("\\_".toRegex(), " "))
-        val finalName: String =
-            if (projectSettings.namePinned) (savedSpending?.name ?: categoryStr) else categoryStr
+        val categoryStr = WordUtils.capitalizeFully(category.toString().replace("\\_".toRegex(), " "))
+        val finalName: String = if (projectSettings.namePinned) (savedSpending?.name ?: categoryStr) else categoryStr
 
-        val finalCategory: ApiSpending.Category =
-            if (projectSettings.categoryPinned) (savedSpending?.type ?: category) else category
+        val finalCategory: ApiSpending.Category = if (projectSettings.categoryPinned) (savedSpending?.type ?: category) else category
 
-        val finalCycle: ApiSpending.Cycle =
-            getCycle(sortedTransactions, savedSpending, projectSettings)
+        val finalCycle: ApiSpending.Cycle = getCycle(sortedTransactions, savedSpending, projectSettings)
 
-        val finalCycleMultiplier: Int =
-            if (projectSettings.cyclePinned) (savedSpending?.cycleMultiplier ?: 1) else 1
+        val finalCycleMultiplier: Int = if (projectSettings.cyclePinned) (savedSpending?.cycleMultiplier ?: 1) else 1
 
         val firstOccurrence: LocalDate = sortedTransactions[0].created
-        val finalFromStartDate = if (projectSettings.whenPinned) (savedSpending?.fromStartDate
-            ?: firstOccurrence) else firstOccurrence
-        val finalFromEndDate =
-            firstOccurrence.add(finalCycle, finalCycleMultiplier.toLong()).minusDays(1)
-                .let { date ->
-                    if (projectSettings.whenPinned) (savedSpending?.fromEndDate ?: date) else date
-                }
+        val finalFromStartDate = if (projectSettings.whenPinned) (savedSpending?.fromStartDate ?: firstOccurrence) else firstOccurrence
+        val finalFromEndDate = firstOccurrence.add(finalCycle, finalCycleMultiplier.toLong()).minusDays(1)
+            .let { date ->
+                if (projectSettings.whenPinned) (savedSpending?.fromEndDate ?: date) else date
+            }
 
-        val transactionsByCycle: Map<Int, List<Transaction>> =
-            sortedTransactions.groupBy { finalCycle.ordinal(it.created) }
+        val transactionsByCycle: Map<Int, List<Transaction>> = sortedTransactions.groupBy { finalCycle.ordinal(it.created) }
 
-        val cycleSpendings: List<CycleSpending> = transactionsByCycle.map { (_, list) ->
-            val firstDay = max(list[0].created.firstCycleDay(finalCycle), startDate)
-            val lastDay = least(list[0].created.lastCycleDay(finalCycle), LocalDate.now())
+        val cycleSpendings: List<CycleSpending> = transactionsByCycle.map { (_, transactionsInCycle) ->
+            // kinda redundant, date of first transaction will never be before startDate
+            val firstDay = max(transactionsInCycle[0].created.firstCycleDay(finalCycle), startDate)
+            // Kinda random. What should be the end date of the last entry? Last cycle day is a bit misleading,
+            // it's like claiming that that's all the money that's gonna be spent in the current cycle.
+            // Cutting it off with LocalDate.now() is less misleading.
+            val lastDay = least(transactionsInCycle[0].created.lastCycleDay(finalCycle), LocalDate.now())
             CycleSpending(
                 id = null,
                 spendingId = savedSpending?.id,
                 from = firstDay,
                 to = lastDay,
-                amount = list.sumBy { it.amount }.toBigDecimal().divide(100.toBigDecimal()),
-                target = getTarget(list, savedSpending?.targets, finalCycle),
-                count = list.size)
+                amount = transactionsInCycle.sumBy { it.amount }.toBigDecimal().divide(100.toBigDecimal()),
+                target = getTarget(transactionsInCycle, savedSpending?.targets, finalCycle),
+                count = transactionsInCycle.size)
         }
 
         val finalAverage: BigDecimal = getAverage(
@@ -139,12 +121,13 @@ class MonzoMapper @Inject constructor() {
             startDate,
             endDate)
 
-        val shouldRecalculateSpentByCycle = (savedSpending?.cycleSpendings == null
-            || savedSpending.cycleSpendings!!.isEmpty()
-            || finalCycle != savedSpending.cycle
-            || finalCycleMultiplier != savedSpending.cycleMultiplier
-            || finalFromStartDate != savedSpending.fromStartDate
-            || finalFromEndDate != savedSpending.fromEndDate)
+        val shouldRecalculateSpentByCycle = (
+            savedSpending?.cycleSpendings == null
+                || savedSpending.cycleSpendings!!.isEmpty()
+                || finalCycle != savedSpending.cycle
+                || finalCycleMultiplier != savedSpending.cycleMultiplier
+                || finalFromStartDate != savedSpending.fromStartDate
+                || finalFromEndDate != savedSpending.fromEndDate)
             || !cycleSpendings.compare(savedSpending.cycleSpendings!!, cycleSpendingComparator)
 
         val spent: BigDecimal = transactionsByCycle[finalCycle.ordinal(endDate)]

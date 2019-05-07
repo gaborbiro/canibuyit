@@ -137,10 +137,6 @@ constructor(private val spendingsRepository: SpendingsRepository,
         return spendingsRepository.getBalanceBreakdown()
     }
 
-    fun getTargetBalanceBreakdown(): String {
-        return spendingsRepository.getTargetBalanceBreakdown()
-    }
-
     fun getTargetSavingBreakdown(): String {
         return spendingsRepository.getSavingsBreakdown()
     }

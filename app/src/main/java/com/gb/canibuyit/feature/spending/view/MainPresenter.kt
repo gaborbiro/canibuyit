@@ -94,11 +94,6 @@ constructor(private val monzoInteractor: MonzoInteractor,
         } ?: let { screen.showToast("Unavailable") }
     }
 
-    fun showTargetBalanceBreakdown() {
-        screen.showDialog("Target balance breakdown",
-                spendingInteractor.getTargetBalanceBreakdown())
-    }
-
     fun showTargetSavingBreakdown() {
         screen.showDialog("Saved by keeping targets",
                 spendingInteractor.getTargetSavingBreakdown())

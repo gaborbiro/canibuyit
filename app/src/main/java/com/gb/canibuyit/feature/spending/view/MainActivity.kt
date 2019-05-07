@@ -258,10 +258,9 @@ class MainActivity : BaseActivity(), MainScreen, DispatchScreen,
             getString(R.string.estimate_at_date, defoMaybeStr, estimateDateStr, targetDefoMaybeStr)
         projection_lbl.setSubtextWithLinks(
                 estimateAtTime,
-                arrayOf(defoMaybeStr, targetDefoMaybeStr, "behave", estimateDateStr),
+                arrayOf(defoMaybeStr, "behave", estimateDateStr),
                 arrayOf(
                         presenter::showBalanceBreakdown,
-                        presenter::showTargetBalanceBreakdown,
                         presenter::showTargetSavingBreakdown,
                         this::showEstimateDateUpdater))
 

@@ -53,7 +53,7 @@ object BalanceCalculator {
                     val fraction = overlap / (Pair(movingStart, movingEnd.plusDays(1)) / ApiSpending.Cycle.DAYS)
                     target += fraction * targetIncrement
                     total += fraction * spending.value.toFloat()
-                    spendingEvents.add(SpendingEvent(movingStart, movingEnd, fraction * targetIncrement, total))
+                    spendingEvents.add(SpendingEvent(movingStart, movingEnd, fraction * spending.value.toFloat(), total))
                 } else {
                     stop = true
                 }
