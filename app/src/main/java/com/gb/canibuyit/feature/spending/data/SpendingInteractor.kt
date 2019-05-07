@@ -25,11 +25,7 @@ constructor(private val spendingsRepository: SpendingsRepository,
             private val schedulerProvider: SchedulerProvider,
             monzoInteractor: MonzoInteractor) {
 
-    private val spendingSubject = PublishSubject.create<Lce<List<Spending>>>()
-
-    fun subscribeToSpendings(onNext: (Lce<List<Spending>>) -> Unit, onError: (Throwable) -> Unit): Disposable {
-        return spendingSubject.subscribe(onNext, onError)
-    }
+    val spendingSubject = PublishSubject.create<Lce<List<Spending>>>()
 
     init {
         monzoInteractor.subscribeToMonzoSpendings({

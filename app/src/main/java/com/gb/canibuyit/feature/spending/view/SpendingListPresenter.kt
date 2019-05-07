@@ -10,7 +10,7 @@ constructor(private val spendingInteractor: SpendingInteractor) : BasePresenter(
     val screen: SpendingListScreen by screenDelegate()
 
     init {
-        disposeOnDestroy(spendingInteractor.subscribeToSpendings({ lce ->
+        disposeOnDestroy(spendingInteractor.spendingSubject.subscribe({ lce ->
             if (!lce.loading) {
                 lce.error?.let(this::onError)
                 lce.content

@@ -308,9 +308,9 @@ constructor(private val dao: Dao<ApiSpending, Int>,
                         "$index. (${startDate.formatDayMonth()})"
                     }
                     val endStr = if (endDate >= it.end) {
-                        "${it.end.formatDayMonthYear()} (%1\$.2f = %2\$.2f)".format(it.amount, it.total)
+                        "${it.end.formatDayMonthYear()} (%1\$.2f -> %2\$.2f)".format(it.amount, it.total)
                     } else {
-                        "(${endDate.formatDayMonthYear()}) (%1\$.2f = %2\$.2f)".format(it.amount, it.total)
+                        "(${endDate.formatDayMonthYear()}) (%1\$.2f -> %2\$.2f)".format(it.amount, it.total)
                     }
                     "$startStr - $endStr"
                 }).toString()

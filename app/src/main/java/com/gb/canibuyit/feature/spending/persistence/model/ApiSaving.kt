@@ -4,6 +4,7 @@ import com.gb.canibuyit.feature.spending.persistence.Contract
 import com.j256.ormlite.field.DataType
 import com.j256.ormlite.field.DatabaseField
 import com.j256.ormlite.table.DatabaseTable
+import java.math.BigDecimal
 import java.time.LocalDate
 
 @DatabaseTable(tableName = Contract.Savings.TABLE)
@@ -16,7 +17,7 @@ class ApiSaving(
     var spending: ApiSpending? = null,
 
     @DatabaseField(columnName = Contract.Savings.AMOUNT, canBeNull = false)
-    var amount: Double? = null,
+    var amount: BigDecimal? = null,
 
     @DatabaseField(columnName = Contract.Savings.CREATED, canBeNull = false, dataType = DataType.SERIALIZABLE)
     var created: LocalDate? = null,

@@ -10,6 +10,7 @@ import com.gb.canibuyit.feature.monzo.MONZO_CATEGORY
 import com.gb.canibuyit.feature.spending.model.Saving
 import com.gb.canibuyit.feature.spending.model.Spending
 import java.math.BigDecimal
+import com.gb.canibuyit.util.sumBy as sumByBigDecimal
 
 class SpendingViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
@@ -84,7 +85,7 @@ class SpendingViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
             }
         }
         spending.savings?.let {
-            it.sumByDouble(Saving::amount).let { saving ->
+            it.sumByBigDecimal(Saving::amount).let { saving ->
                 savingView.text = context.getString(R.string.saving, saving)
                 savingView.isVisible = true
             }

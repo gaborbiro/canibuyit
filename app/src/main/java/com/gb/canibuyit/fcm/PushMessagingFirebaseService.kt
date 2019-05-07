@@ -48,13 +48,15 @@ class PushMessagingFirebaseService : FirebaseMessagingService() {
         Gson().fromJson(payload, FcmMonzoData::class.java)?.data?.let {
             monzoMapper.mapApiTransaction(it).category
         }?.let { category ->
-            spendingInteractor.subscribeToSpendings({
-                if (!it.loading && !it.hasError()) {
+            spendingInteractor.spendingSubject
+                .filter { it.content != null }
+                .map { it.content!! }
+                .first(emptyList())
+                .subscribe({
                     showMonzoSpendingNotification(category.toString())
-                }
-            }, {
-                Logger.e(TAG, "SpendingUIModel Error", it)
-            })
+                }, {
+                    Logger.e(TAG, "SpendingUIModel Error", it)
+                })
         }
         monzoInteractor.loadSpendings(ACCOUNT_ID_RETAIL, TRANSACTION_HISTORY_LENGTH_MONTHS)
     }

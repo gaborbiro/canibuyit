@@ -35,7 +35,7 @@ constructor(private val monzoInteractor: MonzoInteractor,
     val screen: MainScreen by screenDelegate()
 
     init {
-        disposeOnDestroy(spendingInteractor.subscribeToSpendings({ lce ->
+        disposeOnDestroy(spendingInteractor.spendingSubject.subscribe({ lce ->
             if (lce.loading) screen.showProgress() else screen.hideProgress()
             if (!lce.loading && !lce.hasError()) {
                 fetchBalance()

@@ -14,7 +14,15 @@ fun <T> List<T>.compare(other: List<T>, comparator: Comparator<T>): Boolean {
     return true
 }
 
-public inline fun <T> Iterable<T>.sumBy(selector: (T) -> BigDecimal): BigDecimal {
+inline fun <T> Iterable<T>.sumBy(selector: (T) -> BigDecimal): BigDecimal {
+    var sum = BigDecimal.ZERO
+    for (element in this) {
+        sum += selector(element)
+    }
+    return sum
+}
+
+inline fun <T> Array<T>.sumBy(selector: (T) -> BigDecimal): BigDecimal {
     var sum = BigDecimal.ZERO
     for (element in this) {
         sum += selector(element)

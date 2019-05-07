@@ -210,7 +210,10 @@ class MonzoMapper @Inject constructor() {
         val savings = transactionsByCycle.mapNotNull saving@{
             val transactionsForCycle: List<Transaction> = it.value
             getTarget(transactionsForCycle, savedSpending?.targets, cycle)?.let { target ->
-                val saving = transactionsForCycle.sumBy(Transaction::amount).div(100.0).minus(target)
+                val saving = transactionsForCycle.sumBy(Transaction::amount)
+                    .toBigDecimal()
+                    .divide(100.toBigDecimal())
+                    .minus(target.toBigDecimal())
                 return@saving Saving(null, savedSpending?.id, saving, LocalDate.now(), target)
             } ?: run {
                 return@saving null
