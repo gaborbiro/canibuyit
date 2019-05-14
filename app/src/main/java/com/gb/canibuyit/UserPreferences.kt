@@ -26,12 +26,12 @@ constructor(private val prefsUtil: PrefsUtil) : SharedPreferences.OnSharedPrefer
         get() = prefsUtil[PREF_ESTIMATE_DATE, ""].let {
             if (!it.isNullOrEmpty()) LocalDate.parse(it) else LocalDate.now()
         }
-        set(date) = prefsUtil.put(PREF_ESTIMATE_DATE, date.toString())
+        set(date) = prefsUtil.set(PREF_ESTIMATE_DATE, date.toString())
 
     var balanceReading: BalanceReading?
-        get() = prefsUtil.getOrNull(PREF_READING, BalanceReading.CREATOR, null)
+        get() = prefsUtil.get(PREF_READING, BalanceReading.CREATOR)
         set(reading) = if (reading != null) {
-            prefsUtil.put(PREF_READING, reading)
+            prefsUtil.set(PREF_READING, reading)
         } else {
             prefsUtil.remove(PREF_READING)
         }
@@ -55,7 +55,7 @@ constructor(private val prefsUtil: PrefsUtil) : SharedPreferences.OnSharedPrefer
         get() = prefsUtil[PREF_LAST_UPDATE, ""].let {
             if (it.isNotEmpty()) LocalDateTime.parse(it) else null
         }
-        set(date) = prefsUtil.put(PREF_LAST_UPDATE, date.toString())
+        set(date) = prefsUtil.set(PREF_LAST_UPDATE, date.toString())
 
     fun clear() {
         prefsUtil.clear()
