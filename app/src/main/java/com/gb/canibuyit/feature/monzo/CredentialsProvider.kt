@@ -18,6 +18,6 @@ class CredentialsProvider @Inject constructor(prefsUtil: PrefsUtil) {
     }
 }
 
-private const val PREF_ACCESS_TOKEN = "PREF_ACCESS_TOKEN"
-private const val PREF_REFRESH_TOKEN = "PREF_REFRESH_TOKEN"
-private const val PREF_ACCESS_TOKEN_EXPIRY = "PREF_ACCESS_TOKEN_EXPIRY"
+private const val PREF_ACCESS_TOKEN = "com.gb.canibuyit.feature.monzo.CredentialsProvider.PREF_ACCESS_TOKEN"
+private const val PREF_REFRESH_TOKEN = "com.gb.canibuyit.feature.monzo.CredentialsProvider.PREF_REFRESH_TOKEN"
+private const val PREF_ACCESS_TOKEN_EXPIRY = "com.gb.canibuyit.feature.monzo.CredentialsProvider.PREF_ACCESS_TOKEN_EXPIRY"

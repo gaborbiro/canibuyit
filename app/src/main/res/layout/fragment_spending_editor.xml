@@ -320,18 +320,14 @@
             app:layout_constraintStart_toEndOf="@id/left_guideline"
             app:layout_constraintTop_toBottomOf="@id/occurrence_count_input" />
 
-        <TextView
-            style="@style/FormHeading"
-            android:id="@+id/spent_by_cycle_lbl"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/double_padding"
+        <com.github.mikephil.charting.charts.LineChart
+            android:id="@+id/spent_by_cycle_chart"
+            android:layout_height="180dp"
+            android:layout_marginTop="@dimen/padding"
             android:layout_width="0dp"
-            android:text="Spent by cycle:"
-            android:visibility="gone"
             app:layout_constraintEnd_toStartOf="@id/right_guideline"
             app:layout_constraintStart_toEndOf="@id/left_guideline"
-            app:layout_constraintTop_toBottomOf="@id/notes_input"
-            tools:visibility="visible" />
+            app:layout_constraintTop_toBottomOf="@id/notes_input" />
 
         <LinearLayout
             android:id="@+id/spent_by_cycle_list"
@@ -342,7 +338,7 @@
             android:visibility="gone"
             app:layout_constraintEnd_toStartOf="@id/right_guideline"
             app:layout_constraintStart_toEndOf="@id/left_guideline"
-            app:layout_constraintTop_toBottomOf="@id/spent_by_cycle_lbl"
+            app:layout_constraintTop_toBottomOf="@id/spent_by_cycle_chart"
             tools:listitem="@layout/list_item_spent_by_cycle"
             tools:visibility="visible" />
     </androidx.constraintlayout.widget.ConstraintLayout>

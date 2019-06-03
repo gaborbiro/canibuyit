@@ -1,5 +1,6 @@
 package com.gb.canibuyit.feature.spending.view
 
+import android.graphics.Color
 import android.os.Bundle
 import android.text.SpannableStringBuilder
 import android.view.LayoutInflater
@@ -31,17 +32,27 @@ import com.gb.canibuyit.util.formatDayMonthYearWithPrefix
 import com.gb.canibuyit.util.hideKeyboard
 import com.gb.canibuyit.util.link
 import com.gb.canibuyit.util.orNull
+import com.github.mikephil.charting.components.LimitLine
+import com.github.mikephil.charting.data.Entry
+import com.github.mikephil.charting.data.LineData
+import com.github.mikephil.charting.data.LineDataSet
+import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
+import com.github.mikephil.charting.highlight.Highlight
+import com.github.mikephil.charting.listener.OnChartValueSelectedListener
 import kotlinx.android.synthetic.main.fragment_spending_editor.*
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.format.TextStyle
+import java.util.Locale
 import javax.inject.Inject
+import kotlin.math.absoluteValue
 
 /**
  * A fragment representing a single Spending detail screen. This fragment is either
  * contained in a [MainActivity] in two-pane mode (on tablets) or a
  * [SpendingEditorActivity] on handsets.
  */
-class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen {
+class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen, OnChartValueSelectedListener {
 
     @Inject internal lateinit var presenter: SpendingEditorPresenter
 
@@ -139,7 +150,7 @@ class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen {
     }
 
     private fun setDisplayedSpending(spending: Spending) {
-        activity?.title = "ID: ${spending.id}"
+        activity?.title = "${spending.id}: ${spending.name}"
         name_input.setText(spending.name)
         average_input.setText(spending.value.toPlainString())
         spending.target?.let {
@@ -171,27 +182,75 @@ class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen {
             source_category_lbl.text = "(original Monzo category: $it)"
             source_category_lbl.isVisible = true
         }
+
         spending.cycleSpendings?.let { list ->
             spent_by_cycle_list.isVisible = true
             spent_by_cycle_list.removeAllViews()
-            spent_by_cycle_lbl.isVisible = list.isNotEmpty()
-            list.forEach { cycleSpent ->
-                val saving = cycleSpent.target?.let { target -> cycleSpent.amount - BigDecimal.valueOf(target.toDouble()) }
-                val cycleSpentText = cycleSpent.run {
+            spent_by_cycle_chart.isVisible = list.isNotEmpty()
+            var maxAmount = list[0].amount.abs()
+            val chartData = mutableListOf<Entry>()
+            val xAxisLabels = Array(list.size) { "" }
+            list.forEachIndexed { index, cycleSpending ->
+                if (cycleSpending.amount.abs() > maxAmount) {
+                    maxAmount = cycleSpending.amount.abs()
+                }
+                val saving = cycleSpending.target?.let { target -> cycleSpending.amount - BigDecimal.valueOf(target.toDouble()) }
+                val cycleSpentText = cycleSpending.run {
                     "$from - $to: $amount #$count ${saving?.let { "($target => $saving)" } ?: ""}".link().bold(amount.toString())
                 }
 
                 spent_by_cycle_list.add<TextView>(R.layout.list_item_spent_by_cycle)
                     .apply {
-                        tag = cycleSpent.id!!
+                        tag = cycleSpending.id!!
                         text =
                             cycleSpentText
                         setOnClickListener {
-                            presenter.onViewSpentByCycleDetails(cycleSpent, originalSpending!!.type)
+                            presenter.onViewSpentByCycleDetails(cycleSpending, originalSpending!!.type)
                         }
                     }
+                chartData.add(Entry(index.toFloat(), cycleSpending.amount.abs().toFloat()))
+                xAxisLabels[index] = cycleSpending.from.month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+            }
+            if (chartData.isNotEmpty()) {
+                spent_by_cycle_chart.apply {
+                    LineDataSet(chartData, "Spent by cycle").apply {
+                        setDrawIcons(false)
+                        color = Color.BLACK
+                        setCircleColor(Color.BLACK)
+                        lineWidth = 1f
+                        circleRadius = 3f
+                        circleColors = listOf(Color.GREEN)
+                        setDrawCircleHole(true)
+                        circleRadius = 5f
+                        circleHoleRadius = 2.5f
+                        valueTextSize = 9f
+                        setDrawFilled(false)
+                        isHighlightEnabled = false
+                        enableDashedLine(1f, 10f, 0f)
+                    }.let {
+                        data = LineData(listOf(it))
+                    }
+
+                    xAxis.axisMaximum = lineData.xMax + 0.5f
+                    xAxis.axisMinimum = lineData.xMin - 0.5f
+                    xAxis.valueFormatter = IndexAxisValueFormatter(xAxisLabels)
+                }
             }
         }
+        spending.target?.toFloat()?.let {
+            val limitLine = LimitLine(it.absoluteValue, "Limit")
+            limitLine.lineWidth = 2f
+            limitLine.labelPosition = LimitLine.LimitLabelPosition.LEFT_BOTTOM
+            limitLine.textSize = 10f
+            limitLine.lineColor = Color.RED
+            spent_by_cycle_chart.axisLeft.addLimitLine(limitLine)
+        }
+        val averageLine = LimitLine(spending.value.abs().toFloat(), "Average")
+        averageLine.lineWidth = 2f
+        averageLine.labelPosition = LimitLine.LimitLabelPosition.RIGHT_TOP
+        averageLine.textSize = 10f
+        averageLine.lineColor = Color.YELLOW
+        spent_by_cycle_chart.axisLeft.addLimitLine(averageLine)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -222,6 +281,31 @@ class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen {
                 MotionEvent.obtain(0, 0, MotionEvent.ACTION_DOWN, 0f, 0f, 0))
             false
         }
+
+        spent_by_cycle_chart.apply {
+            description.isEnabled = false
+            setTouchEnabled(true)
+            setOnChartValueSelectedListener(this@SpendingEditorFragment)
+            setDrawGridBackground(false)
+            isDragEnabled = true
+            setScaleEnabled(true)
+            setPinchZoom(true)
+            axisRight.isEnabled = false
+            xAxis.setDrawGridLines(false)
+            axisLeft.apply {
+                axisMinimum = 0f
+                setDrawGridLines(false)
+            }
+            setDrawBorders(false)
+        }
+    }
+
+    override fun onNothingSelected() {
+
+    }
+
+    override fun onValueSelected(e: Entry?, h: Highlight?) {
+
     }
 
     override fun inject() {
