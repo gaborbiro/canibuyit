@@ -184,57 +184,62 @@ class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen, OnChartValu
         }
 
         spending.cycleSpendings?.let { list ->
-            spent_by_cycle_list.isVisible = true
-            spent_by_cycle_list.removeAllViews()
-            spent_by_cycle_chart.isVisible = list.isNotEmpty()
-            var maxAmount = list[0].amount.abs()
-            val chartData = mutableListOf<Entry>()
-            val xAxisLabels = Array(list.size) { "" }
-            list.forEachIndexed { index, cycleSpending ->
-                if (cycleSpending.amount.abs() > maxAmount) {
-                    maxAmount = cycleSpending.amount.abs()
-                }
-                val saving = cycleSpending.target?.let { target -> cycleSpending.amount - BigDecimal.valueOf(target.toDouble()) }
-                val cycleSpentText = cycleSpending.run {
-                    "$from - $to: $amount #$count ${saving?.let { "($target => $saving)" } ?: ""}".link().bold(amount.toString())
-                }
+            if (list.isNotEmpty()) {
+                spent_by_cycle_list.isVisible = true
+                spent_by_cycle_list.removeAllViews()
+                spent_by_cycle_chart.isVisible = true
+                var maxAmount = list[0].amount.abs()
+                val chartData = mutableListOf<Entry>()
+                val xAxisLabels = Array(list.size) { "" }
+                list.forEachIndexed { index, cycleSpending ->
+                    if (cycleSpending.amount.abs() > maxAmount) {
+                        maxAmount = cycleSpending.amount.abs()
+                    }
+                    val saving = cycleSpending.target?.let { target -> cycleSpending.amount - BigDecimal.valueOf(target.toDouble()) }
+                    val cycleSpentText = cycleSpending.run {
+                        "$from - $to: $amount #$count ${saving?.let { "($target => $saving)" } ?: ""}".link().bold(amount.toString())
+                    }
 
-                spent_by_cycle_list.add<TextView>(R.layout.list_item_spent_by_cycle)
-                    .apply {
-                        tag = cycleSpending.id!!
-                        text =
-                            cycleSpentText
-                        setOnClickListener {
-                            presenter.onViewSpentByCycleDetails(cycleSpending, originalSpending!!.type)
+                    spent_by_cycle_list.add<TextView>(R.layout.list_item_spent_by_cycle)
+                        .apply {
+                            tag = cycleSpending.id!!
+                            text =
+                                cycleSpentText
+                            setOnClickListener {
+                                presenter.onViewSpentByCycleDetails(cycleSpending, originalSpending!!.type)
+                            }
                         }
-                    }
-                chartData.add(Entry(index.toFloat(), cycleSpending.amount.abs().toFloat()))
-                xAxisLabels[index] = cycleSpending.from.month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
-            }
-            if (chartData.isNotEmpty()) {
-                spent_by_cycle_chart.apply {
-                    LineDataSet(chartData, "Spent by cycle").apply {
-                        setDrawIcons(false)
-                        color = Color.BLACK
-                        setCircleColor(Color.BLACK)
-                        lineWidth = 1f
-                        circleRadius = 3f
-                        circleColors = listOf(Color.GREEN)
-                        setDrawCircleHole(true)
-                        circleRadius = 5f
-                        circleHoleRadius = 2.5f
-                        valueTextSize = 9f
-                        setDrawFilled(false)
-                        isHighlightEnabled = false
-                        enableDashedLine(1f, 10f, 0f)
-                    }.let {
-                        data = LineData(listOf(it))
-                    }
-
-                    xAxis.axisMaximum = lineData.xMax + 0.5f
-                    xAxis.axisMinimum = lineData.xMin - 0.5f
-                    xAxis.valueFormatter = IndexAxisValueFormatter(xAxisLabels)
+                    chartData.add(Entry(index.toFloat(), cycleSpending.amount.abs().toFloat()))
+                    xAxisLabels[index] = cycleSpending.from.month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
                 }
+                if (chartData.isNotEmpty()) {
+                    spent_by_cycle_chart.apply {
+                        LineDataSet(chartData, "Spent by cycle").apply {
+                            setDrawIcons(false)
+                            color = Color.BLACK
+                            setCircleColor(Color.BLACK)
+                            lineWidth = 1f
+                            circleRadius = 3f
+                            circleColors = listOf(Color.GREEN)
+                            setDrawCircleHole(true)
+                            circleRadius = 5f
+                            circleHoleRadius = 2.5f
+                            valueTextSize = 9f
+                            setDrawFilled(false)
+                            isHighlightEnabled = false
+                            enableDashedLine(1f, 10f, 0f)
+                        }.let {
+                            data = LineData(listOf(it))
+                        }
+
+                        xAxis.axisMaximum = lineData.xMax + 0.5f
+                        xAxis.axisMinimum = lineData.xMin - 0.5f
+                        xAxis.valueFormatter = IndexAxisValueFormatter(xAxisLabels)
+                    }
+                }
+            } else {
+                spent_by_cycle_list.isVisible = false
+                spent_by_cycle_chart.isVisible = false  
             }
         }
         spending.target?.toFloat()?.let {

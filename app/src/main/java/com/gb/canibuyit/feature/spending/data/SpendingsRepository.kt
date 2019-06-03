@@ -88,10 +88,12 @@ constructor(private val dao: Dao<ApiSpending, Int>,
                 // This can happen when the user retroactively re-categorizes some spendings,
                 // causing one or more of the categories to disappear
                 savedSpendings.filter {
-                    savedRemoteCategories.contains(it.type.toString()) && it.enabled!!
+                    savedRemoteCategories.contains(it.type.toString())
                 }.forEach {
                     it.enabled = false
+                    dao.queryForId(it.id).cycleSpendings?.clear()
                     it.value = BigDecimal.ZERO
+                    it.spent = BigDecimal.ZERO
                     dao.update(it)
                 }
                 emitter.onComplete()
