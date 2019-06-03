@@ -328,18 +328,5 @@
             app:layout_constraintEnd_toStartOf="@id/right_guideline"
             app:layout_constraintStart_toEndOf="@id/left_guideline"
             app:layout_constraintTop_toBottomOf="@id/notes_input" />
-
-        <LinearLayout
-            android:id="@+id/spent_by_cycle_list"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/padding"
-            android:layout_width="0dp"
-            android:orientation="vertical"
-            android:visibility="gone"
-            app:layout_constraintEnd_toStartOf="@id/right_guideline"
-            app:layout_constraintStart_toEndOf="@id/left_guideline"
-            app:layout_constraintTop_toBottomOf="@id/spent_by_cycle_chart"
-            tools:listitem="@layout/list_item_spent_by_cycle"
-            tools:visibility="visible" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

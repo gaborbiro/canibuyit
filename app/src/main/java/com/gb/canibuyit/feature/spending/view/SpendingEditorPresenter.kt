@@ -14,6 +14,7 @@ import com.gb.canibuyit.feature.spending.model.Spending
 import com.gb.canibuyit.feature.spending.persistence.model.ApiSpending
 import com.gb.canibuyit.util.bold
 import io.reactivex.disposables.Disposable
+import java.math.BigDecimal
 import javax.inject.Inject
 
 class SpendingEditorPresenter @Inject constructor(
@@ -30,20 +31,20 @@ class SpendingEditorPresenter @Inject constructor(
     @SuppressLint("CheckResult")
     fun saveSpending(spending: Spending) {
         spendingInteractor.createOrUpdate(spending)
-                .subscribe({
-                    screen.onSpendingLoaded(spending)
-                }) {
-                    var throwable: Throwable = it
-                    onError(throwable)
-                    do {
-                        if (throwable.cause == null || throwable is SQLiteConstraintException) {
-                            break
-                        } else {
-                            throwable = throwable.cause as Throwable
-                        }
-                    } while (true)
-                    onError(throwable)
-                }
+            .subscribe({
+                screen.onSpendingLoaded(spending)
+            }) {
+                var throwable: Throwable = it
+                onError(throwable)
+                do {
+                    if (throwable.cause == null || throwable is SQLiteConstraintException) {
+                        break
+                    } else {
+                        throwable = throwable.cause as Throwable
+                    }
+                } while (true)
+                onError(throwable)
+            }
     }
 
     fun deleteSpentByCycle(spending: Spending) {
@@ -52,44 +53,46 @@ class SpendingEditorPresenter @Inject constructor(
 
     fun deleteSpending(spending: Spending) {
         disposeOnDestroy(spendingInteractor.delete(spending.id!!)
-                .subscribe(screen::onSpendingDeleted, this::onError))
+            .subscribe(screen::onSpendingDeleted, this::onError))
     }
 
     fun showSpending(spendingId: Int) {
         disposeOnDestroy(spendingInteractor.get(spendingId)
-                .subscribe(screen::onSpendingLoaded, this::onError))
+            .subscribe(screen::onSpendingLoaded, this::onError))
         disposeOnDestroy(projectInteractor.getProject().subscribe({ project ->
             this.projectSettings = project
             screen.applyProjectSettingsToScreen(project)
         }, this::onError))
     }
 
-    fun onViewSpentByCycleDetails(spentByCycle: CycleSpending, category: ApiSpending.Category) {
+    fun onViewSpentByCycleDetails(cycleSpending: CycleSpending, category: ApiSpending.Category) {
         disposable?.dispose()
-        disposable = monzoInteractor.getRawTransactions(ACCOUNT_ID_RETAIL, spentByCycle.from,
-                spentByCycle.to)
-                .subscribe({
-                    it.error?.let(this::onError)
-                    it.content?.let {
-                        screen.hideCycleSpendDetails()
-                        val text = it
-                                .filter { it.category == category }
-                                .mapIndexed { index, transaction ->
-                                    val amount = transaction.amount / 100.0
-                                    "${index + 1}. ${transaction.created}: $amount\n\"${transaction.description?.replace(
-                                            Regex("[\\s]+"), " ")}\"".bold(amount.toString())
-                                }.joinTo(buffer = SpannableStringBuilder(), separator = "\n\n")
-                        spentByCycle.apply {
-                            screen.showCycleSpendDetails(
-                                    title = "$from $to: $amount ($count)",
-                                    text = text)
-                        }
+        val cycleSpentText = cycleSpending.run { "$from - $to: $amount" }
+
+        disposable = monzoInteractor.getRawTransactions(ACCOUNT_ID_RETAIL, cycleSpending.from,
+            cycleSpending.to)
+            .subscribe({
+                it.error?.let(this::onError)
+                it.content?.let {
+                    screen.hideCycleSpendDetails()
+                    val text = it
+                        .filter { it.category == category }
+                        .mapIndexed { index, transaction ->
+                            val amount = transaction.amount / 100.0
+                            "${index + 1}. ${transaction.created}: $amount\n\"${transaction.description?.replace(
+                                Regex("[\\s]+"), " ")}\"".bold(amount.toString())
+                        }.joinTo(buffer = SpannableStringBuilder(), separator = "\n\n")
+                    cycleSpending.apply {
+                        screen.showCycleSpendDetails(
+                            title = cycleSpentText,
+                            text = text)
                     }
-                }, this::onError)
-        spentByCycle.apply {
+                }
+            }, this::onError)
+        cycleSpending.apply {
             screen.showCycleSpendDetails(
-                    title = "$from $to: $amount ($count)",
-                    text = SpannableStringBuilder("Loading..."))
+                title = cycleSpentText,
+                text = SpannableStringBuilder("Loading..."))
         }
     }
 

@@ -1,7 +1,6 @@
 package com.gb.canibuyit.base.view
 
 import android.os.Bundle
-import android.text.SpannableStringBuilder
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.StringRes
@@ -14,7 +13,7 @@ open class PromptDialog : BaseDialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        arguments?.getString(EXTRA_TITLE)?.let(this@PromptDialog::setTitle)
+        arguments?.getCharSequence(EXTRA_TITLE)?.let(this@PromptDialog::setTitle)
         arguments?.getString(EXTRA_MESSAGE)?.let(this@PromptDialog::setMessage)
         arguments?.getCharSequence(
             EXTRA_BIG_MESSAGE)?.let(this@PromptDialog::setBigMessage)
@@ -50,21 +49,11 @@ open class PromptDialog : BaseDialogFragment() {
                 }
             }
 
-        fun bigMessageDialog(title: String, message: String?) =
+        fun bigMessageDialog(title: CharSequence, message: CharSequence) =
             PromptDialog().apply {
                 arguments = Bundle().apply {
-                    putString(EXTRA_TITLE, title)
-                    putCharSequence(
-                        EXTRA_BIG_MESSAGE, message)
-                }
-            }
-
-        fun bigMessageDialog(title: String, message: SpannableStringBuilder) =
-            PromptDialog().apply {
-                arguments = Bundle().apply {
-                    putString(EXTRA_TITLE, title)
-                    putCharSequence(
-                        EXTRA_BIG_MESSAGE, message)
+                    putCharSequence(EXTRA_TITLE, title)
+                    putCharSequence(EXTRA_BIG_MESSAGE, message)
                 }
             }
     }

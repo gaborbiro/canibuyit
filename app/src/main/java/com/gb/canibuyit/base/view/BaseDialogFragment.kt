@@ -1,10 +1,10 @@
 package com.gb.canibuyit.base.view
 
 import android.os.Bundle
-import androidx.annotation.StringRes
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.annotation.StringRes
 import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentManager
@@ -23,6 +23,12 @@ open class BaseDialogFragment : DialogFragment() {
     }
 
     fun setTitle(title: String): BaseDialogFragment {
+        dialog_title.text = title
+        updateTitleVisibility()
+        return this
+    }
+
+    fun setTitle(title: CharSequence): BaseDialogFragment {
         dialog_title.text = title
         updateTitleVisibility()
         return this
