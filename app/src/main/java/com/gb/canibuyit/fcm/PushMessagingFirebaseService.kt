@@ -46,7 +46,10 @@ class PushMessagingFirebaseService : FirebaseMessagingService() {
 
     private fun handleMonzoPush(payload: String) {
         Gson().fromJson(payload, FcmMonzoData::class.java)?.data?.let {
-            monzoMapper.mapApiTransaction(it).category
+            if (it.settled.isEmpty()) {
+                monzoInteractor.loadSpendings(ACCOUNT_ID_RETAIL, TRANSACTION_HISTORY_LENGTH_MONTHS)
+                monzoMapper.mapApiTransaction(it).category
+            } else null
         }?.let { category ->
             spendingInteractor.spendingSubject
                 .filter { it.content != null }
@@ -58,7 +61,6 @@ class PushMessagingFirebaseService : FirebaseMessagingService() {
                     Logger.e(TAG, "SpendingUIModel Error", it)
                 })
         }
-        monzoInteractor.loadSpendings(ACCOUNT_ID_RETAIL, TRANSACTION_HISTORY_LENGTH_MONTHS)
     }
 
     @SuppressLint("CheckResult")
