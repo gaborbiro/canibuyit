@@ -5,7 +5,7 @@ class ApiMonzoTransactions(val transactions: Array<ApiMonzoTransaction>)
 class ApiMonzoTransaction(
     val amount: Int,
     val created: String,
-    val settled: String,
+    val settled: String?,
     val description: String,
     val id: String,
     val notes: String,

@@ -46,7 +46,7 @@ class PushMessagingFirebaseService : FirebaseMessagingService() {
 
     private fun handleMonzoPush(payload: String) {
         Gson().fromJson(payload, FcmMonzoData::class.java)?.data?.let {
-            if (it.settled.isEmpty()) {
+            if (it.settled.isNullOrEmpty() && it.amount.absoluteValue > 0) {
                 monzoInteractor.loadSpendings(ACCOUNT_ID_RETAIL, TRANSACTION_HISTORY_LENGTH_MONTHS)
                 monzoMapper.mapApiTransaction(it).category
             } else null
