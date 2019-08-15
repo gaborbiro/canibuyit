@@ -38,8 +38,8 @@ constructor(private val spendingDBHelper: SpendingDBHelper) {
         }
         try {
             cursor = spendingDBHelper.getAllSpendings(db)
-        } catch (e: SQLException) {
-            return Completable.error(Exception("Error reading $file", e))
+        } catch (t: Throwable) {
+            return Completable.error(Exception("Error reading $file", t))
         }
         try {
             spendingDBHelper.insertSpendings(cursor, filter)
