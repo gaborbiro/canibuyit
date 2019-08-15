@@ -13,7 +13,7 @@
         android:id="@+id/icon_and_name"
         android:layout_height="wrap_content"
         android:layout_width="match_parent"
-        android:padding="@dimen/padding">
+        android:padding="@dimen/default_margin">
 
         <ImageView
             android:id="@+id/icon"
@@ -41,9 +41,9 @@
         android:id="@+id/spent"
         android:layout_below="@id/icon_and_name"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="@dimen/padding"
-        android:layout_marginLeft="@dimen/padding"
-        android:layout_marginRight="@dimen/padding"
+        android:layout_marginBottom="@dimen/default_margin"
+        android:layout_marginLeft="@dimen/default_margin"
+        android:layout_marginRight="@dimen/default_margin"
         android:layout_width="wrap_content"
         tools:text="12.34 / month"/>
 
@@ -53,7 +53,7 @@
         android:layout_alignParentEnd="true"
         android:layout_below="@id/icon_and_name"
         android:layout_height="wrap_content"
-        android:layout_marginRight="@dimen/padding"
+        android:layout_marginRight="@dimen/default_margin"
         android:layout_width="wrap_content"
         android:visibility="gone"
         tools:visibility="visible"

@@ -7,9 +7,9 @@
     android:gravity="center_vertical"
     android:layout_height="wrap_content"
     android:layout_width="match_parent"
-    android:paddingBottom="@dimen/double_padding"
-    android:paddingEnd="@dimen/padding"
-    android:paddingStart="@dimen/padding"
-    android:paddingTop="@dimen/double_padding"
+    android:paddingBottom="@dimen/double_margin"
+    android:paddingEnd="@dimen/default_margin"
+    android:paddingStart="@dimen/default_margin"
+    android:paddingTop="@dimen/double_margin"
     android:textColor="@color/accent"
     tools:text="2018-06-20 2018-06-27: -456 (6)" />

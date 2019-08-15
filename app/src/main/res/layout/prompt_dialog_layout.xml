@@ -30,7 +30,7 @@
         android:gravity="start"
         android:id="@+id/dialog_title"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="@dimen/padding"
+        android:layout_marginEnd="@dimen/default_margin"
         android:layout_marginTop="@dimen/dialog_margin"
         android:layout_width="0dp"
         android:visibility="gone"
@@ -42,7 +42,7 @@
 
     <View
         android:id="@+id/title_bottom_divider"
-        android:layout_height="@dimen/double_padding"
+        android:layout_height="@dimen/double_margin"
         android:layout_width="wrap_content"
         app:layout_constraintTop_toBottomOf="@id/dialog_title" />
 
@@ -57,7 +57,7 @@
         style="@style/DialogMessage"
         android:id="@+id/message"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="@dimen/padding"
+        android:layout_marginEnd="@dimen/default_margin"
         android:layout_width="0dp"
         android:visibility="gone"
         app:layout_constraintEnd_toStartOf="@+id/progress_bar"
@@ -98,7 +98,7 @@
     <EditText
         android:id="@+id/text_input"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="@dimen/padding"
+        android:layout_marginEnd="@dimen/default_margin"
         android:layout_marginStart="@dimen/dialog_margin"
         android:layout_width="0dp"
         android:selectAllOnFocus="true"

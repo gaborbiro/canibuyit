@@ -14,7 +14,6 @@ import com.gb.canibuyit.feature.spending.model.Spending
 import com.gb.canibuyit.feature.spending.persistence.model.ApiSpending
 import com.gb.canibuyit.util.bold
 import io.reactivex.disposables.Disposable
-import java.math.BigDecimal
 import javax.inject.Inject
 
 class SpendingEditorPresenter @Inject constructor(
@@ -67,7 +66,7 @@ class SpendingEditorPresenter @Inject constructor(
 
     fun onViewSpentByCycleDetails(cycleSpending: CycleSpending, category: ApiSpending.Category) {
         disposable?.dispose()
-        val cycleSpentText = cycleSpending.run { "$from - $to: $amount" }
+        var cycleSpentText = cycleSpending.run { "$from - $to: $amount" }
 
         disposable = monzoInteractor.getRawTransactions(ACCOUNT_ID_RETAIL, cycleSpending.from,
             cycleSpending.to)
@@ -75,13 +74,21 @@ class SpendingEditorPresenter @Inject constructor(
                 it.error?.let(this::onError)
                 it.content?.let {
                     screen.hideCycleSpendDetails()
+                    var inTotal = 0.0
+                    var outTotal = 0.0
                     val text = it
                         .filter { it.category == category }
                         .mapIndexed { index, transaction ->
+                            if (transaction.amount < 0) {
+                                outTotal += transaction.amount
+                            } else {
+                                inTotal += transaction.amount
+                            }
                             val amount = transaction.amount / 100.0
                             "${index + 1}. ${transaction.created}: $amount\n\"${transaction.description?.replace(
                                 Regex("[\\s]+"), " ")}\"".bold(amount.toString())
                         }.joinTo(buffer = SpannableStringBuilder(), separator = "\n\n")
+                    cycleSpentText += "\nOut: ${outTotal / 100} In: ${inTotal / 100}"
                     cycleSpending.apply {
                         screen.showCycleSpendDetails(
                             title = cycleSpentText,
