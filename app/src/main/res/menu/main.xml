@@ -7,8 +7,8 @@
         android:title="Add new"
         app:showAsAction="always"/>
     <item
-        android:id="@+id/menu_delete_spendings"
-        android:title="Clear all"/>
+        android:id="@+id/menu_set_project_name"
+        android:title="Set project name"/>
     <item
         android:id="@+id/menu_backup"
         android:title="Backup/Restore"
@@ -36,9 +36,9 @@
         android:id="@+id/menu_fcm"
         android:title="Register with FCM"/>
     <item
-        android:id="@+id/menu_set_project_name"
-        android:title="Set project name"/>
-    <item
         android:id="@+id/menu_hooks"
         android:title="Log webhooks"/>
+    <item
+        android:id="@+id/menu_delete_spendings"
+        android:title="Clear all"/>
 </menu>
