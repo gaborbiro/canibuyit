@@ -68,7 +68,7 @@ class SpendingEditorPresenter @Inject constructor(
         disposable?.dispose()
         var cycleSpentText = cycleSpending.run { "$from - $to: $amount" }
 
-        disposable = monzoInteractor.getRawTransactions(ACCOUNT_ID_RETAIL, cycleSpending.from,
+        disposable = monzoInteractor.getRawTransactions(ACCOUNT_ID_RETAIL, cycleSpending.from.atStartOfDay(),
             cycleSpending.to)
             .subscribe({
                 it.error?.let(this::onError)

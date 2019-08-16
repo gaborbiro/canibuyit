@@ -2,9 +2,10 @@ package com.gb.canibuyit.feature.monzo.model
 
 import com.gb.canibuyit.feature.spending.persistence.model.ApiSpending
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 class Transaction(val amount: Int,
-                  val created: LocalDate,
+                  val created: LocalDateTime,
                   val description: String?,
                   val id: String,
                   val category: ApiSpending.Category) {

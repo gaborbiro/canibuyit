@@ -25,6 +25,7 @@ import org.apache.commons.lang3.text.WordUtils
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.ZonedDateTime
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -54,7 +55,7 @@ class MonzoMapper @Inject constructor() {
             val description = description + notes
             return Transaction(
                 amount = amount,
-                created = ZonedDateTime.parse(created).toLocalDate(),
+                created = ZonedDateTime.parse(created).toLocalDateTime(),
                 description = description,
                 id = id,
                 category = category)
@@ -75,7 +76,7 @@ class MonzoMapper @Inject constructor() {
                       sortedTransactions: List<Transaction>,
                       savedSpending: Spending?,
                       projectSettings: Project,
-                      startDate: LocalDate,
+                      startDate: LocalDateTime,
                       endDate: LocalDate): Spending {
         val categoryStr = WordUtils.capitalizeFully(category.toString().replace("\\_".toRegex(), " "))
         val finalName: String = if (projectSettings.namePinned) (savedSpending?.name ?: categoryStr) else categoryStr
@@ -86,22 +87,22 @@ class MonzoMapper @Inject constructor() {
 
         val finalCycleMultiplier: Int = if (projectSettings.cyclePinned) (savedSpending?.cycleMultiplier ?: 1) else 1
 
-        val firstOccurrence: LocalDate = sortedTransactions[0].created
+        val firstOccurrence = sortedTransactions[0].created.toLocalDate()
         val finalFromStartDate = if (projectSettings.whenPinned) (savedSpending?.fromStartDate ?: firstOccurrence) else firstOccurrence
         val finalFromEndDate = firstOccurrence.add(finalCycle, finalCycleMultiplier.toLong()).minusDays(1)
             .let { date ->
                 if (projectSettings.whenPinned) (savedSpending?.fromEndDate ?: date) else date
             }
 
-        val transactionsByCycle: Map<Int, List<Transaction>> = sortedTransactions.groupBy { finalCycle.ordinal(it.created) }
+        val transactionsByCycle: Map<Int, List<Transaction>> = sortedTransactions.groupBy { finalCycle.ordinal(it.created.toLocalDate()) }
 
         val cycleSpendings: List<CycleSpending> = transactionsByCycle.map { (_, transactionsInCycle) ->
             // kinda redundant, date of first transaction will never be before startDate
-            val firstDay = max(transactionsInCycle[0].created.firstCycleDay(finalCycle), startDate)
+            val firstDay = max(transactionsInCycle[0].created.toLocalDate().firstCycleDay(finalCycle), startDate.toLocalDate())
             // Kinda random. What should be the end date of the last entry? Last cycle day is a bit misleading,
             // it's like claiming that that's all the money that's gonna be spent in the current cycle.
             // Cutting it off with LocalDate.now() is less misleading.
-            val lastDay = least(transactionsInCycle[0].created.lastCycleDay(finalCycle), LocalDate.now())
+            val lastDay = least(transactionsInCycle[0].created.toLocalDate().lastCycleDay(finalCycle), LocalDate.now())
             CycleSpending(
                 id = null,
                 spendingId = savedSpending?.id,
@@ -231,12 +232,12 @@ class MonzoMapper @Inject constructor() {
                            cycleMultiplier: Int,
                            savedSpending: Spending?,
                            projectSettings: Project,
-                           startDate: LocalDate,
+                           startDate: LocalDateTime,
                            endDate: LocalDate): BigDecimal {
         val savedAverage = if (projectSettings.averagePinned) savedSpending?.value else null
         return savedAverage ?: cycleSpendings
             .sumByBigDecimal { it.amount }
-            .divide((Pair(startDate, endDate) / cycle / cycleMultiplier).toBigDecimal(), RoundingMode.DOWN)
+            .divide((Pair(startDate.toLocalDate(), endDate) / cycle / cycleMultiplier).toBigDecimal(), RoundingMode.DOWN)
     }
 
     private fun getOptimalCycle(sortedTransactions: List<Transaction>): ApiSpending.Cycle {
@@ -246,7 +247,7 @@ class MonzoMapper @Inject constructor() {
         sortedTransactions.indices.forEach { i ->
             if (i > 0 && {
                     distance =
-                        sortedTransactions[i].created.toEpochDay() - sortedTransactions[i - 1].created.toEpochDay(); distance
+                        sortedTransactions[i].created.toLocalDate().toEpochDay() - sortedTransactions[i - 1].created.toLocalDate().toEpochDay(); distance
                 }() > highestDistanceDays) {
                 highestDistanceDays = distance
             }
@@ -259,7 +260,7 @@ class MonzoMapper @Inject constructor() {
     }
 
     private fun getTarget(transactionsForCycle: List<Transaction>, targets: Map<LocalDate, Int>?, cycle: ApiSpending.Cycle): Int? {
-        val lastCycleDay = transactionsForCycle.maxBy(Transaction::created)?.created!!.lastCycleDay(cycle)
+        val lastCycleDay = transactionsForCycle.maxBy(Transaction::created)?.created!!.toLocalDate().lastCycleDay(cycle)
         return if (lastCycleDay <= LocalDate.now()) { // ongoing cycles don't have savings calculated on them
             val lastTargetDate = targets?.keys?.filter { it < lastCycleDay }?.max()
             lastTargetDate?.let { targets[it] }

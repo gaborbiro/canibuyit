@@ -19,6 +19,7 @@ import com.gb.canibuyit.util.Logger
 import io.reactivex.Completable
 import io.reactivex.Single
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.ZoneId
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -39,7 +40,7 @@ class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi,
                 .map(mapper::mapToLogin)
     }
 
-    fun getSpendings(accountId: String, since: LocalDate? = null,
+    fun getSpendings(accountId: String, since: LocalDateTime? = null,
                      before: LocalDate): Single<List<Spending>> {
         return getRawTransactions(accountId, since, before)
                 .map { transactions: List<Transaction> ->
@@ -56,9 +57,9 @@ class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi,
                 }
     }
 
-    fun getRawTransactions(accountId: String, since: LocalDate? = null,
+    fun getRawTransactions(accountId: String, since: LocalDateTime? = null,
                            before: LocalDate): Single<List<Transaction>> {
-        val sinceStr = since?.let { FORMAT_RFC3339.format(it.atStartOfDay(ZoneId.systemDefault())) }
+        val sinceStr = since?.let { FORMAT_RFC3339.format(it) }
         val beforeStr = FORMAT_RFC3339.format(
                 before.plusDays(1).atStartOfDay(ZoneId.systemDefault()).minusNanos(1))
 
@@ -75,7 +76,7 @@ class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi,
 
     private fun convertTransactionsToSpending(category: ApiSpending.Category,
                                               transactionsByCategory: List<Transaction>,
-                                              startDate: LocalDate,
+                                              startDate: LocalDateTime,
                                               endDate: LocalDate): Spending {
         val projectSettings = projectInteractor.getProject().blockingGet()
         val savedSpendings = spendingsRepository.getAll().blockingGet()
