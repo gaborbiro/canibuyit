@@ -16,6 +16,7 @@ import com.gb.canibuyit.UserPreferences
 import com.gb.canibuyit.base.view.BaseActivity
 import com.gb.canibuyit.base.view.PromptDialog
 import com.gb.canibuyit.di.Injector
+import com.gb.canibuyit.feature.chart.view.ChartActivity
 import com.gb.canibuyit.feature.dispatch.view.DispatchPresenter
 import com.gb.canibuyit.feature.dispatch.view.DispatchScreen
 import com.gb.canibuyit.feature.monzo.view.LoginActivity
@@ -99,8 +100,8 @@ class MainActivity : BaseActivity(), MainScreen, DispatchScreen,
      * Callback method from [SpendingListFragment.FragmentCallback] indicating
      * that the spending with the given database ID was selected.
      */
-    override fun onSpendingSelected(id: Int) {
-        presenter.showEditorScreenForSpending(id)
+    override fun onSpendingSelected(spendingId: Int) {
+        presenter.showEditorScreenForSpending(spendingId)
     }
 
     override fun refresh() {
@@ -142,6 +143,7 @@ class MainActivity : BaseActivity(), MainScreen, DispatchScreen,
             }
             R.id.menu_set_project_name -> presenter.onSetProjectName()
             R.id.menu_hooks -> presenter.logWebhooks()
+            R.id.menu_overview_chart -> ChartActivity.launch(this)
         }
         return super.onOptionsItemSelected(item)
     }

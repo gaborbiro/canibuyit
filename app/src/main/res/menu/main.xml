@@ -7,6 +7,9 @@
         android:title="Add new"
         app:showAsAction="always"/>
     <item
+        android:id="@+id/menu_overview_chart"
+        android:title="Overview chart"/>
+    <item
         android:id="@+id/menu_set_project_name"
         android:title="Set project name"/>
     <item

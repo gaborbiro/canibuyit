@@ -6,6 +6,13 @@
         <item name="colorPrimaryDark">@color/primary_dark</item>
     </style>
 
+    <!-- Base application theme. -->
+    <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorAccent">@color/accent</item>
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryDark">@color/primary_dark</item>
+    </style>
+
     <style name="DialogTitle" parent="TextAppearance.AppCompat.Subhead">
         <item name="android:textSize">18sp</item>
         <item name="android:lineSpacingExtra">6sp</item>
@@ -34,7 +41,28 @@
         <item name="android:buttonTint">@color/accent</item>
     </style>
 
-    <style name="FormHeading" parent="TextAppearance.AppCompat.Subhead">
+    <style name="FormHeading" parent="TextAppearance.AppCompat.Subhead"/>
 
+    <style name="DrawerArrow" parent="Widget.AppCompat.DrawerArrowToggle">
+        <item name="spinBars">true</item>
+        <item name="color">@android:color/white</item>
+    </style>
+
+    <style name="Toolbar">
+        <item name="android:layout_height">?attr/actionBarSize</item>
+        <item name="android:background">?attr/colorPrimary</item>
+        <item name="android:layout_width">0dp</item>
+        <item name="android:elevation">4dp</item>
+        <item name="theme">@style/ToolBarTheme</item>
+        <item name="titleTextColor">@color/white</item>
+        <item name="titleTextAppearance">@style/UIKit.TextAppearance.Body.Medium.Bold</item>
+    </style>
+
+    <style name="ToolBarTheme" parent="AppTheme">
+        <item name="android:textColorPrimary">@android:color/white</item>
+        <item name="android:textColorSecondary">@android:color/white</item>
+        <item name="actionMenuTextColor">@android:color/white</item>
+        <item name="drawerArrowStyle">@style/DrawerArrow</item>
+        <item name="colorControlActivated">@android:color/white</item>
     </style>
 </resources>

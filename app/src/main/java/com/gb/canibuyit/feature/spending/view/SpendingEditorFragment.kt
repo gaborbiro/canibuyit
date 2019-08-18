@@ -37,12 +37,15 @@ import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import com.github.mikephil.charting.formatter.ValueFormatter
 import com.github.mikephil.charting.highlight.Highlight
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener
+import com.github.mikephil.charting.utils.Utils
 import kotlinx.android.synthetic.main.fragment_spending_editor.*
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.format.TextStyle
 import java.util.Locale
 import javax.inject.Inject
+import kotlin.math.max
+import kotlin.math.min
 
 /**
  * A fragment representing a single Spending detail screen. This fragment is either
@@ -243,23 +246,24 @@ class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen, OnChartValu
     private fun setupSpentByCycleChart(spendingsByCycle: List<CycleSpending>, spending: Spending) {
         val entries = mutableListOf<Entry>()
         val xAxisLabels = Array(spendingsByCycle.size) { "" }
-        var minAmount = 0f
+        var minAmount = Float.MAX_VALUE
+        var maxAmount = Float.MIN_VALUE
         spendingsByCycle.forEachIndexed { index, cycleSpending ->
-            entries.add(Entry(index.toFloat(), -cycleSpending.amount.toFloat(), cycleSpending))
+            val value = -cycleSpending.amount.toFloat()
+            val markerText = Utils.formatNumber(value, 0, true)
+            entries.add(Entry(index.toFloat(), value, markerText))
             xAxisLabels[index] = cycleSpending.from.month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
-            if (-cycleSpending.amount.toFloat() < minAmount) {
-                minAmount = -cycleSpending.amount.toFloat()
-            }
+            minAmount = min(minAmount, value)
+            maxAmount = max(maxAmount, value)
         }
         if (entries.isNotEmpty()) {
             spent_by_cycle_chart.apply {
                 LineDataSet(entries, "Spent by cycle").apply {
                     setDrawIcons(false)
                     color = Color.BLACK
-                    setCircleColor(Color.BLACK)
+                    setCircleColor(color)
                     lineWidth = 1f
                     circleRadius = 3f
-                    circleColors = listOf(Color.GREEN)
                     setDrawCircleHole(true)
                     circleRadius = 5f
                     circleHoleRadius = 2.5f
@@ -268,7 +272,7 @@ class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen, OnChartValu
                     isHighlightEnabled = true
                     enableDashedLine(1f, 10f, 0f)
                 }.let {
-                    it.valueFormatter = object: ValueFormatter() {
+                    it.valueFormatter = object : ValueFormatter() {
                         override fun getFormattedValue(value: Float): String {
                             return if (value < 0) "+${-value}" else value.toString()
 
@@ -280,7 +284,8 @@ class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen, OnChartValu
                 xAxis.axisMinimum = lineData.xMin - 0.5f
                 xAxis.valueFormatter = IndexAxisValueFormatter(xAxisLabels)
                 axisLeft.apply {
-                    axisMinimum = minAmount
+                    axisMinimum = min(minAmount * 1.2f, 0f)
+                    axisMaximum = maxAmount * 1.2f
                 }
             }
         }

@@ -172,8 +172,8 @@ constructor(private val monzoInteractor: MonzoInteractor,
         }
     }
 
-    fun showEditorScreenForSpending(id: Int) {
-        screen.showEditorScreen(id)
+    fun showEditorScreenForSpending(spendingId: Int) {
+        screen.showEditorScreen(spendingId)
     }
 
     fun showEditorScreen() {

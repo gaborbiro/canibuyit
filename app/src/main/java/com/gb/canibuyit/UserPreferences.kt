@@ -57,13 +57,14 @@ constructor(private val prefsUtil: PrefsUtil) : SharedPreferences.OnSharedPrefer
         }
         set(date) = prefsUtil.set(PREF_LAST_UPDATE, date.toString())
 
+    val chartSelection: MutableMap<String, Boolean> by prefsUtil.mutableDelegate(PREF_CHART_SELECTION, mutableMapOf<String, Boolean>())
+
     fun clear() {
         prefsUtil.clear()
     }
-
-    companion object {
-        private const val PREF_ESTIMATE_DATE = "PREF_ESTIMATE_DATE"
-        private const val PREF_READING = "PREF_READING"
-        private const val PREF_LAST_UPDATE = "PREF_LAST_UPDATE"
-    }
 }
+
+private const val PREF_ESTIMATE_DATE = "PREF_ESTIMATE_DATE"
+private const val PREF_READING = "PREF_READING"
+private const val PREF_LAST_UPDATE = "PREF_LAST_UPDATE"
+private const val PREF_CHART_SELECTION = "PREF_CHART_SELECTION"

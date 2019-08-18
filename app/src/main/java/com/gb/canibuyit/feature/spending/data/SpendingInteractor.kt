@@ -13,7 +13,6 @@ import io.reactivex.Completable
 import io.reactivex.Maybe
 import io.reactivex.Observable
 import io.reactivex.Single
-import io.reactivex.disposables.Disposable
 import io.reactivex.subjects.PublishSubject
 import java.sql.SQLException
 import javax.inject.Inject

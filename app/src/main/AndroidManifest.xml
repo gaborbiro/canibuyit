@@ -35,21 +35,23 @@
                     android:scheme="https" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".feature.spending.view.SpendingEditorActivity"
-            android:parentActivityName=".feature.spending.view.MainActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".feature.spending.view.MainActivity" />
-        </activity>
+
+        <activity android:name=".feature.spending.view.SpendingEditorActivity" />
 
         <activity android:name=".feature.spending.ui.FileDialogActivity" />
+
         <activity
             android:name=".feature.monzo.view.LoginActivity"
             android:parentActivityName=".feature.spending.view.MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".feature.spending.view.MainActivity" />
+        </activity>
+
+        <activity
+            android:name=".feature.chart.view.ChartActivity"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:screenOrientation="landscape">
         </activity>
 
         <service

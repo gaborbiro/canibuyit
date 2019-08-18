@@ -5,6 +5,7 @@ import com.gb.canibuyit.fcm.FirebaseInstanceIdService
 import com.gb.canibuyit.fcm.PushMessagingFirebaseService
 import com.gb.canibuyit.feature.monzo.view.LoginActivity
 import com.gb.canibuyit.feature.spending.ui.BalanceReadingInputDialog
+import com.gb.canibuyit.feature.chart.view.ChartActivity
 import com.gb.canibuyit.feature.spending.view.MainActivity
 import com.gb.canibuyit.feature.spending.view.SpendingEditorFragment
 import com.gb.canibuyit.feature.spending.view.SpendingListFragment
@@ -25,4 +26,6 @@ interface CanIBuyItGraph {
     fun inject(firebaseInstanceIdService: FirebaseInstanceIdService)
 
     fun inject(pushMessagingFirebaseService: PushMessagingFirebaseService)
+
+    fun inject(chartActivity: ChartActivity)
 }

@@ -30,7 +30,7 @@ constructor(private val dao: Dao<ApiSpending, Int>,
             private val gson: Gson) {
 
     fun getAll(): Single<List<Spending>> {
-        return Single.create<List<Spending>> { emitter ->
+        return Single.create { emitter ->
             try {
                 emitter.onSuccess(dao.queryForAll().map(mapper::map))
             } catch (e: SQLException) {

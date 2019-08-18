@@ -9,10 +9,7 @@
     <color name="spending_list_item_spend_medium">@color/lemoncheesecake50</color>
     <color name="spending_list_item_spend_high">@color/pimiento50</color>
 
-    <color name="lime">#b5ea44</color>
-    <color name="lime75">#c7f073</color>
     <color name="lime50">#daf5a2</color>
-    <color name="lime25">#ecfad0</color>
 
     <color name="lemoncheesecake">#ffe500</color>
     <color name="lemoncheesecake75">#ffeb3f</color>
@@ -32,4 +29,25 @@
     <color name="soba10">#f8f8f8</color>
     <color name="soba5">#fbfbfb</color>
     <color name="soba40_25">#40e4e3e3</color>
+
+    <color name="red">#e6194B</color>
+    <color name="green">#3cb44b</color>
+    <color name="yellow">#FFE100</color>
+    <color name="blue">#4363d8</color>
+    <color name="orange">#f58231</color>
+    <color name="purple">#911eb4</color>
+    <color name="cyan">#42d4f4</color>
+    <color name="magenta">#f032e6</color>
+    <color name="lime">#bfef45</color>
+    <color name="pink">#fabebe</color>
+    <color name="teal">#469990</color>
+    <color name="lavender">#e6beff</color>
+    <color name="brown">#9A6324</color>
+    <color name="beige">#fffac8</color>
+    <color name="maroon">#800000</color>
+    <color name="mint">#aaffc3</color>
+    <color name="olive">#808000</color>
+    <color name="apricot">#ffd8b1</color>
+    <color name="navy">#000075</color>
+    <color name="grey">#a9a9a9</color>
 </resources>
