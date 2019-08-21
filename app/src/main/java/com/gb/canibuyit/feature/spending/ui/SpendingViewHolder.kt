@@ -67,7 +67,7 @@ class SpendingViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
             iconView.isVisible = false
         }
         spending.spent.let { spent ->
-            if (spent != BigDecimal.ZERO) {
+            if (spent < BigDecimal.ZERO) {
                 spending.target?.let {
                     progressView.progress = (spent / it.toBigDecimal()).abs().toFloat()
                     progressView.mode =

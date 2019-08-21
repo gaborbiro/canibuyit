@@ -14,7 +14,6 @@ import com.gb.canibuyit.R
 import com.gb.canibuyit.base.view.BaseFragment
 import com.gb.canibuyit.base.view.PromptDialog
 import com.gb.canibuyit.di.Injector
-import com.gb.canibuyit.feature.monzo.MONZO_CATEGORY
 import com.gb.canibuyit.feature.project.data.Project
 import com.gb.canibuyit.feature.spending.model.CycleSpending
 import com.gb.canibuyit.feature.spending.model.Spending
@@ -37,7 +36,6 @@ import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import com.github.mikephil.charting.formatter.ValueFormatter
 import com.github.mikephil.charting.highlight.Highlight
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener
-import com.github.mikephil.charting.utils.Utils
 import kotlinx.android.synthetic.main.fragment_spending_editor.*
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -179,10 +177,6 @@ class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen, OnChartValu
         }
         cycle_picker.setSelection(spending.cycle.ordinal + 1)
         notes_input.setText(spending.notes)
-        spending.sourceData?.get(MONZO_CATEGORY)?.let {
-            source_category_lbl.text = "(original Monzo category: $it)"
-            source_category_lbl.isVisible = true
-        }
 
         spending.cycleSpendings?.let { list ->
             if (list.isNotEmpty()) {
@@ -250,8 +244,7 @@ class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen, OnChartValu
         var maxAmount = Float.MIN_VALUE
         spendingsByCycle.forEachIndexed { index, cycleSpending ->
             val value = -cycleSpending.amount.toFloat()
-            val markerText = Utils.formatNumber(value, 0, true)
-            entries.add(Entry(index.toFloat(), value, markerText))
+            entries.add(Entry(index.toFloat(), value, cycleSpending))
             xAxisLabels[index] = cycleSpending.from.month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
             minAmount = min(minAmount, value)
             maxAmount = max(maxAmount, value)
