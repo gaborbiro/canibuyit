@@ -26,50 +26,57 @@ class ChartPresenter @Inject constructor(
             if (lce.loading) screen.showProgress() else screen.hideProgress()
             if (!lce.loading && !lce.hasError()) {
                 val spendings = lce.content
-                var minIndex = Int.MAX_VALUE
-                var maxIndex = Int.MIN_VALUE
-                val entryMap: MutableMap<String, Pair<SparseArray<CycleSpending>, Int>> = mutableMapOf()
-                val totalsMap: MutableMap<Int, BigDecimal> = mutableMapOf()
-                val chartSelection = userPreferences.chartSelection
-                spendings?.filter { it.enabled && chartSelection[it.type.toString()] != false }?.forEach { spending ->
-                    val entries: SparseArray<CycleSpending> = SparseArray()
-                    spending.cycleSpendings?.forEach {
-                        val index = it.from.year * 12 + it.from.month.value
-                        entries.put(index, it)
-                        minIndex = min(minIndex, index)
-                        maxIndex = max(maxIndex, index)
-                        totalsMap[index] = it.amount + (totalsMap[index] ?: BigDecimal.ZERO)
+                var minMonth = Int.MAX_VALUE
+                var maxMonth = Int.MIN_VALUE
+
+                class SpendingCalendar(
+                    val spendingId: Int,
+                    val spendingsByMonth: SparseArray<CycleSpending> // using sparse array because there may be months in which nothing in given category was spent
+                )
+
+                val entryMap: MutableMap<String, SpendingCalendar> = mutableMapOf()
+//                val totalMap: MutableMap<Int, BigDecimal> = mutableMapOf()
+                val dataSetSelection = userPreferences.dataSetSelection
+                spendings?.filter { it.enabled && dataSetSelection[it.type.toString()] != false }?.forEach { spending ->
+                    val spendingsByMonth: SparseArray<CycleSpending> = SparseArray()
+                    spending.cycleSpendings?.forEach { spending ->
+                        val month = spending.from.year * 12 + spending.from.month.value
+                        spendingsByMonth.put(month, spending)
+                        minMonth = min(minMonth, month)
+                        maxMonth = max(maxMonth, month)
+//                        totalMap[index] = it.amount + (totalMap[index] ?: BigDecimal.ZERO)
                     }
-                    entryMap[spending.type.toString()] = Pair(entries, spending.id!!)
+                    entryMap[spending.type.toString()] = SpendingCalendar(spending.id!!, spendingsByMonth)
                 }
                 var minValue = Float.MAX_VALUE
                 var maxValue = Float.MIN_VALUE
-                val entries = entryMap.mapValues { mapEntry ->
+                val dataSet = entryMap.mapValues { mapEntry ->
                     val result: MutableList<Entry> = mutableListOf()
-                    mapEntry.value.first.keyIterator().forEach {
-                        val value = -mapEntry.value.first[it].amount.toFloat()
-                        result.add(Entry((it - minIndex).toFloat(), value, Pair(mapEntry.key, mapEntry.value.second)))
+                    mapEntry.value.spendingsByMonth.keyIterator().forEach {
+                        val value = -mapEntry.value.spendingsByMonth[it].amount.toFloat()
+                        result.add(Entry((it - minMonth).toFloat(), value, Pair(mapEntry.key, mapEntry.value.spendingId)))
                         minValue = min(minValue, value)
                         maxValue = max(maxValue, value)
                     }
                     result
                 }
-                var minTotal = Float.MAX_VALUE
-                var maxTotal = Float.MIN_VALUE
-                totalsMap.values.forEach {
-                    val value = -it.toFloat()
-                    minTotal = min(minTotal, value)
-                    maxTotal = max(maxTotal, value)
+//                var minTotal = Float.MAX_VALUE
+//                var maxTotal = Float.MIN_VALUE
+//                totalMap.values.forEach {
+//                    val value = -it.toFloat()
+//                    minTotal = min(minTotal, value)
+//                    maxTotal = max(maxTotal, value)
+//                }
+//                val offset = minValue - minTotal
+//                val multiplier = (maxValue - minValue) / (maxTotal - minTotal)
+//                val total = totalMap.map {
+//                    Entry((it.key - minIndex).toFloat(), -it.value.toFloat(), Pair("Total", null))
+////                    Entry((it.key - minIndex).toFloat(), (-it.value.toFloat() + offset) * multiplier, Pair("Total", null))
+//                }
+                val xAxisLabels = Array(maxMonth - minMonth + 1) {
+                    Month.of((minMonth + it) % 12).getDisplayName(TextStyle.SHORT, Locale.getDefault())
                 }
-                val offset = minValue - minTotal
-                val multiplier = (maxValue - minValue) / (maxTotal - minTotal)
-                val totals = totalsMap.map {
-                    Entry((it.key - minIndex).toFloat(), (-it.value.toFloat() + offset) * multiplier, Pair("Total", null))
-                }
-                val xAxisLabels = Array(maxIndex - minIndex + 1) {
-                    Month.of((minIndex + it) % 12).getDisplayName(TextStyle.SHORT, Locale.getDefault())
-                }
-                screen.setEntries(totals, entries, minValue, maxValue, xAxisLabels)
+                screen.display(dataSet, xAxisLabels)
             }
         }, this::onError))
     }

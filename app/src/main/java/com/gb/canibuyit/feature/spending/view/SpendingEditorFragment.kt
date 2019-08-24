@@ -1,6 +1,7 @@
 package com.gb.canibuyit.feature.spending.view
 
 import android.graphics.Color
+import android.graphics.Rect
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
@@ -24,6 +25,7 @@ import com.gb.canibuyit.feature.spending.ui.InfoMarkerView
 import com.gb.canibuyit.feature.spending.ui.PlusOneAdapter
 import com.gb.canibuyit.feature.spending.ui.ValidationError
 import com.gb.canibuyit.util.DialogUtils
+import com.gb.canibuyit.util.OnChartGestureListenerAdapter
 import com.gb.canibuyit.util.TextChangeListener
 import com.gb.canibuyit.util.formatDayMonthYearWithPrefix
 import com.gb.canibuyit.util.hideKeyboard
@@ -35,6 +37,7 @@ import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import com.github.mikephil.charting.formatter.ValueFormatter
 import com.github.mikephil.charting.highlight.Highlight
+import com.github.mikephil.charting.listener.ChartTouchListener
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener
 import kotlinx.android.synthetic.main.fragment_spending_editor.*
 import java.math.BigDecimal
@@ -222,7 +225,7 @@ class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen, OnChartValu
             setTouchEnabled(true)
             setOnChartValueSelectedListener(this@SpendingEditorFragment)
             setDrawGridBackground(false)
-            val mv = InfoMarkerView(context, R.layout.info_marker)
+            val mv = InfoMarkerView(context)
             mv.chartView = this
             marker = mv
             isDragEnabled = true
@@ -234,6 +237,27 @@ class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen, OnChartValu
                 setDrawGridLines(false)
             }
             setDrawBorders(false)
+            onChartGestureListener = object : OnChartGestureListenerAdapter() {
+
+                override fun onChartSingleTapped(me: MotionEvent) {
+                    super.onChartSingleTapped(me)
+                    val infoMarker = marker as InfoMarkerView
+                    if (selectedCycleSpending != null && infoMarker.visibility == View.VISIBLE) {
+                        val rect =
+                            Rect(infoMarker.realLeft.toInt(), infoMarker.realTop.toInt(), infoMarker.realLeft.toInt() + infoMarker.width,
+                                infoMarker.realTop.toInt() + infoMarker.height)
+                        if (rect.contains(me.x.toInt(), me.y.toInt())) {
+                            presenter.onViewSpentByCycleDetails(selectedCycleSpending!!, originalSpending!!.type)
+                        }
+                    }
+                }
+
+                override fun onChartGestureEnd(me: MotionEvent, lastPerformedGesture: ChartTouchListener.ChartGesture) {
+                    if (lastPerformedGesture != ChartTouchListener.ChartGesture.SINGLE_TAP) {
+                        highlightValues(null)
+                    }
+                }
+            }
         }
     }
 
@@ -301,9 +325,7 @@ class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen, OnChartValu
     }
 
     override fun onNothingSelected() {
-        selectedCycleSpending?.let {
-            presenter.onViewSpentByCycleDetails(it, originalSpending!!.type)
-        }
+        selectedCycleSpending = null
     }
 
     override fun onValueSelected(e: Entry?, h: Highlight?) {

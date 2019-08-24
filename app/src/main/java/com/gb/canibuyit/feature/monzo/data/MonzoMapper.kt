@@ -58,7 +58,8 @@ class MonzoMapper @Inject constructor() {
                 created = ZonedDateTime.parse(created).toLocalDateTime(),
                 description = description,
                 id = id,
-                category = category)
+                category = category,
+                originalCategory = this.category)
         }
     }
 

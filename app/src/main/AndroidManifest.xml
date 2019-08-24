@@ -19,11 +19,7 @@
             android:label="@string/app_name"
             android:launchMode="singleTask"
             android:name=".feature.spending.view.MainActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
@@ -52,6 +48,11 @@
             android:name=".feature.chart.view.ChartActivity"
             android:theme="@style/AppTheme.NoActionBar"
             android:screenOrientation="landscape">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
 
         <service

@@ -14,6 +14,7 @@ import com.gb.canibuyit.feature.spending.model.Spending
 import com.gb.canibuyit.feature.spending.persistence.model.ApiSpending
 import com.gb.canibuyit.util.bold
 import io.reactivex.disposables.Disposable
+import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 class SpendingEditorPresenter @Inject constructor(
@@ -24,6 +25,8 @@ class SpendingEditorPresenter @Inject constructor(
 
     private var projectSettings: Project? = null
     private var disposable: Disposable? = null
+    private val dayFormat = DateTimeFormatter.ofPattern("EEEE ")
+    private val restFormat = DateTimeFormatter.ofPattern(" 'of' MMM, HH:mm:ss")
 
     val screen: SpendingEditorScreen by screenDelegate()
 
@@ -85,8 +88,12 @@ class SpendingEditorPresenter @Inject constructor(
                                 inTotal += transaction.amount
                             }
                             val amount = transaction.amount / 100.0
-                            "${index + 1}. ${transaction.created}: $amount\n\"${transaction.description?.replace(
-                                Regex("[\\s]+"), " ")}\"".bold(amount.toString())
+                            val date = transaction.created.let {
+                                it.format(dayFormat) + it.dayOfMonth + getDayOfMonthSuffix(
+                                    it.dayOfMonth) + it.format(restFormat)
+                            }
+                            "${index + 1}. ${date}: $amount\n\"${transaction.description?.replace(
+                                Regex("[\\s]+"), " ")}\"\n[${transaction.originalCategory.capitalize()}]".bold(amount.toString())
                         }.joinTo(buffer = SpannableStringBuilder(), separator = "\n\n")
                     cycleSpentText += "\nOut: ${outTotal / 100} In: ${inTotal / 100}"
                     cycleSpending.apply {
@@ -105,5 +112,13 @@ class SpendingEditorPresenter @Inject constructor(
 
     fun onCloseSpentByCycleDetails() {
         disposable?.dispose()
+    }
+
+    fun getDayOfMonthSuffix(n: Int) = when {
+        n in 11..13 -> "th"
+        n % 10 == 1 -> "st"
+        n % 10 == 2 -> "nd"
+        n % 10 == 3 -> "rd"
+        else -> "th"
     }
 }

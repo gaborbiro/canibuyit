@@ -4,5 +4,5 @@ import com.gb.canibuyit.base.view.ProgressScreen
 import com.github.mikephil.charting.data.Entry
 
 interface ChartScreen : ProgressScreen {
-    fun setEntries(totals: List<Entry>, entries: Map<String, List<Entry>>, minValue: Float, maxValue: Float, xAxisLabels: Array<String>)
+    fun display(dataSet: Map<String, List<Entry>>, xAxisLabels: Array<String>)
 }
