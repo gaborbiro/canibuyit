@@ -205,5 +205,5 @@ data class CycleSpending(
     val amount: BigDecimal,
     val target: Int?,
     val count: Int) {
-    override fun toString() = "$from $to: $amount${target?.let { "/$target" } ?: ""} ($count)"
+    override fun toString() = "$from $to: $amount${target?.let { "/$target" } ?: ""} ($spendingId)"
 }

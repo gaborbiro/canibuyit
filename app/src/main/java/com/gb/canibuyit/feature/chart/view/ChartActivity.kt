@@ -12,6 +12,7 @@ import com.gb.canibuyit.R
 import com.gb.canibuyit.UserPreferences
 import com.gb.canibuyit.base.view.BaseActivity
 import com.gb.canibuyit.di.Injector
+import com.gb.canibuyit.feature.chart.model.ChartInfo
 import com.gb.canibuyit.feature.chart.ui.InfoMarkerView
 import com.gb.canibuyit.feature.spending.persistence.model.ApiSpending
 import com.gb.canibuyit.feature.spending.view.SpendingEditorActivity
@@ -36,7 +37,6 @@ class ChartActivity : BaseActivity(), ChartScreen, OnChartValueSelectedListener 
     private val dataSetMap: MutableMap<String, Pair<Int, LineDataSet>> = mutableMapOf()
     private lateinit var chartColors: IntArray
     private var selectedSpendingId: Int = -1
-    private lateinit var dataSetSelection: MutableMap<String, Boolean>
     private var primaryTextColor: Int = -1
     private var totalDataSet: LineDataSet? = null
 
@@ -56,7 +56,6 @@ class ChartActivity : BaseActivity(), ChartScreen, OnChartValueSelectedListener 
         }
         toolbar.setNavigationOnClickListener { finish() }
         chartColors = resources.getIntArray(R.array.chart_colors)
-        dataSetSelection = userPreferences.dataSetSelection
         primaryTextColor = themeAttributeToColor(android.R.attr.textColorPrimary, R.color.black_100)
         chart.apply {
             description.isEnabled = false
@@ -102,22 +101,22 @@ class ChartActivity : BaseActivity(), ChartScreen, OnChartValueSelectedListener 
         presenter.loadSpendings()
     }
 
-    override fun display(dataSet: Map<String, List<Entry>>, xAxisLabels: Array<String>) {
+    override fun display(total: List<Entry>, dataSet: Map<String, List<Entry>>, xAxisLabels: Array<String>) {
         chart.data = LineData()
         dataSetMap.clear()
-//        totalDataSet = LineDataSet(total, "Total").apply {
-//            val color = formatLineDataSet(this, 0, 3f)
-//            dataSetMap["TOTALS"] = Pair(color, this)
-//        }
-//        if (userPreferences.dataSetSelection.getOrDefault("TOTALS", true)) {
-//            chart.lineData.addDataSet(totalDataSet)
-//        }
-        dataSet.keys.forEachIndexed { index, name ->
-            dataSet[name]?.let {
-                LineDataSet(it, name).apply {
+        totalDataSet = LineDataSet(total, "Total").apply {
+            val color = formatLineDataSet(this, 0, 3f)
+            dataSetMap["TOTALS"] = Pair(color, this)
+        }
+        if (userPreferences.dataSetSelection.getOrDefault("TOTALS", true)) {
+            chart.lineData.addDataSet(totalDataSet)
+        }
+        dataSet.keys.forEachIndexed { index, type ->
+            dataSet[type]?.let {
+                LineDataSet(it, type).apply {
                     val color = formatLineDataSet(this, index + 1)
-                    dataSetMap[name] = Pair(color, this)
-                    if (userPreferences.dataSetSelection.getOrDefault(name, true)) {
+                    dataSetMap[type] = Pair(color, this)
+                    if (userPreferences.dataSetSelection.getOrDefault(type, true)) {
                         chart.lineData.addDataSet(this)
                     }
                 }
@@ -131,6 +130,7 @@ class ChartActivity : BaseActivity(), ChartScreen, OnChartValueSelectedListener 
             invalidate()
             refreshDrawableState()
         }
+        categories_container.removeAllViews()
         addCheckBox("TOTALS", "Total", true)
         ApiSpending.Category.values().filter { dataSet.keys.contains(it.toString()) }.forEach { category ->
             addCheckBox(category.toString(), category.toString(), true)
@@ -144,25 +144,10 @@ class ChartActivity : BaseActivity(), ChartScreen, OnChartValueSelectedListener 
         categories_container.add<CheckBox>(R.layout.list_item_chart).also {
             it.text = value
             it.setTextColor(dataSetMap[key]?.first ?: primaryTextColor)
-            it.isChecked = dataSetSelection.getOrDefault(key, defaultIsChecked)
+            it.isChecked = userPreferences.dataSetSelection.getOrDefault(key, true)
             it.setOnCheckedChangeListener { _, isChecked ->
-                if (dataSetSelection.getOrDefault(key, true)) {
-                    if (!isChecked) {
-                        chart.lineData.removeDataSet(dataSetMap[key]?.second)
-                    }
-                } else {
-                    if (isChecked) {
-                        chart.lineData.addDataSet(dataSetMap[key]?.second)
-                    }
-                }
-                dataSetSelection[key] = isChecked
-                with(chart) {
-                    xAxis.axisMaximum = lineData.xMax + 0.5f
-                    xAxis.axisMinimum = lineData.xMin - 0.5f
-                    notifyDataSetChanged()
-                    invalidate()
-                    refreshDrawableState()
-                }
+                userPreferences.dataSetSelection[key] = isChecked
+                presenter.loadSpendings()
             }
         }
     }
@@ -183,19 +168,13 @@ class ChartActivity : BaseActivity(), ChartScreen, OnChartValueSelectedListener 
             setDrawFilled(false)
             isHighlightEnabled = true
             valueFormatter = object : ValueFormatter() {
-                override fun getFormattedValue(value: Float): String {
-                    return if (value < 0) "+${-value}" else value.toString()
+                override fun getPointLabel(entry: Entry): String {
+                    return (entry.data as ChartInfo).pointLabel
                 }
             }
             return colorInt
         }
     }
-
-//    private fun calculateTotal(dataSet: Map<String, List<Entry>>, normalised: Boolean): List<Entry> {
-//        dataSet.forEach { key: String, entries: List<Entry> ->
-//
-//        }
-//    }
 
     override fun onNothingSelected() {
         chart.highlightValues(null)
@@ -203,7 +182,7 @@ class ChartActivity : BaseActivity(), ChartScreen, OnChartValueSelectedListener 
     }
 
     override fun onValueSelected(e: Entry?, h: Highlight?) {
-        selectedSpendingId = (e?.data as? Pair<*, *>)?.second as Int? ?: -1
+        selectedSpendingId = (e?.data as? ChartInfo)?.spendigId ?: -1
     }
 
     companion object {
