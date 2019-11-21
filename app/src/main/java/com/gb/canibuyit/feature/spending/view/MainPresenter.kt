@@ -13,7 +13,7 @@ import com.gb.canibuyit.feature.monzo.MONZO_AUTH_AUTHORITY
 import com.gb.canibuyit.feature.monzo.MONZO_AUTH_PATH_BASE
 import com.gb.canibuyit.feature.monzo.MONZO_AUTH_PATH_CALLBACK
 import com.gb.canibuyit.feature.monzo.MONZO_OAUTH_PARAM_AUTHORIZATION_CODE
-import com.gb.canibuyit.feature.monzo.TRANSACTION_HISTORY_LENGTH_MONTHS
+import com.gb.canibuyit.feature.monzo.TRANSACTION_HISTORY_LENGTH_DAYS
 import com.gb.canibuyit.feature.monzo.data.MonzoInteractor
 import com.gb.canibuyit.feature.project.data.ProjectInteractor
 import com.gb.canibuyit.feature.spending.data.SpendingInteractor
@@ -127,7 +127,7 @@ constructor(private val monzoInteractor: MonzoInteractor,
             screen.showLoginActivity()
         } else {
             disposeOnDestroy(monzoInteractor.loadSpendings(ACCOUNT_ID_RETAIL,
-                TRANSACTION_HISTORY_LENGTH_MONTHS))
+                TRANSACTION_HISTORY_LENGTH_DAYS))
         }
     }
 

@@ -24,12 +24,13 @@ class SpendingViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
     fun bind(spending: Spending) {
         val context = nameView.context
         nameView.paint.isStrikeThruText = !spending.enabled
+        val valueStr = (if (spending.value > BigDecimal.ZERO) "+" else "") + spending.value.toString()
         val perCycleAmount = spending.occurrenceCount?.let {
-            context.getString(R.string.spending_no_target, spending.value,
+            context.getString(R.string.spending_no_target, valueStr,
                 context.resources.getQuantityString(R.plurals.times, it, it)) // -875.00 (once)
         } ?: let {
             context.resources.getQuantityString(R.plurals.amount_cycle, spending.cycleMultiplier,
-                spending.value, spending.cycleMultiplier,
+                valueStr, spending.cycleMultiplier,
                 context.resources.getQuantityText(spending.cycle.strRes,
                     spending.cycleMultiplier)) // 3045.00 per month
         }
@@ -48,11 +49,12 @@ class SpendingViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
                         context.resources.getQuantityText(spending.cycle.strRes,
                             spending.cycleMultiplier)) // this week
                 }
+                val spentStr = (if (spent > BigDecimal.ZERO) "+" else "") + spent.toString()
                 spending.target?.let {
-                    spentView.text = context.getString(R.string.spending, spent, it,
+                    spentView.text = context.getString(R.string.spending, spentStr, it,
                         cycleStr) // 82.79/90 this week
                 } ?: let {
-                    spentView.text = context.getString(R.string.spending_no_target, spent,
+                    spentView.text = context.getString(R.string.spending_no_target, spentStr,
                         cycleStr) // 0.00 this month
                 }
                 spentView.isVisible = true

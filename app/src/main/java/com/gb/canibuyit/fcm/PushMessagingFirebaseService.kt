@@ -6,7 +6,7 @@ import com.gb.canibuyit.di.Injector
 import com.gb.canibuyit.fcm.model.FcmMonzoData
 import com.gb.canibuyit.feature.monzo.ACCOUNT_ID_RETAIL
 import com.gb.canibuyit.feature.monzo.MONZO_CATEGORY
-import com.gb.canibuyit.feature.monzo.TRANSACTION_HISTORY_LENGTH_MONTHS
+import com.gb.canibuyit.feature.monzo.TRANSACTION_HISTORY_LENGTH_DAYS
 import com.gb.canibuyit.feature.monzo.data.MonzoInteractor
 import com.gb.canibuyit.feature.monzo.data.MonzoMapper
 import com.gb.canibuyit.feature.spending.data.SpendingInteractor
@@ -47,8 +47,8 @@ class PushMessagingFirebaseService : FirebaseMessagingService() {
     private fun handleMonzoPush(payload: String) {
         Gson().fromJson(payload, FcmMonzoData::class.java)?.data?.let {
             if (it.settled.isNullOrEmpty() && it.amount.absoluteValue > 0) {
-                monzoInteractor.loadSpendings(ACCOUNT_ID_RETAIL, TRANSACTION_HISTORY_LENGTH_MONTHS)
-                monzoMapper.mapApiTransaction(it).category
+                monzoInteractor.loadSpendings(ACCOUNT_ID_RETAIL, TRANSACTION_HISTORY_LENGTH_DAYS)
+                monzoMapper.mapApiTransaction(it, emptyList()).category
             } else null
         }?.let { category ->
             spendingInteractor.spendingSubject

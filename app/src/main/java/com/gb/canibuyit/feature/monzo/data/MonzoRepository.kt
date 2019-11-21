@@ -7,6 +7,7 @@ import com.gb.canibuyit.feature.monzo.MONZO_URI_AUTH_CALLBACK
 import com.gb.canibuyit.feature.monzo.api.MonzoApi
 import com.gb.canibuyit.feature.monzo.api.MonzoAuthApi
 import com.gb.canibuyit.feature.monzo.api.model.ApiMonzoTransactions
+import com.gb.canibuyit.feature.monzo.api.model.ApiPots
 import com.gb.canibuyit.feature.monzo.model.Login
 import com.gb.canibuyit.feature.monzo.model.Transaction
 import com.gb.canibuyit.feature.monzo.model.Webhooks
@@ -18,6 +19,7 @@ import com.gb.canibuyit.util.FORMAT_RFC3339
 import com.gb.canibuyit.util.Logger
 import io.reactivex.Completable
 import io.reactivex.Single
+import io.reactivex.functions.BiFunction
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -64,15 +66,30 @@ class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi,
         val beforeStr = FORMAT_RFC3339.format(
             before.plusDays(1).atStartOfDay(ZoneId.systemDefault()).minusNanos(1))
 
-        return monzoApi.transactions(accountId = accountId, since = sinceStr, before = beforeStr)
-            .map { apiMonzoTransactions: ApiMonzoTransactions ->
-                apiMonzoTransactions.transactions
-                    .filter { apiTransaction ->
-                        apiTransaction.amount != 0 &&
-                            apiTransaction.decline_reason.isNullOrEmpty()
-                    }
-                    .map(mapper::mapApiTransaction)
-            }
+        return Single.zip(
+            monzoApi.pots(),
+            monzoApi.transactions(accountId = accountId, since = sinceStr, before = beforeStr),
+            BiFunction { pots: ApiPots, transactions: ApiMonzoTransactions -> Pair(pots, transactions) }
+        ).map { (pots, transactions) ->
+            transactions.transactions
+                .filter { apiTransaction ->
+                    apiTransaction.amount != 0 &&
+                        apiTransaction.decline_reason.isNullOrEmpty()
+                }
+                .map {
+                    mapper.mapApiTransaction(it, pots.pots)
+                }
+        }
+//
+//        return monzoApi.transactions(accountId = accountId, since = sinceStr, before = beforeStr)
+//            .map { transactions: ApiMonzoTransactions ->
+//                transactions.transactions
+//                    .filter { apiTransaction ->
+//                        apiTransaction.amount != 0 &&
+//                            apiTransaction.decline_reason.isNullOrEmpty()
+//                    }
+//                    .map(mapper::mapApiTransaction)
+//            }
     }
 
     private fun convertTransactionsToSpending(category: ApiSpending.Category,

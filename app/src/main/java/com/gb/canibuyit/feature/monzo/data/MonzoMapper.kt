@@ -2,22 +2,13 @@ package com.gb.canibuyit.feature.monzo.data
 
 import com.gb.canibuyit.base.model.SerializableMap
 import com.gb.canibuyit.feature.monzo.MONZO_CATEGORY
-import com.gb.canibuyit.feature.monzo.api.model.ApiMonzoLogin
-import com.gb.canibuyit.feature.monzo.api.model.ApiMonzoTransaction
-import com.gb.canibuyit.feature.monzo.api.model.ApiWebhook
-import com.gb.canibuyit.feature.monzo.api.model.ApiWebhooks
+import com.gb.canibuyit.feature.monzo.api.model.*
 import com.gb.canibuyit.feature.monzo.model.Login
 import com.gb.canibuyit.feature.monzo.model.Transaction
 import com.gb.canibuyit.feature.monzo.model.Webhook
 import com.gb.canibuyit.feature.monzo.model.Webhooks
 import com.gb.canibuyit.feature.project.data.Project
-import com.gb.canibuyit.feature.spending.model.CycleSpending
-import com.gb.canibuyit.feature.spending.model.Saving
-import com.gb.canibuyit.feature.spending.model.Spending
-import com.gb.canibuyit.feature.spending.model.div
-import com.gb.canibuyit.feature.spending.model.firstCycleDay
-import com.gb.canibuyit.feature.spending.model.lastCycleDay
-import com.gb.canibuyit.feature.spending.model.ordinal
+import com.gb.canibuyit.feature.spending.model.*
 import com.gb.canibuyit.feature.spending.persistence.model.ApiSpending
 import com.gb.canibuyit.util.compare
 import com.gb.canibuyit.util.max
@@ -32,6 +23,7 @@ import javax.inject.Singleton
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.sumBy
+import kotlin.math.roundToInt
 import com.gb.canibuyit.util.sumBy as sumByBigDecimal
 
 @Singleton
@@ -42,11 +34,11 @@ class MonzoMapper @Inject constructor() {
         return Login(apiMonzoLogin.access_token, apiMonzoLogin.refresh_token, expiresAt)
     }
 
-    fun mapApiTransaction(apiMonzoTransaction: ApiMonzoTransaction): Transaction {
+    fun mapApiTransaction(apiMonzoTransaction: ApiMonzoTransaction, pots: List<ApiPot>): Transaction {
         apiMonzoTransaction.apply {
             val category = listOf(
-                identifyCategory(notes), // highest priority
-                identifyCategory(description), // second highest priority
+                identifyCategory(notes, pots), // highest priority
+                identifyCategory(description, pots), // second highest priority
                 mapCategory(category) // lowest priority
             )
                 .mapNotNull { it }
@@ -63,14 +55,26 @@ class MonzoMapper @Inject constructor() {
         }
     }
 
-    private fun identifyCategory(remoteCategory: String): ApiSpending.Category? {
+    private fun identifyCategory(text: String, pots: List<ApiPot>): ApiSpending.Category? {
         val category = ApiSpending.Category.values().firstOrNull {
-            val noteCategoryStr = remoteCategory.replace("-", "_")
-            noteCategoryStr.equals(it.toString(), ignoreCase = true)
-                || noteCategoryStr.contains("$it ", ignoreCase = true)
-                || noteCategoryStr.contains(it.toString() + "_", ignoreCase = true)
+            val categoryStr = text.replace("-", "_")
+            categoryStr.equals(it.toString(), ignoreCase = true)
+                || categoryStr.contains("$it ", ignoreCase = true)
+                || categoryStr.contains(it.toString() + "_", ignoreCase = true)
         }
-        return if (category == ApiSpending.Category.POT) ApiSpending.Category.SAVINGS else category
+        return if (category == ApiSpending.Category.POT) identifyPot(text, pots) else category
+    }
+
+    private fun identifyPot(potId: String, pots: List<ApiPot>): ApiSpending.Category? {
+        val potName = pots.find { it.id == potId }?.name
+        return potName?.let {
+            ApiSpending.Category.values().firstOrNull {
+                val categoryStr = potName.replace("-", "_")
+                categoryStr.equals(it.toString(), ignoreCase = true)
+                    || categoryStr.contains("$it ", ignoreCase = true)
+                    || categoryStr.contains(it.toString() + "_", ignoreCase = true)
+            }
+        }
     }
 
     fun mapToSpending(category: ApiSpending.Category,
@@ -80,16 +84,20 @@ class MonzoMapper @Inject constructor() {
                       startDate: LocalDateTime,
                       endDate: LocalDate): Spending {
         val categoryStr = WordUtils.capitalizeFully(category.toString().replace("\\_".toRegex(), " "))
-        val finalName: String = if (projectSettings.namePinned) (savedSpending?.name ?: categoryStr) else categoryStr
+        val finalName: String = if (projectSettings.namePinned) (savedSpending?.name
+            ?: categoryStr) else categoryStr
 
-        val finalCategory: ApiSpending.Category = if (projectSettings.categoryPinned) (savedSpending?.type ?: category) else category
+        val finalCategory: ApiSpending.Category = if (projectSettings.categoryPinned) (savedSpending?.type
+            ?: category) else category
 
         val finalCycle: ApiSpending.Cycle = getCycle(sortedTransactions, savedSpending, projectSettings)
 
-        val finalCycleMultiplier: Int = if (projectSettings.cyclePinned) (savedSpending?.cycleMultiplier ?: 1) else 1
+        val finalCycleMultiplier: Int = if (projectSettings.cyclePinned) (savedSpending?.cycleMultiplier
+            ?: 1) else 1
 
         val firstOccurrence = sortedTransactions[0].created.toLocalDate()
-        val finalFromStartDate = if (projectSettings.whenPinned) (savedSpending?.fromStartDate ?: firstOccurrence) else firstOccurrence
+        val finalFromStartDate = if (projectSettings.whenPinned) (savedSpending?.fromStartDate
+            ?: firstOccurrence) else firstOccurrence
         val finalFromEndDate = firstOccurrence.add(finalCycle, finalCycleMultiplier.toLong()).minusDays(1)
             .let { date ->
                 if (projectSettings.whenPinned) (savedSpending?.fromEndDate ?: date) else date
@@ -238,7 +246,7 @@ class MonzoMapper @Inject constructor() {
         val savedAverage = if (projectSettings.averagePinned) savedSpending?.value else null
         return savedAverage ?: cycleSpendings
             .sumByBigDecimal { it.amount }
-            .divide((Pair(startDate.toLocalDate(), endDate) / cycle / cycleMultiplier).toBigDecimal(), RoundingMode.DOWN)
+            .divide((Pair(startDate.toLocalDate(), endDate) / cycle / cycleMultiplier).roundToInt().toBigDecimal(), RoundingMode.DOWN)
     }
 
     private fun getOptimalCycle(sortedTransactions: List<Transaction>): ApiSpending.Cycle {

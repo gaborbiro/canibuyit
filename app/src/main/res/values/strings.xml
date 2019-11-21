@@ -10,8 +10,8 @@
     <string name="delete">Delete</string>
     <string name="average">%1$s (%2$s)</string>
 
-    <string name="spending">%1$.2f/%2$d %3$s</string>
-    <string name="spending_no_target">%1$.2f %2$s</string>
+    <string name="spending">%1$s/%2$d %3$s</string>
+    <string name="spending_no_target">%1$s %2$s</string>
     <plurals name="year">
         <item quantity="one">year</item>
         <item quantity="other">years</item>
@@ -38,8 +38,8 @@
     </plurals>
 
     <plurals name="amount_cycle">
-        <item quantity="one">%1$.2f /%3$s</item>
-        <item quantity="other">%1$.2f /%2$d %3$s</item>
+        <item quantity="one">%1$s /%3$s</item>
+        <item quantity="other">%1$s /%2$d %3$s</item>
     </plurals>
 
     <string name="reading">I had %1$.0f on %2$s</string>

@@ -52,9 +52,9 @@ constructor(private val schedulerProvider: SchedulerProvider,
             })
     }
 
-    fun loadSpendings(accountId: String, lastXMonths: Long?): Disposable {
-        val since = lastXMonths?.let {
-            LocalDateTime.now().minusMonths(it)
+    fun loadSpendings(accountId: String, lastXDays: Int?): Disposable {
+        val since = lastXDays?.let {
+            LocalDateTime.now().minusDays(it.toLong())
         }
         return monzoRepository.getSpendings(accountId, since, before = LocalDate.now())
             .subscribeOn(schedulerProvider.io())

@@ -1,6 +1,7 @@
 package com.gb.canibuyit.feature.monzo.api
 
 import com.gb.canibuyit.feature.monzo.api.model.ApiMonzoTransactions
+import com.gb.canibuyit.feature.monzo.api.model.ApiPots
 import com.gb.canibuyit.feature.monzo.api.model.ApiWebhooks
 
 import io.reactivex.Completable
@@ -29,4 +30,7 @@ interface MonzoApi {
 
     @DELETE("/webhooks/{id}")
     fun deleteWebhook(@Path("id") webHookId: String): Completable
+
+    @GET("/pots")
+    fun pots(): Single<ApiPots>
 }
