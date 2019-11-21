@@ -21,8 +21,8 @@ class DispatchModule {
     @Singleton
     internal fun provideMonzoDispatchApi(gsonConverterFactory: GsonConverterFactory): DispatchApi {
         val okHttpClientBuilder = OkHttpClient.Builder()
-                .readTimeout(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-                .connectTimeout(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .readTimeout(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .connectTimeout(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
 
         if (BuildConfig.DEBUG) {
             val interceptor = HttpLoggingInterceptor().apply {
@@ -32,11 +32,11 @@ class DispatchModule {
         }
 
         return Retrofit.Builder()
-                .client(okHttpClientBuilder.build())
-                .baseUrl(MONZO_DISPATCH_API_BASE)
-                .addConverterFactory(gsonConverterFactory)
-                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-                .build()
-                .create(DispatchApi::class.java)
+            .client(okHttpClientBuilder.build())
+            .baseUrl(MONZO_DISPATCH_API_BASE)
+            .addConverterFactory(gsonConverterFactory)
+            .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+            .build()
+            .create(DispatchApi::class.java)
     }
 }

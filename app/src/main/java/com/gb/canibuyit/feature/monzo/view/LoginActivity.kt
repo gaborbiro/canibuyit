@@ -38,9 +38,9 @@ class LoginActivity : BaseActivity() {
         webSettings.javaScriptEnabled = true
 
         val url = (MONZO_OAUTH_URL
-                + "/?client_id=" + CLIENT_ID
-                + "&redirect_uri=" + URLEncoder.encode(MONZO_URI_AUTH_CALLBACK)
-                + "&response_type=code")
+            + "/?client_id=" + CLIENT_ID
+            + "&redirect_uri=" + URLEncoder.encode(MONZO_URI_AUTH_CALLBACK)
+            + "&response_type=code")
         Logger.d("CanIBuyIt", url)
         webview.loadUrl(url)
     }
@@ -54,8 +54,8 @@ class LoginActivity : BaseActivity() {
         fun show(context: Context) {
             val intent = Intent(context, LoginActivity::class.java)
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK or
-                    Intent.FLAG_ACTIVITY_CLEAR_TOP or
-                    Intent.FLAG_ACTIVITY_NEW_TASK)
+                Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                Intent.FLAG_ACTIVITY_NEW_TASK)
             context.startActivity(intent)
         }
     }

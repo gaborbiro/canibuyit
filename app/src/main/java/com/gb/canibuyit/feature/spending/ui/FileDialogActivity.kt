@@ -44,7 +44,7 @@ class FileDialogActivity : ListActivity() {
         setContentView(R.layout.activity_file_picker)
         val permissions: Array<String> = if (selectionMode == SELECTION_MODE_CREATE) {
             arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                Manifest.permission.WRITE_EXTERNAL_STORAGE)
         } else {
             arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
         }
@@ -102,7 +102,10 @@ class FileDialogActivity : ListActivity() {
         } catch (e: DirReadException) {
             // maybe it's a file
             val parent = File(path).parent
-
+            if (parent == null) {
+                finish()
+                return
+            }
             try {
                 files = DirUtils.getDirInfo(parent, formatFilters)
                 setCreateVisible(null)
@@ -112,8 +115,8 @@ class FileDialogActivity : ListActivity() {
             } catch (e2: DirReadException) {
                 e.printStackTrace()
                 Toast.makeText(this@FileDialogActivity, "Unable to read folder $path",
-                        Toast.LENGTH_SHORT)
-                        .show()
+                    Toast.LENGTH_SHORT)
+                    .show()
                 try {
                     path = ROOT
                     files = DirUtils.getDirInfo(path, formatFilters)
@@ -149,7 +152,7 @@ class FileDialogActivity : ListActivity() {
 
     private class FileListAdapter internal constructor(context: Context,
                                                        items: List<DirUtils.FileInfo>) :
-            ArrayAdapter<DirUtils.FileInfo>(context, 0, items) {
+        ArrayAdapter<DirUtils.FileInfo>(context, 0, items) {
         private inner class ViewHolder {
             lateinit var icon: ImageView
             lateinit var filename: TextView
@@ -171,7 +174,7 @@ class FileDialogActivity : ListActivity() {
             }
             val fileInfo = getItem(position)
             holder.icon.setImageResource(
-                    if (fileInfo!!.isFolder) R.drawable.folder else R.drawable.file)
+                if (fileInfo!!.isFolder) R.drawable.folder else R.drawable.file)
             holder.filename.text = fileInfo.path
             return view
         }
@@ -200,9 +203,9 @@ class FileDialogActivity : ListActivity() {
                 }
             } else {
                 AlertDialog.Builder(this)
-                        .setTitle(
-                                "Folder [" + file.name + "] " + getText(R.string.cant_read_folder))
-                        .setPositiveButton("OK", null).show()
+                    .setTitle(
+                        "Folder [" + file.name + "] " + getText(R.string.cant_read_folder))
+                    .setPositiveButton("OK", null).show()
             }
         } else {
             clickedFile = file
@@ -251,7 +254,7 @@ class FileDialogActivity : ListActivity() {
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>,
                                             grantResults: IntArray) {
         if (!permissionVerifier.onRequestPermissionsResult(requestCode, permissions,
-                        grantResults)) {
+                grantResults)) {
             Toast.makeText(this, "Missing permissions!", Toast.LENGTH_SHORT).show()
         }
     }

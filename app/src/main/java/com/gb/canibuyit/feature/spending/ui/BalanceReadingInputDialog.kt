@@ -39,7 +39,7 @@ class BalanceReadingInputDialog : DialogFragment(), DialogInterface.OnClickListe
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         body = LayoutInflater.from(activity).inflate(R.layout.dialog_balance_reading,
-                null) as LinearLayout
+            null) as LinearLayout
 
         lastUpdate?.let {
             amountInput.setText(lastUpdate!!.balance.toString())
@@ -52,10 +52,10 @@ class BalanceReadingInputDialog : DialogFragment(), DialogInterface.OnClickListe
         }
 
         return AlertDialog.Builder(activity).setTitle("Set starting balance")
-                .setPositiveButton(getText(android.R.string.ok), this)
-                .setNegativeButton(getText(android.R.string.cancel), null)
-                .setView(body)
-                .create()
+            .setPositiveButton(getText(android.R.string.ok), this)
+            .setNegativeButton(getText(android.R.string.cancel), null)
+            .setView(body)
+            .create()
     }
 
     override fun onStart() {
@@ -88,8 +88,8 @@ class BalanceReadingInputDialog : DialogFragment(), DialogInterface.OnClickListe
         val estimateDate = userPreferences.estimateDate
         if (selectedDate > estimateDate) {
             Toast.makeText(activity, "Please select a date before the target date!",
-                    Toast.LENGTH_SHORT)
-                    .show()
+                Toast.LENGTH_SHORT)
+                .show()
             return false
         }
         return true

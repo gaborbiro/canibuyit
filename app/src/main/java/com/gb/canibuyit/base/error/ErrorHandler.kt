@@ -35,8 +35,8 @@ constructor(private val appContext: Context) {
 
     private fun getHttpErrorDialog(exception: DomainException) =
         PromptDialog.messageDialog(
-                title = "Server error ${exception.code}",
-                message = exception.message).also {
+            title = "Server error ${exception.code}",
+            message = exception.message).also {
             if (exception.action == DomainException.Action.LOGIN) {
                 it.setPositiveButton(android.R.string.ok) {
                     LoginActivity.show(appContext)
@@ -46,17 +46,17 @@ constructor(private val appContext: Context) {
 
     private fun getNetworkErrorDialog(exception: DomainException) =
         PromptDialog.messageDialog(
-                title = "Network error",
-                message = exception.message)
+            title = "Network error",
+            message = exception.message)
 
     private fun getGenericErrorDialog(exception: DomainException) =
         PromptDialog.messageDialog(
-                title = "Error",
-                message = exception.message)
+            title = "Error",
+            message = exception.message)
 
     private fun getDefaultErrorDialog(exception: Throwable) = PromptDialog.messageDialog(
-            title = "Error",
-            message = "${exception.message}\n\nCheck log for details")
+        title = "Error",
+        message = "${exception.message}\n\nCheck log for details")
 
     fun onErrorSoft(exception: Throwable) {
         when (exception) {

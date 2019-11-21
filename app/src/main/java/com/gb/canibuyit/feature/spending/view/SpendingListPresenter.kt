@@ -14,9 +14,9 @@ constructor(private val spendingInteractor: SpendingInteractor) : BasePresenter(
             if (!lce.loading) {
                 lce.error?.let(this::onError)
                 lce.content
-                        ?.sortedBy { -it.valuePerMonth.abs() }
-                        ?.sortedBy { !it.enabled }
-                        ?.let(screen::setData)
+                    ?.sortedBy { -it.valuePerMonth.abs() }
+                    ?.sortedBy { !it.enabled }
+                    ?.let(screen::setData)
             }
         }, this::onError))
     }

@@ -50,13 +50,13 @@ class BalanceBreakdownDialog : PromptDialog() {
             })
             big_message_container.isVisible = true
             big_message.setSubtextWithLinks(
-                    toString(),
-                    breakdown.spendings.map { it.second }.toTypedArray(),
-                    breakdown.spendings.map {
-                        {
-                            (activity as BalanceBreakdownDialogCallback).onBalanceBreakdownItemClicked(it.first)
-                        }
-                    }.toTypedArray())
+                toString(),
+                breakdown.spendings.map { it.second }.toTypedArray(),
+                breakdown.spendings.map {
+                    {
+                        (activity as BalanceBreakdownDialogCallback).onBalanceBreakdownItemClicked(it.first)
+                    }
+                }.toTypedArray())
             updateTitleVisibility()
         }
     }

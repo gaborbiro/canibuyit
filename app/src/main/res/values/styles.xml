@@ -41,7 +41,7 @@
         <item name="android:buttonTint">@color/accent</item>
     </style>
 
-    <style name="FormHeading" parent="TextAppearance.AppCompat.Subhead"/>
+    <style name="FormHeading" parent="TextAppearance.AppCompat.Subhead" />
 
     <style name="DrawerArrow" parent="Widget.AppCompat.DrawerArrowToggle">
         <item name="spinBars">true</item>

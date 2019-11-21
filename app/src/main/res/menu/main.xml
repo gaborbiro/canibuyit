@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
-      xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:icon="@drawable/ic_add_white_24dp"
         android:id="@+id/menu_add"
         android:title="Add new"
-        app:showAsAction="always"/>
+        app:showAsAction="always" />
     <item
         android:id="@+id/menu_overview_chart"
-        android:title="Overview chart"/>
+        android:title="Overview chart" />
     <item
         android:id="@+id/menu_set_project_name"
-        android:title="Set project name"/>
+        android:title="Set project name" />
     <item
         android:id="@+id/menu_backup"
         android:title="Backup/Restore"
@@ -20,28 +20,28 @@
             <item
                 android:id="@+id/menu_export"
                 android:title="Backup database"
-                app:showAsAction="never|withText"/>
+                app:showAsAction="never|withText" />
             <item
                 android:id="@+id/menu_import_monzo"
                 android:title="Restore Monzo spendings"
-                app:showAsAction="never|withText"/>
+                app:showAsAction="never|withText" />
             <item
                 android:id="@+id/menu_import_non_monzo"
                 android:title="Restore non-Monzo spendings"
-                app:showAsAction="never|withText"/>
+                app:showAsAction="never|withText" />
             <item
                 android:id="@+id/menu_import_all"
                 android:title="Restore all spendings"
-                app:showAsAction="never|withText"/>
+                app:showAsAction="never|withText" />
         </menu>
     </item>
     <item
         android:id="@+id/menu_fcm"
-        android:title="Register with FCM"/>
+        android:title="Register with FCM" />
     <item
         android:id="@+id/menu_hooks"
-        android:title="Log webhooks"/>
+        android:title="Log webhooks" />
     <item
         android:id="@+id/menu_delete_spendings"
-        android:title="Clear all"/>
+        android:title="Clear all" />
 </menu>

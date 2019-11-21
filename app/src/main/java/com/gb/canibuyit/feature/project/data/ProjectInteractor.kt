@@ -1,7 +1,7 @@
 package com.gb.canibuyit.feature.project.data
 
-import com.gb.canibuyit.feature.project.model.ApiProject
 import com.gb.canibuyit.base.rx.SchedulerProvider
+import com.gb.canibuyit.feature.project.model.ApiProject
 import io.reactivex.Single
 import io.reactivex.disposables.Disposable
 import javax.inject.Inject
@@ -14,8 +14,8 @@ constructor(private val projectRepository: ProjectRepository,
     fun getProject(): Single<Project> = Single.create<Project> { singleEmitter ->
         singleEmitter.onSuccess(Project(projectRepository, schedulerProvider))
     }
-            .subscribeOn(schedulerProvider.io())
-            .observeOn(schedulerProvider.mainThread())
+        .subscribeOn(schedulerProvider.io())
+        .observeOn(schedulerProvider.mainThread())
 }
 
 class Project constructor(projectRepository: ProjectRepository,
@@ -75,7 +75,7 @@ class Project constructor(projectRepository: ProjectRepository,
         fun update(value: T) {
             disposable?.dispose()
             disposable = Single.create<Unit> { property.set(value) }
-                    .subscribeOn(schedulerProvider.io()).subscribe()
+                .subscribeOn(schedulerProvider.io()).subscribe()
         }
     }
 }

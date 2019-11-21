@@ -9,8 +9,8 @@ class BalanceReading(val date: LocalDate?,
                      val balance: Float) : Parcelable {
 
     constructor(parcelIn: Parcel) : this(
-            date = parcelIn.readSerializable() as LocalDate,
-            balance = parcelIn.readFloat()
+        date = parcelIn.readSerializable() as LocalDate,
+        balance = parcelIn.readFloat()
     )
 
     override fun describeContents() = 0

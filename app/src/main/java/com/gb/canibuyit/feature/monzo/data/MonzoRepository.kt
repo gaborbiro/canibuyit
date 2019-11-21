@@ -32,46 +32,47 @@ class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi,
                                           private val mapper: MonzoMapper) {
 
     fun login(authorizationCode: String): Single<Login> {
-        return monzoAuthApi.login("authorization_code",
-                code = authorizationCode,
-                redirectUri = MONZO_URI_AUTH_CALLBACK,
-                clientId = CLIENT_ID,
-                clientSecret = CLIENT_SECRET)
-                .map(mapper::mapToLogin)
+        return monzoAuthApi.login(
+            grantType = "authorization_code",
+            code = authorizationCode,
+            redirectUri = MONZO_URI_AUTH_CALLBACK,
+            clientId = CLIENT_ID,
+            clientSecret = CLIENT_SECRET)
+            .map(mapper::mapToLogin)
     }
 
     fun getSpendings(accountId: String, since: LocalDateTime? = null,
                      before: LocalDate): Single<List<Spending>> {
         return getRawTransactions(accountId, since, before)
-                .map { transactions: List<Transaction> ->
-                    val startDate = since ?: transactions[0].created
-                    Logger.d("MonzoRepository",
-                            "Processing ${transactions.size} transactions, from $startDate to $before")
-                    transactions.groupBy(Transaction::category)
-                            .mapNotNull { (category, transactionsForThatCategory) ->
-                                Logger.d("MonzoRepository",
-                                        "${transactionsForThatCategory.size} $category")
-                                return@mapNotNull convertTransactionsToSpending(category,
-                                        transactionsForThatCategory, startDate, before)
-                            }
-                }
+            .map { transactions: List<Transaction> ->
+                val startDate = since ?: transactions[0].created
+                Logger.d("MonzoRepository",
+                    "Processing ${transactions.size} transactions, from $startDate to $before")
+                transactions.groupBy(Transaction::category)
+                    .mapNotNull { (category, transactionsForThatCategory) ->
+                        Logger.d("MonzoRepository",
+                            "${transactionsForThatCategory.size} $category")
+                        return@mapNotNull convertTransactionsToSpending(category,
+                            transactionsForThatCategory, startDate, before)
+                    }
+            }
     }
 
     fun getRawTransactions(accountId: String, since: LocalDateTime? = null,
                            before: LocalDate): Single<List<Transaction>> {
         val sinceStr = since?.let { FORMAT_RFC3339.format(it) }
         val beforeStr = FORMAT_RFC3339.format(
-                before.plusDays(1).atStartOfDay(ZoneId.systemDefault()).minusNanos(1))
+            before.plusDays(1).atStartOfDay(ZoneId.systemDefault()).minusNanos(1))
 
         return monzoApi.transactions(accountId = accountId, since = sinceStr, before = beforeStr)
-                .map { apiMonzoTransactions: ApiMonzoTransactions ->
-                    apiMonzoTransactions.transactions
-                            .filter { apiTransaction ->
-                                apiTransaction.amount != 0 &&
-                                        apiTransaction.decline_reason.isNullOrEmpty()
-                            }
-                            .map(mapper::mapApiTransaction)
-                }
+            .map { apiMonzoTransactions: ApiMonzoTransactions ->
+                apiMonzoTransactions.transactions
+                    .filter { apiTransaction ->
+                        apiTransaction.amount != 0 &&
+                            apiTransaction.decline_reason.isNullOrEmpty()
+                    }
+                    .map(mapper::mapApiTransaction)
+            }
     }
 
     private fun convertTransactionsToSpending(category: ApiSpending.Category,
@@ -80,15 +81,15 @@ class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi,
                                               endDate: LocalDate): Spending {
         val projectSettings = projectInteractor.getProject().blockingGet()
         val savedSpendings = spendingsRepository.getAll().blockingGet()
-                .groupBy { it.sourceData?.get(MONZO_CATEGORY) }
+            .groupBy { it.sourceData?.get(MONZO_CATEGORY) }
         val savedSpending = savedSpendings[category.toString()]?.get(0)
         return mapper.mapToSpending(
-                category,
-                transactionsByCategory,
-                savedSpending,
-                projectSettings,
-                startDate,
-                endDate)
+            category,
+            transactionsByCategory,
+            savedSpending,
+            projectSettings,
+            startDate,
+            endDate)
     }
 
     fun registerWebHook(accountId: String, url: String): Completable {

@@ -19,7 +19,7 @@ class ValidationError(@param:ValidationErrorType
                       internal val errorMessage: String) : Exception() {
 
     @IntDef(TYPE_INPUT_FIELD,
-            TYPE_NON_INPUT_FIELD)
+        TYPE_NON_INPUT_FIELD)
     @Retention(RetentionPolicy.SOURCE)
     private annotation class ValidationErrorType
 
@@ -27,11 +27,11 @@ class ValidationError(@param:ValidationErrorType
         if (type == TYPE_INPUT_FIELD) {
             if (target == null) {
                 throw IllegalArgumentException(
-                        "Please specify a target view for the input field error " + "message")
+                    "Please specify a target view for the input field error " + "message")
             }
             if (target !is TextView) {
                 throw IllegalArgumentException(
-                        "Wrong view type in ValidationError. Cannot show error " + "message.")
+                    "Wrong view type in ValidationError. Cannot show error " + "message.")
 
             }
         }

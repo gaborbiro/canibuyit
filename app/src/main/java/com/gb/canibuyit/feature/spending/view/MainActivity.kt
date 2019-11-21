@@ -179,22 +179,20 @@ class MainActivity : BaseActivity(), MainScreen, DispatchScreen,
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        if (data != null) {
+        if (data != null && resultCode == Activity.RESULT_OK) {
+            val path = data.getStringExtra(EXTRA_RESULT_PATH)
+
             when (requestCode) {
-                REQUEST_CODE_CHOOSE_FILE_ALL -> if (resultCode == Activity.RESULT_OK) {
-                    val path = data.getStringExtra(EXTRA_RESULT_PATH)
+                REQUEST_CODE_CHOOSE_FILE_ALL -> {
                     presenter.onImportSpendings(path, MainScreen.SpendingsImportType.ALL)
                 }
-                REQUEST_CODE_CHOOSE_FILE_MONZO -> if (resultCode == Activity.RESULT_OK) {
-                    val path = data.getStringExtra(EXTRA_RESULT_PATH)
+                REQUEST_CODE_CHOOSE_FILE_MONZO -> {
                     presenter.onImportSpendings(path, MainScreen.SpendingsImportType.MONZO)
                 }
-                REQUEST_CODE_CHOOSE_FILE_NON_MONZO -> if (resultCode == Activity.RESULT_OK) {
-                    val path = data.getStringExtra(EXTRA_RESULT_PATH)
+                REQUEST_CODE_CHOOSE_FILE_NON_MONZO -> {
                     presenter.onImportSpendings(path, MainScreen.SpendingsImportType.NON_MONZO)
                 }
-                REQUEST_CODE_CHOOSE_FILE_EXPORT -> if (resultCode == Activity.RESULT_OK) {
-                    val path = data.getStringExtra(EXTRA_RESULT_PATH)
+                REQUEST_CODE_CHOOSE_FILE_EXPORT -> {
                     presenter.onExportSpendings(path)
                 }
             }

@@ -23,8 +23,8 @@ class MonzoModule {
     @Singleton
     internal fun provideMonzoAuthApi(gsonConverterFactory: GsonConverterFactory): MonzoAuthApi {
         val okHttpClientBuilder = OkHttpClient.Builder()
-                .readTimeout(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-                .connectTimeout(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .readTimeout(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .connectTimeout(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
 
         if (BuildConfig.DEBUG) {
             val interceptor = HttpLoggingInterceptor()
@@ -33,12 +33,12 @@ class MonzoModule {
         }
 
         return Retrofit.Builder()
-                .client(okHttpClientBuilder.build())
-                .baseUrl(MONZO_API_BASE)
-                .addConverterFactory(gsonConverterFactory)
-                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-                .build()
-                .create(MonzoAuthApi::class.java)
+            .client(okHttpClientBuilder.build())
+            .baseUrl(MONZO_API_BASE)
+            .addConverterFactory(gsonConverterFactory)
+            .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+            .build()
+            .create(MonzoAuthApi::class.java)
     }
 
     @Provides
@@ -48,10 +48,10 @@ class MonzoModule {
         monzoAuthenticator: MonzoAuthenticator): MonzoApi {
 
         val okHttpClientBuilder = OkHttpClient.Builder()
-                .readTimeout(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-                .connectTimeout(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-                .addInterceptor(monzoAuthenticator)
-                .authenticator(monzoAuthenticator)
+            .readTimeout(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .connectTimeout(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .addInterceptor(monzoAuthenticator)
+            .authenticator(monzoAuthenticator)
 
         if (BuildConfig.DEBUG) {
             val interceptor = HttpLoggingInterceptor()
@@ -60,11 +60,11 @@ class MonzoModule {
         }
 
         return Retrofit.Builder()
-                .client(okHttpClientBuilder.build())
-                .baseUrl(MONZO_API_BASE)
-                .addConverterFactory(gsonConverterFactory)
-                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-                .build()
-                .create(MonzoApi::class.java)
+            .client(okHttpClientBuilder.build())
+            .baseUrl(MONZO_API_BASE)
+            .addConverterFactory(gsonConverterFactory)
+            .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+            .build()
+            .create(MonzoApi::class.java)
     }
 }

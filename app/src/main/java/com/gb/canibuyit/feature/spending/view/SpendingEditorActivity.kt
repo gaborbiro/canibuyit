@@ -18,20 +18,20 @@ class SpendingEditorActivity : AppCompatActivity() {
 
         if (savedInstanceState == null) {
             spendingEditorFragment = SpendingEditorFragment()
-                    .apply {
-                        if (intent.hasExtra(EXTRA_SPENDING_ID)) {
-                            arguments = Bundle().apply {
-                                putInt(EXTRA_SPENDING_ID, intent.getIntExtra(EXTRA_SPENDING_ID, 0))
-                            }
+                .apply {
+                    if (intent.hasExtra(EXTRA_SPENDING_ID)) {
+                        arguments = Bundle().apply {
+                            putInt(EXTRA_SPENDING_ID, intent.getIntExtra(EXTRA_SPENDING_ID, 0))
                         }
                     }
+                }
             supportFragmentManager
-                    ?.beginTransaction()
-                    ?.add(R.id.spending_editor_container, spendingEditorFragment)
-                    ?.commit()
+                ?.beginTransaction()
+                ?.add(R.id.spending_editor_container, spendingEditorFragment)
+                .commit()
         } else {
             spendingEditorFragment = supportFragmentManager.findFragmentById(
-                    R.id.spending_editor_container) as SpendingEditorFragment
+                R.id.spending_editor_container) as SpendingEditorFragment
         }
     }
 
@@ -51,9 +51,9 @@ class SpendingEditorActivity : AppCompatActivity() {
 
         fun getIntentForUpdate(context: Context, spendingId: Int): Intent {
             return getIntentForCreate(context)
-                    .apply {
-                        putExtra(EXTRA_SPENDING_ID, spendingId)
-                    }
+                .apply {
+                    putExtra(EXTRA_SPENDING_ID, spendingId)
+                }
         }
 
         fun getIntentForCreate(context: Context): Intent {

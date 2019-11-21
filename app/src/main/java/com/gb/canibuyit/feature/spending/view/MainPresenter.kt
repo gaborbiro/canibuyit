@@ -54,7 +54,7 @@ constructor(private val monzoInteractor: MonzoInteractor,
                         credentialsProvider.accessTokenExpiry = login.expiresAt
                         credentialsProvider.refreshToken = login.refreshToken
                         screen.showToast(
-                                "You are now logged in. Registering for Monzo notifications...")
+                            "You are now logged in. Registering for Monzo notifications...")
                         screen.sendFCMTokenToServer()
                         fetchMonzoData()
                     }
@@ -68,16 +68,16 @@ constructor(private val monzoInteractor: MonzoInteractor,
     @SuppressLint("CheckResult")
     private fun fetchBalance() {
         disposeOnDestroy(spendingInteractor.getBalance()
-                .doOnSubscribe { screen.showProgress() }
-                .doAfterTerminate {
-                    screen.hideProgress()
-                    screen.setLastUpdate(userPreferences.lastUpdate?.formatSimpleDateTime()
-                            ?: "never")
-                }
-                .subscribe(screen::setBalanceInfo, {
-                    screen.setBalanceInfo(null)
-                    this.onError(DomainException("Cannot calculate balance. See logs", it))
-                }))
+            .doOnSubscribe { screen.showProgress() }
+            .doAfterTerminate {
+                screen.hideProgress()
+                screen.setLastUpdate(userPreferences.lastUpdate?.formatSimpleDateTime()
+                    ?: "never")
+            }
+            .subscribe(screen::setBalanceInfo, {
+                screen.setBalanceInfo(null)
+                this.onError(DomainException("Cannot calculate balance. See logs", it))
+            }))
         projectInteractor.getProject().subscribe(Consumer {
             screen.setTitle(it.projectName)
         })
@@ -96,7 +96,7 @@ constructor(private val monzoInteractor: MonzoInteractor,
 
     fun showTargetSavingBreakdown() {
         screen.showDialog("Saved by keeping targets",
-                spendingInteractor.getTargetSavingBreakdown())
+            spendingInteractor.getTargetSavingBreakdown())
     }
 
     fun handleDeepLink(intent: Intent) {
@@ -127,7 +127,7 @@ constructor(private val monzoInteractor: MonzoInteractor,
             screen.showLoginActivity()
         } else {
             disposeOnDestroy(monzoInteractor.loadSpendings(ACCOUNT_ID_RETAIL,
-                    TRANSACTION_HISTORY_LENGTH_MONTHS))
+                TRANSACTION_HISTORY_LENGTH_MONTHS))
         }
     }
 
@@ -145,7 +145,7 @@ constructor(private val monzoInteractor: MonzoInteractor,
     @SuppressLint("CheckResult")
     fun onExportSpendings(path: String) {
         backupingInteractor.exportSpendings(path)
-                .subscribe({ screen.showToast("Database exported") }, this::onError)
+            .subscribe({ screen.showToast("Database exported") }, this::onError)
     }
 
     private fun getSuggestedExportPath(projectName: String?): String {
@@ -164,11 +164,11 @@ constructor(private val monzoInteractor: MonzoInteractor,
     fun onImportSpendings(path: String, importType: MainScreen.SpendingsImportType) {
         when (importType) {
             MainScreen.SpendingsImportType.ALL -> backupingInteractor.importAllSpendings(
-                    path).subscribe(this::fetchBalance, this::onError)
+                path).subscribe(this::fetchBalance, this::onError)
             MainScreen.SpendingsImportType.MONZO -> backupingInteractor.importMonzoSpendings(
-                    path).subscribe(this::fetchBalance, this::onError)
+                path).subscribe(this::fetchBalance, this::onError)
             MainScreen.SpendingsImportType.NON_MONZO -> backupingInteractor.importNonMonzoSpendings(
-                    path).subscribe(this::fetchBalance, this::onError)
+                path).subscribe(this::fetchBalance, this::onError)
         }
     }
 
@@ -196,13 +196,13 @@ constructor(private val monzoInteractor: MonzoInteractor,
 
     fun logWebhooks() {
         disposeOnDestroy(
-                monzoInteractor.getWebhooks(ACCOUNT_ID_RETAIL).subscribe({ retailWebhooks ->
-                    val buffer = StringBuffer()
-                    buffer.append("Retail account:\n")
-                    retailWebhooks.webhooks.joinTo(buffer, separator = "\n", transform = { it.url })
-                    Logger.d("com.gb.canibuyit.feature.spending.view.MainPresenter",
-                            buffer.toString())
-                    screen.showDialog("Webhooks", buffer.toString())
-                }, errorHandler::onErrorSoft))
+            monzoInteractor.getWebhooks(ACCOUNT_ID_RETAIL).subscribe({ retailWebhooks ->
+                val buffer = StringBuffer()
+                buffer.append("Retail account:\n")
+                retailWebhooks.webhooks.joinTo(buffer, separator = "\n", transform = { it.url })
+                Logger.d("com.gb.canibuyit.feature.spending.view.MainPresenter",
+                    buffer.toString())
+                screen.showDialog("Webhooks", buffer.toString())
+            }, errorHandler::onErrorSoft))
     }
 }

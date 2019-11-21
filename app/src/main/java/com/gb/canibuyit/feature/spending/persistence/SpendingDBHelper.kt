@@ -7,9 +7,9 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteException
 import com.gb.canibuyit.feature.monzo.MONZO_CATEGORY
 import com.gb.canibuyit.feature.project.model.ApiProject
+import com.gb.canibuyit.feature.spending.persistence.model.ApiCycleSpending
 import com.gb.canibuyit.feature.spending.persistence.model.ApiSaving
 import com.gb.canibuyit.feature.spending.persistence.model.ApiSpending
-import com.gb.canibuyit.feature.spending.persistence.model.ApiCycleSpending
 import com.j256.ormlite.android.apptools.OrmLiteSqliteOpenHelper
 import com.j256.ormlite.support.ConnectionSource
 import com.j256.ormlite.table.TableUtils
@@ -22,7 +22,7 @@ import javax.inject.Inject
 
 class SpendingDBHelper @Inject
 constructor(appContext: Context) :
-        OrmLiteSqliteOpenHelper(appContext, DATABASE_NAME, null, DATABASE_VERSION) {
+    OrmLiteSqliteOpenHelper(appContext, DATABASE_NAME, null, DATABASE_VERSION) {
 
     override fun onCreate(database: SQLiteDatabase, connectionSource: ConnectionSource) {
         try {
@@ -47,7 +47,7 @@ constructor(appContext: Context) :
     @Throws(SQLException::class)
     fun getAllSpendings(db: SQLiteDatabase): Cursor {
         return db.query(Contract.Spending.TABLE, Contract.Spending.COLUMNS, null, null, null, null,
-                null)
+            null)
     }
 
     @Throws(SQLException::class, IOException::class, ClassNotFoundException::class)

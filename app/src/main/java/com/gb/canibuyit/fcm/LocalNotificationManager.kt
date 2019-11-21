@@ -32,10 +32,10 @@ class LocalNotificationManager @Inject constructor(
 
     fun showEventNotification(title: String, messageBody: String, url: String) {
         notificationManager.notify("Event", 1, buildNotification(
-                pendingIntent = getUrlIntent(url),
-                channel = CHANNEL_EVENTS,
-                title = title,
-                message = messageBody)
+            pendingIntent = getUrlIntent(url),
+            channel = CHANNEL_EVENTS,
+            title = title,
+            message = messageBody)
         )
     }
 
@@ -46,9 +46,9 @@ class LocalNotificationManager @Inject constructor(
      */
     fun showSimpleNotification(title: String?, messageBody: String?) {
         notificationManager.notify("Monzo", 0, buildNotification(pendingIntent = getLaunchIntent(),
-                channel = CHANNEL_SPENDINGS,
-                title = title,
-                message = messageBody)
+            channel = CHANNEL_SPENDINGS,
+            title = title,
+            message = messageBody)
         )
     }
 
@@ -57,17 +57,17 @@ class LocalNotificationManager @Inject constructor(
      */
     fun scheduleEventNotification(delay: Long, title: String, messageBody: String, url: String) {
         val notification = buildNotification(
-                pendingIntent = getUrlIntent(url),
-                channel = CHANNEL_EVENTS,
-                title = title,
-                message = messageBody)
+            pendingIntent = getUrlIntent(url),
+            channel = CHANNEL_EVENTS,
+            title = title,
+            message = messageBody)
 
         val notificationIntent =
             Intent(applicationContext, MyEventAlarmReceiver::class.java).apply {
                 putExtra(MyEventAlarmReceiver.NOTIFICATION, notification)
             }
         val pendingIntent = PendingIntent.getBroadcast(applicationContext, 0, notificationIntent,
-                PendingIntent.FLAG_CANCEL_CURRENT)
+            PendingIntent.FLAG_CANCEL_CURRENT)
 
         val futureInMillis = SystemClock.elapsedRealtime() + delay
         val alarmManager = applicationContext.getSystemService<AlarmManager>()!!
@@ -99,30 +99,30 @@ class LocalNotificationManager @Inject constructor(
                                   alertOnlyOnce: Boolean = false,
                                   autoCancel: Boolean = true,
                                   sound: Uri? = RingtoneManager.getDefaultUri(
-                                          RingtoneManager.TYPE_NOTIFICATION),
+                                      RingtoneManager.TYPE_NOTIFICATION),
                                   vibrate: LongArray? = null): Notification {
         return NotificationCompat.Builder(applicationContext, channel)
-                .setSmallIcon(smallIcon)
-                .setColor(color)
-                .setContentTitle(title)
-                .setContentText(message)
-                .setContentIntent(pendingIntent)
-                .setPriority(priority)
-                .setOnlyAlertOnce(alertOnlyOnce)
-                .setAutoCancel(autoCancel)
-                .setSound(sound)
-                .setStyle(NotificationCompat.BigTextStyle().bigText(message))
-                .setVibrate(vibrate)
-                .build()
+            .setSmallIcon(smallIcon)
+            .setColor(color)
+            .setContentTitle(title)
+            .setContentText(message)
+            .setContentIntent(pendingIntent)
+            .setPriority(priority)
+            .setOnlyAlertOnce(alertOnlyOnce)
+            .setAutoCancel(autoCancel)
+            .setSound(sound)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(message))
+            .setVibrate(vibrate)
+            .build()
     }
 
     private fun createChannels() {
         val spendingsChannel = NotificationChannel(CHANNEL_SPENDINGS, "Spending alerts",
-                NotificationManager.IMPORTANCE_LOW)
+            NotificationManager.IMPORTANCE_LOW)
         spendingsChannel.setShowBadge(false)
         notificationManager.createNotificationChannel(spendingsChannel)
         val calendarEventsChannel = NotificationChannel(CHANNEL_EVENTS, "Calendar event alerts",
-                NotificationManager.IMPORTANCE_DEFAULT)
+            NotificationManager.IMPORTANCE_DEFAULT)
         notificationManager.createNotificationChannel(calendarEventsChannel)
     }
 }

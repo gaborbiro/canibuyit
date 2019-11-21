@@ -18,7 +18,7 @@ constructor(private val monzoInteractor: MonzoInteractor,
     @SuppressLint("CheckResult")
     fun sendFCMTokenToServer(token: String) {
         dispatchInteractor.register(token)
-                .subscribe(this::handleRetailWebhooks, errorHandler::onErrorSoft)
+            .subscribe(this::handleRetailWebhooks, errorHandler::onErrorSoft)
     }
 
     @SuppressLint("CheckResult")
@@ -26,11 +26,11 @@ constructor(private val monzoInteractor: MonzoInteractor,
         monzoInteractor.getWebhooks(ACCOUNT_ID_RETAIL).subscribe({
             it.webhooks.forEach { monzoInteractor.deleteWebhook(it).subscribe() }
             monzoInteractor.registerWebhook(ACCOUNT_ID_RETAIL,
-                    MONZO_DISPATCH_API_WEBHOOK + "/" + dispatchRegistration.hash)
-                    .subscribe({
-                        screen.showToast(
-                                "Successfully registered for retail Monzo push notifications $MONZO_DISPATCH_API_WEBHOOK/${dispatchRegistration.hash}")
-                    }, errorHandler::onErrorSoft)
+                MONZO_DISPATCH_API_WEBHOOK + "/" + dispatchRegistration.hash)
+                .subscribe({
+                    screen.showToast(
+                        "Successfully registered for retail Monzo push notifications $MONZO_DISPATCH_API_WEBHOOK/${dispatchRegistration.hash}")
+                }, errorHandler::onErrorSoft)
         }, errorHandler::onErrorSoft)
     }
 }

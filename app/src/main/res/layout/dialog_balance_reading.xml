@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:layout_height="match_parent"
-              android:layout_width="match_parent"
-              android:orientation="vertical"
-              android:padding="@dimen/dialog_margin">
+    android:layout_height="match_parent"
+    android:layout_width="match_parent"
+    android:orientation="vertical"
+    android:padding="@dimen/dialog_margin">
 
     <EditText
         android:hint="Amount"
@@ -11,7 +11,7 @@
         android:inputType="numberDecimal"
         android:layout_height="wrap_content"
         android:layout_width="match_parent"
-        android:selectAllOnFocus="true"/>
+        android:selectAllOnFocus="true" />
 
     <LinearLayout
         android:gravity="center_vertical"
@@ -22,13 +22,13 @@
         <TextView
             android:layout_height="wrap_content"
             android:layout_width="wrap_content"
-            android:text="Date of reading: "/>
+            android:text="Date of reading: " />
 
         <com.gb.canibuyit.feature.spending.ui.DatePickerButton
             android:id="@+id/when_btn"
             android:layout_height="wrap_content"
             android:layout_width="wrap_content"
             android:minWidth="128dp"
-            android:textAlignment="center"/>
+            android:textAlignment="center" />
     </LinearLayout>
 </LinearLayout>

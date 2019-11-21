@@ -103,7 +103,7 @@ class DateRangePicker : LinearLayout {
 
     private fun getStartDatePickerDialog(): DatePickerDialog {
         startDatePickerDialog = startDatePickerDialog ?: createDatePickerDialog(context, startDate,
-                onDateSetListener).apply {
+            onDateSetListener).apply {
             datePicker.tag = R.id.start_date_btn
         }
         return startDatePickerDialog!!
@@ -111,12 +111,12 @@ class DateRangePicker : LinearLayout {
 
     private fun getEndDatePickerDialog(): DatePickerDialog {
         endDatePickerDialog = endDatePickerDialog ?: createDatePickerDialog(context, endDate,
-                onDateSetListener).apply {
+            onDateSetListener).apply {
             datePicker.tag = R.id.end_date_btn
         }
         return endDatePickerDialog!!
     }
 
     override fun onInterceptTouchEvent(ev: MotionEvent) = touchInterceptor?.invoke(ev)
-            ?: super.onInterceptTouchEvent(ev)
+        ?: super.onInterceptTouchEvent(ev)
 }

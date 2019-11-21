@@ -46,7 +46,7 @@ constructor(private val spendingDBHelper: SpendingDBHelper) {
             return Completable.complete()
         } catch (e: SQLException) {
             return Completable.error(
-                    Exception("Error writing to table " + Contract.Spending.TABLE, e))
+                Exception("Error writing to table " + Contract.Spending.TABLE, e))
         } finally {
             try {
                 cursor.close()

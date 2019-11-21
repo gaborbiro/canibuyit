@@ -4,7 +4,7 @@ import android.app.Activity
 import android.widget.ArrayAdapter
 
 class PlusOneAdapter constructor(activity: Activity, items: Array<*>) :
-        ArrayAdapter<Any>(activity, android.R.layout.simple_list_item_1, items) {
+    ArrayAdapter<Any>(activity, android.R.layout.simple_list_item_1, items) {
 
     override fun getCount() = super.getCount() + 1
 
