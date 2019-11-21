@@ -2,20 +2,19 @@ apply plugin: 'com.android.library'
 apply from: '../config-android.gradle'
 
 dependencies {
-    // Core
-    implementation "androidx.appcompat:appcompat:$versions.androidx.appCompat"
-    implementation "androidx.core:core-ktx:$versions.androidx.coreKtx"
+    implementation supportDependencies.appCompat
+    implementation supportDependencies.coreKtx
 
     // Retrofit
-    api "com.squareup.retrofit2:retrofit:$versions.retrofit.core"
-    api "com.squareup.retrofit2:converter-gson:$versions.retrofit.core"
-    api "com.squareup.retrofit2:adapter-rxjava2:$versions.retrofit.rxjava"
+    api retrofit.core
+    api retrofit.gson
+    api retrofit.rxjava2
 
     // Dagger 2
-    implementation "com.google.dagger:dagger:$versions.dagger"
-    kapt "com.google.dagger:dagger-compiler:$versions.dagger"
+    implementation dagger.core
+    kapt dagger.compiler
 
     // RxJava2
-    api "io.reactivex.rxjava2:rxjava:$versions.rxjava.core"
-    api "io.reactivex.rxjava2:rxandroid:$versions.rxjava.android"
+    api rxjava.core
+    api rxjava.android
 }

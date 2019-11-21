@@ -18,23 +18,23 @@ class MonzoAuthenticator @Inject constructor(private val monzoAuthApi: MonzoAuth
 
     override fun intercept(chain: Interceptor.Chain): Response {
         return chain.proceed(chain.request().newBuilder()
-                .addHeader(AUTHORIZATION, HEADER_VALUE_PREFIX + credentialsProvider.accessToken)
-                .build())
+            .addHeader(AUTHORIZATION, HEADER_VALUE_PREFIX + credentialsProvider.accessToken)
+            .build())
     }
 
-    override fun authenticate(route: Route?, response: Response?): Request? {
+    override fun authenticate(route: Route?, response: Response): Request? {
         val login = monzoAuthApi.refresh(
-                grantType = "refresh_token",
-                refreshToken = credentialsProvider.refreshToken ?: "",
-                clientId = CLIENT_ID,
-                clientSecret = CLIENT_SECRET).map { monzoMapper.mapToLogin(it) }.blockingGet()
+            grantType = "refresh_token",
+            refreshToken = credentialsProvider.refreshToken ?: "",
+            clientId = CLIENT_ID,
+            clientSecret = CLIENT_SECRET).map { monzoMapper.mapToLogin(it) }.blockingGet()
         credentialsProvider.accessToken = login.accessToken
         credentialsProvider.refreshToken = login.refreshToken
         credentialsProvider.accessTokenExpiry = login.expiresAt
-        return response?.request()?.newBuilder()
-                ?.removeHeader(AUTHORIZATION)
-                ?.addHeader(AUTHORIZATION, HEADER_VALUE_PREFIX + credentialsProvider.accessToken)
-                ?.build()
+        return response.request.newBuilder()
+            .removeHeader(AUTHORIZATION)
+            .addHeader(AUTHORIZATION, HEADER_VALUE_PREFIX + credentialsProvider.accessToken)
+            .build()
     }
 }
 

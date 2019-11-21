@@ -3,13 +3,13 @@ package com.gb.canibuyit.base.view
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.LifecycleObserver
+import com.gb.canibuyit.base.error.ErrorHandler
 import com.gb.canibuyit.di.Injector
 import com.gb.canibuyit.error.ContextSource
-import com.gb.canibuyit.base.error.ErrorHandler
 import javax.inject.Inject
 
 abstract class BaseActivity : AppCompatActivity(), ProgressScreen,
-        ContextSource {
+    ContextSource {
 
     @Inject lateinit var errorHandler: ErrorHandler
 
@@ -37,9 +37,9 @@ abstract class BaseActivity : AppCompatActivity(), ProgressScreen,
     override fun showProgress() {
         progressDialog ?: let {
             progressDialog = ProgressDialog.newInstance("Please wait")
-                    .apply {
-                        show(supportFragmentManager, "progress")
-                    }
+                .apply {
+                    show(supportFragmentManager, "progress")
+                }
         }
     }
 
@@ -47,9 +47,9 @@ abstract class BaseActivity : AppCompatActivity(), ProgressScreen,
         progressDialog?.run {
             if (isAdded && !isRemoving) {
                 dismissAllowingStateLoss()
+                progressDialog = null
             }
         }
-        progressDialog = null
     }
 
     override fun addLifecycleObserver(observer: LifecycleObserver) {

@@ -13,7 +13,6 @@ android {
 
     defaultConfig {
         applicationId = 'com.gb.canibuyit'
-        multiDexEnabled true
     }
 
     buildTypes {
@@ -36,37 +35,30 @@ android {
 dependencies {
     api project(':core')
 
-    // KTX
-    implementation "androidx.core:core-ktx:$versions.androidx.coreKtx"
+    implementation supportDependencies.appCompat
+    implementation supportDependencies.coreKtx
+    implementation supportDependencies.cardView
+    implementation supportDependencies.constraintLayout
+    implementation supportDependencies.recyclerView
 
-    implementation 'com.j256.ormlite:ormlite-android:4.48'
-    implementation "androidx.appcompat:appcompat:$versions.androidx.appCompat"
-    implementation "androidx.cardview:cardview:$versions.androidx.core"
-    implementation "androidx.constraintlayout:constraintlayout:$versions.constraintLayout"
-    implementation "androidx.recyclerview:recyclerview:$versions.androidx.core"
+    implementation config.kotlinStdlib
 
-    implementation 'com.github.PhilJay:MPAndroidChart:v2.2.4'
+    implementation ormLite
 
-    // EventBus
-    implementation 'org.greenrobot:eventbus:3.1.1'
+    implementation eventBus
 
-    // Dagger 2
-    implementation "com.google.dagger:dagger:$versions.dagger"
-    kapt "com.google.dagger:dagger-compiler:$versions.dagger"
+    implementation dagger.core
+    kapt dagger.compiler
 
-    implementation "com.squareup.okhttp3:logging-interceptor:$versions.okhttp.core"
+    implementation retrofit.loggingInterceptor
 
     // apache commons-lang
-    implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.7'
+    implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.9'
 
-    // kotlin
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$versions.kotlin"
+    implementation firebase.messaging
 
-    // Firebase Cloud Messaging
-    implementation 'com.google.firebase:firebase-messaging:12.0.1'
-
-    implementation "com.gb.prefsutil:prefsutil:$versions.prefsUtil"
-    implementation "com.github.PhilJay:MPAndroidChart:v3.1.0"
+    implementation prefsUtil
+    implementation MPAndroidChart
 }
 
 apply plugin: 'com.google.gms.google-services'

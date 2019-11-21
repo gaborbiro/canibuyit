@@ -22,6 +22,7 @@ abstract class BasePresenter : LifecycleObserver {
     private val onDestroyDisposables: CompositeDisposable = CompositeDisposable()
 
     internal fun onError(throwable: Throwable) {
+        screenReference?.hideProgress()
         errorHandler.onError(throwable)
     }
 

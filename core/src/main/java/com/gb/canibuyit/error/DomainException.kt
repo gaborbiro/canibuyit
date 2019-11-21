@@ -20,7 +20,7 @@ open class DomainException @JvmOverloads constructor(
     var action: Action? = null
         private set
 
-    constructor(raw: Throwable) : this(raw.message, raw) {}
+    constructor(raw: Throwable) : this(raw.message, raw)
 
     init {
         this.code = -1
@@ -33,7 +33,7 @@ open class DomainException @JvmOverloads constructor(
             if (code == 400) {
                 action = Action.LOGIN
             }
-            this.responseBody = cause.response().errorBody()
+            this.responseBody = cause.response()?.errorBody()
         }
         if (cause is IOException) {
             this.kind = Kind.NETWORK

@@ -505,6 +505,12 @@ class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen, OnChartValu
             !enabled_switch.isChecked &&
             target_input.text.isEmpty()
     }
+
+    override fun showProgress() {
+    }
+
+    override fun hideProgress() {
+    }
 }
 
 const val EXTRA_SPENDING_ID = "spending_id"

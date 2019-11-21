@@ -24,8 +24,8 @@ import javax.inject.Inject
  * Activities containing this fragment MUST implement the [FragmentCallback] interface.
  */
 class SpendingListFragment : BaseFragment(),
-        SpendingListScreen, SpendingAdapter.OnSpendingClickedListener,
-        SwipeRefreshLayout.OnRefreshListener {
+    SpendingListScreen, SpendingAdapter.OnSpendingClickedListener,
+    SwipeRefreshLayout.OnRefreshListener {
 
     @Inject internal lateinit var presenter: SpendingListPresenter
 
@@ -44,7 +44,7 @@ class SpendingListFragment : BaseFragment(),
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         recycler_view.addItemDecoration(
-                DividerItemDecoration(activity, DividerItemDecoration.VERTICAL))
+            DividerItemDecoration(activity, DividerItemDecoration.VERTICAL))
         adapter = SpendingAdapter(this)
         recycler_view.adapter = adapter
         swipe_container.setOnRefreshListener(this)
@@ -64,7 +64,7 @@ class SpendingListFragment : BaseFragment(),
         Injector.INSTANCE.graph.inject(this)
     }
 
-    override fun onAttach(context: Context?) {
+    override fun onAttach(context: Context) {
         super.onAttach(context)
 
         // Activities containing this fragment must implement its callback.
@@ -110,5 +110,11 @@ class SpendingListFragment : BaseFragment(),
         fun onSpendingSelected(id: Int)
 
         fun refresh()
+    }
+
+    override fun showProgress() {
+    }
+
+    override fun hideProgress() {
     }
 }

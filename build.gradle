@@ -1,14 +1,16 @@
 buildscript {
+    apply from: 'dependencies.gradle'
+
     repositories {
         google()
         mavenCentral()
         jcenter()
     }
     dependencies {
-        apply from: 'dependencies-versions.gradle'
-        classpath 'com.android.tools.build:gradle:3.5.0'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$versions.kotlin"
-        classpath 'com.google.gms:google-services:4.3.0'
+        classpath config.gradlePlugin
+        classpath config.kotlinGradlePlugin
+        classpath config.kotlinAndroidExtensions
+        classpath config.googleServices
     }
 }
 allprojects {
