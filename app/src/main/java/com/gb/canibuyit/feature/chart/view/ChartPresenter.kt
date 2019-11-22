@@ -1,6 +1,5 @@
 package com.gb.canibuyit.feature.chart.view
 
-import com.gb.canibuyit.UserPreferences
 import com.gb.canibuyit.base.view.BasePresenter
 import com.gb.canibuyit.feature.chart.model.ChartInfo
 import com.gb.canibuyit.feature.spending.data.SpendingInteractor
@@ -9,13 +8,11 @@ import com.github.mikephil.charting.data.Entry
 import java.math.BigDecimal
 import java.time.Month
 import java.time.format.TextStyle
-import java.util.Locale
+import java.util.*
 import javax.inject.Inject
 import com.gb.canibuyit.util.sumBy as sumByBigDecimal
 
-class ChartPresenter @Inject constructor(
-    private val spendingInteractor: SpendingInteractor,
-    private val userPreferences: UserPreferences) : BasePresenter() {
+class ChartPresenter @Inject constructor(private val spendingInteractor: SpendingInteractor) : BasePresenter() {
 
     private val screen: ChartScreen by screenDelegate()
 
@@ -26,11 +23,7 @@ class ChartPresenter @Inject constructor(
                 val spendings = lce.content!!
                 val spendingIds = spendings.associateBy { it.id!! }
 
-                val dataSetSelection = userPreferences.dataSetSelection
-
-                val cycleSpendings =
-                    spendings.mapNotNull { if (dataSetSelection[it.type.toString()] != false && it.cycleSpendings != null) it.cycleSpendings else null }
-                        .flatMap { Iterable { it.iterator() } }
+                val cycleSpendings = spendings.mapNotNull { it.cycleSpendings }.flatMap { Iterable { it.iterator() } }
                 if (cycleSpendings.isNotEmpty()) {
                     val monthMap =
                         cycleSpendings
@@ -66,39 +59,10 @@ class ChartPresenter @Inject constructor(
                         dataSet[type] = entries
                     }
 
-                    var previousMonth: Map<Int, BigDecimal>? = null
-                    val totals = monthMap.map { (month: Int, typeSpendings: Map<Int, BigDecimal>) ->
-                        val xValue = (month - minMonth).toFloat()
-                        val breakdown = typeSpendings.entries.sortedBy { it.value }.map { (spendingId: Int, amount: BigDecimal) ->
-                            val value = -amount.toFloat()
-                            val spending = spendingIds[spendingId]!!
-                            val valueStr = if (previousMonth != null && previousMonth!![spendingId] != null) {
-                                val previousAmount = -previousMonth!![spendingId]!!.toFloat()
-                                val diff = ((value - previousAmount) / previousAmount * 100).toInt()
-                                if (diff > 0) {
-                                    "$value (+$diff%)"
-                                } else {
-                                    "$value ($diff%)"
-                                }
-                            } else {
-                                value.toString()
-                            }
-                            "${spending.type}: $valueStr"
-                        }.joinToString(separator = "\n")
-                        val value = -typeSpendings.values.sumByBigDecimal { it }.toFloat()
-                        val formattedValue = if (value < 0) "+${-value}" else value.toString()
-                        Entry(xValue, value,
-                            ChartInfo(
-                                infoPopupText = breakdown,
-                                pointLabel = "Total: $formattedValue",
-                                spendigId = -1)).also {
-                            previousMonth = typeSpendings
-                        }
-                    }
                     val xAxisLabels = Array(maxMonth - minMonth + 1) {
                         Month.of((minMonth + it) % 12).getDisplayName(TextStyle.SHORT, Locale.getDefault())
                     }
-                    screen.display(totals, dataSet, xAxisLabels)
+                    screen.display(dataSet, xAxisLabels)
                 }
             }
         }, this::onError))

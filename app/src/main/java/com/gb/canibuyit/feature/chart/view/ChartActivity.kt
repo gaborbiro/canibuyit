@@ -3,6 +3,7 @@ package com.gb.canibuyit.feature.chart.view
 import android.app.Activity
 import android.content.Intent
 import android.graphics.Rect
+import android.graphics.Typeface
 import android.os.Bundle
 import android.view.MotionEvent
 import android.view.View
@@ -29,10 +30,13 @@ import com.github.mikephil.charting.listener.ChartTouchListener
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener
 import kotlinx.android.synthetic.main.activity_chart.*
 import javax.inject.Inject
+import kotlin.math.roundToInt
 
 class ChartActivity : BaseActivity(), ChartScreen, OnChartValueSelectedListener {
-    @Inject internal lateinit var presenter: ChartPresenter
-    @Inject internal lateinit var userPreferences: UserPreferences
+    @Inject
+    internal lateinit var presenter: ChartPresenter
+    @Inject
+    internal lateinit var userPreferences: UserPreferences
 
     private val dataSetMap: MutableMap<String, Pair<Int, LineDataSet>> = mutableMapOf()
     private lateinit var chartColors: IntArray
@@ -101,14 +105,44 @@ class ChartActivity : BaseActivity(), ChartScreen, OnChartValueSelectedListener 
         presenter.loadSpendings()
     }
 
-    override fun display(total: List<Entry>, dataSet: Map<String, List<Entry>>, xAxisLabels: Array<String>) {
+    override fun display(dataSet: Map<String, List<Entry>>, xAxisLabels: Array<String>) {
         chart.data = LineData()
         dataSetMap.clear()
-        totalDataSet = LineDataSet(total, "Total").apply {
-            val color = formatLineDataSet(this, 0, 3f)
-            dataSetMap["TOTALS"] = Pair(color, this)
+        val dataSetSelection = userPreferences.dataSetSelection
+        val filteredTotals = dataSet.filter { dataSetSelection.getOrDefault(it.key, false) }
+
+        class ChartInfoCollector(
+            val popupCollector: StringBuilder = StringBuilder(),
+            var total: Float = 0f
+        )
+
+        val totalsMap = mutableMapOf<Float, ChartInfoCollector>()
+
+        filteredTotals.flatMap { entry ->
+            entry.value.map { Triple(it.x, entry.key, it.y) }
+        }.forEach {
+            totalsMap[it.first] = (totalsMap[it.first] ?: ChartInfoCollector()).apply {
+                popupCollector.append("${it.second}: ${it.third}\n")
+                total += it.third
+            }
         }
-        if (userPreferences.dataSetSelection.getOrDefault("TOTALS", true)) {
+        val totals = totalsMap
+            .map {
+                val x = it.key
+                val y = it.value.total
+                val info = ChartInfo(
+                    infoPopupText = it.value.popupCollector.toString(),
+                    pointLabel = it.value.total.roundToInt().toString(),
+                    spendigId = -1
+                )
+                Entry(x, y, info)
+            }
+        totalDataSet = LineDataSet(totals, "Total")
+            .apply {
+                val color = formatLineDataSet(this, 0, 3f)
+                dataSetMap["TOTALS"] = Pair(color, this)
+            }
+        if (dataSetSelection.getOrDefault("TOTALS", true)) {
             chart.lineData.addDataSet(totalDataSet)
         }
         dataSet.keys.forEachIndexed { index, type ->
@@ -140,9 +174,10 @@ class ChartActivity : BaseActivity(), ChartScreen, OnChartValueSelectedListener 
         }
     }
 
-    private fun addCheckBox(key: String, value: String, defaultIsChecked: Boolean) {
+    private fun addCheckBox(key: String, value: String, bold: Boolean) {
         categories_container.add<CheckBox>(R.layout.list_item_chart).also {
             it.text = value
+            it.setTypeface(null, if (bold) Typeface.BOLD else Typeface.NORMAL)
             it.setTextColor(dataSetMap[key]?.first ?: primaryTextColor)
             it.isChecked = userPreferences.dataSetSelection.getOrDefault(key, true)
             it.setOnCheckedChangeListener { _, isChecked ->
@@ -169,7 +204,7 @@ class ChartActivity : BaseActivity(), ChartScreen, OnChartValueSelectedListener 
             isHighlightEnabled = true
             valueFormatter = object : ValueFormatter() {
                 override fun getPointLabel(entry: Entry): String {
-                    return (entry.data as ChartInfo).pointLabel
+                    return (entry.data as? ChartInfo)?.pointLabel ?: ""
                 }
             }
             return colorInt

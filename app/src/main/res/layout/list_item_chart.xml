@@ -3,10 +3,10 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:tools="http://schemas.android.com/tools"
-    android:textAppearance="@style/UIKit.TextAppearance.Body.Small.Bold"
+    android:textAppearance="@style/UIKit.TextAppearance.Body.Small"
     android:layout_marginBottom="@dimen/half_margin"
     android:layout_marginTop="@dimen/half_margin"
     android:layout_marginStart="@dimen/default_margin"
     android:layout_marginEnd="@dimen/default_margin"
-    tools:text="ONLINE_SERVICES"
+    tools:text="online_services"
     android:checked="true" />
