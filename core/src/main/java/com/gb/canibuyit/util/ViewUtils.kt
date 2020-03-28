@@ -36,22 +36,20 @@ fun View.showKeyboard() {
 
 fun String.link() = this.span().link()
 
-fun String.bold(vararg subString: String) = this.span().bold(*subString)
-
 fun SpannableString.link() = this.apply {
     setSpan(UnderlineSpan(), 0, length, 0)
 }
+
+fun String.bold(vararg subString: String) = this.span().bold(*subString)
 
 fun SpannableString.bold(vararg subString: String) = this.apply {
     subString.forEach {
         val start = this.indexOf(it)
         val end = start + it.length
         setSpan(StyleSpan(android.graphics.Typeface.BOLD), start, end,
-                Spannable.SPAN_INCLUSIVE_INCLUSIVE)
+            Spannable.SPAN_INCLUSIVE_INCLUSIVE)
     }
 }
-
-private fun String.span() = SpannableString(this)
 
 fun TextView.setSubtextWithLink(text: String, linkPart: String, runOnClick: () -> Unit) {
     this.setSubtextWithLinks(text, arrayOf(linkPart), arrayOf(runOnClick))
@@ -60,7 +58,7 @@ fun TextView.setSubtextWithLink(text: String, linkPart: String, runOnClick: () -
 fun TextView.setSubtextWithLinks(text: String, linkParts: Array<String>,
                                  runOnClicks: Array<() -> Unit>) {
     this.text = text
-    val spannable = SpannableString(this.text)
+    val spannable = this.text.span()
 
     for (i in linkParts.indices) {
         applyLink(this.text.toString(), spannable, linkParts[i], runOnClicks[i])
@@ -86,6 +84,10 @@ private fun applyLink(text: String, spannable: Spannable, linkPart: String,
         }
     }, startIndex, startIndex + linkPart.length, Spanned.SPAN_INCLUSIVE_INCLUSIVE)
 }
+
+private fun String.span() = SpannableString(this)
+
+private fun CharSequence.span() = SpannableString(this)
 
 fun createDatePickerDialog(context: Context, date: LocalDate,
                            listener: (DatePicker, LocalDate) -> Unit): DatePickerDialog {

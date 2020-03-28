@@ -88,7 +88,7 @@ class ApiSpending(
         SELF_IMPROVEMENT,
         SPORTS_RECREATION,
         TAX,
-        TRANSPORTATION,
+        TRANSPORT,
         UTILITIES,
         VACATION,
         GIFTS_RECEIVED,
@@ -99,7 +99,7 @@ class ApiSpending(
         CASH,
         SAVINGS,
         EXPENSES(defaultEnabled = false),
-        OTHER,
+        GENERAL,
         TOP_UP,
         POT;
 

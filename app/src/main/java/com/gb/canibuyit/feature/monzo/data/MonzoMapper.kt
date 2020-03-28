@@ -56,26 +56,25 @@ class MonzoMapper @Inject constructor() {
     }
 
     private fun identifyCategory(text: String, pots: List<ApiPot>): ApiSpending.Category? {
-        val category = ApiSpending.Category.values().firstOrNull {
+        return ApiSpending.Category.values().firstOrNull {
             val categoryStr = text.replace("-", "_")
             categoryStr.equals(it.toString(), ignoreCase = true)
-                || categoryStr.contains("$it ", ignoreCase = true)
-                || categoryStr.contains(it.toString() + "_", ignoreCase = true)
+                || categoryStr.startsWith("$it ", ignoreCase = true)
+                || categoryStr.startsWith("${it}_", ignoreCase = true)
         }
-        return if (category == ApiSpending.Category.POT) identifyPot(text, pots) else category
     }
 
-    private fun identifyPot(potId: String, pots: List<ApiPot>): ApiSpending.Category? {
-        val potName = pots.find { it.id == potId }?.name
-        return potName?.let {
-            ApiSpending.Category.values().firstOrNull {
-                val categoryStr = potName.replace("-", "_")
-                categoryStr.equals(it.toString(), ignoreCase = true)
-                    || categoryStr.contains("$it ", ignoreCase = true)
-                    || categoryStr.contains(it.toString() + "_", ignoreCase = true)
-            }
-        }
-    }
+//    private fun identifyPot(potId: String, pots: List<ApiPot>): ApiSpending.Category? {
+//        val potName = pots.find { it.id == potId }?.name
+//        return potName?.let {
+//            ApiSpending.Category.values().firstOrNull {
+//                val categoryStr = potName.replace("-", "_")
+//                categoryStr.equals(it.toString(), ignoreCase = true)
+//                    || categoryStr.contains("$it ", ignoreCase = true)
+//                    || categoryStr.contains(it.toString() + "_", ignoreCase = true)
+//            }
+//        }
+//    }
 
     fun mapToSpending(category: ApiSpending.Category,
                       sortedTransactions: List<Transaction>,
@@ -188,9 +187,7 @@ class MonzoMapper @Inject constructor() {
     private fun mapCategory(monzoCategory: String): ApiSpending.Category {
         return when (monzoCategory) {
             "mondo" -> ApiSpending.Category.INCOME
-            "general" -> ApiSpending.Category.OTHER
             "eating_out" -> ApiSpending.Category.FOOD
-            "transport" -> ApiSpending.Category.TRANSPORTATION
             "bills" -> ApiSpending.Category.UTILITIES
             "shopping" -> ApiSpending.Category.LUXURY
             "holidays" -> ApiSpending.Category.VACATION
@@ -202,7 +199,7 @@ class MonzoMapper @Inject constructor() {
                     ApiSpending.Category.valueOf(monzoCategory.replace("-", "_").toUpperCase())
                 } catch (t: Throwable) {
                     t.printStackTrace()
-                    ApiSpending.Category.OTHER
+                    ApiSpending.Category.GENERAL
                 }
             }
         }

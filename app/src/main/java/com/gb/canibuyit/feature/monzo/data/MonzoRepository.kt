@@ -69,7 +69,7 @@ class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi,
         return Single.zip(
             monzoApi.pots(),
             monzoApi.transactions(accountId = accountId, since = sinceStr, before = beforeStr),
-            BiFunction { pots: ApiPots, transactions: ApiMonzoTransactions -> Pair(pots, transactions) }
+            BiFunction { pots: ApiPots, transactions: ApiMonzoTransactions -> Pair(pots.pots, transactions) }
         ).map { (pots, transactions) ->
             transactions.transactions
                 .filter { apiTransaction ->
@@ -77,7 +77,7 @@ class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi,
                         apiTransaction.decline_reason.isNullOrEmpty()
                 }
                 .map {
-                    mapper.mapApiTransaction(it, pots.pots)
+                    mapper.mapApiTransaction(it, pots)
                 }
         }
 //

@@ -13,4 +13,8 @@ class ApiPot(
     val created: String,
     val updated: String,
     val deleted: Boolean
-)
+) {
+    override fun toString(): String {
+        return "ApiPot(name='$name', style='$style', balance=$balance, id='$id', currency='$currency', created='$created', updated='$updated', deleted=$deleted)"
+    }
+}
