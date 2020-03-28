@@ -101,7 +101,8 @@ class ApiSpending(
         EXPENSES(defaultEnabled = false),
         GENERAL,
         TOP_UP,
-        POT;
+        POT,
+        WORK;
 
         override fun toString(): String {
             return name.toLowerCase()
