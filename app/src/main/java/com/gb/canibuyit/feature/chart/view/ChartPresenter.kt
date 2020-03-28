@@ -60,7 +60,7 @@ class ChartPresenter @Inject constructor(private val spendingInteractor: Spendin
                     }
 
                     val xAxisLabels = Array(maxMonth - minMonth + 1) {
-                        Month.of((minMonth + it) % 12).getDisplayName(TextStyle.SHORT, Locale.getDefault())
+                        Month.of((minMonth + it) % 12 + 1).getDisplayName(TextStyle.SHORT, Locale.getDefault())
                     }
                     screen.display(dataSet, xAxisLabels)
                 }

@@ -35,6 +35,7 @@ import kotlin.math.roundToInt
 class ChartActivity : BaseActivity(), ChartScreen, OnChartValueSelectedListener {
     @Inject
     internal lateinit var presenter: ChartPresenter
+
     @Inject
     internal lateinit var userPreferences: UserPreferences
 
@@ -109,7 +110,7 @@ class ChartActivity : BaseActivity(), ChartScreen, OnChartValueSelectedListener 
         chart.data = LineData()
         dataSetMap.clear()
         val dataSetSelection = userPreferences.dataSetSelection
-        val filteredTotals = dataSet.filter { dataSetSelection.getOrDefault(it.key, false) }
+        val filteredTotals = dataSet.filter { dataSetSelection.getOrDefault(it.key, true) }
 
         class ChartInfoCollector(
             val popupCollector: StringBuilder = StringBuilder(),
@@ -118,26 +119,25 @@ class ChartActivity : BaseActivity(), ChartScreen, OnChartValueSelectedListener 
 
         val totalsMap = mutableMapOf<Float, ChartInfoCollector>()
 
-        filteredTotals.flatMap { entry ->
+        val v = filteredTotals.flatMap { entry ->
             entry.value.map { Triple(it.x, entry.key, it.y) }
-        }.forEach {
-            totalsMap[it.first] = (totalsMap[it.first] ?: ChartInfoCollector()).apply {
-                popupCollector.append("${it.second}: ${it.third}\n")
-                total += it.third
+        }.sortedByDescending { it.third }
+        v.forEach { (x, category, amount) ->
+            totalsMap[x] = (totalsMap[x] ?: ChartInfoCollector()).apply {
+                popupCollector.append("$category: $amount\n")
+                total += amount
             }
         }
         val totals = totalsMap
-            .map {
-                val x = it.key
-                val y = it.value.total
+            .map { (x, y) ->
                 val info = ChartInfo(
-                    infoPopupText = it.value.popupCollector.toString(),
-                    pointLabel = it.value.total.roundToInt().toString(),
+                    infoPopupText = y.popupCollector.toString(),
+                    pointLabel = y.total.roundToInt().toString(),
                     spendigId = -1
                 )
-                Entry(x, y, info)
+                Entry(x, y.total, info)
             }
-        totalDataSet = LineDataSet(totals, "Total")
+        totalDataSet = LineDataSet(totals.sortedBy { it.x }, "Total")
             .apply {
                 val color = formatLineDataSet(this, 0, 3f)
                 dataSetMap["TOTALS"] = Pair(color, this)
