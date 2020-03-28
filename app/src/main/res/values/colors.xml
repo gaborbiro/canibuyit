@@ -28,7 +28,11 @@
     <color name="soba20">#f1f1f1</color>
     <color name="soba10">#f8f8f8</color>
     <color name="soba5">#fbfbfb</color>
-    <color name="soba40_25">#40e4e3e3</color>
+
+    <color name="soba80_50">#80cac7c7</color>
+    <color name="beige_50">#80fffac8</color>
+    <color name="apricot_50">#80ffd8b1</color>
+    <color name="lavender_50">#80e6beff</color>
 
     <color name="red">#e6194B</color>
     <color name="green">#3cb44b</color>
