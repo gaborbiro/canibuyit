@@ -6,7 +6,6 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.util.AttributeSet
 import android.widget.RelativeLayout
-import androidx.core.content.ContextCompat
 import com.gb.canibuyit.R
 import kotlin.math.min
 
@@ -30,15 +29,15 @@ class ProgressRelativeLayout @JvmOverloads constructor(context: Context,
         }
 
     private val paints: Array<Paint> = arrayOf(Paint(),
-        Paint().apply { color = ContextCompat.getColor(context, R.color.beige_50) },
-        Paint().apply { color = ContextCompat.getColor(context, R.color.apricot_50) },
-        Paint().apply { color = ContextCompat.getColor(context, R.color.lavender_50) }
+        Paint().apply { color = context.getColor(R.color.beige_50) },
+        Paint().apply { color = context.getColor(R.color.apricot_50) },
+        Paint().apply { color = context.getColor(R.color.lavender_50) }
     )
 
     private val path = Path()
 
     init {
-        paints[0].color = ContextCompat.getColor(context, R.color.spending_list_item_spend_low)
+        paints[0].color = context.getColor(R.color.spending_list_item_spend_low)
         paints[0].style = Paint.Style.FILL
     }
 
@@ -47,28 +46,28 @@ class ProgressRelativeLayout @JvmOverloads constructor(context: Context,
             Mode.MIN_LIMIT -> {
                 when {
                     progress > 0.99 ->
-                        ContextCompat.getColor(context, R.color.spending_list_item_spend_high)
+                        context.getColor(R.color.spending_list_item_spend_high)
                     progress > 0.75 ->
-                        ContextCompat.getColor(context, R.color.spending_list_item_spend_medium)
+                        context.getColor(R.color.spending_list_item_spend_medium)
                     else ->
-                        ContextCompat.getColor(context, R.color.spending_list_item_spend_low)
+                        context.getColor(R.color.spending_list_item_spend_low)
                 }
             }
             Mode.MAX_LIMIT -> {
                 when {
                     progress > 0.99 ->
-                        ContextCompat.getColor(context, R.color.spending_list_item_spend_low)
+                        context.getColor(R.color.spending_list_item_spend_low)
                     progress > 0.75 ->
-                        ContextCompat.getColor(context, R.color.spending_list_item_spend_medium)
+                        context.getColor(R.color.spending_list_item_spend_medium)
                     else ->
-                        ContextCompat.getColor(context, R.color.spending_list_item_spend_high)
+                        context.getColor(R.color.spending_list_item_spend_high)
                 }
             }
             Mode.DEFAULT -> {
-                ContextCompat.getColor(context, R.color.soba80_50)
+                context.getColor(R.color.soba80_50)
             }
             Mode.OFF -> {
-                ContextCompat.getColor(context, android.R.color.transparent)
+                context.getColor(android.R.color.transparent)
             }
         }
     }

@@ -16,19 +16,18 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.DatePicker
 import android.widget.TextView
 import androidx.annotation.LayoutRes
-import androidx.core.content.getSystemService
 import java.time.LocalDate
 
 fun View.hideKeyboard() {
     this.post {
-        val imm = this.context.getSystemService<InputMethodManager>()!!
+        val imm = this.context.getSystemService(InputMethodManager::class.java)
         imm.hideSoftInputFromWindow(this.windowToken, 0)
     }
 }
 
 fun View.showKeyboard() {
     this.post {
-        val imm = this.context.getSystemService<InputMethodManager>()!!
+        val imm = this.context.getSystemService(InputMethodManager::class.java)
         imm.showSoftInput(this, InputMethodManager.SHOW_IMPLICIT)
         this.requestFocus()
     }

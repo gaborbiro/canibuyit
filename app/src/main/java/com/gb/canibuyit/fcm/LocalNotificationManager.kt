@@ -19,11 +19,9 @@ import com.gb.canibuyit.R
 import com.gb.canibuyit.feature.spending.view.MainActivity
 import javax.inject.Inject
 
-class LocalNotificationManager @Inject constructor(
-    private val applicationContext: Context) {
+class LocalNotificationManager @Inject constructor(private val applicationContext: Context) {
 
-    private val notificationManager: NotificationManager =
-        applicationContext.getSystemService<NotificationManager>()!!
+    private val notificationManager: NotificationManager = applicationContext.getSystemService()!!
     private val notificationColor: Int = ContextCompat.getColor(applicationContext, R.color.primary)
 
     init {
@@ -70,7 +68,7 @@ class LocalNotificationManager @Inject constructor(
             PendingIntent.FLAG_CANCEL_CURRENT)
 
         val futureInMillis = SystemClock.elapsedRealtime() + delay
-        val alarmManager = applicationContext.getSystemService<AlarmManager>()!!
+        val alarmManager: AlarmManager = applicationContext.getSystemService()!!
         alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, futureInMillis, pendingIntent)
     }
 

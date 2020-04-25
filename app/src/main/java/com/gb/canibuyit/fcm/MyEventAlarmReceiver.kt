@@ -14,7 +14,7 @@ class MyEventAlarmReceiver : BroadcastReceiver() {
     }
 
     override fun onReceive(context: Context, intent: Intent) {
-        val notificationManager = context.getSystemService<NotificationManager>()!!
+        val notificationManager: NotificationManager = context.getSystemService()!!
         val notification: Notification = intent.getParcelableExtra(NOTIFICATION)
         notificationManager.notify(0, notification)
     }

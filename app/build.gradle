@@ -45,7 +45,6 @@ dependencies {
 
     implementation ormLite
 
-    implementation eventBus
 
     implementation dagger.core
     kapt dagger.compiler
@@ -53,7 +52,7 @@ dependencies {
     implementation retrofit.loggingInterceptor
 
     // apache commons-lang
-    implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.9'
+    implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.10'
 
     implementation firebase.messaging
 
