@@ -14,7 +14,7 @@ import com.gb.canibuyit.feature.monzo.model.Webhooks
 import com.gb.canibuyit.feature.project.data.ProjectInteractor
 import com.gb.canibuyit.feature.spending.data.SpendingsRepository
 import com.gb.canibuyit.feature.spending.model.Spending
-import com.gb.canibuyit.feature.spending.persistence.model.ApiSpending
+import com.gb.canibuyit.feature.spending.persistence.model.DBSpending
 import com.gb.canibuyit.util.FORMAT_RFC3339
 import com.gb.canibuyit.util.Logger
 import io.reactivex.Completable
@@ -35,11 +35,11 @@ class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi,
 
     fun login(authorizationCode: String): Single<Login> {
         return monzoAuthApi.login(
-            grantType = "authorization_code",
-            code = authorizationCode,
-            redirectUri = MONZO_URI_AUTH_CALLBACK,
-            clientId = CLIENT_ID,
-            clientSecret = CLIENT_SECRET)
+                grantType = "authorization_code",
+                code = authorizationCode,
+                redirectUri = MONZO_URI_AUTH_CALLBACK,
+                clientId = CLIENT_ID,
+                clientSecret = CLIENT_SECRET)
             .map(mapper::mapToLogin)
     }
 
@@ -92,14 +92,16 @@ class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi,
 //            }
     }
 
-    private fun convertTransactionsToSpending(category: ApiSpending.Category,
-                                              transactionsByCategory: List<Transaction>,
-                                              startDate: LocalDateTime,
-                                              endDate: LocalDate): Spending {
+    private fun convertTransactionsToSpending(
+        category: DBSpending.Category,
+        transactionsByCategory: List<Transaction>,
+        startDate: LocalDateTime,
+        endDate: LocalDate
+    ): Spending {
         val projectSettings = projectInteractor.getProject().blockingGet()
         val savedSpendings = spendingsRepository.getAll().blockingGet()
             .groupBy { it.sourceData?.get(MONZO_CATEGORY) }
-        val savedSpending = savedSpendings[category.toString()]?.get(0)
+        val savedSpending = savedSpendings[category.toString().toLowerCase()]?.get(0)
         return mapper.mapToSpending(
             category,
             transactionsByCategory,

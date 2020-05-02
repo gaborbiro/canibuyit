@@ -15,7 +15,7 @@ import com.gb.canibuyit.base.view.BaseActivity
 import com.gb.canibuyit.di.Injector
 import com.gb.canibuyit.feature.chart.model.ChartInfo
 import com.gb.canibuyit.feature.chart.ui.InfoMarkerView
-import com.gb.canibuyit.feature.spending.persistence.model.ApiSpending
+import com.gb.canibuyit.feature.spending.persistence.model.DBSpending
 import com.gb.canibuyit.feature.spending.view.SpendingEditorActivity
 import com.gb.canibuyit.util.OnChartGestureListenerAdapter
 import com.gb.canibuyit.util.add
@@ -106,11 +106,11 @@ class ChartActivity : BaseActivity(), ChartScreen, OnChartValueSelectedListener 
         presenter.loadSpendings()
     }
 
-    override fun display(dataSet: Map<String, List<Entry>>, xAxisLabels: Array<String>) {
+    override fun display(spendings: Map<String, List<Entry>>, xAxisLabels: Array<String>) {
         chart.data = LineData()
         dataSetMap.clear()
         val dataSetSelection = userPreferences.dataSetSelection
-        val filteredTotals = dataSet.filter { dataSetSelection.getOrDefault(it.key, true) }
+        val displayableSpendings = spendings.filter { dataSetSelection.getOrDefault(it.key, true) }
 
         class ChartInfoCollector(
             val popupCollector: StringBuilder = StringBuilder(),
@@ -119,23 +119,23 @@ class ChartActivity : BaseActivity(), ChartScreen, OnChartValueSelectedListener 
 
         val totalsMap = mutableMapOf<Float, ChartInfoCollector>()
 
-        val v = filteredTotals.flatMap { entry ->
+        val flattenedSpendings = displayableSpendings.flatMap { entry ->
             entry.value.map { Triple(it.x, entry.key, it.y) }
         }.sortedByDescending { it.third }
-        v.forEach { (x, category, amount) ->
+        flattenedSpendings.forEach { (x, category, amount) ->
             totalsMap[x] = (totalsMap[x] ?: ChartInfoCollector()).apply {
                 popupCollector.append("$category: $amount\n")
                 total += amount
             }
         }
         val totals = totalsMap
-            .map { (x, y) ->
+            .map { (x, chartInfoCollector) ->
                 val info = ChartInfo(
-                    infoPopupText = y.popupCollector.toString(),
-                    pointLabel = y.total.roundToInt().toString(),
+                    infoPopupText = chartInfoCollector.popupCollector.toString(),
+                    pointLabel = chartInfoCollector.total.roundToInt().toString(),
                     spendigId = -1
                 )
-                Entry(x, y.total, info)
+                Entry(x, chartInfoCollector.total, info)
             }
         totalDataSet = LineDataSet(totals.sortedBy { it.x }, "Total")
             .apply {
@@ -145,8 +145,8 @@ class ChartActivity : BaseActivity(), ChartScreen, OnChartValueSelectedListener 
         if (dataSetSelection.getOrDefault("TOTALS", true)) {
             chart.lineData.addDataSet(totalDataSet)
         }
-        dataSet.keys.forEachIndexed { index, type ->
-            dataSet[type]?.let {
+        spendings.keys.forEachIndexed { index, type ->
+            spendings[type]?.let {
                 LineDataSet(it, type).apply {
                     val color = formatLineDataSet(this, index + 1)
                     dataSetMap[type] = Pair(color, this)
@@ -166,11 +166,11 @@ class ChartActivity : BaseActivity(), ChartScreen, OnChartValueSelectedListener 
         }
         categories_container.removeAllViews()
         addCheckBox("TOTALS", "Total", true)
-        ApiSpending.Category.values().filter { dataSet.keys.contains(it.toString()) }.forEach { category ->
-            addCheckBox(category.toString(), category.toString(), true)
+        DBSpending.Category.values().filter { spendings.keys.contains(it.label) }.forEach { category ->
+            addCheckBox(category.label, category.label, true)
         }
-        ApiSpending.Category.values().filter { !dataSet.keys.contains(it.toString()) }.forEach { category ->
-            addCheckBox(category.toString(), category.toString(), false)
+        DBSpending.Category.values().filter { !spendings.keys.contains(it.label) }.forEach { category ->
+            addCheckBox(category.label, category.label, false)
         }
     }
 

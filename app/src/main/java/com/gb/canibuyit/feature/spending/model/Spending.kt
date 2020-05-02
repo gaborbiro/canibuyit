@@ -1,10 +1,10 @@
 package com.gb.canibuyit.feature.spending.model
 
-import com.gb.canibuyit.feature.spending.persistence.model.ApiSpending
-import com.gb.canibuyit.feature.spending.persistence.model.ApiSpending.Cycle.DAYS
-import com.gb.canibuyit.feature.spending.persistence.model.ApiSpending.Cycle.MONTHS
-import com.gb.canibuyit.feature.spending.persistence.model.ApiSpending.Cycle.WEEKS
-import com.gb.canibuyit.feature.spending.persistence.model.ApiSpending.Cycle.YEARS
+import com.gb.canibuyit.feature.spending.persistence.model.DBSpending
+import com.gb.canibuyit.feature.spending.persistence.model.DBSpending.Cycle.DAYS
+import com.gb.canibuyit.feature.spending.persistence.model.DBSpending.Cycle.MONTHS
+import com.gb.canibuyit.feature.spending.persistence.model.DBSpending.Cycle.WEEKS
+import com.gb.canibuyit.feature.spending.persistence.model.DBSpending.Cycle.YEARS
 import com.gb.canibuyit.util.max
 import com.gb.canibuyit.util.min
 import java.math.BigDecimal
@@ -17,7 +17,7 @@ import java.util.Arrays
 class Spending(var id: Int? = null,
                var name: String,
                var notes: String? = null,
-               var type: ApiSpending.Category,
+               var type: DBSpending.Category,
                var value: BigDecimal,
                /**
                 * Date before witch the transaction certainly won't happen. The repetition cycle
@@ -37,7 +37,7 @@ class Spending(var id: Int? = null,
                 * Ex: The first week of every month, cold months of the year, every weekend, every
                 * semester
                 */
-               var cycle: ApiSpending.Cycle,
+               var cycle: DBSpending.Cycle,
                var enabled: Boolean,
                var sourceData: Map<String, String>? = null,
                var spent: BigDecimal,
@@ -137,9 +137,9 @@ class Spending(var id: Int? = null,
         get() = id != null
 }
 
-operator fun Int.times(cycle: ApiSpending.Cycle) = Pair(this, cycle)
+operator fun Int.times(cycle: DBSpending.Cycle) = Pair(this, cycle)
 
-operator fun LocalDate.plus(cycle: Pair<Int, ApiSpending.Cycle>): LocalDate {
+operator fun LocalDate.plus(cycle: Pair<Int, DBSpending.Cycle>): LocalDate {
     val multiplier = cycle.first.toLong()
     return when (cycle.second) {
         DAYS -> this.plusDays(multiplier)
@@ -149,7 +149,7 @@ operator fun LocalDate.plus(cycle: Pair<Int, ApiSpending.Cycle>): LocalDate {
     }
 }
 
-fun ApiSpending.Cycle.toMonths(): Double = when (this) {
+fun DBSpending.Cycle.toMonths(): Double = when (this) {
     DAYS -> 0.0328731097961867
     WEEKS -> 0.2301368854194475
     MONTHS -> 1.0
@@ -159,7 +159,7 @@ fun ApiSpending.Cycle.toMonths(): Double = when (this) {
 /**
  * How many times the specified cycle fits between the specified start and end dates.
  */
-operator fun Pair<LocalDate, LocalDate>.div(cycle: ApiSpending.Cycle): Float {
+operator fun Pair<LocalDate, LocalDate>.div(cycle: DBSpending.Cycle): Float {
     return when (cycle) {
         DAYS -> (second.toEpochDay() - first.toEpochDay()).toFloat()
         WEEKS -> this / DAYS / 7f
@@ -171,11 +171,11 @@ operator fun Pair<LocalDate, LocalDate>.div(cycle: ApiSpending.Cycle): Float {
 private fun LocalDate.monthsSinceYear0() =
     this.year * 12 + (this.monthValue - 1) + this.dayOfMonth.toFloat() / 32
 
-fun Pair<Pair<LocalDate, LocalDate>, Pair<LocalDate, LocalDate>>.overlap(cycle: ApiSpending.Cycle) =
+fun Pair<Pair<LocalDate, LocalDate>, Pair<LocalDate, LocalDate>>.overlap(cycle: DBSpending.Cycle) =
     Pair(max(this.first.first, this.second.first),
         min(this.first.second, this.second.second)) / cycle
 
-fun ApiSpending.Cycle.ordinal(date: LocalDate)
+fun DBSpending.Cycle.ordinal(date: LocalDate)
     : Int = when (this) {
     DAYS -> date.toEpochDay().toInt()
     WEEKS -> (date.with(DayOfWeek.MONDAY).toEpochDay() / 7).toInt()
@@ -183,14 +183,14 @@ fun ApiSpending.Cycle.ordinal(date: LocalDate)
     YEARS -> date.year
 }
 
-fun LocalDate.firstCycleDay(cycle: ApiSpending.Cycle): LocalDate = when (cycle) {
+fun LocalDate.firstCycleDay(cycle: DBSpending.Cycle): LocalDate = when (cycle) {
     DAYS -> this
     WEEKS -> this.with(DayOfWeek.MONDAY)
     MONTHS -> this.withDayOfMonth(1)
     YEARS -> this.withMonth(1).withDayOfMonth(1)
 }.atStartOfDay().plusDays(1).minusNanos(1).toLocalDate()
 
-fun LocalDate.lastCycleDay(cycle: ApiSpending.Cycle): LocalDate = when (cycle) {
+fun LocalDate.lastCycleDay(cycle: DBSpending.Cycle): LocalDate = when (cycle) {
     DAYS -> this
     WEEKS -> this.with(DayOfWeek.SUNDAY)
     MONTHS -> this.with(lastDayOfMonth())

@@ -3,9 +3,9 @@ package com.gb.canibuyit.feature.spending.data
 import com.gb.canibuyit.feature.spending.model.CycleSpending
 import com.gb.canibuyit.feature.spending.model.Saving
 import com.gb.canibuyit.feature.spending.model.Spending
-import com.gb.canibuyit.feature.spending.persistence.model.ApiCycleSpending
-import com.gb.canibuyit.feature.spending.persistence.model.ApiSaving
-import com.gb.canibuyit.feature.spending.persistence.model.ApiSpending
+import com.gb.canibuyit.feature.spending.persistence.model.DBCycleSpending
+import com.gb.canibuyit.feature.spending.persistence.model.DBSaving
+import com.gb.canibuyit.feature.spending.persistence.model.DBSpending
 import com.gb.canibuyit.util.fromJson
 import com.google.gson.Gson
 import java.math.BigDecimal
@@ -14,26 +14,26 @@ import javax.inject.Inject
 
 class SpendingMapper @Inject constructor(private val gson: Gson) {
 
-    fun map(apiSpending: ApiSpending): Spending {
+    fun map(dbSpending: DBSpending): Spending {
         return Spending(
-            id = apiSpending.id,
-            name = apiSpending.name!!,
-            notes = apiSpending.notes,
-            type = apiSpending.type!!,
-            value = apiSpending.value!!,
-            fromStartDate = apiSpending.fromStartDate!!,
-            fromEndDate = apiSpending.fromEndDate!!,
-            occurrenceCount = apiSpending.occurrenceCount,
-            cycleMultiplier = apiSpending.cycleMultiplier!!,
-            cycle = apiSpending.cycle!!,
-            sourceData = mapSourceData(apiSpending.sourceData),
-            enabled = apiSpending.enabled!!,
-            spent = apiSpending.spent ?: BigDecimal.ZERO,
-            cycleSpendings = apiSpending.cycleSpendings?.map(this::map),
-            targets = apiSpending.targets?.let {
+            id = dbSpending.id,
+            name = dbSpending.name!!,
+            notes = dbSpending.notes,
+            type = dbSpending.type!!,
+            value = dbSpending.value!!,
+            fromStartDate = dbSpending.fromStartDate!!,
+            fromEndDate = dbSpending.fromEndDate!!,
+            occurrenceCount = dbSpending.occurrenceCount,
+            cycleMultiplier = dbSpending.cycleMultiplier!!,
+            cycle = dbSpending.cycle!!,
+            sourceData = mapSourceData(dbSpending.sourceData),
+            enabled = dbSpending.enabled!!,
+            spent = dbSpending.spent ?: BigDecimal.ZERO,
+            cycleSpendings = dbSpending.cycleSpendings?.map(this::map),
+            targets = dbSpending.targets?.let {
                 gson.fromJson<MutableMap<LocalDate, Int>>(it)
             },
-            savings = apiSpending.savings?.map(this::map)?.toTypedArray()
+            savings = dbSpending.savings?.map(this::map)?.toTypedArray()
         ).apply {
             if (savings?.isEmpty() == true) {
                 savings = null
@@ -44,8 +44,8 @@ class SpendingMapper @Inject constructor(private val gson: Gson) {
     /**
      * Note, savings are omitted. Those need to be stored separately with the SavingRepository
      */
-    fun map(spending: Spending): ApiSpending {
-        return ApiSpending(
+    fun map(spending: Spending): DBSpending {
+        return DBSpending(
             id = spending.id,
             name = spending.name,
             notes = spending.notes,
@@ -62,21 +62,21 @@ class SpendingMapper @Inject constructor(private val gson: Gson) {
             targets = spending.targets?.let { gson.toJson(it) })
     }
 
-    fun map(apiSpentByCycle: ApiCycleSpending): CycleSpending =
+    fun map(dbCycleSpending: DBCycleSpending): CycleSpending =
         CycleSpending(
-            id = apiSpentByCycle.id!!,
-            spendingId = apiSpentByCycle.spending?.id!!,
-            from = apiSpentByCycle.from!!,
-            to = apiSpentByCycle.to!!,
-            amount = apiSpentByCycle.amount!!,
-            target = apiSpentByCycle.target,
-            count = apiSpentByCycle.count!!
+            id = dbCycleSpending.id!!,
+            spendingId = dbCycleSpending.spending?.id!!,
+            from = dbCycleSpending.from!!,
+            to = dbCycleSpending.to!!,
+            amount = dbCycleSpending.amount!!,
+            target = dbCycleSpending.target,
+            count = dbCycleSpending.count!!
         )
 
-    fun map(cycleSpending: CycleSpending, apiSpending: ApiSpending): ApiCycleSpending =
-        ApiCycleSpending(
+    fun map(cycleSpending: CycleSpending, dbSpending: DBSpending): DBCycleSpending =
+        DBCycleSpending(
             id = cycleSpending.id,
-            spending = apiSpending,
+            spending = dbSpending,
             from = cycleSpending.from,
             to = cycleSpending.to,
             amount = cycleSpending.amount,
@@ -84,19 +84,19 @@ class SpendingMapper @Inject constructor(private val gson: Gson) {
             count = cycleSpending.count
         )
 
-    fun map(apiSaving: ApiSaving): Saving {
+    fun map(dbSaving: DBSaving): Saving {
         return Saving(
-            id = apiSaving.id!!,
-            spendingId = apiSaving.spending?.id!!,
-            amount = apiSaving.amount!!,
-            created = apiSaving.created!!,
-            target = apiSaving.target!!)
+            id = dbSaving.id!!,
+            spendingId = dbSaving.spending?.id!!,
+            amount = dbSaving.amount!!,
+            created = dbSaving.created!!,
+            target = dbSaving.target!!)
     }
 
-    fun map(saving: Saving, apiSpending: ApiSpending): ApiSaving {
-        return ApiSaving(
+    fun map(saving: Saving, dbSpending: DBSpending): DBSaving {
+        return DBSaving(
             id = saving.id,
-            spending = apiSpending,
+            spending = dbSpending,
             amount = saving.amount,
             created = saving.created,
             target = saving.target)

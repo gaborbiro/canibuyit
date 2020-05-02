@@ -5,13 +5,13 @@ import android.view.View
 import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentManager
 import com.gb.canibuyit.base.view.PromptDialog
-import com.gb.canibuyit.feature.spending.persistence.model.ApiSpending
+import com.gb.canibuyit.feature.spending.persistence.model.DBSpending
 import com.gb.canibuyit.util.eitherOrNull
 import com.gb.canibuyit.util.setSubtextWithLinks
 import kotlinx.android.synthetic.main.prompt_dialog_layout.*
 import java.io.Serializable
 
-class BalanceBreakdown(val spendings: Array<Pair<ApiSpending.Category, String>>,
+class BalanceBreakdown(val spendings: Array<Pair<DBSpending.Category, String>>,
                        val totalIncome: String?,
                        val totalExpense: String?) : Serializable
 
@@ -63,7 +63,7 @@ class BalanceBreakdownDialog : PromptDialog() {
 }
 
 interface BalanceBreakdownDialogCallback {
-    fun onBalanceBreakdownItemClicked(category: ApiSpending.Category)
+    fun onBalanceBreakdownItemClicked(category: DBSpending.Category)
 }
 
 private const val EXTRA_BREAKDOWN_KEY = "EXTRA_BREAKDOWN_KEY"

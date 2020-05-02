@@ -8,13 +8,13 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 @DatabaseTable(tableName = Contract.Savings.TABLE)
-class ApiSaving(
+class DBSaving(
 
     @DatabaseField(generatedId = true, columnName = Contract.Project._ID, canBeNull = false)
     var id: Int? = null,
 
     @DatabaseField(columnName = Contract.Savings.SPENDING, canBeNull = false, foreign = true)
-    var spending: ApiSpending? = null,
+    var spending: DBSpending? = null,
 
     @DatabaseField(columnName = Contract.Savings.AMOUNT, canBeNull = false)
     var amount: BigDecimal? = null,

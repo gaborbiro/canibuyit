@@ -7,9 +7,9 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteException
 import com.gb.canibuyit.feature.monzo.MONZO_CATEGORY
 import com.gb.canibuyit.feature.project.model.ApiProject
-import com.gb.canibuyit.feature.spending.persistence.model.ApiCycleSpending
-import com.gb.canibuyit.feature.spending.persistence.model.ApiSaving
-import com.gb.canibuyit.feature.spending.persistence.model.ApiSpending
+import com.gb.canibuyit.feature.spending.persistence.model.DBCycleSpending
+import com.gb.canibuyit.feature.spending.persistence.model.DBSaving
+import com.gb.canibuyit.feature.spending.persistence.model.DBSpending
 import com.j256.ormlite.android.apptools.OrmLiteSqliteOpenHelper
 import com.j256.ormlite.support.ConnectionSource
 import com.j256.ormlite.table.TableUtils
@@ -26,10 +26,10 @@ constructor(appContext: Context) :
 
     override fun onCreate(database: SQLiteDatabase, connectionSource: ConnectionSource) {
         try {
-            TableUtils.createTable(connectionSource, ApiSpending::class.java)
+            TableUtils.createTable(connectionSource, DBSpending::class.java)
             TableUtils.createTable(connectionSource, ApiProject::class.java)
-            TableUtils.createTable(connectionSource, ApiSaving::class.java)
-            TableUtils.createTable(connectionSource, ApiCycleSpending::class.java)
+            TableUtils.createTable(connectionSource, DBSaving::class.java)
+            TableUtils.createTable(connectionSource, DBCycleSpending::class.java)
         } catch (e: SQLException) {
             e.printStackTrace()
         }

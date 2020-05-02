@@ -42,9 +42,9 @@ class ChartPresenter @Inject constructor(private val spendingInteractor: Spendin
                     val minMonth = monthMap.keys.min()!!
                     val maxMonth = monthMap.keys.max()!!
 
-                    val dataSet: MutableMap<String, List<Entry>> = mutableMapOf()
+                    val dataSet: MutableMap<String, List<Entry>> = mutableMapOf() // Category -> [month, spending]
                     spendingMap.forEach { (spendingId: Int, categorySpending: Map<Int, BigDecimal>) ->
-                        val type = spendingIds[spendingId]!!.type.toString()
+                        val type = spendingIds[spendingId]!!.type.label
                         val entries = mutableListOf<Entry>()
                         categorySpending.forEach { (month: Int, amount: BigDecimal) ->
                             val value = -amount.toFloat()
@@ -52,7 +52,7 @@ class ChartPresenter @Inject constructor(private val spendingInteractor: Spendin
                             val xValue = (month - minMonth).toFloat()
                             entries.add(
                                 Entry(xValue, value,
-                                    ChartInfo(infoPopupText = "$type: $formattedValue",
+                                    ChartInfo(infoPopupText = "${type}: $formattedValue",
                                         pointLabel = "${type.substring((0..2))}: $formattedValue",
                                         spendigId = spendingId)))
                         }

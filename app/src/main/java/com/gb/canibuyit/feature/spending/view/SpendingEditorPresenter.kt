@@ -11,7 +11,7 @@ import com.gb.canibuyit.feature.project.data.ProjectInteractor
 import com.gb.canibuyit.feature.spending.data.SpendingInteractor
 import com.gb.canibuyit.feature.spending.model.CycleSpending
 import com.gb.canibuyit.feature.spending.model.Spending
-import com.gb.canibuyit.feature.spending.persistence.model.ApiSpending
+import com.gb.canibuyit.feature.spending.persistence.model.DBSpending
 import com.gb.canibuyit.util.bold
 import io.reactivex.disposables.Disposable
 import java.time.format.DateTimeFormatter
@@ -67,7 +67,7 @@ class SpendingEditorPresenter @Inject constructor(
         }, this::onError))
     }
 
-    fun onViewSpentByCycleDetails(cycleSpending: CycleSpending, category: ApiSpending.Category) {
+    fun onViewSpentByCycleDetails(cycleSpending: CycleSpending, category: DBSpending.Category) {
         disposable?.dispose()
         var cycleSpentText = cycleSpending.run { "$from - $to: $amount" }
 

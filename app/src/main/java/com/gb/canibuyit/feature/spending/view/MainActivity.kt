@@ -21,7 +21,7 @@ import com.gb.canibuyit.feature.dispatch.view.DispatchPresenter
 import com.gb.canibuyit.feature.dispatch.view.DispatchScreen
 import com.gb.canibuyit.feature.monzo.view.LoginActivity
 import com.gb.canibuyit.feature.spending.data.Balance
-import com.gb.canibuyit.feature.spending.persistence.model.ApiSpending
+import com.gb.canibuyit.feature.spending.persistence.model.DBSpending
 import com.gb.canibuyit.feature.spending.ui.BalanceBreakdown
 import com.gb.canibuyit.feature.spending.ui.BalanceBreakdownDialog
 import com.gb.canibuyit.feature.spending.ui.BalanceBreakdownDialogCallback
@@ -324,7 +324,7 @@ class MainActivity : BaseActivity(), MainScreen, DispatchScreen,
             .show(supportFragmentManager, null)
     }
 
-    override fun onBalanceBreakdownItemClicked(category: ApiSpending.Category) {
+    override fun onBalanceBreakdownItemClicked(category: DBSpending.Category) {
         presenter.onBalanceBreakdownItemClicked(category)
     }
 

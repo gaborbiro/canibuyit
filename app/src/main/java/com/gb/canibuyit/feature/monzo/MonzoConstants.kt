@@ -6,7 +6,7 @@ const val CLIENT_SECRET =
 
 const val ACCOUNT_ID_RETAIL = "acc_00009OlZSKsjVzXiCZVXwv"
 
-const val TRANSACTION_HISTORY_LENGTH_DAYS = 89
+const val TRANSACTION_HISTORY_LENGTH_DAYS = 90 // Monzo doesn't allow more than 3 months
 
 // Auth
 

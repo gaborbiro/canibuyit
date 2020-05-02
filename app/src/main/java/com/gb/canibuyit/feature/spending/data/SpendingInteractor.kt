@@ -7,7 +7,7 @@ import com.gb.canibuyit.error.DomainException
 import com.gb.canibuyit.feature.monzo.MONZO_CATEGORY
 import com.gb.canibuyit.feature.monzo.data.MonzoInteractor
 import com.gb.canibuyit.feature.spending.model.Spending
-import com.gb.canibuyit.feature.spending.persistence.model.ApiSpending
+import com.gb.canibuyit.feature.spending.persistence.model.DBSpending
 import com.gb.canibuyit.feature.spending.ui.BalanceBreakdown
 import io.reactivex.Completable
 import io.reactivex.Maybe
@@ -136,7 +136,7 @@ constructor(private val spendingsRepository: SpendingsRepository,
         return spendingsRepository.getSavingsBreakdown()
     }
 
-    fun getBalanceBreakdownCategoryDetails(category: ApiSpending.Category): String? {
+    fun getBalanceBreakdownCategoryDetails(category: DBSpending.Category): String? {
         return spendingsRepository.getBalanceBreakdownCategoryDetails(category)
     }
 }

@@ -20,7 +20,7 @@ import com.gb.canibuyit.feature.spending.model.CycleSpending
 import com.gb.canibuyit.feature.spending.model.Spending
 import com.gb.canibuyit.feature.spending.model.plus
 import com.gb.canibuyit.feature.spending.model.times
-import com.gb.canibuyit.feature.spending.persistence.model.ApiSpending
+import com.gb.canibuyit.feature.spending.persistence.model.DBSpending
 import com.gb.canibuyit.feature.spending.ui.InfoMarkerView
 import com.gb.canibuyit.feature.spending.ui.PlusOneAdapter
 import com.gb.canibuyit.feature.spending.ui.ValidationError
@@ -87,7 +87,7 @@ class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen, OnChartValu
         val fromStartDate = period_date_picker.startDate
         val fromEndDate = period_date_picker.endDate
         val cycle =
-            if (cycle_picker.selectedItem is ApiSpending.Cycle) cycle_picker.selectedItem as ApiSpending.Cycle else throw ValidationError(
+            if (cycle_picker.selectedItem is DBSpending.Cycle) cycle_picker.selectedItem as DBSpending.Cycle else throw ValidationError(
                 ValidationError.TYPE_NON_INPUT_FIELD, null,
                 "Please select a cycle")
         if (fromStartDate > fromEndDate) {
@@ -119,7 +119,7 @@ class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen, OnChartValu
                     name_input,
                     "Please specify a name"),
             notes = notes_input.text.orNull()?.toString(),
-            type = if (category_picker.selectedItem is ApiSpending.Category) category_picker.selectedItem as ApiSpending.Category else throw ValidationError(
+            type = if (category_picker.selectedItem is DBSpending.Category) category_picker.selectedItem as DBSpending.Category else throw ValidationError(
                 ValidationError.TYPE_NON_INPUT_FIELD,
                 null, "Please select a category"),
             value = valueStr.toBigDecimal(),
@@ -195,10 +195,10 @@ class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen, OnChartValu
         super.onViewCreated(view, savedInstanceState)
         rootView = view as ViewGroup
 
-        category_picker.adapter = PlusOneAdapter(activity!!, ApiSpending.Category.values())
+        category_picker.adapter = PlusOneAdapter(activity!!, DBSpending.Category.values())
         category_picker.setOnTouchListener(keyboardDismisser)
 
-        cycle_picker.adapter = PlusOneAdapter(activity!!, ApiSpending.Cycle.values())
+        cycle_picker.adapter = PlusOneAdapter(activity!!, DBSpending.Cycle.values())
         cycle_picker.setOnTouchListener(keyboardDismisser)
 
         arguments?.let {
@@ -495,13 +495,13 @@ class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen, OnChartValu
     private fun isEmpty(): Boolean {
         return name_input.text.isEmpty() &&
             notes_input.text.isEmpty() &&
-            category_picker.selectedItem !is ApiSpending.Category &&
+            category_picker.selectedItem !is DBSpending.Category &&
             average_input.text.isEmpty() &&
             !period_date_picker.isStartDateChanged &&
             !period_date_picker.isEndDateChanged &&
             occurrence_count_input.text.isEmpty() &&
             cycle_multiplier_input.text.toString() == "1" &&
-            cycle_picker.selectedItem !is ApiSpending.Cycle &&
+            cycle_picker.selectedItem !is DBSpending.Cycle &&
             !enabled_switch.isChecked &&
             target_input.text.isEmpty()
     }

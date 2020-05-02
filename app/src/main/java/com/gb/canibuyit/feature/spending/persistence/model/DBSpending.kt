@@ -15,7 +15,7 @@ import java.time.LocalDate
  * doesn't need to know the exact moment of payment.
  */
 @DatabaseTable(tableName = Contract.Spending.TABLE)
-class ApiSpending(
+class DBSpending(
 
     @DatabaseField(generatedId = true, columnName = Contract.Spending._ID, canBeNull = false)
     var id: Int? = null,
@@ -58,17 +58,17 @@ class ApiSpending(
     var spent: BigDecimal? = null,
 
     @ForeignCollectionField(eager = true, columnName = Contract.Spending.CYCLE_SPENT)
-    var cycleSpendings: ForeignCollection<ApiCycleSpending>? = null,
+    var cycleSpendings: ForeignCollection<DBCycleSpending>? = null,
 
     @DatabaseField(columnName = Contract.Spending.TARGETS, canBeNull = true)
     var targets: String? = null,
 
     @ForeignCollectionField(eager = true, columnName = Contract.Spending.SAVINGS)
-    var savings: ForeignCollection<ApiSaving>? = null
+    var savings: ForeignCollection<DBSaving>? = null
 ) {
 
     override fun toString(): String {
-        return "ApiSpending(id=$id, name='$name', notes=$notes, type=$type, value=$value, fromStartDate=$fromStartDate, fromEndDate=$fromEndDate, occurrenceCount=$occurrenceCount, cycleMultiplier=$cycleMultiplier, cycle=$cycle, enabled=$enabled, sourceData=$sourceData, spent=$spent, target=$targets, savings=$savings)"
+        return "DBSpending(id=$id, name='$name', notes=$notes, type=$type, value=$value, fromStartDate=$fromStartDate, fromEndDate=$fromEndDate, occurrenceCount=$occurrenceCount, cycleMultiplier=$cycleMultiplier, cycle=$cycle, enabled=$enabled, sourceData=$sourceData, spent=$spent, target=$targets, savings=$savings)"
     }
 
     enum class Category(val defaultEnabled: Boolean = true) {
@@ -104,9 +104,8 @@ class ApiSpending(
         POT,
         WORK;
 
-        override fun toString(): String {
-            return name.toLowerCase()
-        }
+        val label: String
+            get() = name.toLowerCase()
     }
 
     enum class Cycle(val strRes: Int) {

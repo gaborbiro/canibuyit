@@ -8,7 +8,7 @@ import com.gb.canibuyit.feature.dispatch.di.DispatchModule
 import com.gb.canibuyit.feature.monzo.di.MonzoModule
 import com.gb.canibuyit.feature.project.model.ApiProject
 import com.gb.canibuyit.feature.spending.persistence.SpendingDBHelper
-import com.gb.canibuyit.feature.spending.persistence.model.ApiSpending
+import com.gb.canibuyit.feature.spending.persistence.model.DBSpending
 import com.gb.canibuyit.util.LocalDateSerializer
 import com.gb.prefsutil.PrefsUtil
 import com.google.gson.Gson
@@ -39,8 +39,8 @@ class CanIBuyItModule {
 
     @Singleton
     @Provides
-    fun provideSpendingDao(spendingDBHelper: SpendingDBHelper): Dao<ApiSpending, Int> {
-        return spendingDBHelper.getDao<Dao<ApiSpending, Int>, ApiSpending>(ApiSpending::class.java)
+    fun provideSpendingDao(spendingDBHelper: SpendingDBHelper): Dao<DBSpending, Int> {
+        return spendingDBHelper.getDao<Dao<DBSpending, Int>, DBSpending>(DBSpending::class.java)
     }
 
     @Provides

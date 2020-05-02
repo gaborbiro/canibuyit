@@ -4,7 +4,7 @@ import com.gb.canibuyit.UserPreferences
 import com.gb.canibuyit.error.DomainException
 import com.gb.canibuyit.feature.spending.model.Spending
 import com.gb.canibuyit.feature.spending.persistence.Contract
-import com.gb.canibuyit.feature.spending.persistence.model.ApiSpending
+import com.gb.canibuyit.feature.spending.persistence.model.DBSpending
 import com.gb.canibuyit.feature.spending.ui.BalanceBreakdown
 import com.gb.canibuyit.util.formatDayMonth
 import com.gb.canibuyit.util.formatDayMonthYear
@@ -24,7 +24,7 @@ import javax.inject.Singleton
 
 @Singleton
 class SpendingsRepository @Inject
-constructor(private val dao: Dao<ApiSpending, Int>,
+constructor(private val dao: Dao<DBSpending, Int>,
             private val mapper: SpendingMapper,
             private val prefs: UserPreferences,
             private val gson: Gson) {
@@ -45,12 +45,12 @@ constructor(private val dao: Dao<ApiSpending, Int>,
     fun createOrUpdate(spending: Spending): Completable {
         return Completable.create { emitter ->
             try {
-                val apiSpending = mapper.map(spending)
-                dao.createOrUpdate(apiSpending)
+                val dbSpending = mapper.map(spending)
+                dao.createOrUpdate(dbSpending)
                 emitter.onComplete()
-                spending.id = apiSpending.id
-                saveSavings(spending, apiSpending)
-                saveCycleSpendings(spending, apiSpending)
+                spending.id = dbSpending.id
+                saveSavings(spending, dbSpending)
+                saveCycleSpendings(spending, dbSpending)
             } catch (e: SQLException) {
                 emitter.onError(e)
             }
@@ -60,29 +60,31 @@ constructor(private val dao: Dao<ApiSpending, Int>,
     fun createOrUpdateSpendings(remoteSpendings: List<Spending>, remoteCategoryKey: String): Completable {
         return Completable.create { emitter ->
             val savedSpendings = dao.queryForAll()
-            val savedRemoteCategories: MutableList<String?> = savedSpendings
-                .mapNotNull {
+            val savedRemoteCategories: MutableMap<String?, Int> = savedSpendings.associateBy {
                     mapper.mapSourceData(it.sourceData)?.get(remoteCategoryKey)
                 }
-                .sortedBy { it }
-                .toMutableList()
+                .mapValues {
+                    it.value.id!!
+                }
+                .toMutableMap()
             try {
-                remoteSpendings.forEach { spending ->
-                    val remoteCategory = spending.sourceData!![remoteCategoryKey]
+                remoteSpendings.forEach { remoteSpending ->
+                    val remoteCategory = remoteSpending.sourceData!![remoteCategoryKey]
 
                     // find the saved spending that has the same remote category as the current remote spending
                     // Note: no two remote spending should have the same remote category, so there will only be one match
-                    val exists = savedRemoteCategories.remove(remoteCategory)
+                    val id = savedRemoteCategories.remove(remoteCategory)
 
-                    val apiSpending = mapper.map(spending)
-                    if (exists) {
-                        dao.update(apiSpending)
-                    } else {
-                        dao.create(apiSpending)
-                        spending.id = apiSpending.id
+                    val dbSpending = mapper.map(remoteSpending).also {
+                        it.id = id
                     }
-                    saveSavings(spending, apiSpending)
-                    saveCycleSpendings(spending, apiSpending)
+                    if (id == null) {
+                        dao.create(dbSpending)
+                    } else {
+                        dao.update(dbSpending)
+                    }
+                    saveSavings(remoteSpending, dbSpending)
+                    saveCycleSpendings(remoteSpending, dbSpending)
                 }
                 // Disable leftovers (spendings that are no longer received)
                 // This can happen when the user retroactively re-categorizes some spendings,
@@ -103,21 +105,21 @@ constructor(private val dao: Dao<ApiSpending, Int>,
         }
     }
 
-    private fun saveSavings(spending: Spending, apiSpending: ApiSpending) {
-        dao.assignEmptyForeignCollection(apiSpending, Contract.Spending.SAVINGS)
-        apiSpending.savings?.let { foreignCollection ->
+    private fun saveSavings(spending: Spending, dbSpending: DBSpending) {
+        dao.assignEmptyForeignCollection(dbSpending, Contract.Spending.SAVINGS)
+        dbSpending.savings?.let { foreignCollection ->
             foreignCollection.clear()
-            spending.savings?.map { mapper.map(it, apiSpending) }?.asIterable()?.also {
+            spending.savings?.map { mapper.map(it, dbSpending) }?.asIterable()?.also {
                 foreignCollection.addAll(it)
             }
         }
     }
 
-    private fun saveCycleSpendings(spending: Spending, apiSpending: ApiSpending) {
-        dao.assignEmptyForeignCollection(apiSpending, Contract.Spending.CYCLE_SPENT)
-        apiSpending.cycleSpendings?.let { foreignCollection ->
+    private fun saveCycleSpendings(spending: Spending, dbSpending: DBSpending) {
+        dao.assignEmptyForeignCollection(dbSpending, Contract.Spending.CYCLE_SPENT)
+        dbSpending.cycleSpendings?.let { foreignCollection ->
             foreignCollection.clear()
-            spending.cycleSpendings?.map { mapper.map(it, apiSpending) }?.asIterable()?.also {
+            spending.cycleSpendings?.map { mapper.map(it, dbSpending) }?.asIterable()?.also {
                 foreignCollection.addAll(it)
             }
         }
@@ -176,7 +178,7 @@ constructor(private val dao: Dao<ApiSpending, Int>,
         return Observable.create<Spending> { emitter ->
             try {
                 dao.queryForAll().map {
-                    Pair<ApiSpending, Map<String, String>?>(
+                    Pair<DBSpending, Map<String, String>?>(
                         it,
                         it.sourceData?.let {
                             gson.fromJson<Map<String, String>>(it)
@@ -215,29 +217,30 @@ constructor(private val dao: Dao<ApiSpending, Int>,
     fun getBalanceBreakdown(): BalanceBreakdown {
         var totalIncomeStr: String? = null
         var totalExpenseStr: String? = null
-        val result = mutableListOf<Pair<ApiSpending.Category, String>>()
+        val result = mutableListOf<Pair<DBSpending.Category, String>>()
         prefs.balanceReading?.let { reading ->
             val startDate = reading.date
             val endDate = prefs.estimateDate
             val totalExpense =
-                calculateTotalBalanceExceptForCategory(omittedCategory = ApiSpending.Category.INCOME, startDate = startDate, endDate = endDate)
+                calculateTotalBalanceExceptForCategory(omittedCategory = DBSpending.Category.INCOME, startDate = startDate, endDate = endDate)
             try {
-                ApiSpending.Category.values()
+                DBSpending.Category.values()
                     .map { Pair(it, calculateBalanceForCategory(it, startDate, endDate)) }
                     .filter { it.second.amount != 0f }
                     .sortedByDescending { Math.abs(it.second.amount) }
                     .forEach { (category, balance) ->
-                        val name = balance.spending?.name ?: category.name.substring(0, Math.min(10, category.name.length)).toLowerCase().capitalize()
+                        val name = balance.spending?.name
+                            ?: category.name.substring(0, Math.min(10, category.name.length)).toLowerCase().capitalize()
                         val amount: String = "%1\$.0f".format(balance.amount)
 
-                        result.add(Pair(category, if (category != ApiSpending.Category.INCOME) {
+                        result.add(Pair(category, if (category != DBSpending.Category.INCOME) {
                             val percent = balance.amount / totalExpense.amount * 100
                             "%1\$s: %2\$s (%3\$.1f%%)".format(name, amount, percent)
                         } else {
                             "%1\$s: %2\$s".format(name, amount)
                         }))
                     }
-                val totalIncome = calculateBalanceForCategory(category = ApiSpending.Category.INCOME, startDate = startDate, endDate = endDate)
+                val totalIncome = calculateBalanceForCategory(category = DBSpending.Category.INCOME, startDate = startDate, endDate = endDate)
                 totalIncomeStr = "Tots. in: ${totalIncome.amount}"
                 totalExpenseStr = "Tots. out: ${totalExpense.amount}"
             } catch (e: Throwable) {
@@ -257,14 +260,15 @@ constructor(private val dao: Dao<ApiSpending, Int>,
             val endDate = prefs.estimateDate
             var hasNegAmounts = false
             try {
-                ApiSpending.Category.values()
+                DBSpending.Category.values()
                     .map { Pair(it, calculateBalanceForCategory(it, startDate, endDate)) }
                     .filter { (it.second.target - it.second.amount) != 0f }
                     .sortedByDescending { Math.abs(it.second.target) }
                     .joinTo(buffer = buffer, separator = "\n", transform = { (category, balance) ->
                         val amount = balance.amount
                         val target = balance.target
-                        val name = balance.spending?.name ?: category.name.substring(0, Math.min(12, category.name.length)).toLowerCase().capitalize()
+                        val name = balance.spending?.name
+                            ?: category.name.substring(0, Math.min(12, category.name.length)).toLowerCase().capitalize()
                         val saving = target - amount
                         val amountStr = "%1\$.2f".format(saving)
                         if (saving > 0) {
@@ -278,7 +282,7 @@ constructor(private val dao: Dao<ApiSpending, Int>,
                 throw DomainException("Date of balance reading must not come after date of target estimate", e)
             }
             val balance = calculateTotalBalanceExceptForCategory(
-                omittedCategory = ApiSpending.Category.INCOME,
+                omittedCategory = DBSpending.Category.INCOME,
                 startDate = startDate,
                 endDate = endDate)
             val amount = balance.target - balance.amount
@@ -292,7 +296,7 @@ constructor(private val dao: Dao<ApiSpending, Int>,
         return buffer.toString()
     }
 
-    fun getBalanceBreakdownCategoryDetails(category: ApiSpending.Category): String? {
+    fun getBalanceBreakdownCategoryDetails(category: DBSpending.Category): String? {
         return prefs.balanceReading?.let { reading ->
             val startDate = reading.date!!
             val endDate = prefs.estimateDate
@@ -324,7 +328,7 @@ constructor(private val dao: Dao<ApiSpending, Int>,
      * @param startDate from which the calculation should start. If null, the individual spending start-dates will be used
      * @param endDate up until which the calculations should go. If null, `today` is used
      */
-    private fun calculateBalanceForCategory(category: ApiSpending.Category?, startDate: LocalDate?,
+    private fun calculateBalanceForCategory(category: DBSpending.Category?, startDate: LocalDate?,
                                             endDate: LocalDate): Balance {
         val builder = dao.queryBuilder().where()
         category?.let { builder.`in`(Contract.Spending.TYPE, it).and() }
@@ -337,14 +341,14 @@ constructor(private val dao: Dao<ApiSpending, Int>,
      * @param startDate from which the calculation should start. If null, the start-dates of the spendings will be used
      * @param endDate up until which the calculations should go. If null, `today` is used
      */
-    private fun calculateTotalBalanceExceptForCategory(omittedCategory: ApiSpending.Category,
+    private fun calculateTotalBalanceExceptForCategory(omittedCategory: DBSpending.Category,
                                                        startDate: LocalDate?,
                                                        endDate: LocalDate): Balance {
-        val builder: Where<ApiSpending, Int> = dao.queryBuilder().where().notIn(Contract.Spending.TYPE, omittedCategory)
+        val builder: Where<DBSpending, Int> = dao.queryBuilder().where().notIn(Contract.Spending.TYPE, omittedCategory)
         return calculateBalance(builder, startDate, endDate)
     }
 
-    private fun calculateBalance(builder: Where<ApiSpending, Int>, startDate: LocalDate?, endDate: LocalDate): Balance {
+    private fun calculateBalance(builder: Where<DBSpending, Int>, startDate: LocalDate?, endDate: LocalDate): Balance {
         val spendingEvents = mutableListOf<SpendingEvent>()
         val totalBalance = Balance(0f, 0f, null, null)
         val spendings = dao.query(builder.prepare()).map(mapper::map)

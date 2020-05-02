@@ -17,7 +17,7 @@ import com.gb.canibuyit.feature.monzo.TRANSACTION_HISTORY_LENGTH_DAYS
 import com.gb.canibuyit.feature.monzo.data.MonzoInteractor
 import com.gb.canibuyit.feature.project.data.ProjectInteractor
 import com.gb.canibuyit.feature.spending.data.SpendingInteractor
-import com.gb.canibuyit.feature.spending.persistence.model.ApiSpending
+import com.gb.canibuyit.feature.spending.persistence.model.DBSpending
 import com.gb.canibuyit.util.Logger
 import com.gb.canibuyit.util.formatSimpleDateTime
 import io.reactivex.functions.Consumer
@@ -87,10 +87,10 @@ constructor(private val monzoInteractor: MonzoInteractor,
         screen.showBalanceBreakdown(spendingInteractor.getBalanceBreakdown())
     }
 
-    fun onBalanceBreakdownItemClicked(category: ApiSpending.Category) {
+    fun onBalanceBreakdownItemClicked(category: DBSpending.Category) {
         val details = spendingInteractor.getBalanceBreakdownCategoryDetails(category)
         details?.let {
-            screen.showDialog(category.name.toLowerCase().capitalize(), it)
+            screen.showDialog(category.label, it)
         } ?: let { screen.showToast("Unavailable") }
     }
 

@@ -5,7 +5,7 @@ import com.gb.canibuyit.feature.spending.model.div
 import com.gb.canibuyit.feature.spending.model.overlap
 import com.gb.canibuyit.feature.spending.model.plus
 import com.gb.canibuyit.feature.spending.model.times
-import com.gb.canibuyit.feature.spending.persistence.model.ApiSpending
+import com.gb.canibuyit.feature.spending.persistence.model.DBSpending
 import java.time.LocalDate
 
 object BalanceCalculator {
@@ -49,8 +49,8 @@ object BalanceCalculator {
                         Pair(
                             Pair(start ?: spending.fromStartDate, end.plusDays(1)),
                             Pair(movingStart, movingEnd.plusDays(1))
-                        ).overlap(ApiSpending.Cycle.DAYS)
-                    val fraction = overlap / (Pair(movingStart, movingEnd.plusDays(1)) / ApiSpending.Cycle.DAYS)
+                        ).overlap(DBSpending.Cycle.DAYS)
+                    val fraction = overlap / (Pair(movingStart, movingEnd.plusDays(1)) / DBSpending.Cycle.DAYS)
                     target += fraction * targetIncrement
                     total += fraction * spending.value.toFloat()
                     spendingEvents.add(SpendingEvent(movingStart, movingEnd, fraction * spending.value.toFloat(), total))
