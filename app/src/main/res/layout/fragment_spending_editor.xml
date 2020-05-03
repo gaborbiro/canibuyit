@@ -1,54 +1,55 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_width="match_parent">
+        android:fadeScrollbars="false"
+        android:scrollbars="vertical">
 
     <androidx.constraintlayout.widget.ConstraintLayout
-            android:gravity="center_vertical"
-            android:layout_height="wrap_content"
             android:layout_width="match_parent"
-            android:paddingBottom="@dimen/default_margin">
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical">
 
         <androidx.constraintlayout.widget.Guideline
                 android:id="@+id/left_guideline"
-                android:layout_height="wrap_content"
                 android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:orientation="vertical"
                 app:layout_constraintGuide_begin="@dimen/large_margin" />
 
         <androidx.constraintlayout.widget.Guideline
                 android:id="@+id/right_guideline"
-                android:layout_height="wrap_content"
                 android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:orientation="vertical"
                 app:layout_constraintGuide_end="@dimen/large_margin" />
 
         <androidx.constraintlayout.widget.Barrier
                 android:id="@+id/column1"
-                android:layout_height="wrap_content"
                 android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 app:barrierDirection="end"
                 app:constraint_referenced_ids="enabled_switch,category_lbl,cycle_multiplier_lbl,average_lbl,target_lbl,period_lbl,occurrence_count_lbl" />
 
         <Switch
-                android:checked="true"
                 android:id="@+id/enabled_switch"
-                android:layout_height="wrap_content"
                 android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
                 app:layout_constraintBottom_toBottomOf="@id/name_input"
                 app:layout_constraintStart_toEndOf="@id/left_guideline"
                 app:layout_constraintTop_toTopOf="@id/name_input" />
 
         <EditText
-                android:hint="@string/name"
                 android:id="@+id/name_input"
-                android:imeOptions="actionNext"
-                android:inputType="textCapSentences"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/default_margin"
                 android:layout_marginTop="@dimen/default_margin"
-                android:layout_width="0dp"
+                android:hint="@string/name"
+                android:imeOptions="actionNext"
+                android:inputType="textCapSentences"
                 android:lines="1"
                 android:selectAllOnFocus="true"
                 app:layout_constraintEnd_toStartOf="@id/name_override_cb"
@@ -56,21 +57,21 @@
                 app:layout_constraintTop_toTopOf="parent" />
 
         <CheckBox
-                style="@style/cloud"
                 android:id="@+id/name_override_cb"
+                style="@style/cloud"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/large_margin"
-                android:layout_width="wrap_content"
                 app:layout_constraintBottom_toBottomOf="@id/name_input"
                 app:layout_constraintEnd_toStartOf="@id/right_guideline"
                 app:layout_constraintStart_toEndOf="@id/name_input"
                 app:layout_constraintTop_toTopOf="@id/name_input" />
 
         <TextView
-                style="@style/FormHeading"
                 android:id="@+id/category_lbl"
-                android:layout_height="wrap_content"
+                style="@style/FormHeading"
                 android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:text="Category*:"
                 app:layout_constraintBottom_toBottomOf="@id/category_picker"
                 app:layout_constraintStart_toEndOf="@id/left_guideline"
@@ -78,30 +79,30 @@
 
         <Spinner
                 android:id="@+id/category_picker"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/default_margin"
                 android:layout_marginTop="@dimen/large_margin"
-                android:layout_width="0dp"
                 app:layout_constraintEnd_toStartOf="@id/category_override_cb"
                 app:layout_constraintStart_toEndOf="@id/column1"
                 app:layout_constraintTop_toBottomOf="@id/name_input" />
 
         <CheckBox
-                style="@style/cloud"
                 android:id="@+id/category_override_cb"
+                style="@style/cloud"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/large_margin"
-                android:layout_width="wrap_content"
                 app:layout_constraintBottom_toBottomOf="@id/category_picker"
                 app:layout_constraintEnd_toStartOf="@id/right_guideline"
                 app:layout_constraintStart_toEndOf="@id/category_picker"
                 app:layout_constraintTop_toTopOf="@id/category_picker" />
 
         <TextView
-                style="@style/FormHeading"
                 android:id="@+id/cycle_multiplier_lbl"
-                android:layout_height="wrap_content"
+                style="@style/FormHeading"
                 android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:text="Once every* "
                 app:layout_constraintBottom_toBottomOf="@id/cycle_multiplier_input"
                 app:layout_constraintStart_toEndOf="@id/left_guideline"
@@ -109,47 +110,48 @@
 
         <EditText
                 android:id="@+id/cycle_multiplier_input"
-                android:imeOptions="actionNext"
-                android:inputType="number"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/default_margin"
                 android:layout_marginTop="@dimen/large_margin"
-                android:layout_width="wrap_content"
+                android:imeOptions="actionNext"
+                android:inputType="number"
                 android:lines="1"
                 android:minWidth="32dp"
                 android:selectAllOnFocus="true"
                 android:text="1"
+                android:textStyle="bold"
                 app:layout_constraintEnd_toStartOf="@id/cycle_picker"
                 app:layout_constraintStart_toEndOf="@id/column1"
                 app:layout_constraintTop_toBottomOf="@id/category_picker" />
 
         <Spinner
                 android:id="@+id/cycle_picker"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/default_margin"
-                android:layout_width="0dp"
                 app:layout_constraintBottom_toBottomOf="@id/cycle_multiplier_input"
                 app:layout_constraintEnd_toStartOf="@id/cycle_override_cb"
                 app:layout_constraintStart_toEndOf="@id/cycle_multiplier_input"
                 app:layout_constraintTop_toTopOf="@id/cycle_multiplier_input" />
 
         <CheckBox
-                style="@style/cloud"
                 android:id="@+id/cycle_override_cb"
+                style="@style/cloud"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/large_margin"
-                android:layout_width="wrap_content"
                 app:layout_constraintBottom_toBottomOf="@id/cycle_multiplier_input"
                 app:layout_constraintEnd_toStartOf="@id/right_guideline"
                 app:layout_constraintStart_toEndOf="@id/cycle_picker"
                 app:layout_constraintTop_toTopOf="@id/cycle_multiplier_input" />
 
         <TextView
-                style="@style/FormHeading"
                 android:id="@+id/average_lbl"
-                android:layout_centerVertical="true"
-                android:layout_height="wrap_content"
+                style="@style/FormHeading"
                 android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
                 android:text="Amount/Average*:"
                 app:layout_constraintBottom_toBottomOf="@id/average_input"
                 app:layout_constraintStart_toEndOf="@id/left_guideline"
@@ -157,27 +159,29 @@
 
         <EditText
                 android:id="@+id/average_input"
-                android:imeOptions="actionNext"
-                android:inputType="numberDecimal|numberSigned"
-                android:layout_centerVertical="true"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
                 android:layout_marginStart="@dimen/default_margin"
                 android:layout_marginTop="@dimen/large_margin"
-                android:layout_width="wrap_content"
+                android:imeOptions="actionNext"
+                android:inputType="numberDecimal|numberSigned"
                 android:lines="1"
                 android:minWidth="64dp"
                 android:nextFocusDown="@+id/category_picker"
                 android:selectAllOnFocus="true"
+                android:textStyle="bold"
                 app:layout_constraintEnd_toStartOf="@id/average_cycle_lbl"
                 app:layout_constraintStart_toEndOf="@id/column1"
                 app:layout_constraintTop_toBottomOf="@id/cycle_multiplier_input" />
 
         <TextView
                 android:id="@+id/average_cycle_lbl"
-                android:layout_centerVertical="true"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/default_margin"
                 android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="@dimen/default_margin"
+                android:textStyle="bold"
                 app:layout_constraintBottom_toBottomOf="@id/average_input"
                 app:layout_constraintEnd_toStartOf="@id/average_override_cb"
                 app:layout_constraintStart_toEndOf="@id/average_input"
@@ -185,22 +189,22 @@
                 tools:text="per 2 weeks" />
 
         <CheckBox
-                style="@style/cloud"
                 android:id="@+id/average_override_cb"
-                android:layout_centerVertical="true"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/large_margin"
+                style="@style/cloud"
                 android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="@dimen/large_margin"
                 app:layout_constraintBottom_toBottomOf="@id/average_input"
                 app:layout_constraintEnd_toStartOf="@id/right_guideline"
                 app:layout_constraintStart_toEndOf="@id/average_cycle_lbl"
                 app:layout_constraintTop_toTopOf="@id/average_input" />
 
         <TextView
-                style="@style/FormHeading"
                 android:id="@+id/target_lbl"
-                android:layout_height="wrap_content"
+                style="@style/FormHeading"
                 android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:text="Target:"
                 app:layout_constraintBottom_toBottomOf="@id/target_input"
                 app:layout_constraintStart_toEndOf="@id/left_guideline"
@@ -208,34 +212,36 @@
 
         <EditText
                 android:id="@+id/target_input"
-                android:imeOptions="actionNext"
-                android:inputType="number|numberSigned"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/default_margin"
                 android:layout_marginTop="@dimen/large_margin"
-                android:layout_width="wrap_content"
+                android:imeOptions="actionNext"
+                android:inputType="number|numberSigned"
                 android:lines="1"
                 android:minWidth="64dp"
                 android:nextFocusDown="@+id/category_picker"
                 android:selectAllOnFocus="true"
+                android:textStyle="bold"
                 app:layout_constraintStart_toEndOf="@id/column1"
                 app:layout_constraintTop_toBottomOf="@id/average_input" />
 
         <TextView
                 android:id="@+id/target_cycle_lbl"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/default_margin"
-                android:layout_width="wrap_content"
+                android:textStyle="bold"
                 app:layout_constraintBottom_toBottomOf="@id/target_input"
                 app:layout_constraintStart_toEndOf="@id/target_input"
                 app:layout_constraintTop_toTopOf="@id/target_input"
                 tools:text="per 2 weeks" />
 
         <TextView
-                style="@style/FormHeading"
                 android:id="@+id/period_lbl"
-                android:layout_height="wrap_content"
+                style="@style/FormHeading"
                 android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:text="Period:"
                 app:layout_constraintBottom_toBottomOf="@id/period_date_picker"
                 app:layout_constraintStart_toEndOf="@id/left_guideline"
@@ -243,31 +249,31 @@
 
         <com.gb.canibuyit.feature.spending.ui.DateRangePicker
                 android:id="@+id/period_date_picker"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/default_margin"
                 android:layout_marginTop="@dimen/large_margin"
                 android:layout_weight="1"
-                android:layout_width="0dp"
                 app:layout_constraintEnd_toStartOf="@id/period_override_cb"
                 app:layout_constraintStart_toEndOf="@id/column1"
                 app:layout_constraintTop_toBottomOf="@id/target_input" />
 
         <CheckBox
-                style="@style/cloud"
                 android:id="@+id/period_override_cb"
+                style="@style/cloud"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/large_margin"
-                android:layout_width="wrap_content"
                 app:layout_constraintBottom_toBottomOf="@id/period_date_picker"
                 app:layout_constraintEnd_toStartOf="@id/right_guideline"
                 app:layout_constraintStart_toEndOf="@id/period_date_picker"
                 app:layout_constraintTop_toTopOf="@id/period_date_picker" />
 
         <TextView
-                style="@style/FormHeading"
                 android:id="@+id/occurrence_count_lbl"
-                android:layout_height="wrap_content"
+                style="@style/FormHeading"
                 android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:text="Limit to"
                 app:layout_constraintBottom_toBottomOf="@id/occurrence_count_input"
                 app:layout_constraintStart_toEndOf="@id/left_guideline"
@@ -275,12 +281,12 @@
 
         <EditText
                 android:id="@+id/occurrence_count_input"
-                android:imeOptions="actionNext"
-                android:inputType="number"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/default_margin"
                 android:layout_marginTop="@dimen/large_margin"
-                android:layout_width="0dp"
+                android:imeOptions="actionNext"
+                android:inputType="number"
                 android:lines="1"
                 android:minWidth="32dp"
                 android:selectAllOnFocus="true"
@@ -288,22 +294,22 @@
                 app:layout_constraintTop_toBottomOf="@id/period_date_picker" />
 
         <TextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/default_margin"
-                android:layout_width="wrap_content"
                 android:text="transactions (optional)"
                 app:layout_constraintBottom_toBottomOf="@id/occurrence_count_input"
                 app:layout_constraintStart_toEndOf="@id/occurrence_count_input"
                 app:layout_constraintTop_toTopOf="@id/occurrence_count_input" />
 
         <EditText
-                android:hint="@string/notes"
                 android:id="@+id/notes_input"
-                android:imeOptions="actionDone"
-                android:inputType="textAutoComplete|textMultiLine"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/large_margin"
-                android:layout_width="0dp"
+                android:hint="@string/notes"
+                android:imeOptions="actionDone"
+                android:inputType="textAutoComplete|textMultiLine"
                 android:selectAllOnFocus="true"
                 app:layout_constraintEnd_toStartOf="@id/right_guideline"
                 app:layout_constraintStart_toEndOf="@id/left_guideline"
@@ -311,13 +317,11 @@
 
         <com.github.mikephil.charting.charts.LineChart
                 android:id="@+id/spent_by_cycle_chart"
+                android:layout_width="0dp"
                 android:layout_height="180dp"
                 android:layout_marginTop="@dimen/xlarge_margin"
-                android:layout_marginBottom="@dimen/xlarge_margin"
-                android:layout_width="0dp"
-                app:layout_constraintEnd_toStartOf="@id/right_guideline"
-                app:layout_constraintStart_toEndOf="@id/left_guideline"
-                app:layout_constraintTop_toBottomOf="@id/notes_input"
-                app:layout_constraintBottom_toBottomOf="parent" />
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/notes_input" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

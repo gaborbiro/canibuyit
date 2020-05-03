@@ -1,7 +1,6 @@
 package com.gb.canibuyit.feature.spending.view
 
 import android.graphics.Color
-import android.graphics.Paint
 import android.graphics.Rect
 import android.os.Bundle
 import android.view.*
@@ -31,8 +30,10 @@ import com.github.mikephil.charting.listener.ChartTouchListener
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener
 import kotlinx.android.synthetic.main.fragment_spending_editor.*
 import java.math.BigDecimal
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.format.TextStyle
+import java.time.temporal.ChronoUnit
 import java.util.*
 import javax.inject.Inject
 import kotlin.math.max
@@ -222,6 +223,7 @@ class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen, OnChartValu
             isDragEnabled = true
             setScaleEnabled(true)
             setPinchZoom(true)
+            setExtraOffsets(/*left*/ 25f, /*top*/ 10f, /*right*/ 25f, /*bottom*/ 0f)
             axisRight.isEnabled = false
             axisLeft.isEnabled = false
             axisLeft.setDrawGridLines(false)
@@ -253,7 +255,6 @@ class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen, OnChartValu
 
     private fun setupSpentByCycleChart(spendingsByCycle: List<CycleSpending>, spending: Spending) {
         val entries = mutableListOf<Entry>()
-        val xAxisLabels = Array(spendingsByCycle.size) { "" }
         var minAmount = Float.MAX_VALUE
         var maxAmount = Float.MIN_VALUE
         val averages = mutableListOf<Entry>()
@@ -262,11 +263,26 @@ class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen, OnChartValu
             val value = -cycleSpending.amount.toFloat()
             total += value
             entries.add(Entry(index.toFloat(), value, cycleSpending))
-            xAxisLabels[index] = cycleSpending.from.month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
             minAmount = min(minAmount, value)
             maxAmount = max(maxAmount, value)
             averages.add(Entry(index.toFloat(), total / (index + 1)))
         }
+
+        val range = (spendingsByCycle[0].from..LocalDate.now())
+        val (step, formatter: (LocalDate) -> String) = when (spending.cycle) {
+            DBSpending.Cycle.DAYS -> ChronoUnit.DAYS to fun(date: LocalDate): String { return date.dayOfMonth.toString() }
+            DBSpending.Cycle.WEEKS -> ChronoUnit.WEEKS to fun(date: LocalDate): String {
+                val month = date.month.getDisplayName(TextStyle.NARROW, Locale.getDefault())
+                val monday = date.with(DayOfWeek.MONDAY).dayOfMonth
+                val sunday = date.with(DayOfWeek.SUNDAY).dayOfMonth
+                return "$month $monday-$sunday"
+            }
+            DBSpending.Cycle.MONTHS -> ChronoUnit.MONTHS to fun(date: LocalDate): String { return date.month.getDisplayName(TextStyle.SHORT, Locale.getDefault()) }
+            DBSpending.Cycle.YEARS -> ChronoUnit.YEARS to fun(date: LocalDate): String { return date.year.toString() }
+        }
+        val xAxisLabels = Iterable { range.iterator(step) }
+            .map { formatter.invoke(it) }
+
         spent_by_cycle_chart.data = LineData()
         if (entries.isNotEmpty()) {
             spent_by_cycle_chart.apply {
@@ -285,7 +301,6 @@ class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen, OnChartValu
                     valueFormatter = object : ValueFormatter() {
                         override fun getFormattedValue(value: Float): String {
                             return if (value < 0) "+${-value}" else value.toString()
-
                         }
                     }
                 }.let {
@@ -321,14 +336,19 @@ class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen, OnChartValu
         }
         spent_by_cycle_chart.apply {
             xAxis.apply {
-                axisMaximum = lineData.xMax
                 axisMinimum = 0f
+                axisMaximum = xAxisLabels.size.toFloat() - 1
                 textSize = 12f
-                valueFormatter = IndexAxisValueFormatter(xAxisLabels)
+                valueFormatter = object : ValueFormatter() {
+                    override fun getFormattedValue(value: Float): String {
+                        return xAxisLabels.getOrNull(value.toInt()) ?: ""
+                    }
+                }
+                granularity = 1f
             }
             axisLeft.apply {
-                axisMinimum = min(minAmount * 1.2f, 0f)
-                axisMaximum = maxAmount * 1.2f
+                axisMinimum = min(minAmount * 1.3f, 0f)
+                axisMaximum = maxAmount * 1.3f
             }
             invalidate()
             refreshDrawableState()
