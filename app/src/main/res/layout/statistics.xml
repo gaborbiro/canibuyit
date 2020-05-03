@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_height="wrap_content"
     android:layout_width="match_parent"
-    android:paddingBottom="@dimen/double_margin"
+    android:paddingBottom="@dimen/large_margin"
     android:paddingEnd="@dimen/default_margin"
     android:paddingStart="@dimen/default_margin"
     android:paddingTop="@dimen/default_margin">
@@ -29,7 +29,7 @@
     <TextView
         android:id="@+id/projection_lbl"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/double_margin"
+        android:layout_marginTop="@dimen/large_margin"
         android:layout_width="wrap_content"
         android:lineSpacingExtra="6dp"
         app:layout_constraintStart_toStartOf="parent"

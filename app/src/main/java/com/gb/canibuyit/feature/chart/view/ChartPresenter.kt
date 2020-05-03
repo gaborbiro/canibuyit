@@ -1,12 +1,13 @@
 package com.gb.canibuyit.feature.chart.view
 
 import com.gb.canibuyit.base.view.BasePresenter
-import com.gb.canibuyit.feature.chart.model.ChartInfo
+import com.gb.canibuyit.feature.chart.model.PointInfo
 import com.gb.canibuyit.feature.spending.data.SpendingInteractor
 import com.gb.canibuyit.feature.spending.model.CycleSpending
 import com.github.mikephil.charting.data.Entry
 import java.math.BigDecimal
 import java.time.Month
+import java.time.YearMonth
 import java.time.format.TextStyle
 import java.util.*
 import javax.inject.Inject
@@ -36,25 +37,34 @@ class ChartPresenter @Inject constructor(private val spendingInteractor: Spendin
                             .groupBy { it.spendingId!! }
                             .mapValues {
                                 it.value.groupBy { it.to.year * 12 + it.to.month.value }
-                                    .mapValues { it.value.sumByBigDecimal(CycleSpending::amount) }
+                                    .mapValues {
+                                        val date = with(it.value[0].to) {
+                                            YearMonth.of(year, month)
+                                        }
+                                        val sum = it.value.sumByBigDecimal(CycleSpending::amount)
+                                        sum to date
+                                    }
                             }
 
                     val minMonth = monthMap.keys.min()!!
                     val maxMonth = monthMap.keys.max()!!
 
                     val dataSet: MutableMap<String, List<Entry>> = mutableMapOf() // Category -> [month, spending]
-                    spendingMap.forEach { (spendingId: Int, categorySpending: Map<Int, BigDecimal>) ->
+                    spendingMap.forEach { (spendingId: Int, categorySpending: Map<Int, Pair<BigDecimal, YearMonth>>) ->
                         val type = spendingIds[spendingId]!!.type.label
                         val entries = mutableListOf<Entry>()
-                        categorySpending.forEach { (month: Int, amount: BigDecimal) ->
-                            val value = -amount.toFloat()
+                        categorySpending.forEach { (months: Int, data: Pair<BigDecimal, YearMonth>) ->
+                            val (amount, date) = data
+                            val value = -amount.toInt()
                             val formattedValue = if (value < 0) "+${-value}" else value.toString()
-                            val xValue = (month - minMonth).toFloat()
-                            entries.add(
-                                Entry(xValue, value,
-                                    ChartInfo(infoPopupText = "${type}: $formattedValue",
-                                        pointLabel = "${type.substring((0..2))}: $formattedValue",
-                                        spendigId = spendingId)))
+                            val xValue = (months - minMonth).toFloat()
+                            val info = PointInfo(
+                                infoPopupText = "${type}: $formattedValue",
+                                pointLabel = "${type.substring((0..2))}: $formattedValue",
+                                spendigId = spendingId,
+                                date = date
+                            )
+                            entries.add(Entry(xValue, -amount.toFloat(), info))
                         }
                         dataSet[type] = entries
                     }

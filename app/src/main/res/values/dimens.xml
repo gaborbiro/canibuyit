@@ -2,7 +2,8 @@
 <resources>
     <dimen name="half_margin">4dp</dimen>
     <dimen name="default_margin">8dp</dimen>
-    <dimen name="double_margin">16dp</dimen>
+    <dimen name="large_margin">16dp</dimen>
+    <dimen name="xlarge_margin">24dp</dimen>
 
     <dimen name="statistics_shadow_height">@dimen/default_margin</dimen>
 

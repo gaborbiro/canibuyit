@@ -14,3 +14,6 @@ fun Context.themeAttributeToColor(themeAttributeId: Int, defaultColorId: Int): I
         defaultColorId
     }
 }
+
+fun Float.roundToDecimals(decimals: Int = 2) = "%.${decimals}f".format(this)
+fun Double.roundToDecimals(decimals: Int = 2) = "%.${decimals}f".format(this)

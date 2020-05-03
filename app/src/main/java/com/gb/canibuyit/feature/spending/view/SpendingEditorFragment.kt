@@ -1,15 +1,10 @@
 package com.gb.canibuyit.feature.spending.view
 
 import android.graphics.Color
+import android.graphics.Paint
 import android.graphics.Rect
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.Menu
-import android.view.MenuInflater
-import android.view.MenuItem
-import android.view.MotionEvent
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import androidx.core.view.isVisible
 import com.gb.canibuyit.R
 import com.gb.canibuyit.base.view.BaseFragment
@@ -24,12 +19,7 @@ import com.gb.canibuyit.feature.spending.persistence.model.DBSpending
 import com.gb.canibuyit.feature.spending.ui.InfoMarkerView
 import com.gb.canibuyit.feature.spending.ui.PlusOneAdapter
 import com.gb.canibuyit.feature.spending.ui.ValidationError
-import com.gb.canibuyit.util.DialogUtils
-import com.gb.canibuyit.util.OnChartGestureListenerAdapter
-import com.gb.canibuyit.util.TextChangeListener
-import com.gb.canibuyit.util.formatDayMonthYearWithPrefix
-import com.gb.canibuyit.util.hideKeyboard
-import com.gb.canibuyit.util.orNull
+import com.gb.canibuyit.util.*
 import com.github.mikephil.charting.components.LimitLine
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
@@ -43,7 +33,7 @@ import kotlinx.android.synthetic.main.fragment_spending_editor.*
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.format.TextStyle
-import java.util.Locale
+import java.util.*
 import javax.inject.Inject
 import kotlin.math.max
 import kotlin.math.min
@@ -55,7 +45,8 @@ import kotlin.math.min
  */
 class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen, OnChartValueSelectedListener {
 
-    @Inject internal lateinit var presenter: SpendingEditorPresenter
+    @Inject
+    internal lateinit var presenter: SpendingEditorPresenter
 
     private var originalSpending: Spending? = null
     private var cycleMultiplierChanged: Boolean = false
@@ -181,9 +172,9 @@ class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen, OnChartValu
         cycle_picker.setSelection(spending.cycle.ordinal + 1)
         notes_input.setText(spending.notes)
 
-        spending.cycleSpendings?.let { list ->
-            if (list.isNotEmpty()) {
-                setupSpentByCycleChart(list, spending)
+        spending.cycleSpendings?.let { spendingsPerCycle ->
+            if (spendingsPerCycle.isNotEmpty()) {
+                setupSpentByCycleChart(spendingsPerCycle, spending)
                 spent_by_cycle_chart.isVisible = true
             } else {
                 spent_by_cycle_chart.isVisible = false
@@ -225,17 +216,16 @@ class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen, OnChartValu
             setTouchEnabled(true)
             setOnChartValueSelectedListener(this@SpendingEditorFragment)
             setDrawGridBackground(false)
-            val mv = InfoMarkerView(context)
-            mv.chartView = this
-            marker = mv
+            marker = InfoMarkerView(context).also {
+                it.chartView = this
+            }
             isDragEnabled = true
             setScaleEnabled(true)
             setPinchZoom(true)
             axisRight.isEnabled = false
+            axisLeft.isEnabled = false
+            axisLeft.setDrawGridLines(false)
             xAxis.setDrawGridLines(false)
-            axisLeft.apply {
-                setDrawGridLines(false)
-            }
             setDrawBorders(false)
             onChartGestureListener = object : OnChartGestureListenerAdapter() {
 
@@ -266,62 +256,83 @@ class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen, OnChartValu
         val xAxisLabels = Array(spendingsByCycle.size) { "" }
         var minAmount = Float.MAX_VALUE
         var maxAmount = Float.MIN_VALUE
+        val averages = mutableListOf<Entry>()
+        var total = 0f
         spendingsByCycle.forEachIndexed { index, cycleSpending ->
             val value = -cycleSpending.amount.toFloat()
+            total += value
             entries.add(Entry(index.toFloat(), value, cycleSpending))
             xAxisLabels[index] = cycleSpending.from.month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
             minAmount = min(minAmount, value)
             maxAmount = max(maxAmount, value)
+            averages.add(Entry(index.toFloat(), total / (index + 1)))
         }
+        spent_by_cycle_chart.data = LineData()
         if (entries.isNotEmpty()) {
             spent_by_cycle_chart.apply {
-                LineDataSet(entries, "Spent by cycle").apply {
+                LineDataSet(entries, "History").apply {
                     setDrawIcons(false)
                     color = Color.BLACK
                     setCircleColor(color)
                     lineWidth = 1f
-                    circleRadius = 3f
                     setDrawCircleHole(true)
                     circleRadius = 5f
                     circleHoleRadius = 2.5f
-                    valueTextSize = 9f
+                    valueTextSize = 12f
                     setDrawFilled(false)
                     isHighlightEnabled = true
                     enableDashedLine(1f, 10f, 0f)
-                }.let {
-                    it.valueFormatter = object : ValueFormatter() {
+                    valueFormatter = object : ValueFormatter() {
                         override fun getFormattedValue(value: Float): String {
                             return if (value < 0) "+${-value}" else value.toString()
 
                         }
                     }
-                    data = LineData(listOf(it))
+                }.let {
+                    data.addDataSet(it)
                 }
-                xAxis.axisMaximum = lineData.xMax + 0.5f
-                xAxis.axisMinimum = lineData.xMin - 0.5f
-                xAxis.valueFormatter = IndexAxisValueFormatter(xAxisLabels)
-                axisLeft.apply {
-                    axisMinimum = min(minAmount * 1.2f, 0f)
-                    axisMaximum = maxAmount * 1.2f
+            }
+        }
+        if (averages.isNotEmpty()) {
+            spent_by_cycle_chart.apply {
+                LineDataSet(averages, "Average").apply {
+                    setDrawIcons(false)
+                    setDrawValues(false)
+                    setDrawCircles(false)
+                    color = Color.YELLOW
+                    lineWidth = 1f
+                    enableDashedLine(10f, 5f, 1f)
+                }.let {
+                    data.addDataSet(it)
                 }
             }
         }
         spending.target?.toFloat()?.let {
-            val limitLine = LimitLine(-it, "Limit")
-            limitLine.lineWidth = 2f
-            limitLine.labelPosition = LimitLine.LimitLabelPosition.LEFT_BOTTOM
-            limitLine.textSize = 10f
-            limitLine.lineColor = Color.RED
-            spent_by_cycle_chart.axisLeft.addLimitLine(limitLine)
+            LimitLine(-it, "Limit")
+                .apply {
+                    lineWidth = 1f
+                    labelPosition = LimitLine.LimitLabelPosition.LEFT_BOTTOM
+                    textSize = 12f
+                    enableDashedLine(10f, 5f, 1f)
+                    lineColor = Color.RED
+                }.also {
+                    spent_by_cycle_chart.axisLeft.addLimitLine(it)
+                }
         }
-        val averageLine = LimitLine(-spending.value.toFloat(), "Average")
-        averageLine.lineWidth = 2f
-        averageLine.labelPosition = LimitLine.LimitLabelPosition.RIGHT_TOP
-        averageLine.textSize = 10f
-        averageLine.lineColor = Color.YELLOW
-        spent_by_cycle_chart.axisLeft.addLimitLine(averageLine)
-        spent_by_cycle_chart.invalidate()
-        spent_by_cycle_chart.refreshDrawableState()
+        spent_by_cycle_chart.apply {
+            xAxis.apply {
+                axisMaximum = lineData.xMax
+                axisMinimum = 0f
+                textSize = 12f
+                valueFormatter = IndexAxisValueFormatter(xAxisLabels)
+            }
+            axisLeft.apply {
+                axisMinimum = min(minAmount * 1.2f, 0f)
+                axisMaximum = maxAmount * 1.2f
+            }
+            invalidate()
+            refreshDrawableState()
+        }
     }
 
     override fun onNothingSelected() {
@@ -413,7 +424,7 @@ class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen, OnChartValu
             is ContentStatus.ContentUnchanged -> onFinish.invoke()
             is ContentStatus.ContentInvalid -> {
                 DialogUtils.getDiscardDialog(context!!,
-                    contentSaveStatus.validationError.errorMessage, onFinish)
+                        contentSaveStatus.validationError.errorMessage, onFinish)
                     .show()
             }
         }

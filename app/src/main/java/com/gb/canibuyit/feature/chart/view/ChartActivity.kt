@@ -13,12 +13,13 @@ import com.gb.canibuyit.R
 import com.gb.canibuyit.UserPreferences
 import com.gb.canibuyit.base.view.BaseActivity
 import com.gb.canibuyit.di.Injector
-import com.gb.canibuyit.feature.chart.model.ChartInfo
+import com.gb.canibuyit.feature.chart.model.PointInfo
 import com.gb.canibuyit.feature.chart.ui.InfoMarkerView
 import com.gb.canibuyit.feature.spending.persistence.model.DBSpending
 import com.gb.canibuyit.feature.spending.view.SpendingEditorActivity
 import com.gb.canibuyit.util.OnChartGestureListenerAdapter
 import com.gb.canibuyit.util.add
+import com.gb.canibuyit.util.roundToDecimals
 import com.gb.canibuyit.util.themeAttributeToColor
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
@@ -29,6 +30,10 @@ import com.github.mikephil.charting.highlight.Highlight
 import com.github.mikephil.charting.listener.ChartTouchListener
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener
 import kotlinx.android.synthetic.main.activity_chart.*
+import java.time.Year
+import java.time.YearMonth
+import java.time.format.TextStyle
+import java.util.*
 import javax.inject.Inject
 import kotlin.math.roundToInt
 
@@ -113,6 +118,7 @@ class ChartActivity : BaseActivity(), ChartScreen, OnChartValueSelectedListener 
         val displayableSpendings = spendings.filter { dataSetSelection.getOrDefault(it.key, true) }
 
         class ChartInfoCollector(
+            val date: YearMonth,
             val popupCollector: StringBuilder = StringBuilder(),
             var total: Float = 0f
         )
@@ -120,20 +126,32 @@ class ChartActivity : BaseActivity(), ChartScreen, OnChartValueSelectedListener 
         val totalsMap = mutableMapOf<Float, ChartInfoCollector>()
 
         val flattenedSpendings = displayableSpendings.flatMap { entry ->
-            entry.value.map { Triple(it.x, entry.key, it.y) }
-        }.sortedByDescending { it.third }
-        flattenedSpendings.forEach { (x, category, amount) ->
-            totalsMap[x] = (totalsMap[x] ?: ChartInfoCollector()).apply {
-                popupCollector.append("$category: $amount\n")
-                total += amount
+            entry.value.map {
+                Pair(entry.key, it)
+            }
+        }.sortedByDescending { it.second.y }
+        flattenedSpendings.forEach { (category, entry) ->
+            if (totalsMap[entry.x] == null) {
+                totalsMap[entry.x] = ChartInfoCollector((entry.data as PointInfo).date)
+            }
+            totalsMap[entry.x]?.apply {
+                popupCollector.append("$category: ${entry.y}\n")
+                total += entry.y
             }
         }
         val totals = totalsMap
             .map { (x, chartInfoCollector) ->
-                val info = ChartInfo(
-                    infoPopupText = chartInfoCollector.popupCollector.toString(),
+                var month = chartInfoCollector.date.month.getDisplayName(TextStyle.FULL, Locale.getDefault())
+                if (chartInfoCollector.date.year != Year.now().value) {
+                    month += "/" + chartInfoCollector.date.year
+                }
+                val infoPopupText = month + ": " + chartInfoCollector.total.roundToDecimals() +
+                    "\n—————————————————\n" + chartInfoCollector.popupCollector.toString()
+                val info = PointInfo(
+                    infoPopupText = infoPopupText,
                     pointLabel = chartInfoCollector.total.roundToInt().toString(),
-                    spendigId = -1
+                    spendigId = -1,
+                    date = YearMonth.now()
                 )
                 Entry(x, chartInfoCollector.total, info)
             }
@@ -204,7 +222,7 @@ class ChartActivity : BaseActivity(), ChartScreen, OnChartValueSelectedListener 
             isHighlightEnabled = true
             valueFormatter = object : ValueFormatter() {
                 override fun getPointLabel(entry: Entry): String {
-                    return (entry.data as? ChartInfo)?.pointLabel ?: ""
+                    return (entry.data as? PointInfo)?.pointLabel ?: ""
                 }
             }
             return colorInt
@@ -217,7 +235,7 @@ class ChartActivity : BaseActivity(), ChartScreen, OnChartValueSelectedListener 
     }
 
     override fun onValueSelected(e: Entry?, h: Highlight?) {
-        selectedSpendingId = (e?.data as? ChartInfo)?.spendigId ?: -1
+        selectedSpendingId = (e?.data as? PointInfo)?.spendigId ?: -1
     }
 
     companion object {
