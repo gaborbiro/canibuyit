@@ -1,38 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_height="wrap_content"
-    android:layout_width="match_parent"
-    android:paddingBottom="@dimen/large_margin"
-    android:paddingEnd="@dimen/default_margin"
-    android:paddingStart="@dimen/default_margin"
-    android:paddingTop="@dimen/default_margin">
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:paddingBottom="@dimen/large_margin"
+        android:paddingEnd="@dimen/default_margin"
+        android:paddingStart="@dimen/default_margin"
+        android:paddingTop="@dimen/default_margin">
 
     <TextView
-        android:id="@+id/reference_lbl"
-        android:layout_height="wrap_content"
-        android:layout_width="wrap_content"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:text="I had 1800 on the 9th of Nov, 2017" />
+            android:id="@+id/reference_lbl"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="I had 1800 on the 9th of Nov, 2017" />
 
     <TextView
-        android:id="@+id/last_update"
-        android:layout_height="wrap_content"
-        android:layout_width="wrap_content"
-        android:text="Last update:"
-        android:textColor="@color/soba80"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+            android:id="@+id/last_update"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:text="Last update:"
+            android:textColor="@color/soba80"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/projection_lbl"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/large_margin"
-        android:layout_width="wrap_content"
-        android:lineSpacingExtra="6dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/last_update"
-        tools:text="I'm going to have 9336/8471 on 9th of Nov, 2018" />
+            android:id="@+id/projection_lbl"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/large_margin"
+            android:layout_width="wrap_content"
+            android:lineSpacingExtra="6dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/last_update"
+            tools:text="I'm going to have 9336/8471 on 9th of Nov, 2018" />
 </androidx.constraintlayout.widget.ConstraintLayout>

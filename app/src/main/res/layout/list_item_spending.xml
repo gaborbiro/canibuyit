@@ -1,60 +1,60 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.gb.canibuyit.feature.spending.ui.ProgressRelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:background="?android:attr/selectableItemBackground"
-    android:id="@+id/progress"
-    android:layout_height="wrap_content"
-    android:layout_width="match_parent"
-    android:minHeight="64dp"
-    android:orientation="vertical">
-
-    <RelativeLayout
-        android:id="@+id/icon_and_name"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:background="?android:attr/selectableItemBackground"
+        android:id="@+id/progress"
         android:layout_height="wrap_content"
         android:layout_width="match_parent"
-        android:padding="@dimen/default_margin">
+        android:minHeight="64dp"
+        android:orientation="vertical">
+
+    <RelativeLayout
+            android:id="@+id/icon_and_name"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:padding="@dimen/default_margin">
 
         <ImageView
-            android:id="@+id/icon"
-            android:layout_alignParentRight="true"
-            android:layout_centerVertical="true"
-            android:layout_height="18dp"
-            android:layout_marginLeft="8dp"
-            android:layout_width="18dp"
-            android:visibility="gone"
-            tools:src="@drawable/monzo"
-            tools:visibility="visible" />
+                android:id="@+id/icon"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true"
+                android:layout_height="18dp"
+                android:layout_marginLeft="8dp"
+                android:layout_width="18dp"
+                android:visibility="gone"
+                tools:src="@drawable/monzo"
+                tools:visibility="visible" />
 
         <TextView
-            style="?android:attr/textAppearanceListItem"
-            android:id="@+id/name_lbl"
-            android:layout_centerVertical="true"
-            android:layout_height="wrap_content"
-            android:layout_toLeftOf="@id/icon"
-            android:layout_width="match_parent"
-            tools:text="Eating out" />
+                style="?android:attr/textAppearanceListItem"
+                android:id="@+id/name_lbl"
+                android:layout_centerVertical="true"
+                android:layout_height="wrap_content"
+                android:layout_toLeftOf="@id/icon"
+                android:layout_width="match_parent"
+                tools:text="Eating out" />
     </RelativeLayout>
 
     <TextView
-        style="?android:attr/textAppearanceListItemSmall"
-        android:id="@+id/spent"
-        android:layout_below="@id/icon_and_name"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="@dimen/default_margin"
-        android:layout_marginLeft="@dimen/default_margin"
-        android:layout_marginRight="@dimen/default_margin"
-        android:layout_width="wrap_content"
-        tools:text="+12.34 this month" />
+            style="?android:attr/textAppearanceListItemSmall"
+            android:id="@+id/spent"
+            android:layout_below="@id/icon_and_name"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/default_margin"
+            android:layout_marginLeft="@dimen/default_margin"
+            android:layout_marginRight="@dimen/default_margin"
+            android:layout_width="wrap_content"
+            tools:text="+12.34 this month" />
 
     <TextView
-        style="?android:attr/textAppearanceListItemSmall"
-        android:id="@+id/saving"
-        android:layout_alignParentEnd="true"
-        android:layout_below="@id/icon_and_name"
-        android:layout_height="wrap_content"
-        android:layout_marginRight="@dimen/default_margin"
-        android:layout_width="wrap_content"
-        android:visibility="gone"
-        tools:visibility="visible"
-        tools:text="Saved up: 46.45" />
+            style="?android:attr/textAppearanceListItemSmall"
+            android:id="@+id/saving"
+            android:layout_alignParentEnd="true"
+            android:layout_below="@id/icon_and_name"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="@dimen/default_margin"
+            android:layout_width="wrap_content"
+            android:visibility="gone"
+            tools:visibility="visible"
+            tools:text="Saved up: 46.45" />
 </com.gb.canibuyit.feature.spending.ui.ProgressRelativeLayout>
