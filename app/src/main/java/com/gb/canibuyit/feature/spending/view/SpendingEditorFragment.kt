@@ -23,7 +23,6 @@ import com.github.mikephil.charting.components.LimitLine
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
-import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import com.github.mikephil.charting.formatter.ValueFormatter
 import com.github.mikephil.charting.highlight.Highlight
 import com.github.mikephil.charting.listener.ChartTouchListener
@@ -36,8 +35,7 @@ import java.time.format.TextStyle
 import java.time.temporal.ChronoUnit
 import java.util.*
 import javax.inject.Inject
-import kotlin.math.max
-import kotlin.math.min
+import kotlin.math.*
 
 /**
  * A fragment representing a single Spending detail screen. This fragment is either
@@ -256,7 +254,7 @@ class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen, OnChartValu
     private fun setupSpentByCycleChart(spendingsByCycle: List<CycleSpending>, spending: Spending) {
         val entries = mutableListOf<Entry>()
         var minAmount = Float.MAX_VALUE
-        var maxAmount = Float.MIN_VALUE
+        var maxAmount = -Float.MAX_VALUE
         val averages = mutableListOf<Entry>()
         var total = 0f
         spendingsByCycle.forEachIndexed { index, cycleSpending ->
@@ -272,7 +270,7 @@ class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen, OnChartValu
         val (step, formatter: (LocalDate) -> String) = when (spending.cycle) {
             DBSpending.Cycle.DAYS -> ChronoUnit.DAYS to fun(date: LocalDate): String { return date.dayOfMonth.toString() }
             DBSpending.Cycle.WEEKS -> ChronoUnit.WEEKS to fun(date: LocalDate): String {
-                val month = date.month.getDisplayName(TextStyle.NARROW, Locale.getDefault())
+                val month = date.month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
                 val monday = date.with(DayOfWeek.MONDAY).dayOfMonth
                 val sunday = date.with(DayOfWeek.SUNDAY).dayOfMonth
                 return "$month $monday-$sunday"
@@ -300,7 +298,7 @@ class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen, OnChartValu
                     enableDashedLine(1f, 10f, 0f)
                     valueFormatter = object : ValueFormatter() {
                         override fun getFormattedValue(value: Float): String {
-                            return if (value < 0) "+${-value}" else value.toString()
+                            return value.roundToDecimals()
                         }
                     }
                 }.let {
@@ -347,8 +345,9 @@ class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen, OnChartValu
                 granularity = 1f
             }
             axisLeft.apply {
-                axisMinimum = min(minAmount * 1.3f, 0f)
-                axisMaximum = maxAmount * 1.3f
+                val diff = maxAmount - minAmount
+                axisMinimum = minAmount
+                axisMaximum = maxAmount + diff * 0.2f
             }
             invalidate()
             refreshDrawableState()
