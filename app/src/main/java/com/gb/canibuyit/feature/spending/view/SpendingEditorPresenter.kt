@@ -13,12 +13,9 @@ import com.gb.canibuyit.feature.spending.data.SpendingInteractor
 import com.gb.canibuyit.feature.spending.model.CycleSpending
 import com.gb.canibuyit.feature.spending.model.Spending
 import com.gb.canibuyit.feature.spending.persistence.model.DBSpending
-import com.gb.canibuyit.util.TimeUtils
-import com.gb.canibuyit.util.bold
-import com.gb.canibuyit.util.reverseSign
-import com.gb.canibuyit.util.toMonthDay
+import com.gb.canibuyit.util.*
 import io.reactivex.disposables.Disposable
-import java.math.BigDecimal
+import java.time.LocalDateTime
 import javax.inject.Inject
 import kotlin.math.absoluteValue
 
@@ -73,45 +70,45 @@ class SpendingEditorPresenter @Inject constructor(
     fun onViewSpentByCycleDetails(cycleSpending: CycleSpending, category: DBSpending.Category) {
         disposable?.dispose()
         var title: SpannableString
-        disposable = monzoInteractor.getRawTransactions(ACCOUNT_ID_RETAIL, cycleSpending.from.atStartOfDay(),
-                cycleSpending.to)
-            .subscribe({
-                it.error?.let(this::onError)
-                it.content?.let {
-                    screen.hideCycleSpendDetails()
-                    var inTotal = 0.0
-                    var outTotal = 0.0
-                    val text = it
-                        .filter { it.category == category }
-                        .mapIndexed { index, transaction ->
-                            if (transaction.amount < 0) {
-                                outTotal += transaction.amount
-                            } else {
-                                inTotal += transaction.amount
-                            }
-                            val amount = transaction.amount / 100f
-                            val date = transaction.created.let {
-                                it.format(TimeUtils.dayFormat) + it.dayOfMonth + getDayOfMonthSuffix(
-                                    it.dayOfMonth) + it.format(TimeUtils.restFormat)
-                            }
-                            "${index + 1}. ${date}: ${amount.reverseSign()}\n\"${transaction.description?.replace(
-                                Regex("[\\s]+"), " ")}\"\n[${transaction.originalCategory.capitalize()}]".bold(amount.reverseSign())
-                        }.joinTo(buffer = SpannableStringBuilder(), separator = "\n\n")
+        val since = max(cycleSpending.from.atStartOfDay(), LocalDateTime.now().minusDays(90))
+        val before = cycleSpending.to
+        disposable = monzoInteractor.getRawTransactions(ACCOUNT_ID_RETAIL, since, before).subscribe({
+            it.error?.let(this::onError)
+            it.content?.let {
+                screen.hideCycleSpendDetails()
+                var inTotal = 0.0
+                var outTotal = 0.0
+                val text = it
+                    .filter { it.category == category }
+                    .mapIndexed { index, transaction ->
+                        if (transaction.amount < 0) {
+                            outTotal += transaction.amount
+                        } else {
+                            inTotal += transaction.amount
+                        }
+                        val amount = transaction.amount / 100f
+                        val date = transaction.created.let {
+                            it.format(TimeUtils.dayFormat) + it.dayOfMonth + getDayOfMonthSuffix(
+                                it.dayOfMonth) + it.format(TimeUtils.restFormat)
+                        }
+                        "${index + 1}. ${date}: ${amount.reverseSign()}\n\"${transaction.description?.replace(
+                            Regex("[\\s]+"), " ")}\"\n[${transaction.originalCategory.capitalize()}]".bold(amount.reverseSign())
+                    }.joinTo(buffer = SpannableStringBuilder(), separator = "\n\n")
 
-                    val from = cycleSpending.from.toMonthDay()
-                    val to = cycleSpending.to.toMonthDay()
-                    val out = (outTotal / 100).absoluteValue
-                    val in_ = inTotal / 100
-                    fun Float.reverseSign() = (if (this >= 0) "+" else "-") + absoluteValue.toString()
-                    val total = cycleSpending.amount.toFloat().reverseSign()
-                    title = "Between $from and $to you\nspent: $out and received: $in_\n(Balance: $total)".bold(from, to, in_.toString(), out.toString(), total)
-                    cycleSpending.apply {
-                        screen.showCycleSpendDetails(
-                            title = title,
-                            text = text)
-                    }
+                val from = cycleSpending.from.toMonthDay()
+                val to = cycleSpending.to.toMonthDay()
+                val out = (outTotal / 100).absoluteValue
+                val in_ = inTotal / 100
+                fun Float.reverseSign() = (if (this >= 0) "+" else "-") + absoluteValue.toString()
+                val total = cycleSpending.amount.toFloat().reverseSign()
+                title = "Between $from and $to you\nspent: $out and received: $in_\n(Balance: $total)".bold(from, to, in_.toString(), out.toString(), total)
+                cycleSpending.apply {
+                    screen.showCycleSpendDetails(
+                        title = title,
+                        text = text)
                 }
-            }, this::onError)
+            }
+        }, this::onError)
         cycleSpending.apply {
             screen.showCycleSpendDetails(
                 title = SpannableStringBuilder("Loading..."),

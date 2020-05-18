@@ -60,11 +60,11 @@ class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi,
             }
     }
 
-    fun getRawTransactions(accountId: String, since: LocalDateTime? = null,
-                           before: LocalDate): Single<List<Transaction>> {
+    fun getRawTransactions(accountId: String, since: LocalDateTime? = null, before: LocalDate): Single<List<Transaction>> {
         val sinceStr = since?.let { FORMAT_RFC3339.format(it) }
         val beforeStr = FORMAT_RFC3339.format(
-            before.plusDays(1).atStartOfDay(ZoneId.systemDefault()).minusNanos(1))
+            before.plusDays(1).atStartOfDay(ZoneId.systemDefault()).minusNanos(1)
+        )
 
         return Single.zip(
             monzoApi.pots(),

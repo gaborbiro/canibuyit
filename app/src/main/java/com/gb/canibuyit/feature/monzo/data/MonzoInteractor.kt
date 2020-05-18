@@ -76,8 +76,11 @@ constructor(private val schedulerProvider: SchedulerProvider,
             })
     }
 
-    fun getRawTransactions(accountId: String, since: LocalDateTime,
-                           before: LocalDate): Observable<Lce<List<Transaction>>> {
+    fun getRawTransactions(
+        accountId: String,
+        since: LocalDateTime,
+        before: LocalDate
+    ): Observable<Lce<List<Transaction>>> {
         return monzoRepository.getRawTransactions(accountId, since, before)
             .toObservable()
             .map(this::mapSuccess)
