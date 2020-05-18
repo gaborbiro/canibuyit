@@ -10,5 +10,5 @@ import com.github.mikephil.charting.data.Entry
 @SuppressLint("ViewConstructor")
 class InfoMarkerView(context: Context) : ClickableMarkerView(context) {
 
-    override fun text(e: Entry?) = (e?.data as? CycleSpending)?.amount?.reverseSign() ?: ""
+    override fun text(e: Entry?) = (e?.data as? CycleSpending)?.amount?.toFloat()?.reverseSign() ?: ""
 }

@@ -229,7 +229,12 @@ class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen, OnChartValu
             axisLeft.isEnabled = true
             axisLeft.setDrawZeroLine(true)
             axisLeft.setDrawGridLines(false)
-            axisLeft.setDrawLabels(false)
+            axisLeft.setDrawLabels(true)
+            axisLeft.valueFormatter = object : ValueFormatter() {
+                override fun getFormattedValue(value: Float): String {
+                    return if (value == 0f) "0" else ""
+                }
+            }
             xAxis.setDrawGridLines(true)
             setDrawBorders(true)
             onChartGestureListener = object : OnChartGestureListenerAdapter() {
@@ -270,21 +275,44 @@ class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen, OnChartValu
             maxAmount = max(maxAmount, value)
             averages.add(Entry(index.toFloat(), total / (index + 1)))
         }
-
-        val range = (spendingsByCycle[0].from..LocalDate.now())
-        val (step, formatter: (LocalDate) -> String) = when (spending.cycle) {
-            DBSpending.Cycle.DAYS -> ChronoUnit.DAYS to fun(date: LocalDate): String { return date.dayOfMonth.toString() }
-            DBSpending.Cycle.WEEKS -> ChronoUnit.WEEKS to fun(date: LocalDate): String {
+        val first = spendingsByCycle[0].from
+        val last = LocalDate.now()
+        val range = (first..last)
+        val (step, formatter: (Int, LocalDate) -> String) = when (spending.cycle) {
+            DBSpending.Cycle.DAYS -> ChronoUnit.DAYS to fun(_, date: LocalDate): String { return date.dayOfMonth.toString() }
+            DBSpending.Cycle.WEEKS -> ChronoUnit.WEEKS to fun(_, date: LocalDate): String {
                 val month = date.month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
                 val monday = date.with(DayOfWeek.MONDAY).dayOfMonth
                 val sunday = date.with(DayOfWeek.SUNDAY).dayOfMonth
                 return "$month $monday-$sunday"
             }
-            DBSpending.Cycle.MONTHS -> ChronoUnit.MONTHS to fun(date: LocalDate): String { return date.month.getDisplayName(TextStyle.SHORT, Locale.getDefault()) }
-            DBSpending.Cycle.YEARS -> ChronoUnit.YEARS to fun(date: LocalDate): String { return date.year.toString() }
+            DBSpending.Cycle.MONTHS -> {
+                ChronoUnit.MONTHS to fun(index: Int, date: LocalDate): String {
+                    return when {
+                        index == 0 -> {
+                            val month = date.month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+                            val start = date.dayOfMonth
+                            val end = date.lengthOfMonth()
+                            "$month $start-$end"
+                        }
+                        date.month == last.month -> {
+                            val month = date.month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+                            val start = "1"
+                            val end = last.dayOfMonth
+                            "$month $start-$end"
+                        }
+                        else -> {
+                            date.month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+                        }
+                    }
+                }
+            }
+            DBSpending.Cycle.YEARS -> ChronoUnit.YEARS to fun(_, date: LocalDate): String {
+                return date.year.toString()
+            }
         }
         val xAxisLabels = Iterable { range.iterator(step) }
-            .map { formatter.invoke(it) }
+            .mapIndexed { index, localDate -> formatter.invoke(index, localDate) }
 
         spent_by_cycle_chart.data = LineData()
         if (entries.isNotEmpty()) {

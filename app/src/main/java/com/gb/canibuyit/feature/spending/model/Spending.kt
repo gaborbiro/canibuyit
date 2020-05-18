@@ -61,7 +61,7 @@ class Spending(var id: Int? = null,
         if (name != other.name) return ComparisonResult.Different
         if (notes != other.notes) return ComparisonResult.Different
         if (type != other.type) return ComparisonResult.Different
-        if (value != other.value) return ComparisonResult.Different
+        if (value.toFloat() != other.value.toFloat()) return ComparisonResult.Different
         if (!ignoreDates) {
             if (fromStartDate != other.fromStartDate) return ComparisonResult.DifferentSensitive
             if (fromEndDate != other.fromEndDate) return ComparisonResult.DifferentSensitive

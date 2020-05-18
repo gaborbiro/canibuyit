@@ -18,19 +18,17 @@ fun LocalDate.toMonthDay(): String = if (this.year < Year.now().value) format(Ti
 fun ClosedRange<LocalDate>.iterator(step: ChronoUnit): Iterator<LocalDate> {
 
     return object : Iterator<LocalDate> {
-        private var next = this@iterator.start
-        private val finalElement = this@iterator.endInclusive
-        private var hasNext = !next.isAfter(this@iterator.endInclusive)
-        override fun hasNext(): Boolean = hasNext
+        private var next = start
+        private var hasNext = next <= endInclusive
+
+        override fun hasNext(): Boolean {
+            return hasNext
+        }
 
         override fun next(): LocalDate {
             val value = next
-            if (value >= finalElement) {
-                hasNext = false
-            } else {
-                next = next.plus(1, step)
-            }
-            ChronoUnit.MONTHS
+            next = next.plus(1, step)
+            hasNext = next <= endInclusive
             return value
         }
     }

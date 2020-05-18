@@ -102,8 +102,8 @@ class SpendingEditorPresenter @Inject constructor(
                     val to = cycleSpending.to.toMonthDay()
                     val out = (outTotal / 100).absoluteValue
                     val in_ = inTotal / 100
-                    fun BigDecimal.reverseSign() = (if (this >= BigDecimal.ZERO) "+" else "-") + abs().toString()
-                    val total = cycleSpending.amount.reverseSign()
+                    fun Float.reverseSign() = (if (this >= 0) "+" else "-") + absoluteValue.toString()
+                    val total = cycleSpending.amount.toFloat().reverseSign()
                     title = "Between $from and $to you\nspent: $out and received: $in_\n(Balance: $total)".bold(from, to, in_.toString(), out.toString(), total)
                     cycleSpending.apply {
                         screen.showCycleSpendDetails(
