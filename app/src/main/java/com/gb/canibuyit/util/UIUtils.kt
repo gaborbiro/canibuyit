@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.TypedValue
 import androidx.core.content.ContextCompat
 
+
 fun Context.themeAttributeToColor(themeAttributeId: Int, defaultColorId: Int): Int {
     val outValue = TypedValue()
     val theme = theme
@@ -14,6 +15,3 @@ fun Context.themeAttributeToColor(themeAttributeId: Int, defaultColorId: Int): I
         defaultColorId
     }
 }
-
-fun Float.roundToDecimals(decimals: Int = 2) = "%.${decimals}f".format(this)
-fun Double.roundToDecimals(decimals: Int = 2) = "%.${decimals}f".format(this)

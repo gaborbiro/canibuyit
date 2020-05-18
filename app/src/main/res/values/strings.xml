@@ -10,7 +10,7 @@
     <string name="delete">Delete</string>
     <string name="average">%1$s (%2$s)</string>
 
-    <string name="spending">%1$s/%2$d %3$s</string>
+    <string name="spending">%1$s/%2$s %3$s</string>
     <string name="spending_no_target">%1$s %2$s</string>
     <plurals name="year">
         <item quantity="one">year</item>

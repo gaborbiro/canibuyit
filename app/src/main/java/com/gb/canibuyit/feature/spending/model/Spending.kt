@@ -52,10 +52,9 @@ class Spending(var id: Int? = null,
             return value / cycle.toMonths().toBigDecimal() * cycleMultiplier.toBigDecimal()
         }
 
-    fun compareForEditing(other: Any?, ignoreDates: Boolean,
-                          ignoreCycleMultiplier: Boolean): ComparisonResult {
+    fun compareForEditing(other: Any?, ignoreDates: Boolean, ignoreCycleMultiplier: Boolean): ComparisonResult {
         if (this === other) return ComparisonResult.Different
-        if (javaClass != other?.javaClass) return return ComparisonResult.Different
+        if (javaClass != other?.javaClass) return ComparisonResult.Different
 
         other as Spending
 

@@ -214,7 +214,7 @@
                     style="@style/FormHeading"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Target:"
+                    android:text="Limit:"
                     app:layout_constraintBottom_toBottomOf="@id/target_input"
                     app:layout_constraintStart_toEndOf="@id/left_guideline"
                     app:layout_constraintTop_toTopOf="@id/target_input" />
@@ -226,7 +226,7 @@
                     android:layout_marginStart="@dimen/default_margin"
                     android:layout_marginTop="@dimen/large_margin"
                     android:imeOptions="actionNext"
-                    android:inputType="number|numberSigned"
+                    android:inputType="number"
                     android:lines="1"
                     android:minWidth="64dp"
                     android:nextFocusDown="@+id/category_picker"
@@ -326,20 +326,10 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
     </ScrollView>
 
-    <View
-            android:layout_width="0dp"
-            android:layout_height="1dp"
-            android:layout_marginBottom="@dimen/default_margin"
-            android:background="@color/black_alpha_30"
-            app:layout_constraintBottom_toTopOf="@id/spent_by_cycle_chart"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
-
     <com.github.mikephil.charting.charts.LineChart
             android:id="@+id/spent_by_cycle_chart"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_margin="@dimen/default_margin"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"

@@ -9,6 +9,6 @@ interface SpendingEditorScreen : Screen {
     fun onSpendingDeleted()
     fun onSpendingLoaded(spending: Spending)
     fun applyProjectSettingsToScreen(project: Project)
-    fun showCycleSpendDetails(title: CharSequence, text: CharSequence)
+    fun showCycleSpendDetails(title: CharSequence, text: CharSequence?)
     fun hideCycleSpendDetails()
 }

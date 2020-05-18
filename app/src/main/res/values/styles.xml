@@ -16,7 +16,6 @@
     <style name="DialogTitle" parent="TextAppearance.AppCompat.Subhead">
         <item name="android:textSize">18sp</item>
         <item name="android:lineSpacingExtra">6sp</item>
-        <item name="android:textStyle">bold</item>
         <item name="android:textColor">#2e3333</item>
     </style>
 

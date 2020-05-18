@@ -112,7 +112,7 @@ class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen, OnChartValu
             type = if (category_picker.selectedItem is DBSpending.Category) category_picker.selectedItem as DBSpending.Category else throw ValidationError(
                 ValidationError.TYPE_NON_INPUT_FIELD,
                 null, "Please select a category"),
-            value = valueStr.toBigDecimal(),
+            value = valueStr.readReverseSign().toBigDecimal(),
             fromStartDate = fromStartDate,
             fromEndDate = fromEndDate,
             occurrenceCount = occurrence_count_input.text.orNull()?.toString()?.toInt(),
@@ -124,15 +124,16 @@ class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen, OnChartValu
             cycleSpendings = originalSpending?.cycleSpendings,
             // if target was changed, add a new entry to the list or update the last one if it's still from today
             // because savings calculations are done at end of day, today's saving target will be locked down at midnight
-            targets = target_input.text.orNull()?.toString()?.toInt()?.let { target ->
+            targets = target_input.text.orNull()?.toString()?.toInt()?.let { if (it == 0) null else it }?.let { target ->
+                val finalTarget = target_input.text.toString().toInt().absoluteValue * -1
                 val now = LocalDate.now()
                 val targetHistory = originalSpending?.targets?.toMutableMap()
                 targetHistory?.maxBy { it.key }?.let {
-                    if (it.value != target) {
+                    if (it.value != finalTarget) {
                         if (it.key < now) {
-                            targetHistory[now] = target
+                            targetHistory[now] = finalTarget
                         } else {
-                            targetHistory[it.key] = target
+                            targetHistory[it.key] = finalTarget
                         }
                     }
                 }
@@ -144,9 +145,9 @@ class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen, OnChartValu
     private fun setDisplayedSpending(spending: Spending) {
         activity?.title = "${spending.id}: ${spending.name}"
         name_input.setText(spending.name)
-        average_input.setText(spending.value.toPlainString())
+        average_input.setText(spending.value.reverseSign())
         spending.target?.let {
-            target_input.setText(it.toString())
+            target_input.setText(it.reverseSign())
         } ?: let {
             target_input.text = null
         }
@@ -221,12 +222,16 @@ class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen, OnChartValu
             isDragEnabled = true
             setScaleEnabled(true)
             setPinchZoom(true)
-            setExtraOffsets(/*left*/ 25f, /*top*/ 10f, /*right*/ 25f, /*bottom*/ 0f)
-            axisRight.isEnabled = false
-            axisLeft.isEnabled = false
+            setExtraOffsets(/*left*/ 0f, /*top*/ 10f, /*right*/ 0f, /*bottom*/ 0f)
+            axisRight.isEnabled = true
+            axisRight.setDrawGridLines(false)
+            axisRight.setDrawLabels(false)
+            axisLeft.isEnabled = true
+            axisLeft.setDrawZeroLine(true)
             axisLeft.setDrawGridLines(false)
-            xAxis.setDrawGridLines(false)
-            setDrawBorders(false)
+            axisLeft.setDrawLabels(false)
+            xAxis.setDrawGridLines(true)
+            setDrawBorders(true)
             onChartGestureListener = object : OnChartGestureListenerAdapter() {
 
                 override fun onChartSingleTapped(me: MotionEvent) {
@@ -298,7 +303,7 @@ class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen, OnChartValu
                     enableDashedLine(1f, 10f, 0f)
                     valueFormatter = object : ValueFormatter() {
                         override fun getFormattedValue(value: Float): String {
-                            return value.roundToDecimals()
+                            return (if (value < 0) "+" else "") + value.absoluteValue.toInt()
                         }
                     }
                 }.let {
@@ -320,22 +325,25 @@ class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen, OnChartValu
                 }
             }
         }
+        spent_by_cycle_chart.axisLeft.removeAllLimitLines()
         spending.target?.toFloat()?.let {
             LimitLine(-it, "Limit")
                 .apply {
-                    lineWidth = 1f
-                    labelPosition = LimitLine.LimitLabelPosition.LEFT_BOTTOM
+                    labelPosition = LimitLine.LimitLabelPosition.RIGHT_BOTTOM
                     textSize = 12f
-                    enableDashedLine(10f, 5f, 1f)
                     lineColor = Color.RED
+                    lineWidth = 1f
+                    enableDashedLine(10f, 5f, 1f)
                 }.also {
                     spent_by_cycle_chart.axisLeft.addLimitLine(it)
                 }
         }
+
         spent_by_cycle_chart.apply {
+            val padding = if (spending.cycle == DBSpending.Cycle.WEEKS) .6f else .3f
             xAxis.apply {
-                axisMinimum = 0f
-                axisMaximum = xAxisLabels.size.toFloat() - 1
+                axisMinimum = -padding
+                axisMaximum = xAxisLabels.size.toFloat() - padding
                 textSize = 12f
                 valueFormatter = object : ValueFormatter() {
                     override fun getFormattedValue(value: Float): String {
@@ -345,9 +353,14 @@ class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen, OnChartValu
                 granularity = 1f
             }
             axisLeft.apply {
-                val diff = maxAmount - minAmount
-                axisMinimum = minAmount
-                axisMaximum = maxAmount + diff * 0.2f
+                val diff = abs(maxAmount - minAmount)
+                if (diff == 0f) {
+                    axisMinimum = minAmount * .9f // 700
+                    axisMaximum = maxAmount * 1.1f // 1000
+                } else {
+                    axisMinimum = minAmount - (diff * .1f)
+                    axisMaximum = maxAmount + (diff * .2f)
+                }
             }
             invalidate()
             refreshDrawableState()
@@ -391,8 +404,7 @@ class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen, OnChartValu
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.menu_save -> {
-                val contentSaveStatus = shouldContentBeSaved()
-                when (contentSaveStatus) {
+                when (val contentSaveStatus = shouldContentBeSaved()) {
                     is ContentStatus.ContentWasChanged -> {
                         presenter.saveSpending(contentSaveStatus.spending)
                     }
@@ -423,8 +435,7 @@ class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen, OnChartValu
     }
 
     fun onFragmentClose(onFinish: () -> Unit) {
-        val contentSaveStatus = shouldContentBeSaved()
-        when (contentSaveStatus) {
+        when (val contentSaveStatus = shouldContentBeSaved()) {
             is ContentStatus.ContentWasChanged -> {
                 DialogUtils.getSaveOrDiscardDialog(context!!, null, {
                     presenter.saveSpending(contentSaveStatus.spending)
@@ -503,8 +514,8 @@ class SpendingEditorFragment : BaseFragment(), SpendingEditorScreen, OnChartValu
 
     private var cycleSpendDetailsDialog: PromptDialog? = null
 
-    override fun showCycleSpendDetails(title: CharSequence, text: CharSequence) {
-        cycleSpendDetailsDialog = PromptDialog.bigMessageDialog(title, text)
+    override fun showCycleSpendDetails(title: CharSequence, text: CharSequence?) {
+        cycleSpendDetailsDialog = PromptDialog.bigMessageDialog(title, text ?: "")
             .setPositiveButton(android.R.string.ok) {
                 presenter.onCloseSpentByCycleDetails()
             }

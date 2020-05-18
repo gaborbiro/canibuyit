@@ -9,7 +9,9 @@ import com.gb.canibuyit.R
 import com.gb.canibuyit.feature.monzo.MONZO_CATEGORY
 import com.gb.canibuyit.feature.spending.model.Saving
 import com.gb.canibuyit.feature.spending.model.Spending
+import com.gb.canibuyit.util.reverseSign
 import java.math.BigDecimal
+import kotlin.math.absoluteValue
 import com.gb.canibuyit.util.sumBy as sumByBigDecimal
 
 class SpendingViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -18,45 +20,45 @@ class SpendingViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
     private val iconView: ImageView = itemView.findViewById(R.id.icon) as ImageView
     private val spentView: TextView = itemView.findViewById(R.id.spent) as TextView
     private val savingView: TextView = itemView.findViewById(R.id.saving) as TextView
-    private val progressView: ProgressRelativeLayout =
-        itemView.findViewById(R.id.progress) as ProgressRelativeLayout
+    private val progressView: ProgressRelativeLayout = itemView.findViewById(R.id.progress) as ProgressRelativeLayout
 
     fun bind(spending: Spending) {
         val context = nameView.context
         nameView.paint.isStrikeThruText = !spending.enabled
-        val valueStr = (if (spending.value > BigDecimal.ZERO) "+" else "") + spending.value.toString()
-        val perCycleAmount = spending.occurrenceCount?.let {
-            context.getString(R.string.spending_no_target, valueStr,
-                context.resources.getQuantityString(R.plurals.times, it, it)) // -875.00 (once)
-        } ?: let {
-            context.resources.getQuantityString(R.plurals.amount_cycle, spending.cycleMultiplier,
-                valueStr, spending.cycleMultiplier,
-                context.resources.getQuantityText(spending.cycle.strRes,
-                    spending.cycleMultiplier)) // 3045.00 per month
-        }
-        nameView.text =
-            context.getString(R.string.average, spending.name, perCycleAmount) // Rent (875.0)
+        val valueStr = spending.value.reverseSign()
+
+        val perCycleAmount = spending.occurrenceCount
+            ?.let {
+                context.getString(R.string.spending_no_target, valueStr, context.resources.getQuantityString(R.plurals.times, it, it)) // -875.00 (once)
+            }
+            ?: let {
+                context.resources.getQuantityString(R.plurals.amount_cycle, spending.cycleMultiplier,
+                    valueStr, spending.cycleMultiplier,
+                    context.resources.getQuantityText(spending.cycle.strRes, spending.cycleMultiplier)) // 3045.00 per month
+            }
+        nameView.text = context.getString(R.string.average, spending.name, perCycleAmount) // Rent (875.0)
         spending.spent.let { spent ->
-            if (spent != BigDecimal.ZERO) {
-                var cycleStr = ""
-                spending.occurrenceCount?.let {
+            var cycleStr = ""
+            spending.occurrenceCount
+                ?.let {
                     cycleStr =
                         context.resources.getQuantityString(R.plurals.times, it, it) // (10 times)
-                } ?: let {
+                }
+                ?: let {
                     cycleStr = context.resources.getQuantityString(R.plurals.period,
                         spending.cycleMultiplier,
                         spending.cycleMultiplier,
-                        context.resources.getQuantityText(spending.cycle.strRes,
-                            spending.cycleMultiplier)) // this week
+                        context.resources.getQuantityText(spending.cycle.strRes, spending.cycleMultiplier)) // this week
                 }
-                val spentStr = (if (spent > BigDecimal.ZERO) "+" else "") + spent.toString()
-                spending.target?.let {
-                    spentView.text = context.getString(R.string.spending, spentStr, it,
-                        cycleStr) // 82.79/90 this week
-                } ?: let {
-                    spentView.text = context.getString(R.string.spending_no_target, spentStr,
-                        cycleStr) // 0.00 this month
-                }
+            if (spent != BigDecimal.ZERO) {
+                val spentStr = spent.reverseSign()
+                spending.target
+                    ?.let {
+                        spentView.text = context.getString(R.string.spending, spentStr, it.reverseSign(), cycleStr) // 82.79/90 this week
+                    }
+                    ?: let {
+                        spentView.text = context.getString(R.string.spending_no_target, spentStr, cycleStr) // 0.00 this month
+                    }
                 spentView.isVisible = true
             } else {
                 spentView.isVisible = false
@@ -72,8 +74,7 @@ class SpendingViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
             if (spent < BigDecimal.ZERO) {
                 spending.target?.let {
                     progressView.progress = (spent / it.toBigDecimal()).abs().toFloat()
-                    progressView.mode =
-                        if (it < 0.0) ProgressRelativeLayout.Mode.MIN_LIMIT else ProgressRelativeLayout.Mode.MAX_LIMIT
+                    progressView.mode = if (it < 0.0) ProgressRelativeLayout.Mode.MIN_LIMIT else ProgressRelativeLayout.Mode.MAX_LIMIT
                 } ?: let {
                     if (spending.value != BigDecimal.ZERO) {
                         progressView.progress = (spent / spending.value).abs().toFloat()
@@ -86,11 +87,13 @@ class SpendingViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
                 progressView.mode = ProgressRelativeLayout.Mode.OFF
             }
         }
-        spending.savings?.let {
-            it.sumByBigDecimal(Saving::amount).let { saving ->
-                savingView.text = context.getString(R.string.saving, saving)
-                savingView.isVisible = true
+        spending.savings
+            ?.let {
+                it.sumByBigDecimal(Saving::amount).let { saving ->
+                    savingView.text = context.getString(R.string.saving, saving)
+                    savingView.isVisible = true
+                }
             }
-        } ?: run { savingView.isVisible = false }
+            ?: run { savingView.isVisible = false }
     }
 }

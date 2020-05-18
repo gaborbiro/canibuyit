@@ -2,6 +2,7 @@ package com.gb.canibuyit.feature.spending.view
 
 import android.annotation.SuppressLint
 import android.database.sqlite.SQLiteConstraintException
+import android.text.SpannableString
 import android.text.SpannableStringBuilder
 import com.gb.canibuyit.base.view.BasePresenter
 import com.gb.canibuyit.feature.monzo.ACCOUNT_ID_RETAIL
@@ -12,10 +13,14 @@ import com.gb.canibuyit.feature.spending.data.SpendingInteractor
 import com.gb.canibuyit.feature.spending.model.CycleSpending
 import com.gb.canibuyit.feature.spending.model.Spending
 import com.gb.canibuyit.feature.spending.persistence.model.DBSpending
+import com.gb.canibuyit.util.TimeUtils
 import com.gb.canibuyit.util.bold
+import com.gb.canibuyit.util.reverseSign
+import com.gb.canibuyit.util.toMonthDay
 import io.reactivex.disposables.Disposable
-import java.time.format.DateTimeFormatter
+import java.math.BigDecimal
 import javax.inject.Inject
+import kotlin.math.absoluteValue
 
 class SpendingEditorPresenter @Inject constructor(
     private val spendingInteractor: SpendingInteractor,
@@ -25,8 +30,6 @@ class SpendingEditorPresenter @Inject constructor(
 
     private var projectSettings: Project? = null
     private var disposable: Disposable? = null
-    private val dayFormat = DateTimeFormatter.ofPattern("EEEE ")
-    private val restFormat = DateTimeFormatter.ofPattern(" 'of' MMM, HH:mm:ss")
 
     val screen: SpendingEditorScreen by screenDelegate()
 
@@ -69,10 +72,9 @@ class SpendingEditorPresenter @Inject constructor(
 
     fun onViewSpentByCycleDetails(cycleSpending: CycleSpending, category: DBSpending.Category) {
         disposable?.dispose()
-        var cycleSpentText = cycleSpending.run { "$from - $to: $amount" }
-
+        var title: SpannableString
         disposable = monzoInteractor.getRawTransactions(ACCOUNT_ID_RETAIL, cycleSpending.from.atStartOfDay(),
-            cycleSpending.to)
+                cycleSpending.to)
             .subscribe({
                 it.error?.let(this::onError)
                 it.content?.let {
@@ -87,26 +89,33 @@ class SpendingEditorPresenter @Inject constructor(
                             } else {
                                 inTotal += transaction.amount
                             }
-                            val amount = transaction.amount / 100.0
+                            val amount = transaction.amount / 100f
                             val date = transaction.created.let {
-                                it.format(dayFormat) + it.dayOfMonth + getDayOfMonthSuffix(
-                                    it.dayOfMonth) + it.format(restFormat)
+                                it.format(TimeUtils.dayFormat) + it.dayOfMonth + getDayOfMonthSuffix(
+                                    it.dayOfMonth) + it.format(TimeUtils.restFormat)
                             }
-                            "${index + 1}. ${date}: $amount\n\"${transaction.description?.replace(
-                                Regex("[\\s]+"), " ")}\"\n[${transaction.originalCategory.capitalize()}]".bold(amount.toString())
+                            "${index + 1}. ${date}: ${amount.reverseSign()}\n\"${transaction.description?.replace(
+                                Regex("[\\s]+"), " ")}\"\n[${transaction.originalCategory.capitalize()}]".bold(amount.reverseSign())
                         }.joinTo(buffer = SpannableStringBuilder(), separator = "\n\n")
-                    cycleSpentText += "\nOut: ${outTotal / 100} In: ${inTotal / 100}"
+
+                    val from = cycleSpending.from.toMonthDay()
+                    val to = cycleSpending.to.toMonthDay()
+                    val out = (outTotal / 100).absoluteValue
+                    val in_ = inTotal / 100
+                    fun BigDecimal.reverseSign() = (if (this >= BigDecimal.ZERO) "+" else "-") + abs().toString()
+                    val total = cycleSpending.amount.reverseSign()
+                    title = "Between $from and $to you\nspent: $out and received: $in_\n(Balance: $total)".bold(from, to, in_.toString(), out.toString(), total)
                     cycleSpending.apply {
                         screen.showCycleSpendDetails(
-                            title = cycleSpentText,
+                            title = title,
                             text = text)
                     }
                 }
             }, this::onError)
         cycleSpending.apply {
             screen.showCycleSpendDetails(
-                title = cycleSpentText,
-                text = SpannableStringBuilder("Loading..."))
+                title = SpannableStringBuilder("Loading..."),
+                text = null)
         }
     }
 
@@ -114,7 +123,7 @@ class SpendingEditorPresenter @Inject constructor(
         disposable?.dispose()
     }
 
-    fun getDayOfMonthSuffix(n: Int) = when {
+    private fun getDayOfMonthSuffix(n: Int) = when {
         n in 11..13 -> "th"
         n % 10 == 1 -> "st"
         n % 10 == 2 -> "nd"
