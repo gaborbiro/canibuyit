@@ -43,8 +43,7 @@ class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi,
             .map(mapper::mapToLogin)
     }
 
-    fun getSpendings(accountId: String, since: LocalDateTime? = null,
-                     before: LocalDate): Single<List<Spending>> {
+    fun getSpendings(accountId: String, since: LocalDateTime? = null, before: LocalDate? = null): Single<List<Spending>> {
         return getRawTransactions(accountId, since, before)
             .map { transactions: List<Transaction> ->
                 val startDate = since ?: transactions[0].created
@@ -55,16 +54,18 @@ class MonzoRepository @Inject constructor(private val monzoApi: MonzoApi,
                         Logger.d("MonzoRepository",
                             "${transactionsForThatCategory.size} $category")
                         return@mapNotNull convertTransactionsToSpending(category,
-                            transactionsForThatCategory, startDate, before)
+                            transactionsForThatCategory, startDate, before ?: LocalDate.now())
                     }
             }
     }
 
-    fun getRawTransactions(accountId: String, since: LocalDateTime? = null, before: LocalDate): Single<List<Transaction>> {
+    fun getRawTransactions(accountId: String, since: LocalDateTime?, before: LocalDate?): Single<List<Transaction>> {
         val sinceStr = since?.let { FORMAT_RFC3339.format(it) }
-        val beforeStr = FORMAT_RFC3339.format(
-            before.plusDays(1).atStartOfDay(ZoneId.systemDefault()).minusNanos(1)
-        )
+        val beforeStr = before
+            ?.plusDays(1)
+            ?.atStartOfDay(ZoneId.systemDefault())
+            ?.minusNanos(1)
+            ?.let { FORMAT_RFC3339.format(it) }
 
         return Single.zip(
             monzoApi.pots(),

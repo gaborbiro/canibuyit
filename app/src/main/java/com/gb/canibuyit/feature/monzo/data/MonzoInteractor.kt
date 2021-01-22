@@ -56,7 +56,7 @@ constructor(private val schedulerProvider: SchedulerProvider,
         val since = lastXDays?.let {
             LocalDateTime.now().minusDays(it.toLong())
         }
-        return monzoRepository.getSpendings(accountId, since, before = LocalDate.now())
+        return monzoRepository.getSpendings(accountId, since)
             .subscribeOn(schedulerProvider.io())
             .doOnSubscribe {
                 monzoSpendingsSubject.onNext(Lce.loading())

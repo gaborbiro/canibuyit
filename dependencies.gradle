@@ -1,6 +1,6 @@
 ext {
     //Main configuration values
-    gradlePluginVersion = '4.0.0-rc01'
+    gradlePluginVersion = '4.0.0'
     kotlinVersion = '1.3.72'
 
     config = [

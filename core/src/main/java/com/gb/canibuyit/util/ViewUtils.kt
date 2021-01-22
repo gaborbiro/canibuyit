@@ -33,12 +33,6 @@ fun View.showKeyboard() {
     }
 }
 
-fun String.link() = this.span().link()
-
-fun SpannableString.link() = this.apply {
-    setSpan(UnderlineSpan(), 0, length, 0)
-}
-
 fun String.bold(vararg subString: String) = this.span().bold(*subString)
 
 fun SpannableString.bold(vararg subString: String) = this.apply {

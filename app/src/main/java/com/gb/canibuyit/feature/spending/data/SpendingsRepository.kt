@@ -9,6 +9,7 @@ import com.gb.canibuyit.feature.spending.ui.BalanceBreakdown
 import com.gb.canibuyit.util.formatDayMonth
 import com.gb.canibuyit.util.formatDayMonthYear
 import com.gb.canibuyit.util.fromJson
+import com.gb.canibuyit.util.reverseSign
 import com.google.gson.Gson
 import com.j256.ormlite.dao.Dao
 import com.j256.ormlite.stmt.Where
@@ -21,6 +22,7 @@ import java.sql.SQLException
 import java.time.LocalDate
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.math.min
 
 @Singleton
 class SpendingsRepository @Inject
@@ -230,19 +232,19 @@ constructor(private val dao: Dao<DBSpending, Int>,
                     .sortedByDescending { Math.abs(it.second.amount) }
                     .forEach { (category, balance) ->
                         val name = balance.spending?.name
-                            ?: category.name.substring(0, Math.min(10, category.name.length)).toLowerCase().capitalize()
-                        val amount: String = "%1\$.0f".format(balance.amount)
+                            ?: category.name.substring(0, min(10, category.name.length)).toLowerCase().capitalize()
+                        val amount: String = balance.amount.reverseSign()
 
                         result.add(Pair(category, if (category != DBSpending.Category.INCOME) {
                             val percent = balance.amount / totalExpense.amount * 100
-                            "%1\$s: %2\$s (%3\$.1f%%)".format(name, amount, percent)
+                            "%1\$s: %2\$s (%3\$s%%)".format(name, amount, (-percent).reverseSign())
                         } else {
                             "%1\$s: %2\$s".format(name, amount)
                         }))
                     }
                 val totalIncome = calculateBalanceForCategory(category = DBSpending.Category.INCOME, startDate = startDate, endDate = endDate)
-                totalIncomeStr = "Tots. in: ${totalIncome.amount}"
-                totalExpenseStr = "Tots. out: ${totalExpense.amount}"
+                totalIncomeStr = "Tots. in: ${totalIncome.amount.reverseSign()}"
+                totalExpenseStr = "Tots. out: ${totalExpense.amount.reverseSign()}"
             } catch (e: Throwable) {
                 throw DomainException("Error calculating balance breakdown", e)
             }
